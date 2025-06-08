@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { TagInput } from '@/components/TagInput';
+import { FileImport } from '@/components/FileImport';
 
 interface BookFormProps {
   initialBook: Book;
@@ -20,6 +22,18 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       ...prev, 
       [name]: name === 'points' ? parseInt(value) || 0 : value 
     }));
+  };
+
+  const handleTagsChange = (tags: string[]) => {
+    setBook(prev => ({ ...prev, tags }));
+  };
+
+  const handleCoverImport = (coverData: string) => {
+    setBook(prev => ({ ...prev, coverUrl: coverData }));
+  };
+
+  const handleContentImport = (content: string) => {
+    setBook(prev => ({ ...prev, content }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -55,14 +69,17 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
 
       <div className="grid gap-2">
         <Label htmlFor="coverUrl">Cover Image URL</Label>
-        <Input
-          id="coverUrl"
-          name="coverUrl"
-          value={book.coverUrl}
-          onChange={handleChange}
-          placeholder="Enter URL for cover image"
-          required
-        />
+        <div className="space-y-2">
+          <Input
+            id="coverUrl"
+            name="coverUrl"
+            value={book.coverUrl}
+            onChange={handleChange}
+            placeholder="Enter URL for cover image or import file"
+            required
+          />
+          <FileImport type="image" onFileImport={handleCoverImport} />
+        </div>
       </div>
 
       <div className="grid gap-2">
@@ -80,16 +97,24 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       </div>
 
       <div className="grid gap-2">
+        <Label>Tags</Label>
+        <TagInput tags={book.tags} onTagsChange={handleTagsChange} />
+      </div>
+
+      <div className="grid gap-2">
         <Label htmlFor="content">Book Content</Label>
-        <Textarea
-          id="content"
-          name="content"
-          value={book.content}
-          onChange={handleChange}
-          placeholder="Enter the book content"
-          className="min-h-[200px]"
-          required
-        />
+        <div className="space-y-2">
+          <Textarea
+            id="content"
+            name="content"
+            value={book.content}
+            onChange={handleChange}
+            placeholder="Enter the book content or import PDF"
+            className="min-h-[200px]"
+            required
+          />
+          <FileImport type="pdf" onFileImport={handleContentImport} />
+        </div>
       </div>
 
       <div className="flex justify-end">

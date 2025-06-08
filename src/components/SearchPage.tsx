@@ -4,7 +4,8 @@ import { Book } from '@/types/Book';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Coins } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Search, Coins, Tag } from 'lucide-react';
 
 interface SearchPageProps {
   books: Book[];
@@ -13,11 +14,33 @@ interface SearchPageProps {
 
 export const SearchPage: React.FC<SearchPageProps> = ({ books, onSelectBook }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
-  const filteredBooks = books.filter(book => 
-    book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    book.author.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get all unique tags from all books
+  const allTags = Array.from(new Set(books.flatMap(book => book.tags || [])));
+  
+  const filteredBooks = books.filter(book => {
+    const matchesSearch = book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         book.author.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesTags = selectedTags.length === 0 || 
+                       selectedTags.every(tag => (book.tags || []).includes(tag));
+    
+    return matchesSearch && matchesTags;
+  });
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedTags([]);
+  };
 
   return (
     <div className="space-y-6 pb-20">
@@ -33,14 +56,44 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onSelectBook }) =
             className="pl-10"
           />
         </div>
+
+        {allTags.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Tag className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Filter by tags:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {allTags.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant={selectedTags.includes(tag) ? "default" : "outline"}
+                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => toggleTag(tag)}
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(searchTerm || selectedTags.length > 0) && (
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {filteredBooks.length} result(s) found
+              {searchTerm && ` for "${searchTerm}"`}
+              {selectedTags.length > 0 && ` with tags: ${selectedTags.join(', ')}`}
+            </p>
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          </div>
+        )}
       </div>
 
-      {searchTerm && (
+      {(searchTerm || selectedTags.length > 0) && (
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {filteredBooks.length} result(s) found for "{searchTerm}"
-          </p>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBooks.map((book) => (
               <Card key={book.id} className="cursor-pointer hover:shadow-lg transition-shadow">
@@ -59,7 +112,16 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onSelectBook }) =
                     </div>
                   </CardHeader>
                 </div>
-                <CardContent className="p-4 pt-0">
+                <CardContent className="p-4 pt-0 space-y-2">
+                  {book.tags && book.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {book.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                   <Button 
                     onClick={() => onSelectBook(book)}
                     className="w-full"
@@ -73,9 +135,15 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onSelectBook }) =
         </div>
       )}
 
-      {searchTerm && filteredBooks.length === 0 && (
+      {(searchTerm || selectedTags.length > 0) && filteredBooks.length === 0 && (
         <div className="text-center py-12 border rounded-lg">
-          <p className="text-muted-foreground">No books found matching your search.</p>
+          <p className="text-muted-foreground">No books found matching your search criteria.</p>
+        </div>
+      )}
+
+      {!searchTerm && selectedTags.length === 0 && (
+        <div className="text-center py-12 border rounded-lg">
+          <p className="text-muted-foreground">Start typing or select tags to search for books.</p>
         </div>
       )}
     </div>

@@ -6,4 +6,5 @@ export interface Book {
   coverUrl: string;
   content: string;
   points: number;
+  tags: string[];
 }

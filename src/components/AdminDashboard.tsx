@@ -4,6 +4,7 @@ import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import { BookForm } from '@/components/BookForm';
 import { Plus, Pencil, Trash2, Coins } from 'lucide-react';
 
@@ -75,13 +76,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
               </CardHeader>
             </div>
-            <CardContent className="p-4 pt-0 flex justify-end gap-2">
-              <Button variant="outline" size="sm" onClick={() => handleOpenEdit(book)}>
-                <Pencil className="h-4 w-4 mr-1" /> Edit
-              </Button>
-              <Button variant="destructive" size="sm" onClick={() => handleDelete(book.id)}>
-                <Trash2 className="h-4 w-4 mr-1" /> Delete
-              </Button>
+            <CardContent className="p-4 pt-0 space-y-2">
+              {book.tags && book.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {book.tags.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => handleOpenEdit(book)}>
+                  <Pencil className="h-4 w-4 mr-1" /> Edit
+                </Button>
+                <Button variant="destructive" size="sm" onClick={() => handleDelete(book.id)}>
+                  <Trash2 className="h-4 w-4 mr-1" /> Delete
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -105,7 +117,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               author: '',
               coverUrl: '',
               content: '',
-              points: 0
+              points: 0,
+              tags: []
             }}
             onSubmit={handleSubmit}
           />
