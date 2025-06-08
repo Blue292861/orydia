@@ -4,11 +4,8 @@ import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { BookForm } from '@/components/BookForm';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Coins } from 'lucide-react';
 
 interface AdminDashboardProps {
   books: Book[];
@@ -72,6 +69,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <CardHeader className="flex-1 p-4">
                 <CardTitle className="text-lg">{book.title}</CardTitle>
                 <p className="text-sm text-muted-foreground">{book.author}</p>
+                <div className="flex items-center gap-1 text-sm">
+                  <Coins className="h-4 w-4 text-primary" />
+                  <span className="font-medium">{book.points} points</span>
+                </div>
               </CardHeader>
             </div>
             <CardContent className="p-4 pt-0 flex justify-end gap-2">
@@ -103,7 +104,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               title: '',
               author: '',
               coverUrl: '',
-              content: ''
+              content: '',
+              points: 0
             }}
             onSubmit={handleSubmit}
           />

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Book } from 'lucide-react';
+import { PointsDisplay } from '@/components/PointsDisplay';
 
 interface HeaderProps {
   isAdmin: boolean;
@@ -17,13 +18,16 @@ export const Header: React.FC<HeaderProps> = ({ isAdmin, setIsAdmin }) => {
           <h1 className="text-2xl font-bold">BookStream</h1>
         </div>
         
-        <Button 
-          variant={isAdmin ? "secondary" : "ghost"} 
-          onClick={() => setIsAdmin(!isAdmin)}
-          className="transition-all duration-300 hover:scale-105"
-        >
-          {isAdmin ? 'Switch to User View' : 'Switch to Admin View'}
-        </Button>
+        <div className="flex items-center gap-4">
+          {!isAdmin && <PointsDisplay />}
+          <Button 
+            variant={isAdmin ? "secondary" : "ghost"} 
+            onClick={() => setIsAdmin(!isAdmin)}
+            className="transition-all duration-300 hover:scale-105"
+          >
+            {isAdmin ? 'Switch to User View' : 'Switch to Admin View'}
+          </Button>
+        </div>
       </div>
     </header>
   );

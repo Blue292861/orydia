@@ -16,7 +16,10 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setBook(prev => ({ ...prev, [name]: value }));
+    setBook(prev => ({ 
+      ...prev, 
+      [name]: name === 'points' ? parseInt(value) || 0 : value 
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -58,6 +61,20 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
           value={book.coverUrl}
           onChange={handleChange}
           placeholder="Enter URL for cover image"
+          required
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="points">Points Reward</Label>
+        <Input
+          id="points"
+          name="points"
+          type="number"
+          value={book.points}
+          onChange={handleChange}
+          placeholder="Points earned for reading this book"
+          min="0"
           required
         />
       </div>

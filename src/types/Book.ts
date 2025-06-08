@@ -5,4 +5,5 @@ export interface Book {
   author: string;
   coverUrl: string;
   content: string;
+  points: number;
 }
