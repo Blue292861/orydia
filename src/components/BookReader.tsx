@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, X, Coins } from 'lucide-react';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { useToast } from '@/hooks/use-toast';
+import { TextSizeControls } from '@/components/TextSizeControls';
 
 interface BookReaderProps {
   book: Book;
@@ -15,6 +16,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
   const { userStats, addPointsForBook } = useUserStats();
   const { toast } = useToast();
   const [hasFinished, setHasFinished] = useState(false);
+  const [fontSize, setFontSize] = useState(16);
   
   const isAlreadyRead = userStats.booksRead.includes(book.id);
   
@@ -51,10 +53,18 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
         </Button>
       </div>
       
+      <div className="mb-4">
+        <TextSizeControls fontSize={fontSize} onFontSizeChange={setFontSize} />
+      </div>
+      
       <div className="bg-card rounded-lg p-8 shadow-md">
         <div className="prose prose-lg max-w-none">
           {book.content.split('\n\n').map((paragraph, index) => (
-            <p key={index} className="mb-4 leading-relaxed text-foreground">
+            <p 
+              key={index} 
+              className="mb-4 leading-relaxed text-foreground"
+              style={{ fontSize: `${fontSize}px` }}
+            >
               {paragraph}
             </p>
           ))}
