@@ -2,13 +2,23 @@
 import React, { useState } from 'react';
 import { BookLibrary } from '@/components/BookLibrary';
 import { AdminDashboard } from '@/components/AdminDashboard';
+import { ShopAdmin } from '@/components/ShopAdmin';
 import { BookReader } from '@/components/BookReader';
+import { Shop } from '@/components/Shop';
+import { SearchPage } from '@/components/SearchPage';
+import { ProfilePage } from '@/components/ProfilePage';
+import { PremiumPage } from '@/components/PremiumPage';
 import { Header } from '@/components/Header';
+import { NavigationFooter } from '@/components/NavigationFooter';
 import { UserStatsProvider } from '@/contexts/UserStatsContext';
 import { Book } from '@/types/Book';
+import { ShopItem } from '@/types/ShopItem';
+
+type UserView = 'home' | 'search' | 'shop' | 'profile' | 'premium';
 
 const Index = () => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [currentView, setCurrentView] = useState<UserView>('home');
   const [books, setBooks] = useState<Book[]>([
     {
       id: '1',
@@ -31,6 +41,24 @@ The abnormal mind is quick to detect and attach itself to this quality when it a
       points: 75
     }
   ]);
+  const [shopItems, setShopItems] = useState<ShopItem[]>([
+    {
+      id: '1',
+      name: 'Premium Bookmark Set',
+      description: 'Beautiful leather bookmarks with golden accents',
+      price: 150,
+      imageUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=300&fit=crop',
+      category: 'Accessories'
+    },
+    {
+      id: '2',
+      name: 'Reading Light',
+      description: 'LED reading light with adjustable brightness',
+      price: 300,
+      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop',
+      category: 'Electronics'
+    }
+  ]);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
   const addBook = (book: Book) => {
@@ -45,31 +73,100 @@ The abnormal mind is quick to detect and attach itself to this quality when it a
     setBooks(books.filter(book => book.id !== id));
   };
 
+  const addShopItem = (item: ShopItem) => {
+    setShopItems([...shopItems, { ...item, id: Date.now().toString() }]);
+  };
+
+  const updateShopItem = (updatedItem: ShopItem) => {
+    setShopItems(shopItems.map(item => item.id === updatedItem.id ? updatedItem : item));
+  };
+
+  const deleteShopItem = (id: string) => {
+    setShopItems(shopItems.filter(item => item.id !== id));
+  };
+
+  const renderUserContent = () => {
+    if (selectedBook) {
+      return (
+        <BookReader 
+          book={selectedBook} 
+          onClose={() => setSelectedBook(null)} 
+        />
+      );
+    }
+
+    switch (currentView) {
+      case 'home':
+        return (
+          <BookLibrary 
+            books={books} 
+            onSelectBook={setSelectedBook} 
+          />
+        );
+      case 'search':
+        return (
+          <SearchPage 
+            books={books} 
+            onSelectBook={setSelectedBook} 
+          />
+        );
+      case 'shop':
+        return <Shop shopItems={shopItems} />;
+      case 'profile':
+        return <ProfilePage />;
+      case 'premium':
+        return <PremiumPage />;
+      default:
+        return (
+          <BookLibrary 
+            books={books} 
+            onSelectBook={setSelectedBook} 
+          />
+        );
+    }
+  };
+
+  const renderAdminContent = () => {
+    if (currentView === 'shop') {
+      return (
+        <ShopAdmin 
+          shopItems={shopItems} 
+          onAddItem={addShopItem} 
+          onUpdateItem={updateShopItem} 
+          onDeleteItem={deleteShopItem} 
+        />
+      );
+    }
+    
+    return (
+      <AdminDashboard 
+        books={books} 
+        onAddBook={addBook} 
+        onUpdateBook={updateBook} 
+        onDeleteBook={deleteBook} 
+      />
+    );
+  };
+
   return (
     <UserStatsProvider>
       <div className="min-h-screen bg-background">
-        <Header isAdmin={isAdmin} setIsAdmin={setIsAdmin} />
+        <Header 
+          isAdmin={isAdmin} 
+          setIsAdmin={setIsAdmin}
+          currentView={isAdmin ? (currentView === 'shop' ? 'shop' : 'books') : undefined}
+          onNavigate={isAdmin ? (view: string) => setCurrentView(view as UserView) : undefined}
+        />
         
         <div className="container mx-auto px-4 py-6">
-          {selectedBook ? (
-            <BookReader 
-              book={selectedBook} 
-              onClose={() => setSelectedBook(null)} 
-            />
-          ) : isAdmin ? (
-            <AdminDashboard 
-              books={books} 
-              onAddBook={addBook} 
-              onUpdateBook={updateBook} 
-              onDeleteBook={deleteBook} 
-            />
-          ) : (
-            <BookLibrary 
-              books={books} 
-              onSelectBook={setSelectedBook} 
-            />
-          )}
+          {isAdmin ? renderAdminContent() : renderUserContent()}
         </div>
+        
+        <NavigationFooter 
+          currentView={currentView}
+          onNavigate={setCurrentView}
+          isAdmin={isAdmin}
+        />
       </div>
     </UserStatsProvider>
   );

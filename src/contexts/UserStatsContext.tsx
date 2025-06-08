@@ -1,10 +1,10 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { UserStats } from '@/types/UserStats';
 
 interface UserStatsContextType {
   userStats: UserStats;
   addPointsForBook: (bookId: string, points: number) => void;
+  spendPoints: (amount: number) => void;
 }
 
 const UserStatsContext = createContext<UserStatsContextType | undefined>(undefined);
@@ -40,8 +40,15 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     });
   };
 
+  const spendPoints = (amount: number) => {
+    setUserStats(prev => ({
+      ...prev,
+      totalPoints: Math.max(0, prev.totalPoints - amount)
+    }));
+  };
+
   return (
-    <UserStatsContext.Provider value={{ userStats, addPointsForBook }}>
+    <UserStatsContext.Provider value={{ userStats, addPointsForBook, spendPoints }}>
       {children}
     </UserStatsContext.Provider>
   );
