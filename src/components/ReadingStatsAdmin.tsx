@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Book } from '@/types/Book';
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpenCheck, CalendarClock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface ReadingStatsAdminProps {
   books: Book[];
@@ -25,6 +26,7 @@ const fetchCompletions = async () => {
 };
 
 export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) => {
+  const [searchTerm, setSearchTerm] = useState('');
   const { data: completions, isLoading, error } = useQuery({
     queryKey: ['book_completions'],
     queryFn: fetchCompletions
@@ -33,18 +35,29 @@ export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) =
   const stats = useMemo(() => {
     if (!completions || !books) return { bookStats: [], monthCompletions: 0 };
 
-    const bookStats = books.map(book => ({
-      ...book,
-      completionCount: completions.filter(c => c.book_id === book.id).length
-    }));
-    
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     
     const monthCompletions = completions.filter(c => new Date(c.completed_at) >= startOfMonth).length;
 
+    const bookStats = books.map(book => {
+      const bookCompletions = completions.filter(c => c.book_id === book.id);
+      const monthCompletionCount = bookCompletions.filter(c => new Date(c.completed_at) >= startOfMonth).length;
+      return {
+        ...book,
+        completionCount: bookCompletions.length,
+        monthCompletionCount,
+      };
+    });
+
     return { bookStats, monthCompletions };
   }, [completions, books]);
+  
+  const filteredBookStats = useMemo(() => {
+    return stats.bookStats
+      .filter(book => book.title.toLowerCase().includes(searchTerm.toLowerCase()))
+      .sort((a, b) => b.completionCount - a.completionCount);
+  }, [stats.bookStats, searchTerm]);
 
   if (isLoading) return <div>Chargement des statistiques...</div>;
   if (error) return <div>Erreur de chargement: {error.message}</div>;
@@ -79,17 +92,25 @@ export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) =
           <CardTitle>Lectures par livre</CardTitle>
         </CardHeader>
         <CardContent>
+          <Input
+            placeholder="Rechercher un livre..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="mb-4 max-w-sm"
+          />
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Livre</TableHead>
-                <TableHead className="text-right">Nombre de lectures</TableHead>
+                <TableHead className="text-right">Lectures (ce mois)</TableHead>
+                <TableHead className="text-right">Lectures (total)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {stats.bookStats.sort((a, b) => b.completionCount - a.completionCount).map(book => (
+              {filteredBookStats.map(book => (
                 <TableRow key={book.id}>
                   <TableCell>{book.title}</TableCell>
+                  <TableCell className="text-right font-bold">{book.monthCompletionCount}</TableCell>
                   <TableCell className="text-right font-bold">{book.completionCount}</TableCell>
                 </TableRow>
               ))}
