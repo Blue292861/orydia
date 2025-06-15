@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { ShopItem } from '@/types/ShopItem';
@@ -154,6 +155,8 @@ const AppContent = () => {
       case 'library':
         return 'p-[50px]';
       case 'shop':
+        return '';
+      case 'profile':
         return '';
       default:
         return 'p-4 md:p-6';
