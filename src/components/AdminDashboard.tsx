@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { BookForm } from '@/components/BookForm';
-import { Plus, Pencil, Trash2, Coins } from 'lucide-react';
+import { Plus, Pencil, Trash2, Coins, Crown } from 'lucide-react';
 
 interface AdminDashboardProps {
   books: Book[];
@@ -44,7 +43,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this book?')) {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce livre ?')) {
       onDeleteBook(id);
     }
   };
@@ -52,15 +51,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold">Admin Dashboard</h2>
+        <h2 className="text-3xl font-bold">Tableau de bord Admin</h2>
         <Button onClick={handleOpenAdd} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" /> Add New Book
+          <Plus className="h-4 w-4" /> Ajouter un nouveau livre
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {books.map((book) => (
-          <Card key={book.id}>
+          <Card key={book.id} className={book.isPremium ? "ring-2 ring-yellow-500" : ""}>
             <div className="flex h-[120px]">
               <img 
                 src={book.coverUrl} 
@@ -68,7 +67,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 className="w-24 h-full object-cover" 
               />
               <CardHeader className="flex-1 p-4">
-                <CardTitle className="text-lg">{book.title}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg">{book.title}</CardTitle>
+                  {book.isPremium && <Crown className="h-4 w-4 text-yellow-500" />}
+                </div>
                 <p className="text-sm text-muted-foreground">{book.author}</p>
                 <div className="flex items-center gap-1 text-sm">
                   <Coins className="h-4 w-4 text-primary" />
@@ -77,21 +79,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </CardHeader>
             </div>
             <CardContent className="p-4 pt-0 space-y-2">
-              {book.tags && book.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {book.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                {book.isPremium && (
+                  <Badge variant="default" className="bg-yellow-500 text-white">
+                    Premium
+                  </Badge>
+                )}
+                {book.tags && book.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {book.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => handleOpenEdit(book)}>
-                  <Pencil className="h-4 w-4 mr-1" /> Edit
+                  <Pencil className="h-4 w-4 mr-1" /> Modifier
                 </Button>
                 <Button variant="destructive" size="sm" onClick={() => handleDelete(book.id)}>
-                  <Trash2 className="h-4 w-4 mr-1" /> Delete
+                  <Trash2 className="h-4 w-4 mr-1" /> Supprimer
                 </Button>
               </div>
             </CardContent>
@@ -101,14 +110,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {books.length === 0 && (
         <div className="text-center py-12 border rounded-lg">
-          <p className="text-muted-foreground">No books in the library yet. Add your first book!</p>
+          <p className="text-muted-foreground">Aucun livre dans la bibliothèque pour le moment. Ajoutez votre premier livre !</p>
         </div>
       )}
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="sm:max-w-[525px]">
           <DialogHeader>
-            <DialogTitle>{editingBook ? 'Edit Book' : 'Add New Book'}</DialogTitle>
+            <DialogTitle>{editingBook ? 'Modifier le livre' : 'Ajouter un nouveau livre'}</DialogTitle>
           </DialogHeader>
           <BookForm 
             initialBook={editingBook || {
@@ -118,7 +127,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               coverUrl: '',
               content: '',
               points: 0,
-              tags: []
+              tags: [],
+              isPremium: false
             }}
             onSubmit={handleSubmit}
           />

@@ -7,4 +7,5 @@ export interface Book {
   content: string;
   points: number;
   tags: string[];
+  isPremium: boolean;
 }

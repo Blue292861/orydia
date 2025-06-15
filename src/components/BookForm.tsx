@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { TagInput } from '@/components/TagInput';
 import { FileImport } from '@/components/FileImport';
 
@@ -28,6 +29,10 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     setBook(prev => ({ ...prev, tags }));
   };
 
+  const handlePremiumChange = (isPremium: boolean) => {
+    setBook(prev => ({ ...prev, isPremium }));
+  };
+
   const handleCoverImport = (coverData: string) => {
     setBook(prev => ({ ...prev, coverUrl: coverData }));
   };
@@ -44,38 +49,38 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-2">
-        <Label htmlFor="title">Book Title</Label>
+        <Label htmlFor="title">Titre du livre</Label>
         <Input
           id="title"
           name="title"
           value={book.title}
           onChange={handleChange}
-          placeholder="Enter the book title"
+          placeholder="Entrez le titre du livre"
           required
         />
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="author">Author</Label>
+        <Label htmlFor="author">Auteur</Label>
         <Input
           id="author"
           name="author"
           value={book.author}
           onChange={handleChange}
-          placeholder="Enter the author's name"
+          placeholder="Entrez le nom de l'auteur"
           required
         />
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="coverUrl">Cover Image URL</Label>
+        <Label htmlFor="coverUrl">URL de l'image de couverture</Label>
         <div className="space-y-2">
           <Input
             id="coverUrl"
             name="coverUrl"
             value={book.coverUrl}
             onChange={handleChange}
-            placeholder="Enter URL for cover image or import file"
+            placeholder="Entrez l'URL de l'image de couverture ou importez un fichier"
             required
           />
           <FileImport type="image" onFileImport={handleCoverImport} />
@@ -83,33 +88,44 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="points">Points Reward</Label>
+        <Label htmlFor="points">Récompense en points</Label>
         <Input
           id="points"
           name="points"
           type="number"
           value={book.points}
           onChange={handleChange}
-          placeholder="Points earned for reading this book"
+          placeholder="Points gagnés pour la lecture de ce livre"
           min="0"
           required
         />
       </div>
 
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="isPremium"
+          checked={book.isPremium}
+          onCheckedChange={handlePremiumChange}
+        />
+        <Label htmlFor="isPremium" className="cursor-pointer">
+          Livre Premium
+        </Label>
+      </div>
+
       <div className="grid gap-2">
-        <Label>Tags</Label>
+        <Label>Étiquettes</Label>
         <TagInput tags={book.tags} onTagsChange={handleTagsChange} />
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="content">Book Content</Label>
+        <Label htmlFor="content">Contenu du livre</Label>
         <div className="space-y-2">
           <Textarea
             id="content"
             name="content"
             value={book.content}
             onChange={handleChange}
-            placeholder="Enter the book content or import PDF"
+            placeholder="Entrez le contenu du livre ou importez un PDF"
             className="min-h-[200px]"
             required
           />
@@ -119,7 +135,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
 
       <div className="flex justify-end">
         <Button type="submit">
-          {initialBook.id ? 'Update Book' : 'Add Book'}
+          {initialBook.id ? 'Mettre à jour le livre' : 'Ajouter le livre'}
         </Button>
       </div>
     </form>
