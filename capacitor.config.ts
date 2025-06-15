@@ -2,7 +2,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.581e83151e974bac8edf49fb76fd6b4c',
+  appId: 'com.bookstream.app',
   appName: 'BookStream',
   webDir: 'dist',
   server: {
