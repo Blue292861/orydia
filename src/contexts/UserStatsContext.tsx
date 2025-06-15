@@ -1,12 +1,17 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { UserStats, Achievement } from '@/types/UserStats';
+import { SoundEffects } from '@/utils/soundEffects';
+import { toast } from '@/components/ui/use-toast';
 
 interface UserStatsContextType {
   userStats: UserStats;
   addPointsForBook: (bookId: string, points: number) => void;
   spendPoints: (amount: number) => void;
   unlockPremium: () => void;
+  addAchievement: (achievement: Achievement) => void;
+  updateAchievement: (achievement: Achievement) => void;
+  deleteAchievement: (id: string) => void;
 }
 
 const UserStatsContext = createContext<UserStatsContextType | undefined>(undefined);
@@ -95,6 +100,42 @@ const initialAchievements: Achievement[] = [
     unlocked: false,
     icon: '🔥',
     rarity: 'rare'
+  },
+  {
+    id: 'speed-reader',
+    name: 'Lecteur Rapide',
+    description: 'Lisez 3 livres en une journée',
+    points: 150,
+    unlocked: false,
+    icon: '⚡',
+    rarity: 'rare'
+  },
+  {
+    id: 'night-owl',
+    name: 'Oiseau de Nuit',
+    description: 'Lisez après minuit',
+    points: 75,
+    unlocked: false,
+    icon: '🦉',
+    rarity: 'common'
+  },
+  {
+    id: 'genre-explorer',
+    name: 'Explorateur de Genres',
+    description: 'Lisez des livres de 5 genres différents',
+    points: 250,
+    unlocked: false,
+    icon: '🗺️',
+    rarity: 'epic'
+  },
+  {
+    id: 'marathon-reader',
+    name: 'Lecteur Marathon',
+    description: 'Lisez 50 livres',
+    points: 1000,
+    unlocked: false,
+    icon: '🏃‍♂️',
+    rarity: 'legendary'
   }
 ];
 
@@ -103,7 +144,9 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     totalPoints: 0,
     booksRead: [],
     achievements: initialAchievements,
-    isPremium: false
+    isPremium: false,
+    level: 1,
+    experiencePoints: 0
   });
 
   const checkAndUnlockAchievements = (newStats: UserStats) => {
@@ -125,6 +168,9 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
         case 'master-reader':
           shouldUnlock = newStats.booksRead.length >= 20;
           break;
+        case 'marathon-reader':
+          shouldUnlock = newStats.booksRead.length >= 50;
+          break;
         case 'point-collector':
           shouldUnlock = newStats.totalPoints >= 500;
           break;
@@ -135,7 +181,10 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
           shouldUnlock = newStats.isPremium;
           break;
         case 'dedicated-reader':
-          // For now, we'll unlock this randomly as we don't track reading streaks
+        case 'speed-reader':
+        case 'night-owl':
+        case 'genre-explorer':
+          // For now, we'll unlock these randomly as we don't track these specific metrics
           shouldUnlock = newStats.booksRead.length >= 3;
           break;
       }
@@ -153,10 +202,28 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     
     const bonusPoints = newlyUnlocked.reduce((total, ach) => total + ach.points, 0);
 
+    // Play sound and show toast for new achievements
+    if (newlyUnlocked.length > 0) {
+      SoundEffects.playAchievement();
+      newlyUnlocked.forEach(achievement => {
+        toast({
+          title: `🏆 Achievement Unlocked!`,
+          description: `${achievement.icon} ${achievement.name} - +${achievement.points} points!`,
+        });
+      });
+    }
+
+    // Calculate level and experience
+    const totalPoints = newStats.totalPoints + bonusPoints;
+    const level = Math.floor(totalPoints / 100) + 1;
+    const experiencePoints = totalPoints % 100;
+
     return {
       ...newStats,
       achievements: updatedAchievements,
-      totalPoints: newStats.totalPoints + bonusPoints
+      totalPoints,
+      level,
+      experiencePoints
     };
   };
 
@@ -165,6 +232,8 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
       if (prev.booksRead.includes(bookId)) {
         return prev; // Already read this book
       }
+      
+      SoundEffects.playPoints();
       
       const newStats = {
         ...prev,
@@ -190,8 +259,39 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     });
   };
 
+  const addAchievement = (achievement: Achievement) => {
+    setUserStats(prev => ({
+      ...prev,
+      achievements: [...prev.achievements, achievement]
+    }));
+  };
+
+  const updateAchievement = (updatedAchievement: Achievement) => {
+    setUserStats(prev => ({
+      ...prev,
+      achievements: prev.achievements.map(ach => 
+        ach.id === updatedAchievement.id ? updatedAchievement : ach
+      )
+    }));
+  };
+
+  const deleteAchievement = (id: string) => {
+    setUserStats(prev => ({
+      ...prev,
+      achievements: prev.achievements.filter(ach => ach.id !== id)
+    }));
+  };
+
   return (
-    <UserStatsContext.Provider value={{ userStats, addPointsForBook, spendPoints, unlockPremium }}>
+    <UserStatsContext.Provider value={{ 
+      userStats, 
+      addPointsForBook, 
+      spendPoints, 
+      unlockPremium,
+      addAchievement,
+      updateAchievement,
+      deleteAchievement
+    }}>
       {children}
     </UserStatsContext.Provider>
   );
