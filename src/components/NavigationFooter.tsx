@@ -16,9 +16,9 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
   ];
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-background border-t border-border">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-around items-center py-2">
+    <footer className="fixed bottom-4 left-4 right-4 bg-wood-200 border border-wood-300 rounded-2xl shadow-lg transition-all duration-300">
+      <div className="mx-auto px-2">
+        <div className="flex justify-around items-center py-1">
           {navItems.map((item) => {
             return (
               <Button
@@ -26,10 +26,10 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
                 variant="ghost"
                 size="sm"
                 onClick={() => onNavigate(item.id)}
-                className="flex flex-col items-center gap-1 h-auto py-2 px-3 text-muted-foreground hover:text-primary"
+                className="flex flex-col items-center gap-1.5 h-auto py-2 px-3 text-wood-800 hover:text-primary hover:bg-wood-300/50"
               >
-                <img src={item.icon} alt={item.label} className="h-5 w-5 object-contain" />
-                <span className="text-xs">{item.label}</span>
+                <img src={item.icon} alt={item.label} className="h-7 w-7 object-contain" />
+                <span className="text-xs font-medium">{item.label}</span>
               </Button>
             );
           })}
