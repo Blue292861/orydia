@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { FileImport } from '@/components/FileImport';
 
 interface ShopItemFormProps {
   initialItem: ShopItem;
@@ -29,7 +30,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="name">Item Name</Label>
+        <Label htmlFor="name">Nom de l'objet</Label>
         <Input
           id="name"
           value={formData.name}
@@ -39,7 +40,17 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
       </div>
 
       <div>
-        <Label htmlFor="category">Category</Label>
+        <Label htmlFor="seller">Nom du vendeur</Label>
+        <Input
+          id="seller"
+          value={formData.seller}
+          onChange={(e) => handleChange('seller', e.target.value)}
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="category">Catégorie</Label>
         <Input
           id="category"
           value={formData.category}
@@ -60,7 +71,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
       </div>
 
       <div>
-        <Label htmlFor="price">Price (Points)</Label>
+        <Label htmlFor="price">Prix (Points)</Label>
         <Input
           id="price"
           type="number"
@@ -72,18 +83,25 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
       </div>
 
       <div>
-        <Label htmlFor="imageUrl">Image URL</Label>
-        <Input
-          id="imageUrl"
-          type="url"
-          value={formData.imageUrl}
-          onChange={(e) => handleChange('imageUrl', e.target.value)}
-          required
-        />
+        <Label htmlFor="imageUrl">Image de l'objet</Label>
+        <div className="space-y-2">
+            <Input
+              id="imageUrl"
+              type="text"
+              value={formData.imageUrl}
+              onChange={(e) => handleChange('imageUrl', e.target.value)}
+              placeholder="URL de l'image ou importer un fichier"
+              required
+            />
+            <FileImport type="image" onFileImport={(dataUrl) => handleChange('imageUrl', dataUrl)} />
+        </div>
+        {formData.imageUrl && (
+          <img src={formData.imageUrl} alt="Aperçu" className="mt-2 h-20 w-20 object-cover rounded-md" />
+        )}
       </div>
 
       <Button type="submit" className="w-full">
-        {initialItem.id ? 'Update Item' : 'Add Item'}
+        {initialItem.id ? "Mettre à jour l'objet" : "Ajouter l'objet"}
       </Button>
     </form>
   );

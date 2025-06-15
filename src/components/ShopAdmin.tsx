@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ShopItemForm } from '@/components/ShopItemForm';
-import { Plus, Pencil, Trash2, Coins } from 'lucide-react';
+import { Plus, Pencil, Trash2, Coins, User } from 'lucide-react';
 
 interface ShopAdminProps {
   shopItems: ShopItem[];
@@ -51,9 +51,9 @@ export const ShopAdmin: React.FC<ShopAdminProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold">Shop Management</h2>
+        <h2 className="text-3xl font-bold">Gestion de la boutique</h2>
         <Button onClick={handleOpenAdd} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" /> Add Shop Item
+          <Plus className="h-4 w-4" /> Ajouter un objet
         </Button>
       </div>
 
@@ -73,16 +73,20 @@ export const ShopAdmin: React.FC<ShopAdminProps> = ({
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm">{item.description}</p>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <User className="h-4 w-4 text-primary" />
+                <span className="font-medium">{item.seller}</span>
+              </div>
               <div className="flex items-center gap-1">
                 <Coins className="h-4 w-4 text-primary" />
                 <span className="font-medium">{item.price} points</span>
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => handleOpenEdit(item)}>
-                  <Pencil className="h-4 w-4 mr-1" /> Edit
+                  <Pencil className="h-4 w-4 mr-1" /> Modifier
                 </Button>
                 <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)}>
-                  <Trash2 className="h-4 w-4 mr-1" /> Delete
+                  <Trash2 className="h-4 w-4 mr-1" /> Supprimer
                 </Button>
               </div>
             </CardContent>
@@ -99,7 +103,7 @@ export const ShopAdmin: React.FC<ShopAdminProps> = ({
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="sm:max-w-[525px]">
           <DialogHeader>
-            <DialogTitle>{editingItem ? 'Edit Shop Item' : 'Add New Shop Item'}</DialogTitle>
+            <DialogTitle>{editingItem ? "Modifier l'objet" : 'Ajouter un nouvel objet'}</DialogTitle>
           </DialogHeader>
           <ShopItemForm 
             initialItem={editingItem || {
@@ -108,7 +112,8 @@ export const ShopAdmin: React.FC<ShopAdminProps> = ({
               description: '',
               price: 0,
               imageUrl: '',
-              category: ''
+              category: '',
+              seller: ''
             }}
             onSubmit={handleSubmit}
           />

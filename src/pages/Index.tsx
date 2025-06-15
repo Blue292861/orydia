@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { ShopItem } from '@/types/ShopItem';
@@ -19,7 +18,53 @@ const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'shop' | 'search' | 'profile' | 'premium'>('library');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [books, setBooks] = useState<Book[]>([]);
-  const [shopItems, setShopItems] = useState<ShopItem[]>([]);
+  const [shopItems, setShopItems] = useState<ShopItem[]>([
+    {
+      id: '1',
+      name: 'Épée de bravoure',
+      description: "Une épée forgée dans le coeur d'une étoile.",
+      price: 500,
+      imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?q=80&w=2748&auto=format&fit=crop',
+      category: 'Arme',
+      seller: 'Forgeron Jo'
+    },
+    {
+      id: '2',
+      name: "Armure de l'Aube",
+      description: 'Protège contre les ombres les plus sombres.',
+      price: 750,
+      imageUrl: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?q=80&w=2787&auto=format&fit=crop',
+      category: 'Armure',
+      seller: 'Artisane Elara'
+    },
+    {
+      id: '3',
+      name: 'Grimoire des Arcanes',
+      description: 'Contient des sorts oubliés depuis des éons.',
+      price: 1200,
+      imageUrl: 'https://images.unsplash.com/photo-1721322800607-8c38375eef04?q=80&w=2942&auto=format&fit=crop',
+      category: 'Magie',
+      seller: 'Paco le Bibliothécaire'
+    },
+    {
+      id: '4',
+      name: 'Potion de vitalité',
+      description: 'Restaure la santé et la vigueur.',
+      price: 150,
+      imageUrl: 'https://images.unsplash.com/photo-1493962853295-0fd70327578a?q=80&w=2938&auto=format&fit=crop',
+      category: 'Consommable',
+      seller: 'Alchimiste Zander'
+    },
+    {
+      id: '5',
+      name: 'Amulette de perspicacité',
+      description: "Augmente l'intelligence et la sagesse du porteur.",
+      price: 800,
+      imageUrl: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?q=80&w=2787&auto=format&fit=crop',
+      category: 'Accessoire',
+      seller: 'Artisane Elara'
+    }
+  ]);
   const { userStats, addAchievement, updateAchievement, deleteAchievement } = useUserStats();
 
   const addBook = (book: Book) => {
