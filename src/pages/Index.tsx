@@ -13,16 +13,19 @@ import { PremiumPage } from '@/components/PremiumPage';
 import { Header } from '@/components/Header';
 import { NavigationFooter } from '@/components/NavigationFooter';
 import { UserStatsProvider, useUserStats } from '@/contexts/UserStatsContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { AdminNav } from '@/components/AdminNav';
 import { OrdersAdmin } from '@/components/OrdersAdmin';
 import { ReadingStatsAdmin } from '@/components/ReadingStatsAdmin';
+import { VideoAd } from '@/components/VideoAd';
 
 type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin';
-type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | AdminPage;
+type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
 
 const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<Page>('library');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [bookForAd, setBookForAd] = useState<Book | null>(null);
   const [books, setBooks] = useState<Book[]>([]);
   const [shopItems, setShopItems] = useState<ShopItem[]>([
     {
@@ -72,6 +75,7 @@ const AppContent = () => {
     }
   ]);
   const { userStats, addAchievement, updateAchievement, deleteAchievement } = useUserStats();
+  const { subscription } = useAuth();
 
   const addBook = (book: Book) => {
     setBooks([...books, { ...book, id: Date.now().toString() }]);
@@ -98,8 +102,24 @@ const AppContent = () => {
   };
 
   const handleBookSelect = (book: Book) => {
-    setSelectedBook(book);
-    setCurrentPage('reader');
+    const adWatched = localStorage.getItem(`ad_watched_${book.id}`);
+
+    if (subscription.isPremium || adWatched) {
+      setSelectedBook(book);
+      setCurrentPage('reader');
+    } else {
+      setBookForAd(book);
+      setCurrentPage('video-ad');
+    }
+  };
+
+  const handleAdFinished = () => {
+    if (bookForAd) {
+      localStorage.setItem(`ad_watched_${bookForAd.id}`, 'true');
+      setSelectedBook(bookForAd);
+      setCurrentPage('reader');
+      setBookForAd(null);
+    }
   };
 
   const handleBackToLibrary = () => {
@@ -109,6 +129,8 @@ const AppContent = () => {
 
   const renderCurrentPage = () => {
     switch (currentPage) {
+      case 'video-ad':
+        return bookForAd ? <VideoAd book={bookForAd} onAdFinished={handleAdFinished} /> : null;
       case 'reader':
         return selectedBook ? (
           <BookReader book={selectedBook} onBack={handleBackToLibrary} />
@@ -176,12 +198,12 @@ const AppContent = () => {
 
   return (
     <div className={`min-h-screen ${pageBackground} transition-colors duration-500`}>
-      <Header onNavigate={setCurrentPage as any} currentPage={currentPage} />
+      {currentPage !== 'video-ad' && <Header onNavigate={setCurrentPage as any} currentPage={currentPage} />}
       <main className={`flex-1 ${getMainPadding()} pb-24`}>
         {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
         {renderCurrentPage()}
       </main>
-      {currentPage !== 'reader' && <NavigationFooter onNavigate={setCurrentPage as any} />}
+      {currentPage !== 'reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={setCurrentPage as any} />}
     </div>
   );
 };

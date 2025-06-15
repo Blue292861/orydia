@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { TextSizeControls } from '@/components/TextSizeControls';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { BannerAd } from '@/components/BannerAd';
 
 interface BookReaderProps {
   book: Book;
@@ -53,7 +54,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   };
   
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto pb-10">
       <div className="flex justify-between items-center mb-6">
         <Button variant="ghost" onClick={onBack} className="flex items-center gap-1">
           <ChevronLeft className="h-4 w-4" />
@@ -127,6 +128,12 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           )}
         </div>
       </div>
+
+      {!isPremium && (
+        <div className="mt-12">
+          <BannerAd />
+        </div>
+      )}
     </div>
   );
 };
