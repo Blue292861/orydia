@@ -2,6 +2,7 @@
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
+import { toast } from '@/components/ui/use-toast';
 
 interface SubscriptionInfo {
   isPremium: boolean;
@@ -17,6 +18,7 @@ interface AuthContextType {
   subscription: SubscriptionInfo;
   checkSubscriptionStatus: () => Promise<void>;
   manageSubscription: () => Promise<void>;
+  createCheckout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -27,6 +29,7 @@ const AuthContext = createContext<AuthContextType>({
   subscription: { isPremium: false, subscriptionTier: null, subscriptionEnd: null },
   checkSubscriptionStatus: async () => {},
   manageSubscription: async () => {},
+  createCheckout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -61,6 +64,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       console.error('Error managing subscription:', error);
+    }
+  };
+
+  const createCheckout = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout');
+      if (error) throw error;
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de lancer le processus de paiement.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -121,6 +141,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     subscription,
     checkSubscriptionStatus,
     manageSubscription,
+    createCheckout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

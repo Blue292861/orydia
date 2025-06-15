@@ -1,12 +1,22 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useUserStats } from '@/contexts/UserStatsContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Star, Crown, Trophy, Zap } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
-  const { userStats, unlockPremium } = useUserStats();
+  const { userStats } = useUserStats();
+  const { createCheckout } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const handlePremiumClick = async () => {
+    setLoading(true);
+    await createCheckout();
+    setLoading(false);
+  };
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
@@ -99,11 +109,12 @@ export const ProfilePage: React.FC = () => {
             <h3 className="text-xl font-bold text-purple-100 mb-2">Débloquez le Premium !</h3>
             <p className="text-purple-200 mb-4">Obtenez des points bonus et débloquez des succès exclusifs</p>
             <Button 
-              onClick={unlockPremium}
+              onClick={handlePremiumClick}
+              disabled={loading}
               className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold"
             >
               <Crown className="h-4 w-4 mr-2" />
-              Activer Premium
+              {loading ? "Chargement..." : "Activer Premium"}
             </Button>
           </CardContent>
         </Card>
