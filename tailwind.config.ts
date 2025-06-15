@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -92,7 +91,8 @@ export default {
 					700: '#8a654b',
 					800: '#715342',
 					900: '#5c4439',
-				}
+				},
+        'title-blue': '#6E86AC',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -125,12 +125,17 @@ export default {
             opacity: '1',
             transform: 'translateY(0)'
           },
+        },
+        sway: {
+          '0%, 100%': { transform: 'rotate(-2deg) translateX(-4%)' },
+          '50%': { transform: 'rotate(2deg) translateX(4%)' },
         }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-        'fade-in-down': 'fade-in-down 0.6s ease-out'
+        'fade-in-down': 'fade-in-down 0.6s ease-out',
+        'sway': 'sway 18s ease-in-out infinite alternate',
 			}
 		}
 	},
