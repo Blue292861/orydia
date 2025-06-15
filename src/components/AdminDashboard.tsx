@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { BookForm } from '@/components/BookForm';
-import { Plus, Pencil, Trash2, Coins, Crown } from 'lucide-react';
+import { Plus, Pencil, Trash2, Coins, Crown, Star, Zap } from 'lucide-react';
 
 interface AdminDashboardProps {
   books: Book[];
@@ -79,20 +79,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </CardHeader>
             </div>
             <CardContent className="p-4 pt-0 space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {book.isPremium && (
-                  <Badge variant="default" className="bg-yellow-500 text-white">
-                    Premium
+                  <Badge variant="default" className="bg-yellow-500 text-white flex items-center">
+                    <Crown className="h-3 w-3 mr-1" /> Premium
+                  </Badge>
+                )}
+                {book.isMonthSuccess && (
+                  <Badge variant="default" className="bg-blue-500 text-white flex items-center">
+                    <Star className="h-3 w-3 mr-1" /> Succès du mois
+                  </Badge>
+                )}
+                {book.isPacoFavourite && (
+                  <Badge variant="default" className="bg-green-500 text-white flex items-center">
+                    <Zap className="h-3 w-3 mr-1" /> Coup de coeur
                   </Badge>
                 )}
                 {book.tags && book.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {book.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
+                  book.tags.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))
                 )}
               </div>
               <div className="flex justify-end gap-2">
@@ -128,7 +136,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               content: '',
               points: 0,
               tags: [],
-              isPremium: false
+              isPremium: false,
+              isMonthSuccess: false,
+              isPacoFavourite: false,
             }}
             onSubmit={handleSubmit}
           />

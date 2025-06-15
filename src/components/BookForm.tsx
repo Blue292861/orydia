@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
@@ -31,6 +30,14 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
 
   const handlePremiumChange = (isPremium: boolean) => {
     setBook(prev => ({ ...prev, isPremium }));
+  };
+
+  const handleMonthSuccessChange = (isMonthSuccess: boolean) => {
+    setBook(prev => ({ ...prev, isMonthSuccess }));
+  };
+
+  const handlePacoFavouriteChange = (isPacoFavourite: boolean) => {
+    setBook(prev => ({ ...prev, isPacoFavourite }));
   };
 
   const handleCoverImport = (coverData: string) => {
@@ -109,6 +116,28 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
         />
         <Label htmlFor="isPremium" className="cursor-pointer">
           Livre Premium
+        </Label>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="isMonthSuccess"
+          checked={book.isMonthSuccess}
+          onCheckedChange={handleMonthSuccessChange}
+        />
+        <Label htmlFor="isMonthSuccess" className="cursor-pointer">
+          Succès du mois
+        </Label>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="isPacoFavourite"
+          checked={book.isPacoFavourite}
+          onCheckedChange={handlePacoFavouriteChange}
+        />
+        <Label htmlFor="isPacoFavourite" className="cursor-pointer">
+          Coup de coeur de Paco
         </Label>
       </div>
 

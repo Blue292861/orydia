@@ -8,4 +8,6 @@ export interface Book {
   points: number;
   tags: string[];
   isPremium: boolean;
+  isMonthSuccess: boolean;
+  isPacoFavourite: boolean;
 }
