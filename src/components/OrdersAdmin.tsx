@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,16 +16,47 @@ import { toast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 
 const fetchOrders = async (): Promise<Order[]> => {
-  const { data, error } = await supabase
+  const { data: ordersData, error: ordersError } = await supabase
     .from('orders')
-    .select('*, profiles(username, avatar_url)')
+    .select('*')
     .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching orders:', error);
-    throw new Error(error.message);
+  if (ordersError) {
+    console.error('Error fetching orders:', ordersError);
+    throw new Error(ordersError.message);
   }
-  return data as Order[];
+  if (!ordersData) return [];
+
+  const userIds = [...new Set(ordersData.map((o) => o.user_id))];
+  
+  if (userIds.length === 0) {
+    return ordersData as Order[];
+  }
+
+  const { data: profilesData, error: profilesError } = await supabase
+    .from('profiles')
+    .select('id, username, avatar_url')
+    .in('id', userIds);
+
+  if (profilesError) {
+    console.error('Error fetching profiles:', profilesError);
+    // Gracefully handle profile fetch error by returning orders without profile info
+    return ordersData.map((order) => ({
+      ...order,
+      profiles: null,
+    })) as Order[];
+  }
+
+  const profilesMap = new Map(
+    profilesData.map((p) => [p.id, { username: p.username, avatar_url: p.avatar_url }])
+  );
+
+  const ordersWithProfiles = ordersData.map((order) => ({
+    ...order,
+    profiles: profilesMap.get(order.user_id) || null,
+  }));
+
+  return ordersWithProfiles as Order[];
 };
 
 export const OrdersAdmin: React.FC = () => {
