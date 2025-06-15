@@ -17,6 +17,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
   const { toast } = useToast();
   const [hasFinished, setHasFinished] = useState(false);
   const [fontSize, setFontSize] = useState(16);
+  const [highContrast, setHighContrast] = useState(false);
   
   const isAlreadyRead = userStats.booksRead.includes(book.id);
   
@@ -54,15 +55,20 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
       </div>
       
       <div className="mb-4">
-        <TextSizeControls fontSize={fontSize} onFontSizeChange={setFontSize} />
+        <TextSizeControls 
+          fontSize={fontSize} 
+          onFontSizeChange={setFontSize}
+          highContrast={highContrast}
+          onHighContrastChange={setHighContrast}
+        />
       </div>
       
-      <div className="bg-card rounded-lg p-8 shadow-md">
+      <div className={`bg-card rounded-lg p-8 shadow-md ${highContrast ? 'bg-black text-white' : ''}`}>
         <div className="prose prose-lg max-w-none">
           {book.content.split('\n\n').map((paragraph, index) => (
             <p 
               key={index} 
-              className="mb-4 leading-relaxed text-foreground"
+              className={`mb-4 leading-relaxed ${highContrast ? 'text-white' : 'text-foreground'}`}
               style={{ fontSize: `${fontSize}px` }}
             >
               {paragraph}
