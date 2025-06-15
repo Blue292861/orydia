@@ -19,7 +19,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
-  const { session } = useAuth();
+  const { session, isAdmin } = useAuth();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -60,32 +60,34 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             <PointsDisplay />
             
             <div className="flex items-center space-x-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant={['admin', 'shop-admin', 'achievement-admin'].includes(currentPage) ? 'default' : 'ghost'}
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Settings className="h-4 w-4" />
-                    Admin
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onNavigate('admin')}>
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    <span>Gérer les livres</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onNavigate('shop-admin')}>
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    <span>Gérer la boutique</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onNavigate('achievement-admin')}>
-                    <Trophy className="h-4 w-4 mr-2" />
-                    <span>Gérer les succès</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {isAdmin && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant={['admin', 'shop-admin', 'achievement-admin'].includes(currentPage) ? 'default' : 'ghost'}
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <Settings className="h-4 w-4" />
+                      Admin
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onNavigate('admin')}>
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      <span>Gérer les livres</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onNavigate('shop-admin')}>
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      <span>Gérer la boutique</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onNavigate('achievement-admin')}>
+                      <Trophy className="h-4 w-4 mr-2" />
+                      <span>Gérer les succès</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               
               <Button
                 variant={currentPage === 'profile' ? 'default' : 'ghost'}

@@ -6,33 +6,56 @@ import { Session, User } from '@supabase/supabase-js';
 interface AuthContextType {
   session: Session | null;
   user: User | null;
+  isAdmin: boolean;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
+  isAdmin: false,
   loading: true,
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    const checkAdminRole = async (user: User | null) => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+      try {
+        const { data, error } = await supabase.rpc('user_has_role', {
+          p_user_id: user.id,
+          p_role: 'admin',
+        });
+        if (error) throw error;
+        setIsAdmin(data);
+      } catch (error) {
+        console.error('Error checking user role:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    const setAuthData = async (session: Session | null) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      await checkAdminRole(currentUser);
       setLoading(false);
     };
 
-    getSession();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthData(session);
+    });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setAuthData(session);
     });
 
     return () => {
@@ -43,6 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     session,
     user,
+    isAdmin,
     loading,
   };
 
