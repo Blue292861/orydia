@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { PointsDisplay } from '@/components/PointsDisplay';
-import { BookOpen, Settings, ShoppingCart, User, Trophy, LogOut } from 'lucide-react';
+import { BookOpen, Settings, ShoppingCart, Trophy, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,16 +67,6 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
               </DropdownMenu>
             )}
             
-            <Button
-              variant={currentPage === 'profile' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => onNavigate('profile')}
-              className="flex items-center gap-2"
-            >
-              <User className="h-4 w-4" />
-              Profil
-            </Button>
-
             {session && (
               <Button
                 variant="ghost"

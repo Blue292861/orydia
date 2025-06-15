@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -28,7 +27,7 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
                 onClick={() => onNavigate(item.id)}
                 className="flex flex-col items-center gap-1.5 h-auto py-2 px-3 text-wood-800 hover:text-primary hover:bg-wood-400/50"
               >
-                <img src={item.icon} alt={item.label} className="h-10 w-10 object-contain" />
+                <img src={item.icon} alt={item.label} className="h-11 w-11 object-contain" />
                 <span className="text-xs font-medium">{item.label}</span>
               </Button>
             );
