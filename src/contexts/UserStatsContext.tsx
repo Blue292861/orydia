@@ -1,14 +1,13 @@
-
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { UserStats, Achievement } from '@/types/UserStats';
 import { SoundEffects } from '@/utils/soundEffects';
 import { toast } from '@/components/ui/use-toast';
+import { useAuth } from './AuthContext';
 
 interface UserStatsContextType {
   userStats: UserStats;
   addPointsForBook: (bookId: string, points: number) => void;
   spendPoints: (amount: number) => void;
-  unlockPremium: () => void;
   addAchievement: (achievement: Achievement) => void;
   updateAchievement: (achievement: Achievement) => void;
   deleteAchievement: (id: string) => void;
@@ -140,6 +139,7 @@ const initialAchievements: Achievement[] = [
 ];
 
 export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }) => {
+  const { subscription } = useAuth();
   const [userStats, setUserStats] = useState<UserStats>({
     totalPoints: 0,
     booksRead: [],
@@ -148,6 +148,12 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     level: 1,
     experiencePoints: 0
   });
+
+  useEffect(() => {
+    if (userStats.isPremium !== subscription.isPremium) {
+      setUserStats(prev => checkAndUnlockAchievements({ ...prev, isPremium: subscription.isPremium }));
+    }
+  }, [subscription.isPremium]);
 
   const checkAndUnlockAchievements = (newStats: UserStats) => {
     const updatedAchievements = newStats.achievements.map(achievement => {
@@ -252,13 +258,6 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     }));
   };
 
-  const unlockPremium = () => {
-    setUserStats(prev => {
-      const newStats = { ...prev, isPremium: true };
-      return checkAndUnlockAchievements(newStats);
-    });
-  };
-
   const addAchievement = (achievement: Achievement) => {
     setUserStats(prev => ({
       ...prev,
@@ -287,7 +286,6 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
       userStats, 
       addPointsForBook, 
       spendPoints, 
-      unlockPremium,
       addAchievement,
       updateAchievement,
       deleteAchievement

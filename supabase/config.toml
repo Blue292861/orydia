@@ -1,1 +1,6 @@
+
 project_id = "aotzivwzoxmnnawcxioo"
+
+[functions.create-checkout]
+[functions.check-subscription]
+[functions.customer-portal]

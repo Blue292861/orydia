@@ -3,11 +3,20 @@ import { createContext, useState, useEffect, useContext, ReactNode } from 'react
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 
+interface SubscriptionInfo {
+  isPremium: boolean;
+  subscriptionTier: string | null;
+  subscriptionEnd: string | null;
+}
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   isAdmin: boolean;
   loading: boolean;
+  subscription: SubscriptionInfo;
+  checkSubscriptionStatus: () => Promise<void>;
+  manageSubscription: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -15,6 +24,9 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isAdmin: false,
   loading: true,
+  subscription: { isPremium: false, subscriptionTier: null, subscriptionEnd: null },
+  checkSubscriptionStatus: async () => {},
+  manageSubscription: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -22,6 +34,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [subscription, setSubscription] = useState<SubscriptionInfo>({ isPremium: false, subscriptionTier: null, subscriptionEnd: null });
+
+  const checkSubscriptionStatus = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error) throw error;
+      setSubscription({
+        isPremium: data.subscribed,
+        subscriptionTier: data.subscription_tier,
+        subscriptionEnd: data.subscription_end,
+      });
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      // Reset subscription state on error to avoid false positives
+      setSubscription({ isPremium: false, subscriptionTier: null, subscriptionEnd: null });
+    }
+  };
+
+  const manageSubscription = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw error;
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Error managing subscription:', error);
+    }
+  };
 
   useEffect(() => {
     const checkAdminRole = async (user: User | null) => {
@@ -63,11 +104,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (session) {
+      checkSubscriptionStatus();
+    } else {
+      // Clear subscription status on logout
+      setSubscription({ isPremium: false, subscriptionTier: null, subscriptionEnd: null });
+    }
+  }, [session]);
+
   const value = {
     session,
     user,
     isAdmin,
     loading,
+    subscription,
+    checkSubscriptionStatus,
+    manageSubscription,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -3,8 +3,32 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star, Check } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 export const PremiumPage: React.FC = () => {
+  const { subscription, manageSubscription } = useAuth();
+
+  const handleCheckout = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout');
+      if (error) {
+        throw error;
+      }
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (error: any) {
+      console.error('Error creating checkout session:', error);
+      toast({
+        title: "Erreur de paiement",
+        description: "Impossible de démarrer la session de paiement. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const features = [
     'Accès illimité aux livres',
     'Accès anticipé aux nouvelles sorties',
@@ -40,9 +64,15 @@ export const PremiumPage: React.FC = () => {
             ))}
           </div>
           
-          <Button className="w-full" size="lg">
-            Passer à Premium
-          </Button>
+          {subscription.isPremium ? (
+            <Button className="w-full" size="lg" onClick={manageSubscription}>
+              Gérer mon abonnement
+            </Button>
+          ) : (
+            <Button className="w-full" size="lg" onClick={handleCheckout}>
+              Passer à Premium
+            </Button>
+          )}
           
           <p className="text-xs text-center text-muted-foreground">
             Résiliez à tout moment. Garantie de remboursement de 30 jours.
