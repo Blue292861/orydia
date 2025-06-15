@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Book } from '@/types/Book';
 import { Info } from 'lucide-react';
@@ -30,7 +31,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect })
       />
       
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-wood-100">En cours de lecture</h2>
+        <h2 className="text-3xl font-cursive text-wood-100">En cours de lecture</h2>
         <div className="bg-wood-800/60 border border-wood-700 rounded-lg p-6 flex items-center justify-center text-center text-wood-200">
           <Info className="h-6 w-6 mr-4 text-primary shrink-0" />
           <div>
