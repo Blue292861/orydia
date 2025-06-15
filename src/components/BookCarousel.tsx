@@ -27,7 +27,7 @@ export const BookCarousel: React.FC<BookCarouselProps> = ({ title, books, onBook
   return (
     <div className="space-y-4">
       <h2 className="text-4xl font-cursive text-wood-300 capitalize">{title}</h2>
-      <div className="flex space-x-4 overflow-x-auto pb-4 -mb-4">
+      <div className="flex space-x-4 overflow-x-auto -mb-4 py-4">
         {books.map((book) => (
           <BookCard key={book.id} book={book} onBookSelect={onBookSelect} large={large} />
         ))}

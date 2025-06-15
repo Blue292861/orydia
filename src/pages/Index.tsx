@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { ShopItem } from '@/types/ShopItem';
@@ -106,7 +107,7 @@ const AppContent = () => {
   const getMainPadding = () => {
     switch (currentPage) {
       case 'library':
-        return 'p-[70px]';
+        return 'p-[50px]';
       case 'shop':
         return '';
       default:
