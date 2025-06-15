@@ -4,20 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Home, Search, ShoppingCart, User, Star } from 'lucide-react';
 
 interface NavigationFooterProps {
-  currentView: 'home' | 'search' | 'shop' | 'profile' | 'premium';
-  onNavigate: (view: 'home' | 'search' | 'shop' | 'profile' | 'premium') => void;
-  isAdmin: boolean;
+  onNavigate: (page: 'library' | 'search' | 'shop' | 'profile' | 'premium') => void;
 }
 
-export const NavigationFooter: React.FC<NavigationFooterProps> = ({ 
-  currentView, 
-  onNavigate,
-  isAdmin 
-}) => {
-  if (isAdmin) return null; // Don't show footer for admin view
-
+export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }) => {
   const navItems = [
-    { id: 'home' as const, icon: Home, label: 'Accueil' },
+    { id: 'library' as const, icon: Home, label: 'Accueil' },
     { id: 'search' as const, icon: Search, label: 'Recherche' },
     { id: 'shop' as const, icon: ShoppingCart, label: 'Boutique' },
     { id: 'profile' as const, icon: User, label: 'Profil' },
@@ -30,7 +22,6 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({
         <div className="flex justify-around items-center py-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = currentView === item.id;
             
             return (
               <Button
@@ -38,9 +29,7 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => onNavigate(item.id)}
-                className={`flex flex-col items-center gap-1 h-auto py-2 px-3 ${
-                  isActive ? 'text-primary' : 'text-muted-foreground'
-                }`}
+                className="flex flex-col items-center gap-1 h-auto py-2 px-3 text-muted-foreground hover:text-primary"
               >
                 <Icon className="h-5 w-5" />
                 <span className="text-xs">{item.label}</span>

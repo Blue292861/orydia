@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { Input } from '@/components/ui/input';
@@ -9,10 +8,10 @@ import { Search, Coins, Tag } from 'lucide-react';
 
 interface SearchPageProps {
   books: Book[];
-  onSelectBook: (book: Book) => void;
+  onBookSelect: (book: Book) => void;
 }
 
-export const SearchPage: React.FC<SearchPageProps> = ({ books, onSelectBook }) => {
+export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
@@ -123,7 +122,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onSelectBook }) =
                     </div>
                   )}
                   <Button 
-                    onClick={() => onSelectBook(book)}
+                    onClick={() => onBookSelect(book)}
                     className="w-full"
                   >
                     Read Book

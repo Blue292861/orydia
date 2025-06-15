@@ -14,4 +14,6 @@ export interface UserStats {
   booksRead: string[];
   achievements: Achievement[];
   isPremium: boolean;
+  level: number;
+  experiencePoints: number;
 }

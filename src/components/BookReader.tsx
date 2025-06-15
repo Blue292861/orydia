@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
@@ -9,10 +8,10 @@ import { TextSizeControls } from '@/components/TextSizeControls';
 
 interface BookReaderProps {
   book: Book;
-  onClose: () => void;
+  onBack: () => void;
 }
 
-export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
+export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const { userStats, addPointsForBook } = useUserStats();
   const { toast } = useToast();
   const [hasFinished, setHasFinished] = useState(false);
@@ -35,7 +34,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <Button variant="ghost" onClick={onClose} className="flex items-center gap-1">
+        <Button variant="ghost" onClick={onBack} className="flex items-center gap-1">
           <ChevronLeft className="h-4 w-4" />
           Retour à la Bibliothèque
         </Button>
@@ -49,7 +48,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
           </div>
         </div>
         
-        <Button variant="ghost" size="icon" onClick={onClose}>
+        <Button variant="ghost" size="icon" onClick={onBack}>
           <X className="h-4 w-4" />
         </Button>
       </div>

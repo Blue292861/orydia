@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Book } from '@/types/Book';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,10 +6,10 @@ import { Coins, CheckCircle } from 'lucide-react';
 
 interface BookLibraryProps {
   books: Book[];
-  onSelectBook: (book: Book) => void;
+  onBookSelect: (book: Book) => void;
 }
 
-export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onSelectBook }) => {
+export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect }) => {
   const { userStats } = useUserStats();
   
   return (
@@ -29,7 +28,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onSelectBook })
               className={`overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 ${
                 isRead ? 'ring-2 ring-primary/50' : ''
               }`}
-              onClick={() => onSelectBook(book)}
+              onClick={() => onBookSelect(book)}
             >
               <div className="aspect-[2/3] relative">
                 <img 
