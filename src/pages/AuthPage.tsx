@@ -74,6 +74,7 @@ const AuthPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-wood-900 via-wood-800 to-stone-900">
       <div className="relative z-10 w-full max-w-md">
+        {showCrow && <LoginCrow onPasswordReset={handlePasswordReset} />}
         <h1 className="text-5xl font-bold text-center text-amber-300 mb-6" style={{ fontFamily: 'serif', textShadow: '2px 2px 4px #000' }}>
           Orydia
         </h1>
@@ -84,8 +85,7 @@ const AuthPage = () => {
               <TabsTrigger value="signup">Créer un compte</TabsTrigger>
             </TabsList>
             <TabsContent value="login">
-              <Card className="relative bg-wood-800/90 border-wood-600 text-white backdrop-blur-sm">
-                {showCrow && <LoginCrow onPasswordReset={handlePasswordReset} />}
+              <Card className="bg-wood-800/90 border-wood-600 text-white backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="text-amber-400">Parchemin d'Identification</CardTitle>
                   <CardDescription className="text-wood-300">
