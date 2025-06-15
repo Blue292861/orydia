@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, X, Coins } from 'lucide-react';
+import { ChevronLeft, X } from 'lucide-react';
 import { useUserStats } from '@/contexts/UserStatsContext';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { TextSizeControls } from '@/components/TextSizeControls';
 
 interface BookReaderProps {
@@ -26,7 +27,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
       setHasFinished(true);
       toast({
         title: "Livre terminé !",
-        description: `Vous avez gagné ${book.points} points pour avoir lu "${book.title}"`,
+        description: `Vous avez gagné ${book.points} Tensens pour avoir lu "${book.title}"`,
       });
     }
   };
@@ -43,8 +44,8 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           <h2 className="font-bold">{book.title}</h2>
           <p className="text-sm text-muted-foreground">{book.author}</p>
           <div className="flex items-center justify-center gap-1 mt-1">
-            <Coins className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">{book.points} points</span>
+            <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-4 w-4" />
+            <span className="text-sm font-medium">{book.points} Tensens</span>
           </div>
         </div>
         
@@ -84,18 +85,18 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
         <div className="mt-8 pt-6 border-t flex justify-center">
           {isAlreadyRead ? (
             <div className={`text-center ${highContrast ? 'text-gray-300' : 'text-muted-foreground'}`}>
-              <Coins className="h-6 w-6 mx-auto mb-2" />
-              <p>Vous avez déjà gagné des points pour ce livre</p>
+              <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-6 w-6 mx-auto mb-2" />
+              <p>Vous avez déjà gagné des Tensens pour ce livre</p>
             </div>
           ) : hasFinished ? (
             <div className="text-center text-green-600">
-              <Coins className="h-6 w-6 mx-auto mb-2" />
-              <p>Points accordés ! Bien joué !</p>
+              <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-6 w-6 mx-auto mb-2" />
+              <p>Tensens accordés ! Bien joué !</p>
             </div>
           ) : (
             <Button onClick={handleFinishReading} className="flex items-center gap-2">
-              <Coins className="h-4 w-4" />
-              Terminer la lecture & Gagner {book.points} Points
+              <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-4 w-4" />
+              Terminer la lecture & Gagner {book.points} Tensens
             </Button>
           )}
         </div>

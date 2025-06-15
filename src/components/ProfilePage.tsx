@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Coins, BookOpen, Star, Crown, Trophy, Zap } from 'lucide-react';
+import { BookOpen, Star, Crown, Trophy, Zap } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
   const { userStats, unlockPremium } = useUserStats();
@@ -65,8 +64,8 @@ export const ProfilePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-amber-800/50 rounded-lg p-4 border border-amber-600">
               <div className="flex items-center gap-2 mb-2">
-                <Coins className="h-5 w-5 text-amber-300" />
-                <span className="text-amber-200 font-medium">Points Totaux</span>
+                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-5 w-5" />
+                <span className="text-amber-200 font-medium">Tensens Totaux</span>
               </div>
               <div className="text-3xl font-bold text-amber-100">{userStats.totalPoints}</div>
             </div>
@@ -117,7 +116,7 @@ export const ProfilePage: React.FC = () => {
             <Trophy className="h-6 w-6 text-yellow-400" />
             <CardTitle className="text-slate-100">Inventaire des Succès</CardTitle>
             <Badge className="bg-slate-700 text-slate-300">
-              {totalAchievementPoints} points de bonus
+              {totalAchievementPoints} Tensens de bonus
             </Badge>
           </div>
         </CardHeader>
@@ -152,7 +151,7 @@ export const ProfilePage: React.FC = () => {
                   <div className="flex items-center justify-center gap-1">
                     <Zap className="h-3 w-3 text-yellow-400" />
                     <span className={`text-xs font-bold ${achievement.unlocked ? 'text-yellow-400' : 'text-slate-600'}`}>
-                      +{achievement.points}
+                      +{achievement.points} Tensens
                     </span>
                   </div>
                   
@@ -180,11 +179,11 @@ export const ProfilePage: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-400">{userStats.totalPoints}</div>
-              <div className="text-sm text-slate-400">Points de Lecture</div>
+              <div className="text-sm text-slate-400">Tensens de Lecture</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-400">{totalAchievementPoints}</div>
-              <div className="text-sm text-slate-400">Points de Succès</div>
+              <div className="text-sm text-slate-400">Tensens de Succès</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-400">{unlockedAchievements.length}</div>

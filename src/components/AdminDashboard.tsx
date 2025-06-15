@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { BookForm } from '@/components/BookForm';
-import { Plus, Pencil, Trash2, Coins, Crown, Star, Zap } from 'lucide-react';
+import { Plus, Pencil, Trash2, Crown, Star, Zap } from 'lucide-react';
 
 interface AdminDashboardProps {
   books: Book[];
@@ -73,8 +73,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
                 <p className="text-sm text-muted-foreground">{book.author}</p>
                 <div className="flex items-center gap-1 text-sm">
-                  <Coins className="h-4 w-4 text-primary" />
-                  <span className="font-medium">{book.points} points</span>
+                  <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-4 w-4" />
+                  <span className="font-medium">{book.points} Tensens</span>
                 </div>
               </CardHeader>
             </div>

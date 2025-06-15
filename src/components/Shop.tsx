@@ -5,7 +5,7 @@ import { useUserStats } from '@/contexts/UserStatsContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Coins, Sword, Shield, Sparkles, Star } from 'lucide-react';
+import { Sword, Shield, Sparkles, Star } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { SoundEffects } from '@/utils/soundEffects';
 
@@ -22,12 +22,12 @@ export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
       SoundEffects.playPurchase();
       toast({
         title: "⚔️ Purchase Successful!",
-        description: `You've acquired ${item.name} for ${item.price} gold coins!`,
+        description: `You've acquired ${item.name} for ${item.price} Tensens!`,
       });
     } else {
       toast({
-        title: "💰 Insufficient Gold",
-        description: `You need ${item.price - userStats.totalPoints} more gold coins to purchase this item.`,
+        title: "💰 Insufficient Tensens",
+        description: `You need ${item.price - userStats.totalPoints} more Tensens to purchase this item.`,
         variant: "destructive",
       });
     }
@@ -58,13 +58,13 @@ export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
           <h1 className="text-5xl font-bold text-amber-200 mb-2 font-serif drop-shadow-lg">
             🏪 The Merchant's Emporium
           </h1>
-          <p className="text-amber-100 text-lg">Trade your hard-earned gold for legendary items!</p>
+          <p className="text-amber-100 text-lg">Trade your hard-earned Tensens for legendary items!</p>
           
           {/* Player Gold Display */}
           <div className="mt-4 inline-flex items-center gap-2 bg-black/40 px-6 py-3 rounded-full border border-amber-600">
-            <Coins className="h-6 w-6 text-amber-400" />
+            <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-6 w-6" />
             <span className="text-2xl font-bold text-amber-200">{userStats.totalPoints}</span>
-            <span className="text-amber-300">Gold Coins</span>
+            <span className="text-amber-300">Tensens</span>
           </div>
         </div>
       </div>
@@ -108,7 +108,7 @@ export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 bg-amber-900/30 px-3 py-2 rounded-lg border border-amber-600/50">
-                      <Coins className="h-5 w-5 text-amber-400" />
+                      <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-5 w-5" />
                       <span className="font-bold text-amber-200 text-lg">{item.price}</span>
                     </div>
                     

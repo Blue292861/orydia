@@ -3,7 +3,7 @@ import React from 'react';
 import { Book } from '@/types/Book';
 import { Card, CardContent } from '@/components/ui/card';
 import { useUserStats } from '@/contexts/UserStatsContext';
-import { Coins, CheckCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
 interface BookCardProps {
   book: Book;
@@ -36,8 +36,8 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = 
         <h3 className="font-bold truncate">{book.title}</h3>
         <p className="text-sm text-wood-300 mb-2 truncate">{book.author}</p>
         <div className="flex items-center gap-1 text-xs">
-          <Coins className="h-4 w-4 text-amber-400" />
-          <span className="font-medium">{book.points} points</span>
+          <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-4 w-4" />
+          <span className="font-medium">{book.points} Tensens</span>
         </div>
       </CardContent>
     </Card>
