@@ -16,7 +16,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onSelectBook })
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold">My Library</h2>
+        <h2 className="text-3xl font-bold">Ma Bibliothèque</h2>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -49,7 +49,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onSelectBook })
                 <div className="flex items-center gap-1 text-sm">
                   <Coins className="h-4 w-4 text-primary" />
                   <span className="font-medium">{book.points} points</span>
-                  {isRead && <span className="text-green-600 ml-2">✓ Read</span>}
+                  {isRead && <span className="text-green-600 ml-2">✓ Lu</span>}
                 </div>
               </CardContent>
             </Card>
@@ -59,7 +59,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onSelectBook })
 
       {books.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No books in your library yet.</p>
+          <p className="text-muted-foreground">Aucun livre dans votre bibliothèque pour le moment.</p>
         </div>
       )}
     </div>

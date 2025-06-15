@@ -75,7 +75,7 @@ export const TextSizeControls: React.FC<TextSizeControlsProps> = ({
         variant={highContrast ? "default" : "outline"}
         size="icon"
         onClick={toggleContrast}
-        title="Toggle high contrast for better readability"
+        title="Activer le contraste élevé pour une meilleure lisibilité"
       >
         <Eye className="h-4 w-4" />
       </Button>

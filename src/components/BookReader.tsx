@@ -26,8 +26,8 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
       addPointsForBook(book.id, book.points);
       setHasFinished(true);
       toast({
-        title: "Book Completed!",
-        description: `You earned ${book.points} points for reading "${book.title}"`,
+        title: "Livre terminé !",
+        description: `Vous avez gagné ${book.points} points pour avoir lu "${book.title}"`,
       });
     }
   };
@@ -37,7 +37,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
       <div className="flex justify-between items-center mb-6">
         <Button variant="ghost" onClick={onClose} className="flex items-center gap-1">
           <ChevronLeft className="h-4 w-4" />
-          Back to Library
+          Retour à la Bibliothèque
         </Button>
         
         <div className="text-center">
@@ -63,12 +63,18 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
         />
       </div>
       
-      <div className={`bg-card rounded-lg p-8 shadow-md ${highContrast ? 'bg-black text-white' : ''}`}>
+      <div className={`rounded-lg p-8 shadow-md ${
+        highContrast 
+          ? 'bg-black text-white border border-gray-600' 
+          : 'bg-card text-card-foreground'
+      }`}>
         <div className="prose prose-lg max-w-none">
           {book.content.split('\n\n').map((paragraph, index) => (
             <p 
               key={index} 
-              className={`mb-4 leading-relaxed ${highContrast ? 'text-white' : 'text-foreground'}`}
+              className={`mb-4 leading-relaxed ${
+                highContrast ? 'text-white' : 'text-foreground'
+              }`}
               style={{ fontSize: `${fontSize}px` }}
             >
               {paragraph}
@@ -78,19 +84,19 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
         
         <div className="mt-8 pt-6 border-t flex justify-center">
           {isAlreadyRead ? (
-            <div className="text-center text-muted-foreground">
+            <div className={`text-center ${highContrast ? 'text-gray-300' : 'text-muted-foreground'}`}>
               <Coins className="h-6 w-6 mx-auto mb-2" />
-              <p>You've already earned points for this book</p>
+              <p>Vous avez déjà gagné des points pour ce livre</p>
             </div>
           ) : hasFinished ? (
             <div className="text-center text-green-600">
               <Coins className="h-6 w-6 mx-auto mb-2" />
-              <p>Points awarded! Well done!</p>
+              <p>Points accordés ! Bien joué !</p>
             </div>
           ) : (
             <Button onClick={handleFinishReading} className="flex items-center gap-2">
               <Coins className="h-4 w-4" />
-              Finish Reading & Earn {book.points} Points
+              Terminer la lecture & Gagner {book.points} Points
             </Button>
           )}
         </div>

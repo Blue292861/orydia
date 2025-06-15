@@ -6,12 +6,12 @@ import { Star, Check } from 'lucide-react';
 
 export const PremiumPage: React.FC = () => {
   const features = [
-    'Unlimited book access',
-    'Early access to new releases',
-    'Exclusive premium content',
-    'Ad-free reading experience',
-    'Priority customer support',
-    'Special premium badges'
+    'Accès illimité aux livres',
+    'Accès anticipé aux nouvelles sorties',
+    'Contenu exclusif premium',
+    'Expérience de lecture sans publicité',
+    'Support client prioritaire',
+    'Badges premium spéciaux'
   ];
 
   return (
@@ -19,16 +19,16 @@ export const PremiumPage: React.FC = () => {
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-4">
           <Star className="h-8 w-8 text-yellow-500" />
-          <h2 className="text-3xl font-bold">Premium Membership</h2>
+          <h2 className="text-3xl font-bold">Abonnement Premium</h2>
           <Star className="h-8 w-8 text-yellow-500" />
         </div>
-        <p className="text-muted-foreground">Unlock the full potential of your reading experience</p>
+        <p className="text-muted-foreground">Débloquez tout le potentiel de votre expérience de lecture</p>
       </div>
 
       <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Premium Plan</CardTitle>
-          <div className="text-4xl font-bold text-primary">$9.99/month</div>
+          <CardTitle className="text-2xl">Plan Premium</CardTitle>
+          <div className="text-4xl font-bold text-primary">9,99€/mois</div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
@@ -41,28 +41,28 @@ export const PremiumPage: React.FC = () => {
           </div>
           
           <Button className="w-full" size="lg">
-            Upgrade to Premium
+            Passer à Premium
           </Button>
           
           <p className="text-xs text-center text-muted-foreground">
-            Cancel anytime. 30-day money-back guarantee.
+            Résiliez à tout moment. Garantie de remboursement de 30 jours.
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Why Go Premium?</CardTitle>
+          <CardTitle>Pourquoi choisir Premium ?</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
-            Join thousands of readers who have enhanced their reading experience with our premium features. 
-            Get access to exclusive content, advanced features, and priority support.
+            Rejoignez des milliers de lecteurs qui ont amélioré leur expérience de lecture avec nos fonctionnalités premium. 
+            Accédez à du contenu exclusif, des fonctionnalités avancées et un support prioritaire.
           </p>
           <div className="bg-secondary/20 p-4 rounded-lg">
             <p className="text-sm">
-              <strong>Limited Time Offer:</strong> Get your first month for just $4.99! 
-              Use code READER50 at checkout.
+              <strong>Offre limitée :</strong> Obtenez votre premier mois pour seulement 4,99€ ! 
+              Utilisez le code LECTEUR50 lors du paiement.
             </p>
           </div>
         </CardContent>

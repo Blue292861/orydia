@@ -17,10 +17,10 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({
   if (isAdmin) return null; // Don't show footer for admin view
 
   const navItems = [
-    { id: 'home' as const, icon: Home, label: 'Home' },
-    { id: 'search' as const, icon: Search, label: 'Search' },
-    { id: 'shop' as const, icon: ShoppingCart, label: 'Shop' },
-    { id: 'profile' as const, icon: User, label: 'Profile' },
+    { id: 'home' as const, icon: Home, label: 'Accueil' },
+    { id: 'search' as const, icon: Search, label: 'Recherche' },
+    { id: 'shop' as const, icon: ShoppingCart, label: 'Boutique' },
+    { id: 'profile' as const, icon: User, label: 'Profil' },
     { id: 'premium' as const, icon: Star, label: 'Premium' },
   ];
 

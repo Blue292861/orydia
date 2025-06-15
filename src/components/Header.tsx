@@ -28,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({ isAdmin, setIsAdmin, currentView
                 onClick={() => onNavigate('books')}
                 size="sm"
               >
-                Books
+                Livres
               </Button>
               <Button 
                 variant={currentView === 'shop' ? "secondary" : "ghost"}
@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({ isAdmin, setIsAdmin, currentView
                 className="flex items-center gap-2"
               >
                 <ShoppingCart className="h-4 w-4" />
-                Shop
+                Boutique
               </Button>
             </div>
           )}
@@ -47,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({ isAdmin, setIsAdmin, currentView
             onClick={() => setIsAdmin(!isAdmin)}
             className="transition-all duration-300 hover:scale-105"
           >
-            {isAdmin ? 'Switch to User View' : 'Switch to Admin View'}
+            {isAdmin ? 'Vue Utilisateur' : 'Vue Administrateur'}
           </Button>
         </div>
       </div>
