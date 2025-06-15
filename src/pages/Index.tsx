@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { ShopItem } from '@/types/ShopItem';
@@ -101,10 +102,12 @@ const AppContent = () => {
     }
   };
 
+  const pageBackground = currentPage === 'library' ? 'bg-forest-900' : 'bg-background';
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen ${pageBackground} transition-colors duration-500`}>
       <Header onNavigate={setCurrentPage} currentPage={currentPage} />
-      <main className="flex-1">
+      <main className="flex-1 p-4 md:p-6">
         {renderCurrentPage()}
       </main>
       {currentPage !== 'reader' && <NavigationFooter onNavigate={setCurrentPage} />}

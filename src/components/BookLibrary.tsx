@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Book } from '@/types/Book';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,7 +16,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect })
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold">Ma Bibliothèque</h2>
+        <h2 className="text-3xl font-bold text-wood-100">Ma Bibliothèque</h2>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -25,7 +26,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect })
           return (
             <Card 
               key={book.id} 
-              className={`overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 ${
+              className={`overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 bg-wood-800/60 border-wood-700 ${
                 isRead ? 'ring-2 ring-primary/50' : ''
               }`}
               onClick={() => onBookSelect(book)}
@@ -42,13 +43,13 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect })
                   </div>
                 )}
               </div>
-              <CardContent className="p-4">
+              <CardContent className="p-4 text-wood-100">
                 <h3 className="font-bold truncate">{book.title}</h3>
-                <p className="text-sm text-muted-foreground mb-2">{book.author}</p>
+                <p className="text-sm text-wood-300 mb-2">{book.author}</p>
                 <div className="flex items-center gap-1 text-sm">
-                  <Coins className="h-4 w-4 text-primary" />
+                  <Coins className="h-4 w-4 text-amber-400" />
                   <span className="font-medium">{book.points} points</span>
-                  {isRead && <span className="text-green-600 ml-2">✓ Lu</span>}
+                  {isRead && <span className="text-green-400 ml-2">✓ Lu</span>}
                 </div>
               </CardContent>
             </Card>
@@ -58,7 +59,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect })
 
       {books.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Aucun livre dans votre bibliothèque pour le moment.</p>
+          <p className="text-forest-200">Aucun livre dans votre bibliothèque pour le moment.</p>
         </div>
       )}
     </div>
