@@ -1,14 +1,13 @@
 
 import React from 'react';
 import { useUserStats } from '@/contexts/UserStatsContext';
-import { Coins } from 'lucide-react';
 
 export const PointsDisplay: React.FC = () => {
   const { userStats } = useUserStats();
 
   return (
-    <div className="flex items-center gap-2 bg-secondary/50 px-3 py-2 rounded-lg">
-      <Coins className="h-5 w-5 text-primary" />
+    <div className="flex items-center gap-2 bg-wood-800 px-3 py-2 rounded-lg">
+      <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Points Icon" className="h-6 w-6" />
       <span className="font-semibold">{userStats.totalPoints} Points</span>
     </div>
   );
