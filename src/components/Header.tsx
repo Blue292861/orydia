@@ -2,7 +2,13 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { PointsDisplay } from '@/components/PointsDisplay';
-import { BookOpen, Settings, ShoppingCart, Users, Trophy } from 'lucide-react';
+import { BookOpen, Settings, ShoppingCart, User, Trophy } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   onNavigate: (page: 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'shop' | 'search' | 'profile' | 'premium') => void;
@@ -40,36 +46,41 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             <PointsDisplay />
             
             <div className="flex items-center space-x-2">
-              <Button
-                variant={currentPage === 'admin' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => onNavigate('admin')}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-              
-              <Button
-                variant={currentPage === 'shop-admin' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => onNavigate('shop-admin')}
-              >
-                <ShoppingCart className="h-4 w-4" />
-              </Button>
-              
-              <Button
-                variant={currentPage === 'achievement-admin' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => onNavigate('achievement-admin')}
-              >
-                <Trophy className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant={['admin', 'shop-admin', 'achievement-admin'].includes(currentPage) ? 'default' : 'ghost'}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Admin
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onNavigate('admin')}>
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    <span>Gérer les livres</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onNavigate('shop-admin')}>
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    <span>Gérer la boutique</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onNavigate('achievement-admin')}>
+                    <Trophy className="h-4 w-4 mr-2" />
+                    <span>Gérer les succès</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               
               <Button
                 variant={currentPage === 'profile' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => onNavigate('profile')}
+                className="flex items-center gap-2"
               >
-                <Users className="h-4 w-4" />
+                <User className="h-4 w-4" />
+                Profil
               </Button>
             </div>
           </div>
