@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { ShopItem } from '@/types/ShopItem';
 import { useUserStats } from '@/contexts/UserStatsContext';
@@ -11,6 +10,8 @@ import { SoundEffects } from '@/utils/soundEffects';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ShopProps {
   shopItems: ShopItem[];
@@ -18,6 +19,7 @@ interface ShopProps {
 
 export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
   const { userStats, spendPoints } = useUserStats();
+  const { session } = useAuth();
   const { toast } = useToast();
   const [filters, setFilters] = useState({
     seller: 'Tous',
@@ -25,9 +27,32 @@ export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
     affordable: false,
   });
 
-  const handlePurchase = (item: ShopItem) => {
+  const handlePurchase = async (item: ShopItem) => {
+    if (!session) {
+      toast({ title: "Erreur", description: "Vous devez être connecté pour acheter.", variant: "destructive" });
+      return;
+    }
     if (userStats.totalPoints >= item.price) {
       spendPoints(item.price);
+      
+      const { error } = await supabase.from('orders').insert({
+        user_id: session.user.id,
+        item_id: item.id,
+        item_name: item.name,
+        price: item.price,
+      });
+
+      if (error) {
+        console.error("Erreur lors de la création de la commande:", error);
+        // On pourrait ici "rembourser" les points si l'API échoue
+        toast({
+          title: "Une erreur est survenue",
+          description: "Votre achat n'a pas pu être enregistré, mais vos points ont été débités. Veuillez contacter le support.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       SoundEffects.playPurchase();
       toast({
         title: "⚔️ Achat Réussi !",

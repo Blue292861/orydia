@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,8 @@ import { ChevronLeft, X } from 'lucide-react';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { useToast } from '@/components/ui/use-toast';
 import { TextSizeControls } from '@/components/TextSizeControls';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface BookReaderProps {
   book: Book;
@@ -14,6 +15,7 @@ interface BookReaderProps {
 
 export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const { userStats, addPointsForBook } = useUserStats();
+  const { session } = useAuth();
   const { toast } = useToast();
   const [hasFinished, setHasFinished] = useState(false);
   const [fontSize, setFontSize] = useState(16);
@@ -21,9 +23,24 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   
   const isAlreadyRead = userStats.booksRead.includes(book.id);
   
-  const handleFinishReading = () => {
+  const handleFinishReading = async () => {
+    if (!session) {
+       toast({ title: "Erreur", description: "Vous devez être connecté.", variant: "destructive" });
+       return;
+    }
     if (!isAlreadyRead && !hasFinished) {
       addPointsForBook(book.id, book.points);
+
+      const { error } = await supabase.from('book_completions').insert({
+        user_id: session.user.id,
+        book_id: book.id,
+      });
+      
+      if (error) {
+        console.error("Erreur lors de l'enregistrement de la lecture:", error);
+        // Logique de compensation si nécessaire
+      }
+
       setHasFinished(true);
       toast({
         title: "Livre terminé !",

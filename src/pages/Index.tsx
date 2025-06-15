@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { ShopItem } from '@/types/ShopItem';
@@ -14,9 +13,15 @@ import { PremiumPage } from '@/components/PremiumPage';
 import { Header } from '@/components/Header';
 import { NavigationFooter } from '@/components/NavigationFooter';
 import { UserStatsProvider, useUserStats } from '@/contexts/UserStatsContext';
+import { AdminNav } from '@/components/AdminNav';
+import { OrdersAdmin } from '@/components/OrdersAdmin';
+import { ReadingStatsAdmin } from '@/components/ReadingStatsAdmin';
+
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin';
+type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | AdminPage;
 
 const AppContent = () => {
-  const [currentPage, setCurrentPage] = useState<'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'shop' | 'search' | 'profile' | 'premium'>('library');
+  const [currentPage, setCurrentPage] = useState<Page>('library');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [books, setBooks] = useState<Book[]>([]);
   const [shopItems, setShopItems] = useState<ShopItem[]>([
@@ -135,6 +140,10 @@ const AppContent = () => {
             onDeleteAchievement={deleteAchievement}
           />
         );
+      case 'orders-admin':
+        return <OrdersAdmin />;
+      case 'reading-stats-admin':
+        return <ReadingStatsAdmin books={books} />;
       case 'shop':
         return <Shop shopItems={shopItems} />;
       case 'search':
@@ -149,6 +158,8 @@ const AppContent = () => {
   };
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
+  
+  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin'].includes(currentPage);
 
   const getMainPadding = () => {
     switch (currentPage) {
@@ -165,11 +176,12 @@ const AppContent = () => {
 
   return (
     <div className={`min-h-screen ${pageBackground} transition-colors duration-500`}>
-      <Header onNavigate={setCurrentPage} currentPage={currentPage} />
-      <main className={`flex-1 ${getMainPadding()}`}>
+      <Header onNavigate={setCurrentPage as any} currentPage={currentPage} />
+      <main className={`flex-1 ${getMainPadding()} pb-24`}>
+        {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
         {renderCurrentPage()}
       </main>
-      {currentPage !== 'reader' && <NavigationFooter onNavigate={setCurrentPage} />}
+      {currentPage !== 'reader' && <NavigationFooter onNavigate={setCurrentPage as any} />}
     </div>
   );
 };
