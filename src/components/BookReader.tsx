@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, X } from 'lucide-react';
+import { ChevronLeft, X, Star } from 'lucide-react';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { useToast } from '@/components/ui/use-toast';
 import { TextSizeControls } from '@/components/TextSizeControls';
@@ -15,13 +16,15 @@ interface BookReaderProps {
 
 export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const { userStats, addPointsForBook } = useUserStats();
-  const { session } = useAuth();
+  const { session, subscription } = useAuth();
   const { toast } = useToast();
   const [hasFinished, setHasFinished] = useState(false);
   const [fontSize, setFontSize] = useState(16);
   const [highContrast, setHighContrast] = useState(false);
   
   const isAlreadyRead = userStats.booksRead.includes(book.id);
+  const isPremium = subscription.isPremium;
+  const pointsToWin = isPremium ? book.points * 2 : book.points;
   
   const handleFinishReading = async () => {
     if (!session) {
@@ -29,7 +32,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
        return;
     }
     if (!isAlreadyRead && !hasFinished) {
-      addPointsForBook(book.id, book.points);
+      addPointsForBook(book.id, pointsToWin);
 
       const { error } = await supabase.from('book_completions').insert({
         user_id: session.user.id,
@@ -44,7 +47,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
       setHasFinished(true);
       toast({
         title: "Livre terminé !",
-        description: `Vous avez gagné ${book.points} Tensens pour avoir lu "${book.title}"`,
+        description: `Vous avez gagné ${pointsToWin} Tensens pour avoir lu "${book.title}"`,
       });
     }
   };
@@ -63,6 +66,12 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           <div className="flex items-center justify-center gap-1 mt-1">
             <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-4 w-4" />
             <span className="text-sm font-medium">{book.points} Tensens</span>
+            {isPremium && (
+              <div className="flex items-center gap-1 text-yellow-500 ml-2 px-2 py-1 rounded-full bg-yellow-500/10 text-xs font-semibold">
+                <Star className="h-3 w-3 fill-current" />
+                <span>x2 BONUS</span>
+              </div>
+            )}
           </div>
         </div>
         
@@ -113,7 +122,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           ) : (
             <Button onClick={handleFinishReading} className="flex items-center gap-2">
               <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-4 w-4" />
-              Terminer la lecture & Gagner {book.points} Tensens
+              Terminer la lecture & Gagner {pointsToWin} Tensens
             </Button>
           )}
         </div>
