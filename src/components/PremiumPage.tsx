@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star, Check } from 'lucide-react';
@@ -9,8 +9,10 @@ import { toast } from '@/components/ui/use-toast';
 
 export const PremiumPage: React.FC = () => {
   const { subscription, manageSubscription } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {
+    setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout');
       if (error) {
@@ -26,6 +28,8 @@ export const PremiumPage: React.FC = () => {
         description: "Impossible de démarrer la session de paiement. Veuillez réessayer.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,8 +73,8 @@ export const PremiumPage: React.FC = () => {
               Gérer mon abonnement
             </Button>
           ) : (
-            <Button className="w-full" size="lg" onClick={handleCheckout}>
-              Passer à Premium
+            <Button className="w-full" size="lg" onClick={handleCheckout} disabled={loading}>
+              {loading ? 'Chargement...' : 'Passer à Premium'}
             </Button>
           )}
           

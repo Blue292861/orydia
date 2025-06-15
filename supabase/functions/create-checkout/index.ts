@@ -13,6 +13,9 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+  console.log(`[${Date.now() - startTime}ms] create-checkout function started`);
+
   try {
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -25,27 +28,38 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
-
+    
+    console.log(`[${Date.now() - startTime}ms] Authenticating user...`);
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) throw new Error("User not found");
+    console.log(`[${Date.now() - startTime}ms] User authenticated: ${user.id}`);
 
+    console.log(`[${Date.now() - startTime}ms] Fetching subscriber data...`);
     const { data: subscriber } = await supabaseAdmin.from('subscribers').select('stripe_customer_id').eq('user_id', user.id).single();
+    console.log(`[${Date.now() - startTime}ms] Subscriber data fetched.`);
 
     let customerId = subscriber?.stripe_customer_id;
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "2023-10-16" });
 
     if (!customerId) {
+      console.log(`[${Date.now() - startTime}ms] Stripe customer not found, creating new one...`);
       const customer = await stripe.customers.create({
         email: user.email!,
         metadata: { user_id: user.id },
       });
       customerId = customer.id;
+      console.log(`[${Date.now() - startTime}ms] Stripe customer created: ${customerId}`);
       
+      console.log(`[${Date.now() - startTime}ms] Upserting subscriber in DB...`);
       await supabaseAdmin
         .from('subscribers')
         .upsert({ user_id: user.id, email: user.email!, stripe_customer_id: customerId }, { onConflict: 'user_id' });
+      console.log(`[${Date.now() - startTime}ms] Subscriber upserted.`);
+    } else {
+      console.log(`[${Date.now() - startTime}ms] Stripe customer found: ${customerId}`);
     }
     
+    console.log(`[${Date.now() - startTime}ms] Creating Stripe checkout session...`);
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       customer: customerId,
@@ -67,6 +81,7 @@ serve(async (req) => {
       success_url: `${req.headers.get("origin")}/`,
       cancel_url: `${req.headers.get("origin")}/premium`,
     });
+    console.log(`[${Date.now() - startTime}ms] Stripe checkout session created.`);
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -74,6 +89,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error(error);
+    console.log(`[${Date.now() - startTime}ms] Error in create-checkout: ${error.message}`);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
