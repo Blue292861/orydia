@@ -74,11 +74,11 @@ const AuthPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-wood-900 via-wood-800 to-stone-900">
       <div className="relative z-10 w-full max-w-md">
-        {showCrow && <LoginCrow onPasswordReset={handlePasswordReset} />}
         <h1 className="text-5xl font-bold text-center text-amber-300 mb-6" style={{ fontFamily: 'serif', textShadow: '2px 2px 4px #000' }}>
           Orydia
         </h1>
         <div className="relative">
+          {showCrow && <LoginCrow onPasswordReset={handlePasswordReset} />}
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-wood-900/80 border border-wood-700 text-amber-200">
               <TabsTrigger value="login">Se connecter</TabsTrigger>
