@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ShopItem } from '@/types/ShopItem';
 import { useUserStats } from '@/contexts/UserStatsContext';
@@ -50,7 +49,7 @@ export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
       {/* RPG Header */}
       <div className="relative bg-gradient-to-r from-amber-900 via-yellow-800 to-amber-900 border-b-4 border-amber-600">
         <div className="absolute inset-0 bg-black/20"></div>

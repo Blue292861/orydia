@@ -104,10 +104,21 @@ const AppContent = () => {
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
 
+  const getMainPadding = () => {
+    switch (currentPage) {
+      case 'library':
+        return 'p-[10px]';
+      case 'shop':
+        return '';
+      default:
+        return 'p-4 md:p-6';
+    }
+  };
+
   return (
     <div className={`min-h-screen ${pageBackground} transition-colors duration-500`}>
       <Header onNavigate={setCurrentPage} currentPage={currentPage} />
-      <main className="flex-1 p-4 md:p-6">
+      <main className={`flex-1 ${getMainPadding()}`}>
         {renderCurrentPage()}
       </main>
       {currentPage !== 'reader' && <NavigationFooter onNavigate={setCurrentPage} />}
