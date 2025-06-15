@@ -66,6 +66,31 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom greenish and wooden brown colors
+				forest: {
+					50: '#f0f9f0',
+					100: '#dcf2dc',
+					200: '#bae5ba',
+					300: '#8dd38d',
+					400: '#5cb85c',
+					500: '#3d8b3d',
+					600: '#2e6b2e',
+					700: '#245424',
+					800: '#1f431f',
+					900: '#1a381a',
+				},
+				wood: {
+					50: '#faf8f5',
+					100: '#f5f0e8',
+					200: '#ebe0d0',
+					300: '#ddc9b0',
+					400: '#cdad8a',
+					500: '#b8906a',
+					600: '#a67c5a',
+					700: '#8a654b',
+					800: '#715342',
+					900: '#5c4439',
 				}
 			},
 			borderRadius: {
@@ -99,4 +124,3 @@ export default {
 	},
 	plugins: [require("tailwindcss-animate")],
 } satisfies Config;
-
