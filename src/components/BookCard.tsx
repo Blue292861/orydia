@@ -1,0 +1,45 @@
+
+import React from 'react';
+import { Book } from '@/types/Book';
+import { Card, CardContent } from '@/components/ui/card';
+import { useUserStats } from '@/contexts/UserStatsContext';
+import { Coins, CheckCircle } from 'lucide-react';
+
+interface BookCardProps {
+  book: Book;
+  onBookSelect: (book: Book) => void;
+  large?: boolean;
+}
+
+export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = false }) => {
+  const { userStats } = useUserStats();
+  const isRead = userStats.booksRead.includes(book.id);
+
+  return (
+    <Card
+      className={`overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 bg-wood-800/60 border-wood-700 flex-shrink-0 ${large ? 'w-60 md:w-72' : 'w-40 md:w-48'} ${isRead ? 'ring-2 ring-primary/50' : ''}`}
+      onClick={() => onBookSelect(book)}
+    >
+      <div className={`relative aspect-[2/3]`}>
+        <img
+          src={book.coverUrl}
+          alt={book.title}
+          className="w-full h-full object-cover"
+        />
+        {isRead && (
+          <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
+            <CheckCircle className="h-4 w-4" />
+          </div>
+        )}
+      </div>
+      <CardContent className="p-3 text-wood-100">
+        <h3 className="font-bold truncate">{book.title}</h3>
+        <p className="text-sm text-wood-300 mb-2 truncate">{book.author}</p>
+        <div className="flex items-center gap-1 text-xs">
+          <Coins className="h-4 w-4 text-amber-400" />
+          <span className="font-medium">{book.points} points</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

@@ -102,7 +102,7 @@ const AppContent = () => {
     }
   };
 
-  const pageBackground = currentPage === 'library' ? 'bg-forest-900' : 'bg-background';
+  const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
 
   return (
     <div className={`min-h-screen ${pageBackground} transition-colors duration-500`}>
