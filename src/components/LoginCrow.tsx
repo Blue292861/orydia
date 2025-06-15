@@ -4,9 +4,9 @@ import { Button } from './ui/button';
 
 export const LoginCrow = ({ onPasswordReset }: { onPasswordReset: () => void }) => {
   return (
-    <div className="absolute -top-4 -right-8 animate-fade-in-down w-48 z-20">
+    <div className="absolute -top-12 -right-8 animate-fade-in-down w-48 z-20">
       <div className="relative flex flex-col items-center">
-        <div className="relative bg-forest-200 text-forest-900 p-3 rounded-lg shadow-lg border-2 border-forest-800 mb-[-20px]">
+        <div className="relative bg-forest-200 text-forest-900 p-3 rounded-lg shadow-lg border-2 border-forest-800 mb-[-10px]">
           <p className="text-xs font-semibold text-center">Mot de passe oublié ?</p>
           <p className="text-xs mt-1 text-center">Un pigeon peut être dépêché !</p>
           <Button 
