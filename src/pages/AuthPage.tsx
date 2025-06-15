@@ -72,22 +72,22 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-purple-900 to-black">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-wood-900 via-wood-800 to-stone-900">
       <div className="relative z-10 w-full max-w-md">
         <h1 className="text-5xl font-bold text-center text-amber-300 mb-6" style={{ fontFamily: 'serif', textShadow: '2px 2px 4px #000' }}>
           Orydia
         </h1>
         <div className="relative">
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-stone-800/80 border border-stone-600 text-amber-200">
+            <TabsList className="grid w-full grid-cols-2 bg-wood-900/80 border border-wood-700 text-amber-200">
               <TabsTrigger value="login">Se connecter</TabsTrigger>
               <TabsTrigger value="signup">Créer un compte</TabsTrigger>
             </TabsList>
             <TabsContent value="login">
-              <Card className="bg-stone-900/80 border-stone-700 text-white">
+              <Card className="bg-wood-800/90 border-wood-600 text-white backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="text-amber-400">Parchemin d'Identification</CardTitle>
-                  <CardDescription className="text-stone-400">
+                  <CardDescription className="text-wood-300">
                     Présentez vos lettres de créance pour entrer dans le royaume.
                   </CardDescription>
                 </CardHeader>
@@ -96,11 +96,11 @@ const AuthPage = () => {
                     <div className="grid gap-4">
                       <div className="grid gap-2">
                         <Label htmlFor="email-login" className="text-amber-200">E-mail du Scribe</Label>
-                        <Input id="email-login" type="email" placeholder="nom@domaine.com" required onChange={(e) => setEmail(e.target.value)} className="bg-stone-800 border-stone-600 text-white focus:border-amber-400" />
+                        <Input id="email-login" type="email" placeholder="nom@domaine.com" required onChange={(e) => setEmail(e.target.value)} className="bg-wood-900 border-wood-700 text-white focus:border-amber-400" />
                       </div>
                       <div className="grid gap-2">
                         <Label htmlFor="password-login" className="text-amber-200">Mot de Passe Secret</Label>
-                        <Input id="password-login" type="password" required onChange={(e) => setPassword(e.target.value)} className="bg-stone-800 border-stone-600 text-white focus:border-amber-400" />
+                        <Input id="password-login" type="password" required onChange={(e) => setPassword(e.target.value)} className="bg-wood-900 border-wood-700 text-white focus:border-amber-400" />
                       </div>
                       <Button type="submit" disabled={loading} className="w-full bg-amber-600 hover:bg-amber-700 text-stone-900 font-bold">
                         {loading ? 'Vérification...' : 'Entrer'}
@@ -111,10 +111,10 @@ const AuthPage = () => {
               </Card>
             </TabsContent>
             <TabsContent value="signup">
-              <Card className="bg-stone-900/80 border-stone-700 text-white">
+              <Card className="bg-wood-800/90 border-wood-600 text-white backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="text-amber-400">Enrôlement</CardTitle>
-                  <CardDescription className="text-stone-400">
+                  <CardDescription className="text-wood-300">
                     Inscrivez votre nom sur les registres du royaume.
                   </CardDescription>
                 </CardHeader>
@@ -123,15 +123,15 @@ const AuthPage = () => {
                     <div className="grid gap-4">
                        <div className="grid gap-2">
                         <Label htmlFor="username-signup" className="text-amber-200">Nom d'Aventurier</Label>
-                        <Input id="username-signup" type="text" placeholder="Votre nom" required onChange={(e) => setUsername(e.target.value)} className="bg-stone-800 border-stone-600 text-white focus:border-amber-400" />
+                        <Input id="username-signup" type="text" placeholder="Votre nom" required onChange={(e) => setUsername(e.target.value)} className="bg-wood-900 border-wood-700 text-white focus:border-amber-400" />
                       </div>
                       <div className="grid gap-2">
                         <Label htmlFor="email-signup" className="text-amber-200">E-mail du Scribe</Label>
-                        <Input id="email-signup" type="email" placeholder="nom@domaine.com" required onChange={(e) => setEmail(e.target.value)} className="bg-stone-800 border-stone-600 text-white focus:border-amber-400" />
+                        <Input id="email-signup" type="email" placeholder="nom@domaine.com" required onChange={(e) => setEmail(e.target.value)} className="bg-wood-900 border-wood-700 text-white focus:border-amber-400" />
                       </div>
                       <div className="grid gap-2">
                         <Label htmlFor="password-signup" className="text-amber-200">Mot de Passe Secret</Label>
-                        <Input id="password-signup" type="password" required onChange={(e) => setPassword(e.target.value)} className="bg-stone-800 border-stone-600 text-white focus:border-amber-400" />
+                        <Input id="password-signup" type="password" required onChange={(e) => setPassword(e.target.value)} className="bg-wood-900 border-wood-700 text-white focus:border-amber-400" />
                       </div>
                       <Button type="submit" disabled={loading} className="w-full bg-amber-600 hover:bg-amber-700 text-stone-900 font-bold">
                         {loading ? 'Inscription en cours...' : "S'enrôler"}
