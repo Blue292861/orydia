@@ -84,7 +84,8 @@ const AuthPage = () => {
               <TabsTrigger value="signup">Créer un compte</TabsTrigger>
             </TabsList>
             <TabsContent value="login">
-              <Card className="bg-wood-800/90 border-wood-600 text-white backdrop-blur-sm">
+              <Card className="relative bg-wood-800/90 border-wood-600 text-white backdrop-blur-sm">
+                {showCrow && <LoginCrow onPasswordReset={handlePasswordReset} />}
                 <CardHeader>
                   <CardTitle className="text-amber-400">Parchemin d'Identification</CardTitle>
                   <CardDescription className="text-wood-300">
@@ -142,7 +143,6 @@ const AuthPage = () => {
               </Card>
             </TabsContent>
           </Tabs>
-          {showCrow && <LoginCrow onPasswordReset={handlePasswordReset} />}
         </div>
       </div>
     </div>
