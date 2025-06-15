@@ -17,10 +17,10 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = 
 
   return (
     <Card
-      className={`overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 bg-wood-800/60 border-wood-700 flex-shrink-0 ${large ? 'w-60 md:w-72' : 'w-40 md:w-48'} ${isRead ? 'ring-2 ring-primary/50' : ''}`}
+      className={`relative cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 hover:z-10 bg-wood-800/60 border-wood-700 flex-shrink-0 ${large ? 'w-60 md:w-72' : 'w-40 md:w-48'} ${isRead ? 'ring-2 ring-primary/50' : ''}`}
       onClick={() => onBookSelect(book)}
     >
-      <div className={`relative aspect-[2/3]`}>
+      <div className={`relative aspect-[2/3] rounded-t-lg overflow-hidden`}>
         <img
           src={book.coverUrl}
           alt={book.title}
