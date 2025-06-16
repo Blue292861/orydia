@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin';
 
 interface AdminNavProps {
   currentPage: AdminPage;
@@ -11,6 +11,7 @@ interface AdminNavProps {
 
 const navItems: { id: AdminPage; label: string }[] = [
   { id: 'admin', label: 'Gestion Livres' },
+  { id: 'audiobook-admin', label: 'Gestion Audiobooks' },
   { id: 'shop-admin', label: 'Gestion Boutique' },
   { id: 'achievement-admin', label: 'Gestion Succès' },
   { id: 'orders-admin', label: 'Commandes' },

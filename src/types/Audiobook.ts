@@ -1,0 +1,16 @@
+
+export interface Audiobook {
+  id: string;
+  name: string;
+  author: string;
+  description?: string;
+  cover_url: string;
+  audio_url: string;
+  tags: string[];
+  points: number;
+  is_premium: boolean;
+  is_month_success: boolean;
+  is_paco_favourite: boolean;
+  created_at?: string;
+  updated_at?: string;
+}

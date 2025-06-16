@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audiobooks: {
+        Row: {
+          audio_url: string
+          author: string
+          cover_url: string
+          created_at: string
+          description: string | null
+          id: string
+          is_month_success: boolean
+          is_paco_favourite: boolean
+          is_premium: boolean
+          name: string
+          points: number
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          audio_url: string
+          author: string
+          cover_url: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_month_success?: boolean
+          is_paco_favourite?: boolean
+          is_premium?: boolean
+          name: string
+          points?: number
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          audio_url?: string
+          author?: string
+          cover_url?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_month_success?: boolean
+          is_paco_favourite?: boolean
+          is_premium?: boolean
+          name?: string
+          points?: number
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       book_completions: {
         Row: {
           book_id: string
