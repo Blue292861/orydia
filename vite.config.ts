@@ -32,15 +32,15 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     // Minification et compression pour la production
-    minify: 'terser',
-    terserOptions: {
+    minify: mode === 'production' ? 'terser' : 'esbuild',
+    terserOptions: mode === 'production' ? {
       compress: {
         drop_console: true, // Supprime les console.log en production
         drop_debugger: true,
         pure_funcs: ['console.log', 'console.info', 'console.debug'],
       },
       mangle: true,
-    },
+    } : undefined,
     // Code splitting optimisé
     rollupOptions: {
       output: {
@@ -69,7 +69,7 @@ export default defineConfig(({ mode }) => ({
     // Compression des assets
     assetsInlineLimit: 4096, // Inline les petits assets (4KB)
     cssCodeSplit: true,
-    sourcemap: false, // Pas de sourcemaps en production pour réduire la taille
+    sourcemap: mode === 'development', // Sourcemaps uniquement en développement
     target: 'esnext', // Cible moderne pour de meilleures optimisations
     // Optimisations avancées
     reportCompressedSize: false, // Désactive le rapport de taille pour accélérer le build
