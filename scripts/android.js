@@ -65,7 +65,7 @@ function cleanAndroidBuild() {
     
     // Nettoyer le dossier .gradle
     const gradlePath = path.join(androidPath, '.gradle');
-    if (fs.existsExists(gradlePath)) {
+    if (fs.existsSync(gradlePath)) {
       try {
         fs.rmSync(gradlePath, { recursive: true, force: true });
         console.log('🗑️ Dossier android/.gradle supprimé');
