@@ -13,7 +13,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         flatDir {
-            dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+            dirs 'libs'
         }
     }
 }
