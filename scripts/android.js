@@ -35,6 +35,16 @@ function checkNodeModules() {
   return true;
 }
 
+function ensureBuild() {
+  const distPath = path.join(process.cwd(), 'dist');
+  if (!fs.existsSync(distPath)) {
+    console.log('📦 Construction des assets web...');
+    runCommand('npm run build');
+  } else {
+    console.log('✅ Assets web trouvés dans dist/');
+  }
+}
+
 switch (command) {
   case 'init':
     console.log('🚀 Initialisation du projet Android...');
@@ -44,6 +54,9 @@ switch (command) {
     
     // Vérifier la configuration Capacitor
     checkCapacitorConfig();
+    
+    // S'assurer que les assets web sont construits
+    ensureBuild();
     
     // Ajouter la plateforme Android
     runCommand('npx cap add android');
@@ -55,7 +68,7 @@ switch (command) {
     console.log('🔧 Lancement en mode développement...');
     checkNodeModules();
     checkCapacitorConfig();
-    runCommand('npm run build');
+    ensureBuild();
     runCommand('npx cap sync android');
     runCommand('npx cap run android');
     break;
@@ -76,6 +89,7 @@ switch (command) {
 
   case 'sync':
     console.log('🔄 Synchronisation des fichiers...');
+    ensureBuild();
     runCommand('npx cap sync android');
     console.log('✅ Synchronisation terminée!');
     break;
