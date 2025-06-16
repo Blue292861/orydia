@@ -18,15 +18,34 @@ function runCommand(cmd) {
 function checkCapacitorConfig() {
   const configPath = path.join(process.cwd(), 'capacitor.config.ts');
   if (!fs.existsSync(configPath)) {
-    console.error('Fichier capacitor.config.ts non trouvé. Veuillez d\'abord initialiser Capacitor.');
-    process.exit(1);
+    console.error('Fichier capacitor.config.ts non trouvé. Initialisation de Capacitor...');
+    runCommand('npx cap init');
+    return false;
   }
+  return true;
+}
+
+function checkNodeModules() {
+  const nodeModulesPath = path.join(process.cwd(), 'node_modules', '@capacitor', 'cli');
+  if (!fs.existsSync(nodeModulesPath)) {
+    console.error('Capacitor CLI non trouvé. Installation des dépendances...');
+    runCommand('npm install');
+    return false;
+  }
+  return true;
 }
 
 switch (command) {
   case 'init':
     console.log('🚀 Initialisation du projet Android...');
+    
+    // Vérifier que les dépendances sont installées
+    checkNodeModules();
+    
+    // Vérifier la configuration Capacitor
     checkCapacitorConfig();
+    
+    // Ajouter la plateforme Android
     runCommand('npx cap add android');
     runCommand('npx cap sync android');
     console.log('✅ Projet Android initialisé avec succès!');
@@ -34,6 +53,7 @@ switch (command) {
 
   case 'dev':
     console.log('🔧 Lancement en mode développement...');
+    checkNodeModules();
     checkCapacitorConfig();
     runCommand('npm run build');
     runCommand('npx cap sync android');
@@ -42,6 +62,7 @@ switch (command) {
 
   case 'build':
     console.log('🏗️ Construction pour la production...');
+    checkNodeModules();
     checkCapacitorConfig();
     runCommand('npm run build');
     runCommand('npx cap sync android');
@@ -61,6 +82,7 @@ switch (command) {
 
   case 'release':
     console.log('🚀 Construction pour la release...');
+    checkNodeModules();
     checkCapacitorConfig();
     runCommand('npm run build');
     runCommand('npx cap sync android');
