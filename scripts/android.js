@@ -50,8 +50,28 @@ function ensureBuild() {
 function cleanAndroidBuild() {
   const androidPath = path.join(process.cwd(), 'android');
   if (fs.existsSync(androidPath)) {
-    console.log('🧹 Nettoyage du build Android...');
-    runCommand('npx cap clean android');
+    console.log('🧹 Nettoyage du cache Android...');
+    
+    // Nettoyer le dossier build d'Android
+    const buildPath = path.join(androidPath, 'build');
+    if (fs.existsSync(buildPath)) {
+      fs.rmSync(buildPath, { recursive: true, force: true });
+      console.log('🗑️ Dossier android/build supprimé');
+    }
+    
+    // Nettoyer le dossier .gradle
+    const gradlePath = path.join(androidPath, '.gradle');
+    if (fs.existsSync(gradlePath)) {
+      fs.rmSync(gradlePath, { recursive: true, force: true });
+      console.log('🗑️ Dossier android/.gradle supprimé');
+    }
+    
+    // Nettoyer le dossier app/build
+    const appBuildPath = path.join(androidPath, 'app', 'build');
+    if (fs.existsSync(appBuildPath)) {
+      fs.rmSync(appBuildPath, { recursive: true, force: true });
+      console.log('🗑️ Dossier android/app/build supprimé');
+    }
   }
 }
 
