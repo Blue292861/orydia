@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,49 +15,55 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { checkRateLimit } from '@/utils/security';
 
 const fetchOrders = async (): Promise<Order[]> => {
-  const { data: ordersData, error: ordersError } = await supabase
-    .from('orders')
-    .select('*')
-    .order('created_at', { ascending: false });
+  try {
+    const { data: ordersData, error: ordersError } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (ordersError) {
-    console.error('Error fetching orders:', ordersError);
-    throw new Error(ordersError.message);
-  }
-  if (!ordersData) return [];
+    if (ordersError) {
+      console.error('Database error:', ordersError.code);
+      throw new Error('Erreur de base de données');
+    }
+    if (!ordersData) return [];
 
-  const userIds = [...new Set(ordersData.map((o) => o.user_id))];
-  
-  if (userIds.length === 0) {
-    return ordersData as Order[];
-  }
+    const userIds = [...new Set(ordersData.map((o) => o.user_id))];
+    
+    if (userIds.length === 0) {
+      return ordersData as Order[];
+    }
 
-  const { data: profilesData, error: profilesError } = await supabase
-    .from('profiles')
-    .select('id, username, avatar_url')
-    .in('id', userIds);
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url')
+      .in('id', userIds);
 
-  if (profilesError) {
-    console.error('Error fetching profiles:', profilesError);
-    // Gracefully handle profile fetch error by returning orders without profile info
-    return ordersData.map((order) => ({
+    if (profilesError) {
+      console.error('Profiles fetch error:', profilesError.code);
+      // Gracefully handle profile fetch error by returning orders without profile info
+      return ordersData.map((order) => ({
+        ...order,
+        profiles: null,
+      })) as Order[];
+    }
+
+    const profilesMap = new Map(
+      profilesData.map((p) => [p.id, { username: p.username, avatar_url: p.avatar_url }])
+    );
+
+    const ordersWithProfiles = ordersData.map((order) => ({
       ...order,
-      profiles: null,
-    })) as Order[];
+      profiles: profilesMap.get(order.user_id) || null,
+    }));
+
+    return ordersWithProfiles as Order[];
+  } catch (error) {
+    console.error('Error in fetchOrders:', error);
+    throw error;
   }
-
-  const profilesMap = new Map(
-    profilesData.map((p) => [p.id, { username: p.username, avatar_url: p.avatar_url }])
-  );
-
-  const ordersWithProfiles = ordersData.map((order) => ({
-    ...order,
-    profiles: profilesMap.get(order.user_id) || null,
-  }));
-
-  return ordersWithProfiles as Order[];
 };
 
 export const OrdersAdmin: React.FC = () => {
@@ -68,13 +75,23 @@ export const OrdersAdmin: React.FC = () => {
 
   const mutation = useMutation({
     mutationFn: async (orderId: string) => {
+      // Rate limiting for order processing
+      if (!checkRateLimit('order-processing', 10, 60000)) {
+        throw new Error('Trop de tentatives, veuillez attendre');
+      }
+
+      if (!orderId || typeof orderId !== 'string') {
+        throw new Error('ID de commande invalide');
+      }
+
       const { error } = await supabase
         .from('orders')
         .update({ status: 'processed' })
         .eq('id', orderId);
 
       if (error) {
-        throw new Error(error.message);
+        console.error('Database error:', error.code);
+        throw new Error('Erreur de base de données');
       }
     },
     onSuccess: () => {
@@ -97,7 +114,7 @@ export const OrdersAdmin: React.FC = () => {
   const processedOrders = orders?.filter((o) => o.status === 'processed') || [];
 
   if (isLoading) return <div>Chargement des commandes...</div>;
-  if (error) return <div>Erreur lors du chargement des commandes: {error.message}</div>;
+  if (error) return <div>Erreur lors du chargement des commandes</div>;
 
   return (
     <div className="space-y-6">

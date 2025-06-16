@@ -14,15 +14,24 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpenCheck, CalendarClock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { sanitizeText, validateTextLength } from '@/utils/security';
 
 interface ReadingStatsAdminProps {
   books: Book[];
 }
 
 const fetchCompletions = async () => {
-  const { data, error } = await supabase.from('book_completions').select('*');
-  if (error) throw new Error(error.message);
-  return data;
+  try {
+    const { data, error } = await supabase.from('book_completions').select('*');
+    if (error) {
+      console.error('Database error:', error.code);
+      throw new Error('Erreur de base de données');
+    }
+    return data;
+  } catch (error) {
+    console.error('Error fetching completions:', error);
+    throw error;
+  }
 };
 
 export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) => {
@@ -31,6 +40,13 @@ export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) =
     queryKey: ['book_completions'],
     queryFn: fetchCompletions
   });
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = sanitizeText(e.target.value);
+    if (validateTextLength(value, 100)) {
+      setSearchTerm(value);
+    }
+  };
 
   const stats = useMemo(() => {
     if (!completions || !books) return { bookStats: [], monthCompletions: 0 };
@@ -60,7 +76,7 @@ export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) =
   }, [stats.bookStats, searchTerm]);
 
   if (isLoading) return <div>Chargement des statistiques...</div>;
-  if (error) return <div>Erreur de chargement: {error.message}</div>;
+  if (error) return <div>Erreur de chargement des statistiques</div>;
 
   return (
     <div className="space-y-6">
@@ -95,8 +111,9 @@ export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) =
           <Input
             placeholder="Rechercher un livre..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
             className="mb-4 max-w-sm"
+            maxLength={100}
           />
           <Table>
             <TableHeader>
