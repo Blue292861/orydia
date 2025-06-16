@@ -105,7 +105,6 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
         <TagInput
           tags={formData.tags}
           onTagsChange={(tags) => handleChange('tags', tags)}
-          placeholder="Ajouter des tags..."
         />
       </div>
 

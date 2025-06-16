@@ -1,11 +1,11 @@
 
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, FileImage, FileText } from 'lucide-react';
+import { Upload, FileImage, FileText, FileAudio } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface FileImportProps {
-  type: 'image' | 'pdf';
+  type: 'image' | 'pdf' | 'audio';
   onFileImport: (content: string) => void;
   disabled?: boolean;
 }
@@ -70,6 +70,26 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
           }
         };
         reader.readAsArrayBuffer(file);
+      } else if (type === 'audio') {
+        if (!file.type.match(/^audio\/(mp3|wav|ogg|m4a|mpeg)$/)) {
+          toast({
+            title: "Invalid file type",
+            description: "Please select an MP3, WAV, OGG, or M4A audio file.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          onFileImport(result);
+          toast({
+            title: "Audio imported",
+            description: "Audio file has been uploaded successfully."
+          });
+        };
+        reader.readAsDataURL(file);
       }
     } catch (error) {
       toast({
@@ -89,12 +109,51 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
     fileInputRef.current?.click();
   };
 
+  const getAcceptTypes = () => {
+    switch (type) {
+      case 'image':
+        return 'image/png,image/jpeg,image/jpg';
+      case 'pdf':
+        return 'application/pdf';
+      case 'audio':
+        return 'audio/mp3,audio/wav,audio/ogg,audio/m4a,audio/mpeg';
+      default:
+        return '';
+    }
+  };
+
+  const getIcon = () => {
+    switch (type) {
+      case 'image':
+        return <FileImage className="h-4 w-4" />;
+      case 'pdf':
+        return <FileText className="h-4 w-4" />;
+      case 'audio':
+        return <FileAudio className="h-4 w-4" />;
+      default:
+        return <Upload className="h-4 w-4" />;
+    }
+  };
+
+  const getButtonText = () => {
+    switch (type) {
+      case 'image':
+        return 'Import Cover Image';
+      case 'pdf':
+        return 'Import PDF Content';
+      case 'audio':
+        return 'Import Audio File';
+      default:
+        return 'Import File';
+    }
+  };
+
   return (
     <>
       <input
         ref={fileInputRef}
         type="file"
-        accept={type === 'image' ? 'image/png,image/jpeg,image/jpg' : 'application/pdf'}
+        accept={getAcceptTypes()}
         onChange={handleFileSelect}
         className="hidden"
       />
@@ -105,8 +164,8 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
         disabled={disabled}
         className="flex items-center gap-2"
       >
-        {type === 'image' ? <FileImage className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
-        {type === 'image' ? 'Import Cover Image' : 'Import PDF Content'}
+        {getIcon()}
+        {getButtonText()}
       </Button>
     </>
   );
