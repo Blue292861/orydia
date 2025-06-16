@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
@@ -6,20 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { BookForm } from '@/components/BookForm';
 import { Plus, Pencil, Trash2, Crown, Star, Zap } from 'lucide-react';
+import { useBooks } from '@/hooks/useBooks';
 
-interface AdminDashboardProps {
-  books: Book[];
-  onAddBook: (book: Book) => void;
-  onUpdateBook: (book: Book) => void;
-  onDeleteBook: (id: string) => void;
-}
-
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ 
-  books, 
-  onAddBook,
-  onUpdateBook,
-  onDeleteBook
-}) => {
+export const AdminDashboard: React.FC = () => {
+  const { books, loading, addBook, updateBook, deleteBook } = useBooks();
   const [showDialog, setShowDialog] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
 
@@ -35,18 +26,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleSubmit = (bookData: Book) => {
     if (editingBook) {
-      onUpdateBook(bookData);
+      updateBook(bookData);
     } else {
-      onAddBook(bookData);
+      addBook(bookData);
     }
     setShowDialog(false);
   };
 
   const handleDelete = (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce livre ?')) {
-      onDeleteBook(id);
+      deleteBook(id);
     }
   };
+
+  if (loading) {
+    return <div className="text-center py-12">Chargement...</div>;
+  }
 
   return (
     <div className="space-y-6">

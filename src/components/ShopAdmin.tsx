@@ -1,25 +1,15 @@
 
 import React, { useState } from 'react';
-import { ShopItem } from '@/types/ShopItem';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ShopItemForm } from '@/components/ShopItemForm';
 import { Plus, Pencil, Trash2, Coins, User } from 'lucide-react';
+import { useShopItems } from '@/hooks/useShopItems';
+import { ShopItem } from '@/types/ShopItem';
 
-interface ShopAdminProps {
-  shopItems: ShopItem[];
-  onAddItem: (item: ShopItem) => void;
-  onUpdateItem: (item: ShopItem) => void;
-  onDeleteItem: (id: string) => void;
-}
-
-export const ShopAdmin: React.FC<ShopAdminProps> = ({ 
-  shopItems, 
-  onAddItem,
-  onUpdateItem,
-  onDeleteItem
-}) => {
+export const ShopAdmin: React.FC = () => {
+  const { shopItems, loading, addShopItem, updateShopItem, deleteShopItem } = useShopItems();
   const [showDialog, setShowDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<ShopItem | null>(null);
 
@@ -35,18 +25,22 @@ export const ShopAdmin: React.FC<ShopAdminProps> = ({
 
   const handleSubmit = (itemData: ShopItem) => {
     if (editingItem) {
-      onUpdateItem(itemData);
+      updateShopItem(itemData);
     } else {
-      onAddItem(itemData);
+      addShopItem(itemData);
     }
     setShowDialog(false);
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this shop item?')) {
-      onDeleteItem(id);
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
+      deleteShopItem(id);
     }
   };
+
+  if (loading) {
+    return <div className="text-center py-12">Chargement...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -96,7 +90,7 @@ export const ShopAdmin: React.FC<ShopAdminProps> = ({
 
       {shopItems.length === 0 && (
         <div className="text-center py-12 border rounded-lg">
-          <p className="text-muted-foreground">No shop items yet. Add your first item!</p>
+          <p className="text-muted-foreground">Aucun article dans la boutique pour le moment. Ajoutez votre premier article !</p>
         </div>
       )}
 

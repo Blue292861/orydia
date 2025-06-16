@@ -78,6 +78,51 @@ export type Database = {
         }
         Relationships: []
       }
+      books: {
+        Row: {
+          author: string
+          content: string
+          cover_url: string
+          created_at: string
+          id: string
+          is_month_success: boolean
+          is_paco_favourite: boolean
+          is_premium: boolean
+          points: number
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author: string
+          content: string
+          cover_url: string
+          created_at?: string
+          id?: string
+          is_month_success?: boolean
+          is_paco_favourite?: boolean
+          is_premium?: boolean
+          points?: number
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          content?: string
+          cover_url?: string
+          created_at?: string
+          id?: string
+          is_month_success?: boolean
+          is_paco_favourite?: boolean
+          is_premium?: boolean
+          points?: number
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string
@@ -126,6 +171,42 @@ export type Database = {
           id?: string
           updated_at?: string | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      shop_items: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          image_url: string
+          name: string
+          price: number
+          seller: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          image_url: string
+          name: string
+          price: number
+          seller: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string
+          name?: string
+          price?: number
+          seller?: string
+          updated_at?: string
         }
         Relationships: []
       }

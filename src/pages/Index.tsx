@@ -1,6 +1,6 @@
+
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
-import { ShopItem } from '@/types/ShopItem';
 import { BookLibrary } from '@/components/BookLibrary';
 import { BookReader } from '@/components/BookReader';
 import { AdminDashboard } from '@/components/AdminDashboard';
@@ -19,6 +19,8 @@ import { AdminNav } from '@/components/AdminNav';
 import { OrdersAdmin } from '@/components/OrdersAdmin';
 import { ReadingStatsAdmin } from '@/components/ReadingStatsAdmin';
 import { VideoAd } from '@/components/VideoAd';
+import { useBooks } from '@/hooks/useBooks';
+import { useShopItems } from '@/hooks/useShopItems';
 
 type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
@@ -27,80 +29,11 @@ const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<Page>('library');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [bookForAd, setBookForAd] = useState<Book | null>(null);
-  const [books, setBooks] = useState<Book[]>([]);
-  const [shopItems, setShopItems] = useState<ShopItem[]>([
-    {
-      id: '1',
-      name: 'Épée de bravoure',
-      description: "Une épée forgée dans le coeur d'une étoile.",
-      price: 500,
-      imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?q=80&w=2748&auto=format&fit=crop',
-      category: 'Arme',
-      seller: 'Forgeron Jo'
-    },
-    {
-      id: '2',
-      name: "Armure de l'Aube",
-      description: 'Protège contre les ombres les plus sombres.',
-      price: 750,
-      imageUrl: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?q=80&w=2787&auto=format&fit=crop',
-      category: 'Armure',
-      seller: 'Artisane Elara'
-    },
-    {
-      id: '3',
-      name: 'Grimoire des Arcanes',
-      description: 'Contient des sorts oubliés depuis des éons.',
-      price: 1200,
-      imageUrl: 'https://images.unsplash.com/photo-1721322800607-8c38375eef04?q=80&w=2942&auto=format&fit=crop',
-      category: 'Magie',
-      seller: 'Paco le Bibliothécaire'
-    },
-    {
-      id: '4',
-      name: 'Potion de vitalité',
-      description: 'Restaure la santé et la vigueur.',
-      price: 150,
-      imageUrl: 'https://images.unsplash.com/photo-1493962853295-0fd70327578a?q=80&w=2938&auto=format&fit=crop',
-      category: 'Consommable',
-      seller: 'Alchimiste Zander'
-    },
-    {
-      id: '5',
-      name: 'Amulette de perspicacité',
-      description: "Augmente l'intelligence et la sagesse du porteur.",
-      price: 800,
-      imageUrl: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?q=80&w=2787&auto=format&fit=crop',
-      category: 'Accessoire',
-      seller: 'Artisane Elara'
-    }
-  ]);
+  
+  const { books } = useBooks();
+  const { shopItems } = useShopItems();
   const { userStats, addAchievement, updateAchievement, deleteAchievement } = useUserStats();
   const { subscription } = useAuth();
-
-  const addBook = (book: Book) => {
-    setBooks([...books, { ...book, id: Date.now().toString() }]);
-  };
-
-  const updateBook = (updatedBook: Book) => {
-    setBooks(books.map(book => book.id === updatedBook.id ? updatedBook : book));
-  };
-
-  const deleteBook = (id: string) => {
-    setBooks(books.filter(book => book.id !== id));
-  };
-
-  const addShopItem = (item: ShopItem) => {
-    setShopItems([...shopItems, { ...item, id: Date.now().toString() }]);
-  };
-
-  const updateShopItem = (updatedItem: ShopItem) => {
-    setShopItems(shopItems.map(item => item.id === updatedItem.id ? updatedItem : item));
-  };
-
-  const deleteShopItem = (id: string) => {
-    setShopItems(shopItems.filter(item => item.id !== id));
-  };
 
   const handleBookSelect = (book: Book) => {
     const adWatched = localStorage.getItem(`ad_watched_${book.id}`);
@@ -137,25 +70,11 @@ const AppContent = () => {
           <BookReader book={selectedBook} onBack={handleBackToLibrary} />
         ) : null;
       case 'admin':
-        return (
-          <AdminDashboard
-            books={books}
-            onAddBook={addBook}
-            onUpdateBook={updateBook}
-            onDeleteBook={deleteBook}
-          />
-        );
+        return <AdminDashboard />;
       case 'audiobook-admin':
         return <AudiobookAdmin />;
       case 'shop-admin':
-        return (
-          <ShopAdmin
-            shopItems={shopItems}
-            onAddItem={addShopItem}
-            onUpdateItem={updateShopItem}
-            onDeleteItem={deleteShopItem}
-          />
-        );
+        return <ShopAdmin />;
       case 'achievement-admin':
         return (
           <AchievementAdmin
