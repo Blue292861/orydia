@@ -14,14 +14,6 @@ buildscript {
 }
 
 allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        flatDir {
-            dirs 'libs'
-        }
-    }
-    
     // Force Java 17 pour tous les projets
     tasks.withType(JavaCompile).configureEach {
         sourceCompatibility = '17'
