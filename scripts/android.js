@@ -39,9 +39,19 @@ function ensureBuild() {
   const distPath = path.join(process.cwd(), 'dist');
   if (!fs.existsSync(distPath)) {
     console.log('📦 Construction des assets web...');
+    // Définir la variable d'environnement pour désactiver la compression
+    process.env.CAPACITOR_BUILD = 'true';
     runCommand('npm run build');
   } else {
     console.log('✅ Assets web trouvés dans dist/');
+  }
+}
+
+function cleanAndroidBuild() {
+  const androidPath = path.join(process.cwd(), 'android');
+  if (fs.existsSync(androidPath)) {
+    console.log('🧹 Nettoyage du build Android...');
+    runCommand('npx cap clean android');
   }
 }
 
@@ -54,6 +64,9 @@ switch (command) {
     
     // Vérifier la configuration Capacitor
     checkCapacitorConfig();
+    
+    // Nettoyer les builds précédents
+    cleanAndroidBuild();
     
     // S'assurer que les assets web sont construits
     ensureBuild();
@@ -68,6 +81,7 @@ switch (command) {
     console.log('🔧 Lancement en mode développement...');
     checkNodeModules();
     checkCapacitorConfig();
+    cleanAndroidBuild();
     ensureBuild();
     runCommand('npx cap sync android');
     runCommand('npx cap run android');
@@ -77,6 +91,8 @@ switch (command) {
     console.log('🏗️ Construction pour la production...');
     checkNodeModules();
     checkCapacitorConfig();
+    cleanAndroidBuild();
+    process.env.CAPACITOR_BUILD = 'true';
     runCommand('npm run build');
     runCommand('npx cap sync android');
     console.log('✅ Build Android terminé!');
@@ -94,10 +110,23 @@ switch (command) {
     console.log('✅ Synchronisation terminée!');
     break;
 
+  case 'clean':
+    console.log('🧹 Nettoyage complet...');
+    cleanAndroidBuild();
+    const distPath = path.join(process.cwd(), 'dist');
+    if (fs.existsSync(distPath)) {
+      fs.rmSync(distPath, { recursive: true, force: true });
+      console.log('🗑️ Dossier dist supprimé');
+    }
+    console.log('✅ Nettoyage terminé!');
+    break;
+
   case 'release':
     console.log('🚀 Construction pour la release...');
     checkNodeModules();
     checkCapacitorConfig();
+    cleanAndroidBuild();
+    process.env.CAPACITOR_BUILD = 'true';
     runCommand('npm run build');
     runCommand('npx cap sync android');
     runCommand('npx cap build android');
@@ -112,5 +141,6 @@ switch (command) {
     console.log('  build    - Construit pour la production');
     console.log('  run      - Lance l\'application');
     console.log('  sync     - Synchronise les fichiers');
+    console.log('  clean    - Nettoie les builds');
     console.log('  release  - Construit pour la release');
 }

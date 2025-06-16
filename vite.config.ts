@@ -14,13 +14,12 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
-    // Compression Gzip pour la production
-    mode === 'production' && viteCompression({
+    // Désactiver la compression pour les builds Android/Capacitor pour éviter les doublons
+    mode === 'production' && !process.env.CAPACITOR_BUILD && viteCompression({
       algorithm: 'gzip',
       ext: '.gz',
     }),
-    // Compression Brotli pour la production (optionnel, meilleure compression)
-    mode === 'production' && viteCompression({
+    mode === 'production' && !process.env.CAPACITOR_BUILD && viteCompression({
       algorithm: 'brotliCompress',
       ext: '.br',
     }),
