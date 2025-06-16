@@ -1,6 +1,4 @@
 
-#!/usr/bin/env node
-
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -37,7 +35,7 @@ switch (command) {
   case 'dev':
     console.log('🔧 Lancement en mode développement...');
     checkCapacitorConfig();
-    runCommand('npm run build:dev');
+    runCommand('npm run build');
     runCommand('npx cap sync android');
     runCommand('npx cap run android');
     break;
