@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { FileImport } from '@/components/FileImport';
+import { sanitizeText, validateTextLength, validateUrl, validatePrice } from '@/utils/security';
+import { useToast } from '@/hooks/use-toast';
 
 interface ShopItemFormProps {
   initialItem: ShopItem;
@@ -14,17 +16,134 @@ interface ShopItemFormProps {
 
 export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmit }) => {
   const [formData, setFormData] = useState<ShopItem>(initialItem);
+  const { toast } = useToast();
+
+  const handleChange = (field: keyof ShopItem, value: string | number) => {
+    // Validate text length for string fields
+    if (typeof value === 'string') {
+      let maxLength = 500; // default for description
+      if (field === 'name') maxLength = 100;
+      else if (field === 'category') maxLength = 50;
+      else if (field === 'seller') maxLength = 100;
+      
+      if (!validateTextLength(value, maxLength)) {
+        toast({
+          title: "Input too long",
+          description: `${field} must be less than ${maxLength} characters.`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Validate price
+    if (field === 'price' && typeof value === 'number') {
+      if (!validatePrice(value)) {
+        toast({
+          title: "Invalid price",
+          description: "Price must be a positive integer up to 1,000,000.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Validate URL
+    if (field === 'imageUrl' && typeof value === 'string' && value) {
+      if (!validateUrl(value)) {
+        toast({
+          title: "Invalid URL",
+          description: "Please enter a valid image URL.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    const sanitizedValue = typeof value === 'string' ? sanitizeText(value) : value;
+    
+    setFormData(prev => ({
+      ...prev,
+      [field]: sanitizedValue
+    }));
+  };
+
+  const validateForm = (): boolean => {
+    if (!formData.name?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Item name is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!formData.seller?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Seller name is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!formData.category?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Category is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!formData.description?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Description is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!formData.imageUrl?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Image URL is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (formData.price <= 0) {
+      toast({
+        title: "Validation Error",
+        description: "Price must be greater than 0.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-  };
+    
+    if (!validateForm()) {
+      return;
+    }
 
-  const handleChange = (field: keyof ShopItem, value: string | number) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // Final sanitization before submission
+    const sanitizedData: ShopItem = {
+      ...formData,
+      name: sanitizeText(formData.name),
+      seller: sanitizeText(formData.seller),
+      category: sanitizeText(formData.category),
+      description: sanitizeText(formData.description),
+      imageUrl: sanitizeText(formData.imageUrl)
+    };
+
+    onSubmit(sanitizedData);
   };
 
   return (
@@ -35,6 +154,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
           id="name"
           value={formData.name}
           onChange={(e) => handleChange('name', e.target.value)}
+          maxLength={100}
           required
         />
       </div>
@@ -45,6 +165,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
           id="seller"
           value={formData.seller}
           onChange={(e) => handleChange('seller', e.target.value)}
+          maxLength={100}
           required
         />
       </div>
@@ -55,6 +176,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
           id="category"
           value={formData.category}
           onChange={(e) => handleChange('category', e.target.value)}
+          maxLength={50}
           required
         />
       </div>
@@ -65,6 +187,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
           id="description"
           value={formData.description}
           onChange={(e) => handleChange('description', e.target.value)}
+          maxLength={500}
           required
           rows={3}
         />
@@ -76,6 +199,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
           id="price"
           type="number"
           min="1"
+          max="1000000"
           value={formData.price}
           onChange={(e) => handleChange('price', parseInt(e.target.value) || 0)}
           required

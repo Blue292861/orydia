@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { TagInput } from '@/components/TagInput';
 import { FileImport } from '@/components/FileImport';
+import { sanitizeText, sanitizeHtml, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
+import { useToast } from '@/hooks/use-toast';
 
 interface BookFormProps {
   initialBook: Book;
@@ -15,13 +18,58 @@ interface BookFormProps {
 
 export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => {
   const [book, setBook] = React.useState<Book>(initialBook);
+  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    // Validate input length
+    let maxLength = 200; // default
+    if (name === 'title') maxLength = 200;
+    else if (name === 'author') maxLength = 100;
+    else if (name === 'content') maxLength = 500000;
+    
+    if (!validateTextLength(value, maxLength)) {
+      toast({
+        title: "Input too long",
+        description: `${name} must be less than ${maxLength} characters.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const sanitizedValue = name === 'content' ? sanitizeHtml(value) : sanitizeText(value);
+    
     setBook(prev => ({ 
       ...prev, 
-      [name]: name === 'points' ? parseInt(value) || 0 : value 
+      [name]: name === 'points' ? parseInt(value) || 0 : sanitizedValue 
     }));
+  };
+
+  const handleCoverUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value && !validateUrl(value)) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid image URL.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setBook(prev => ({ ...prev, coverUrl: sanitizeText(value) }));
+  };
+
+  const handlePointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const points = parseInt(e.target.value) || 0;
+    if (!validatePoints(points)) {
+      toast({
+        title: "Invalid points",
+        description: "Points must be between 0 and 100,000.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setBook(prev => ({ ...prev, points }));
   };
 
   const handleTagsChange = (tags: string[]) => {
@@ -45,12 +93,73 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
   };
 
   const handleContentImport = (content: string) => {
-    setBook(prev => ({ ...prev, content }));
+    const sanitizedContent = sanitizeHtml(content);
+    setBook(prev => ({ ...prev, content: sanitizedContent }));
+  };
+
+  const validateForm = (): boolean => {
+    if (!book.title?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Title is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!book.author?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Author is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!book.coverUrl?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Cover URL is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!book.content?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Content is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!validateUrl(book.coverUrl)) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid cover URL.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(book);
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    onSubmit({
+      ...book,
+      title: sanitizeText(book.title),
+      author: sanitizeText(book.author),
+      content: sanitizeHtml(book.content),
+      coverUrl: sanitizeText(book.coverUrl)
+    });
   };
 
   return (
@@ -63,6 +172,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
           value={book.title}
           onChange={handleChange}
           placeholder="Entrez le titre du livre"
+          maxLength={200}
           required
         />
       </div>
@@ -75,6 +185,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
           value={book.author}
           onChange={handleChange}
           placeholder="Entrez le nom de l'auteur"
+          maxLength={100}
           required
         />
       </div>
@@ -86,7 +197,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
             id="coverUrl"
             name="coverUrl"
             value={book.coverUrl}
-            onChange={handleChange}
+            onChange={handleCoverUrlChange}
             placeholder="Entrez l'URL de l'image de couverture ou importez un fichier"
             required
           />
@@ -101,9 +212,10 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
           name="points"
           type="number"
           value={book.points}
-          onChange={handleChange}
+          onChange={handlePointsChange}
           placeholder="Points gagnés pour la lecture de ce livre"
           min="0"
+          max="100000"
           required
         />
       </div>
@@ -156,6 +268,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
             onChange={handleChange}
             placeholder="Entrez le contenu du livre ou importez un PDF"
             className="min-h-[200px]"
+            maxLength={500000}
             required
           />
           <FileImport type="pdf" onFileImport={handleContentImport} />

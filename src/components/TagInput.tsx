@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
+import { sanitizeTag, validateTextLength } from '@/utils/security';
 
 interface TagInputProps {
   tags: string[];
@@ -14,15 +15,35 @@ export const TagInput: React.FC<TagInputProps> = ({ tags, onTagsChange }) => {
   const [inputValue, setInputValue] = useState('');
 
   const addTag = () => {
-    const trimmedValue = inputValue.trim().toLowerCase();
-    if (trimmedValue && !tags.includes(trimmedValue)) {
-      onTagsChange([...tags, trimmedValue]);
+    const sanitizedTag = sanitizeTag(inputValue.trim());
+    
+    if (!sanitizedTag) return;
+    
+    if (!validateTextLength(sanitizedTag, 50)) {
+      console.warn('Tag too long, maximum 50 characters allowed');
+      return;
+    }
+    
+    if (tags.length >= 10) {
+      console.warn('Maximum 10 tags allowed');
+      return;
+    }
+    
+    if (!tags.includes(sanitizedTag)) {
+      onTagsChange([...tags, sanitizedTag]);
       setInputValue('');
     }
   };
 
   const removeTag = (tagToRemove: string) => {
     onTagsChange(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (validateTextLength(value, 50)) {
+      setInputValue(value);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -37,12 +58,13 @@ export const TagInput: React.FC<TagInputProps> = ({ tags, onTagsChange }) => {
       <div className="flex gap-2">
         <Input
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={handleInputChange}
           onKeyPress={handleKeyPress}
           placeholder="Add a tag..."
           className="flex-1"
+          maxLength={50}
         />
-        <Button type="button" onClick={addTag} size="sm" disabled={!inputValue.trim()}>
+        <Button type="button" onClick={addTag} size="sm" disabled={!inputValue.trim() || tags.length >= 10}>
           <Plus className="h-4 w-4" />
         </Button>
       </div>
@@ -62,6 +84,10 @@ export const TagInput: React.FC<TagInputProps> = ({ tags, onTagsChange }) => {
             </Badge>
           ))}
         </div>
+      )}
+      
+      {tags.length >= 10 && (
+        <p className="text-sm text-muted-foreground">Maximum number of tags reached (10)</p>
       )}
     </div>
   );

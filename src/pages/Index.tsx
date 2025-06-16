@@ -13,6 +13,7 @@ import { ProfilePage } from '@/components/ProfilePage';
 import { PremiumPage } from '@/components/PremiumPage';
 import { Header } from '@/components/Header';
 import { NavigationFooter } from '@/components/NavigationFooter';
+import { SecurityHeaders } from '@/components/SecurityHeaders';
 import { UserStatsProvider, useUserStats } from '@/contexts/UserStatsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { AdminNav } from '@/components/AdminNav';
@@ -119,14 +120,17 @@ const AppContent = () => {
   };
 
   return (
-    <div className={`min-h-screen ${pageBackground} transition-colors duration-500`}>
-      {currentPage !== 'video-ad' && <Header onNavigate={setCurrentPage as any} currentPage={currentPage} />}
-      <main className={`flex-1 ${getMainPadding()} pb-24`}>
-        {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
-        {renderCurrentPage()}
-      </main>
-      {currentPage !== 'reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={setCurrentPage as any} />}
-    </div>
+    <>
+      <SecurityHeaders />
+      <div className={`min-h-screen ${pageBackground} transition-colors duration-500`}>
+        {currentPage !== 'video-ad' && <Header onNavigate={setCurrentPage as any} currentPage={currentPage} />}
+        <main className={`flex-1 ${getMainPadding()} pb-24`}>
+          {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
+          {renderCurrentPage()}
+        </main>
+        {currentPage !== 'reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={setCurrentPage as any} />}
+      </div>
+    </>
   );
 };
 

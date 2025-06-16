@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TagInput } from '@/components/TagInput';
 import { FileImport } from '@/components/FileImport';
+import { sanitizeText, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
+import { useToast } from '@/hooks/use-toast';
 
 interface AudiobookFormProps {
   initialAudiobook: Audiobook;
@@ -16,17 +18,115 @@ interface AudiobookFormProps {
 
 export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, onSubmit }) => {
   const [formData, setFormData] = useState<Audiobook>(initialAudiobook);
+  const { toast } = useToast();
+
+  const handleChange = (field: keyof Audiobook, value: any) => {
+    // Validate text length for string fields
+    if (typeof value === 'string') {
+      let maxLength = 500; // default for description
+      if (field === 'name') maxLength = 200;
+      else if (field === 'author') maxLength = 100;
+      
+      if (!validateTextLength(value, maxLength)) {
+        toast({
+          title: "Input too long",
+          description: `${field} must be less than ${maxLength} characters.`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Validate points
+    if (field === 'points' && typeof value === 'number') {
+      if (!validatePoints(value)) {
+        toast({
+          title: "Invalid points",
+          description: "Points must be between 0 and 100,000.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    // Validate URLs
+    if ((field === 'cover_url' || field === 'audio_url') && typeof value === 'string' && value) {
+      if (!validateUrl(value)) {
+        toast({
+          title: "Invalid URL",
+          description: `Please enter a valid ${field === 'cover_url' ? 'image' : 'audio'} URL.`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    const sanitizedValue = typeof value === 'string' ? sanitizeText(value) : value;
+    
+    setFormData(prev => ({
+      ...prev,
+      [field]: sanitizedValue
+    }));
+  };
+
+  const validateForm = (): boolean => {
+    if (!formData.name?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Name is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!formData.author?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Author is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!formData.cover_url?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Cover URL is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!formData.audio_url?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Audio URL is required.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-  };
+    
+    if (!validateForm()) {
+      return;
+    }
 
-  const handleChange = (field: keyof Audiobook, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // Final sanitization before submission
+    const sanitizedData: Audiobook = {
+      ...formData,
+      name: sanitizeText(formData.name),
+      author: sanitizeText(formData.author),
+      description: formData.description ? sanitizeText(formData.description) : null,
+      cover_url: sanitizeText(formData.cover_url),
+      audio_url: sanitizeText(formData.audio_url)
+    };
+
+    onSubmit(sanitizedData);
   };
 
   return (
@@ -37,6 +137,7 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
           id="name"
           value={formData.name}
           onChange={(e) => handleChange('name', e.target.value)}
+          maxLength={200}
           required
         />
       </div>
@@ -47,6 +148,7 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
           id="author"
           value={formData.author}
           onChange={(e) => handleChange('author', e.target.value)}
+          maxLength={100}
           required
         />
       </div>
@@ -57,6 +159,7 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
           id="description"
           value={formData.description || ''}
           onChange={(e) => handleChange('description', e.target.value)}
+          maxLength={500}
           rows={3}
         />
       </div>
@@ -114,6 +217,7 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
           id="points"
           type="number"
           min="0"
+          max="100000"
           value={formData.points}
           onChange={(e) => handleChange('points', parseInt(e.target.value) || 0)}
           required
