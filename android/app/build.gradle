@@ -33,6 +33,7 @@ android {
         }
     }
 
+    // CRITIQUE : Force Java 17 explicitement
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -44,10 +45,11 @@ android {
         pickFirst '**/libjsc.so'
     }
 
-    // Force Java 17 pour tous les modules
+    // Force Java 17 pour tous les modules - REDONDANT MAIS NÉCESSAIRE
     tasks.withType(JavaCompile) {
         sourceCompatibility = '17'
         targetCompatibility = '17'
+        options.compilerArgs += ['-Xlint:none']
     }
 }
 
@@ -61,7 +63,7 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.15.0'
     
     // Dépendances pour la performance
-    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'androidx.multidex:multidx:2.0.1'
     
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'

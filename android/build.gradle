@@ -1,4 +1,5 @@
 
+
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {
@@ -19,9 +20,10 @@ allprojects {
         google()
         mavenCentral()
         gradlePluginPortal()
+        // Suppression de flatDir pour éviter les warnings
     }
     
-    // Force Java 17 pour tous les projets
+    // Force Java 17 pour tous les projets - CRITIQUE
     tasks.withType(JavaCompile).configureEach {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

@@ -12,9 +12,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        flatDir {
-            dirs 'libs'
-        }
+        // Suppression de flatDir qui causait les warnings
     }
 }
 
