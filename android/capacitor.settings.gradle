@@ -12,13 +12,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        flatDir {
-            dirs 'libs'
-        }
     }
 }
 
-rootProject.name = "Orydia"
-include ':app'
-
-apply from: 'capacitor.settings.gradle'
+include ':capacitor-android'
+project(':capacitor-android').projectDir = new File('./capacitor-android')
