@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { PointsDisplay } from '@/components/PointsDisplay';
-import { BookOpen, Settings, ShoppingCart, Trophy, LogOut, Menu } from 'lucide-react';
+import { BookOpen, Settings, ShoppingCart, Trophy, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +12,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface HeaderProps {
   onNavigate: (page: 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'shop' | 'search' | 'profile') => void;
@@ -19,6 +21,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const { session, isAdmin } = useAuth();
+  const { isMobile } = useResponsive();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -30,24 +33,24 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-1 xs:px-2 sm:px-4 py-1 xs:py-1.5 sm:py-2">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-safe-top">
+      <div className="w-full max-w-full px-2 py-1">
         <div className="flex items-center justify-between">
-          <div className="flex items-center text-amber-400">
+          <div className="flex items-center text-amber-400 flex-shrink-0">
             <PointsDisplay />
           </div>
 
-          <div className="flex items-center space-x-0.5 xs:space-x-1 sm:space-x-2">
+          <div className="flex items-center space-x-1 flex-shrink-0">
             {isAdmin && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant={['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin'].includes(currentPage) ? 'default' : 'ghost'}
                     size="sm"
-                    className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm px-1 xs:px-2 sm:px-3 py-1"
+                    className={`flex items-center gap-1 px-2 py-1 ${isMobile ? 'text-[10px]' : 'text-xs'}`}
                   >
-                    <Settings className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
-                    <span className="hidden xs:inline text-[10px] xs:text-xs">Admin</span>
+                    <Settings className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                    {!isMobile && <span>Admin</span>}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -84,10 +87,10 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm px-1 xs:px-2 sm:px-3 py-1"
+                className={`flex items-center gap-1 px-2 py-1 ${isMobile ? 'text-[10px]' : 'text-xs'}`}
               >
-                <LogOut className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Se déconnecter</span>
+                <LogOut className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                {!isMobile && <span>Déconnexion</span>}
               </Button>
             )}
           </div>

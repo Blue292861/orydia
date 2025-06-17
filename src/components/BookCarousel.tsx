@@ -2,6 +2,7 @@
 import React from 'react';
 import { Book } from '@/types/Book';
 import { BookCard } from './BookCard';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface BookCarouselProps {
   title: string;
@@ -12,12 +13,20 @@ interface BookCarouselProps {
 }
 
 export const BookCarousel: React.FC<BookCarouselProps> = ({ title, books, onBookSelect, large = false, emptyMessage }) => {
+  const { isMobile } = useResponsive();
+  
   if (books.length === 0) {
     if (emptyMessage) {
         return (
-          <div className="space-y-2 xs:space-y-3 sm:space-y-4">
-            <h2 className="text-lg xs:text-xl sm:text-2xl md:text-4xl font-cursive text-wood-300 capitalize px-1 xs:px-2 sm:px-0">{title}</h2>
-            <div className="text-xs xs:text-sm text-wood-300 px-1 xs:px-2 sm:px-0">{emptyMessage}</div>
+          <div className="space-y-2">
+            <h2 className={`font-cursive text-wood-300 capitalize px-2 ${
+              isMobile ? 'text-lg' : 'text-xl sm:text-2xl lg:text-3xl'
+            }`}>
+              {title}
+            </h2>
+            <div className={`text-wood-300 px-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+              {emptyMessage}
+            </div>
           </div>
         )
     }
@@ -25,13 +34,17 @@ export const BookCarousel: React.FC<BookCarouselProps> = ({ title, books, onBook
   }
 
   return (
-    <div className="space-y-2 xs:space-y-3 sm:space-y-4">
-      <h2 className="text-lg xs:text-xl sm:text-2xl md:text-4xl font-cursive text-wood-300 capitalize px-1 xs:px-2 sm:px-0">{title}</h2>
-      <div className="flex space-x-2 xs:space-x-3 sm:space-x-4 overflow-x-auto -mb-4 py-2 xs:py-3 sm:py-4 px-1 xs:px-2 sm:px-0">
+    <div className="space-y-2 max-w-full overflow-hidden">
+      <h2 className={`font-cursive text-wood-300 capitalize px-2 ${
+        isMobile ? 'text-lg' : 'text-xl sm:text-2xl lg:text-3xl'
+      }`}>
+        {title}
+      </h2>
+      <div className={`flex overflow-x-auto -mb-4 py-2 px-2 ${isMobile ? 'space-x-2' : 'space-x-3 sm:space-x-4'}`}>
         {books.map((book) => (
           <BookCard key={book.id} book={book} onBookSelect={onBookSelect} large={large} />
         ))}
-        <div className="flex-shrink-0 w-1"></div> {/* padding at the end */}
+        <div className="flex-shrink-0 w-1"></div>
       </div>
     </div>
   );

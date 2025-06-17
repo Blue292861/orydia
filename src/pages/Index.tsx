@@ -21,6 +21,7 @@ import { ReadingStatsAdmin } from '@/components/ReadingStatsAdmin';
 import { VideoAd } from '@/components/VideoAd';
 import { useBooks } from '@/hooks/useBooks';
 import { useShopItems } from '@/hooks/useShopItems';
+import { useResponsive } from '@/hooks/useResponsive';
 
 type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'video-ad' | AdminPage;
@@ -34,6 +35,7 @@ const AppContent = () => {
   const { shopItems } = useShopItems();
   const { userStats, addAchievement, updateAchievement, deleteAchievement } = useUserStats();
   const { subscription } = useAuth();
+  const { isMobile } = useResponsive();
 
   const handleBookSelect = (book: Book) => {
     const adWatched = localStorage.getItem(`ad_watched_${book.id}`);
@@ -104,24 +106,36 @@ const AppContent = () => {
   const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin'].includes(currentPage);
 
   const getMainPadding = () => {
+    if (isMobile) {
+      switch (currentPage) {
+        case 'library':
+          return 'p-2';
+        case 'shop':
+        case 'profile':
+          return 'p-1';
+        default:
+          return 'p-2';
+      }
+    }
+    
     switch (currentPage) {
       case 'library':
-        return 'p-2 xs:p-3 sm:p-4 md:p-8 lg:p-[50px]';
+        return 'p-4 sm:p-6 lg:p-8';
       case 'shop':
-        return 'p-1 xs:p-2 sm:p-4';
+        return 'p-2 sm:p-4';
       case 'profile':
-        return 'p-1 xs:p-2 sm:p-4';
+        return 'p-2 sm:p-4';
       default:
-        return 'p-1 xs:p-2 sm:p-4 md:p-6';
+        return 'p-2 sm:p-4 lg:p-6';
     }
   };
 
   return (
     <>
       <SecurityHeaders />
-      <div className={`min-h-screen ${pageBackground} transition-colors duration-500`}>
+      <div className={`min-h-screen ${pageBackground} transition-colors duration-500 max-w-full overflow-x-hidden`}>
         {currentPage !== 'video-ad' && <Header onNavigate={setCurrentPage as any} currentPage={currentPage} />}
-        <main className={`flex-1 ${getMainPadding()} pb-12 xs:pb-14 sm:pb-16 md:pb-20 lg:pb-24`}>
+        <main className={`flex-1 ${getMainPadding()} ${isMobile ? 'pb-16' : 'pb-16 sm:pb-20'} max-w-full overflow-x-hidden`}>
           {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
           {renderCurrentPage()}
         </main>

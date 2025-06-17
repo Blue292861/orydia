@@ -1,12 +1,15 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface NavigationFooterProps {
   onNavigate: (page: 'library' | 'search' | 'shop' | 'profile') => void;
 }
 
 export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }) => {
+  const { isMobile } = useResponsive();
+  
   const navItems = [
     { id: 'library' as const, icon: '/lovable-uploads/b50e70c6-4063-405e-8340-84ade6817368.png', label: 'Bibliothèque' },
     { id: 'search' as const, icon: '/lovable-uploads/912c9a06-adc9-4d07-ae4d-d05115270e97.png', label: 'Rechercher' },
@@ -15,9 +18,9 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
   ];
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-wood-300 border border-wood-400 shadow-lg transition-all duration-300 z-40">
-      <div className="mx-auto">
-        <div className="flex justify-around items-center py-1">
+    <footer className="fixed bottom-0 left-0 right-0 bg-wood-300 border-t border-wood-400 shadow-lg z-40 pb-safe-bottom">
+      <div className="w-full max-w-full overflow-hidden">
+        <div className="flex justify-around items-center px-1 py-1">
           {navItems.map((item) => {
             return (
               <Button
@@ -25,10 +28,18 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
                 variant="ghost"
                 size="sm"
                 onClick={() => onNavigate(item.id)}
-                className="flex flex-col items-center gap-0.5 h-auto py-1 px-1 text-wood-800 hover:text-primary hover:bg-wood-400/50 min-w-0 flex-1"
+                className="flex flex-col items-center justify-center gap-0.5 h-auto py-1 px-0.5 text-wood-800 hover:text-primary hover:bg-wood-400/50 min-w-0 flex-1 max-w-none"
               >
-                <img src={item.icon} alt={item.label} className="h-6 w-6 xs:h-7 xs:w-7 sm:h-8 sm:w-8 object-contain" />
-                <span className="text-[8px] xs:text-[9px] sm:text-[10px] font-medium leading-none text-center">{item.label}</span>
+                <img 
+                  src={item.icon} 
+                  alt={item.label} 
+                  className={`object-contain ${isMobile ? 'h-5 w-5' : 'h-6 w-6 sm:h-7 sm:w-7'}`}
+                />
+                <span className={`font-medium leading-none text-center truncate max-w-full ${
+                  isMobile ? 'text-[7px]' : 'text-[8px] sm:text-[9px] md:text-[10px]'
+                }`}>
+                  {isMobile && item.label.length > 8 ? item.label.substring(0, 8) + '...' : item.label}
+                </span>
               </Button>
             );
           })}
