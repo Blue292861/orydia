@@ -10,7 +10,6 @@ import { AudiobookAdmin } from '@/components/AudiobookAdmin';
 import { Shop } from '@/components/Shop';
 import { SearchPage } from '@/components/SearchPage';
 import { ProfilePage } from '@/components/ProfilePage';
-import { PremiumPage } from '@/components/PremiumPage';
 import { Header } from '@/components/Header';
 import { NavigationFooter } from '@/components/NavigationFooter';
 import { SecurityHeaders } from '@/components/SecurityHeaders';
@@ -24,7 +23,7 @@ import { useBooks } from '@/hooks/useBooks';
 import { useShopItems } from '@/hooks/useShopItems';
 
 type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin';
-type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
+type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'video-ad' | AdminPage;
 
 const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<Page>('library');
@@ -95,8 +94,6 @@ const AppContent = () => {
         return <SearchPage books={books} onBookSelect={handleBookSelect} />;
       case 'profile':
         return <ProfilePage />;
-      case 'premium':
-        return <PremiumPage />;
       default:
         return <BookLibrary books={books} onBookSelect={handleBookSelect} />;
     }
@@ -134,7 +131,7 @@ const AppContent = () => {
   );
 };
 
-const Index = () => {
+const AppContent = () => {
   return (
     <UserStatsProvider>
       <AppContent />

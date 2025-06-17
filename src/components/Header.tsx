@@ -14,7 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface HeaderProps {
-  onNavigate: (page: 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'shop' | 'search' | 'profile' | 'premium') => void;
+  onNavigate: (page: 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'shop' | 'search' | 'profile') => void;
   currentPage: string;
 }
 

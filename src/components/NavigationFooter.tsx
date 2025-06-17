@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 
 interface NavigationFooterProps {
-  onNavigate: (page: 'library' | 'search' | 'shop' | 'profile' | 'premium') => void;
+  onNavigate: (page: 'library' | 'search' | 'shop' | 'profile') => void;
 }
 
 export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }) => {
@@ -12,7 +12,6 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
     { id: 'search' as const, icon: '/lovable-uploads/912c9a06-adc9-4d07-ae4d-d05115270e97.png', label: 'Rechercher' },
     { id: 'shop' as const, icon: '/lovable-uploads/9318a8b9-7fe4-43c9-8aea-a49486e5baac.png', label: 'Boutique' },
     { id: 'profile' as const, icon: '/lovable-uploads/fcea3651-a91a-445a-b535-d6b02cde2864.png', label: 'Mon Profil' },
-    { id: 'premium' as const, icon: '/lovable-uploads/4cdcc1d9-fc57-4952-8ec9-3648454f9852.png', label: 'Premium' },
   ];
 
   return (
