@@ -4,10 +4,9 @@ import { Button } from './ui/button';
 
 interface LoginCrowProps {
   onPasswordReset: () => void;
-  onShowSignUp?: () => void;
 }
 
-export const LoginCrow: React.FC<LoginCrowProps> = ({ onPasswordReset, onShowSignUp }) => {
+export const LoginCrow: React.FC<LoginCrowProps> = ({ onPasswordReset }) => {
   return (
     <div className="absolute -top-20 -right-8 animate-fade-in-down w-48 z-20">
       <div className="relative flex flex-col items-center">
@@ -21,16 +20,6 @@ export const LoginCrow: React.FC<LoginCrowProps> = ({ onPasswordReset, onShowSig
           >
             Envoyer un message
           </Button>
-          {onShowSignUp && (
-            <Button 
-              onClick={onShowSignUp} 
-              variant="outline"
-              className="w-full mt-1 text-xs"
-              size="sm"
-            >
-              S'inscrire
-            </Button>
-          )}
           <div className="absolute -bottom-2 left-1/2 w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-forest-200 transform -translate-x-1/2"></div>
         </div>
         
