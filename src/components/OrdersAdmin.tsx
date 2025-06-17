@@ -14,7 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
 import { checkRateLimit } from '@/utils/security';
@@ -51,8 +51,9 @@ const fetchOrders = async (): Promise<Order[]> => {
       })) as Order[];
     }
 
+    // Correction : s'assurer que chaque élément est un tuple [string, object]
     const profilesMap = new Map(
-      profilesData.map((p) => [p.id, {
+      (profilesData || []).map((p) => [p.id as string, {
         username: p.username,
         avatar_url: p.avatar_url,
         first_name: p.first_name,
@@ -61,13 +62,13 @@ const fetchOrders = async (): Promise<Order[]> => {
         city: p.city,
         postal_code: p.postal_code,
         country: p.country
-      }])
+      }] as [string, any])
     );
 
     // Récupérer les emails des utilisateurs
     const { data: usersData } = await supabase.auth.admin.listUsers();
     const usersMap = new Map(
-      usersData.users.map((u) => [u.id, u.email])
+      (usersData?.users || []).map((u) => [u.id, u.email] as [string, string | undefined])
     );
 
     const ordersWithProfiles = ordersData.map((order) => ({
