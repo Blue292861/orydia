@@ -33,10 +33,10 @@ android {
         }
     }
 
-    // CRITIQUE : Force Java 17 explicitement
+    // CRITIQUE : Force Java 21 explicitement
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
 
     // Configuration pour éviter les conflits de packaging
@@ -45,10 +45,10 @@ android {
         pickFirst '**/libjsc.so'
     }
 
-    // Force Java 17 pour tous les modules - REDONDANT MAIS NÉCESSAIRE
+    // Force Java 21 pour tous les modules - MISE À JOUR
     tasks.withType(JavaCompile) {
-        sourceCompatibility = '17'
-        targetCompatibility = '17'
+        sourceCompatibility = '21'
+        targetCompatibility = '21'
         options.compilerArgs += ['-Xlint:none']
     }
 }
