@@ -14,7 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface HeaderProps {
-  onNavigate: (page: 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'shop' | 'search' | 'profile') => void;
+  onNavigate: (page: 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'shop' | 'search' | 'profile') => void;
   currentPage: string;
 }
 
@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    variant={['admin', 'shop-admin', 'achievement-admin'].includes(currentPage) ? 'default' : 'ghost'}
+                    variant={['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin'].includes(currentPage) ? 'default' : 'ghost'}
                     size="sm"
                     className="flex items-center gap-2"
                   >
@@ -63,6 +63,18 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                   <DropdownMenuItem onClick={() => onNavigate('achievement-admin')}>
                     <Trophy className="h-4 w-4 mr-2" />
                     <span>Gérer les succès</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onNavigate('orders-admin')}>
+                    <Settings className="h-4 w-4 mr-2" />
+                    <span>Gérer les commandes</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onNavigate('reading-stats-admin')}>
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    <span>Statistiques de lecture</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onNavigate('audiobook-admin')}>
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    <span>Gérer les audiobooks</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

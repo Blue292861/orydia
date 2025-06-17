@@ -72,6 +72,9 @@ export default defineConfig(({ mode }) => ({
     target: 'esnext', // Cible moderne pour de meilleures optimisations
     // Optimisations avancées
     reportCompressedSize: false, // Désactive le rapport de taille pour accélérer le build
+    // Configuration spécifique pour Capacitor
+    outDir: 'dist',
+    emptyOutDir: true,
   },
   // Optimisation des images et assets
   assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg', '**/*.webp'],
@@ -84,5 +87,11 @@ export default defineConfig(({ mode }) => ({
       '@supabase/supabase-js',
       'lucide-react',
     ],
+    // Force l'inclusion des dépendances dynamiques
+    force: true,
+  },
+  // Configuration pour éviter les erreurs CORS en développement
+  define: {
+    global: 'globalThis',
   },
 }));
