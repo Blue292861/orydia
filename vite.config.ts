@@ -14,15 +14,15 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
-    // Désactiver la compression pour les builds Android/Capacitor pour éviter les doublons
-    mode === 'production' && !process.env.CAPACITOR_BUILD && viteCompression({
-      algorithm: 'gzip',
-      ext: '.gz',
-    }),
-    mode === 'production' && !process.env.CAPACITOR_BUILD && viteCompression({
-      algorithm: 'brotliCompress',
-      ext: '.br',
-    }),
+    // Désactiver complètement la compression pour éviter les doublons Android
+    // mode === 'production' && !process.env.CAPACITOR_BUILD && viteCompression({
+    //   algorithm: 'gzip',
+    //   ext: '.gz',
+    // }),
+    // mode === 'production' && !process.env.CAPACITOR_BUILD && viteCompression({
+    //   algorithm: 'brotliCompress',
+    //   ext: '.br',
+    // }),
   ].filter(Boolean),
   resolve: {
     alias: {
