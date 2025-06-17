@@ -9,13 +9,6 @@ const config: CapacitorConfig = {
     androidScheme: 'https'
   },
   plugins: {
-    SplashScreen: {
-      launchShowDuration: 2000,
-      launchAutoHide: true,
-      showSpinner: false,
-      splashFullScreen: true,
-      splashImmersive: true
-    },
     StatusBar: {
       style: 'dark'
     }
