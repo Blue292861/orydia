@@ -15,6 +15,17 @@ function runCommand(cmd) {
   }
 }
 
+function runCommandSafe(cmd) {
+  console.log(`Exécution: ${cmd}`);
+  try {
+    execSync(cmd, { stdio: 'inherit' });
+    return true;
+  } catch (error) {
+    console.log(`⚠️ Commande échouée: ${cmd}`);
+    return false;
+  }
+}
+
 function checkCapacitorConfig() {
   const configPath = path.join(process.cwd(), 'capacitor.config.ts');
   if (!fs.existsSync(configPath)) {
@@ -39,7 +50,6 @@ function ensureBuild() {
   const distPath = path.join(process.cwd(), 'dist');
   if (!fs.existsSync(distPath)) {
     console.log('📦 Construction des assets web...');
-    // Définir la variable d'environnement pour désactiver la compression
     process.env.CAPACITOR_BUILD = 'true';
     runCommand('npm run build');
   } else {
@@ -52,7 +62,6 @@ function cleanAndroidBuild() {
   if (fs.existsSync(androidPath)) {
     console.log('🧹 Nettoyage du cache Android...');
     
-    // Nettoyer le dossier build d'Android
     const buildPath = path.join(androidPath, 'build');
     if (fs.existsSync(buildPath)) {
       try {
@@ -63,7 +72,6 @@ function cleanAndroidBuild() {
       }
     }
     
-    // Nettoyer le dossier .gradle
     const gradlePath = path.join(androidPath, '.gradle');
     if (fs.existsSync(gradlePath)) {
       try {
@@ -74,7 +82,6 @@ function cleanAndroidBuild() {
       }
     }
     
-    // Nettoyer le dossier app/build
     const appBuildPath = path.join(androidPath, 'app', 'build');
     if (fs.existsSync(appBuildPath)) {
       try {
@@ -87,25 +94,33 @@ function cleanAndroidBuild() {
   }
 }
 
+function ensureAndroidPlatform() {
+  const androidPath = path.join(process.cwd(), 'android');
+  
+  if (fs.existsSync(androidPath)) {
+    console.log('📱 Plateforme Android détectée, synchronisation...');
+    runCommand('npx cap sync android');
+  } else {
+    console.log('📱 Ajout de la plateforme Android...');
+    runCommand('npx cap add android');
+    runCommand('npx cap sync android');
+  }
+}
+
 switch (command) {
   case 'init':
     console.log('🚀 Initialisation du projet Android...');
     
-    // Vérifier que les dépendances sont installées
     checkNodeModules();
-    
-    // Vérifier la configuration Capacitor
     checkCapacitorConfig();
-    
-    // Nettoyer les builds précédents
     cleanAndroidBuild();
     
-    // S'assurer que les assets web sont construits
-    ensureBuild();
+    console.log('📦 Reconstruction des assets web pour Android...');
+    process.env.CAPACITOR_BUILD = 'true';
+    runCommand('npm run build');
+    console.log('✅ Assets web construits sans compression');
     
-    // Ajouter la plateforme Android
-    runCommand('npx cap add android');
-    runCommand('npx cap sync android');
+    ensureAndroidPlatform();
     console.log('✅ Projet Android initialisé avec succès!');
     break;
 
