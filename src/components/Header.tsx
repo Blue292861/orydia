@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { PointsDisplay } from '@/components/PointsDisplay';
@@ -32,24 +31,23 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
+      <div className="container mx-auto px-1 xs:px-2 sm:px-4 py-1 xs:py-1.5 sm:py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center text-amber-400">
             <PointsDisplay />
           </div>
 
-          <div className="flex items-center space-x-1 sm:space-x-2">
+          <div className="flex items-center space-x-0.5 xs:space-x-1 sm:space-x-2">
             {isAdmin && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant={['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin'].includes(currentPage) ? 'default' : 'ghost'}
                     size="sm"
-                    className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"
+                    className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm px-1 xs:px-2 sm:px-3 py-1"
                   >
-                    <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Administration</span>
-                    <span className="sm:hidden">Admin</span>
+                    <Settings className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline text-[10px] xs:text-xs">Admin</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -86,9 +84,9 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"
+                className="flex items-center gap-0.5 xs:gap-1 sm:gap-2 text-[10px] xs:text-xs sm:text-sm px-1 xs:px-2 sm:px-3 py-1"
               >
-                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
+                <LogOut className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Se déconnecter</span>
               </Button>
             )}

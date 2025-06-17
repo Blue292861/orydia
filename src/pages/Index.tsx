@@ -106,13 +106,13 @@ const AppContent = () => {
   const getMainPadding = () => {
     switch (currentPage) {
       case 'library':
-        return 'p-4 sm:p-8 md:p-[50px]';
+        return 'p-2 xs:p-3 sm:p-4 md:p-8 lg:p-[50px]';
       case 'shop':
-        return 'p-2 sm:p-4';
+        return 'p-1 xs:p-2 sm:p-4';
       case 'profile':
-        return 'p-2 sm:p-4';
+        return 'p-1 xs:p-2 sm:p-4';
       default:
-        return 'p-2 sm:p-4 md:p-6';
+        return 'p-1 xs:p-2 sm:p-4 md:p-6';
     }
   };
 
@@ -121,7 +121,7 @@ const AppContent = () => {
       <SecurityHeaders />
       <div className={`min-h-screen ${pageBackground} transition-colors duration-500`}>
         {currentPage !== 'video-ad' && <Header onNavigate={setCurrentPage as any} currentPage={currentPage} />}
-        <main className={`flex-1 ${getMainPadding()} pb-20 sm:pb-24`}>
+        <main className={`flex-1 ${getMainPadding()} pb-12 xs:pb-14 sm:pb-16 md:pb-20 lg:pb-24`}>
           {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
           {renderCurrentPage()}
         </main>
