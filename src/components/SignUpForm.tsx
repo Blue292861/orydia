@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface SignUpFormProps {
   onBack: () => void;
@@ -41,6 +41,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
             username: formData.username,
             first_name: formData.firstName,
@@ -79,7 +80,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">Adresse e-mail *</Label>
               <Input
                 id="email"
                 name="email"
@@ -87,6 +88,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
                 value={formData.email}
                 onChange={handleChange}
                 required
+                placeholder="votre.email@exemple.com"
               />
             </div>
             <div>
@@ -98,6 +100,8 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
                 value={formData.password}
                 onChange={handleChange}
                 required
+                placeholder="Minimum 6 caractères"
+                minLength={6}
               />
             </div>
             <div>
@@ -108,6 +112,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
                 value={formData.username}
                 onChange={handleChange}
                 required
+                placeholder="nom_utilisateur"
               />
             </div>
             <div>
@@ -118,16 +123,18 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
                 value={formData.firstName}
                 onChange={handleChange}
                 required
+                placeholder="Jean"
               />
             </div>
             <div>
-              <Label htmlFor="lastName">Nom *</Label>
+              <Label htmlFor="lastName">Nom de famille *</Label>
               <Input
                 id="lastName"
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
                 required
+                placeholder="Dupont"
               />
             </div>
             <div>
@@ -138,6 +145,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
                 value={formData.streetAddress}
                 onChange={handleChange}
                 required
+                placeholder="123 rue de la Paix"
               />
             </div>
             <div>
@@ -148,6 +156,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
                 value={formData.city}
                 onChange={handleChange}
                 required
+                placeholder="Paris"
               />
             </div>
             <div>
@@ -158,6 +167,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
                 value={formData.postalCode}
                 onChange={handleChange}
                 required
+                placeholder="75001"
               />
             </div>
             <div className="md:col-span-2">
@@ -168,15 +178,16 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
                 value={formData.country}
                 onChange={handleChange}
                 required
+                placeholder="France"
               />
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={onBack}>
-              Retour
+          <div className="flex gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={onBack} className="flex-1">
+              Retour à la connexion
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Création...' : 'Créer le compte'}
+            <Button type="submit" disabled={loading} className="flex-1">
+              {loading ? 'Création en cours...' : 'Créer mon compte'}
             </Button>
           </div>
         </form>

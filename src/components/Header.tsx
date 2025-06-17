@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { PointsDisplay } from '@/components/PointsDisplay';
@@ -23,9 +24,9 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      toast.error(`Erreur lors de la déconnexion: ${error.message}`);
+      toast.error(`Erreur lors de la déconnexion : ${error.message}`);
     } else {
-      toast.success('Vous avez été déconnecté.');
+      toast.success('Vous avez été déconnecté avec succès.');
     }
   };
 
@@ -47,13 +48,13 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                     className="flex items-center gap-2"
                   >
                     <Settings className="h-4 w-4" />
-                    Admin
+                    Administration
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => onNavigate('admin')}>
                     <BookOpen className="h-4 w-4 mr-2" />
-                    <span>Gérer les livres</span>
+                    <span>Gérer la bibliothèque</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onNavigate('shop-admin')}>
                     <ShoppingCart className="h-4 w-4 mr-2" />
@@ -75,7 +76,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                 className="flex items-center gap-2"
               >
                 <LogOut className="h-4 w-4" />
-                Déconnexion
+                Se déconnecter
               </Button>
             )}
           </div>

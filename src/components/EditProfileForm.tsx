@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Edit } from 'lucide-react';
 
 interface Profile {
@@ -31,7 +31,6 @@ export const EditProfileForm: React.FC = () => {
     postalCode: '',
     country: '',
     email: '',
-    currentPassword: '',
     newPassword: ''
   });
   const [loading, setLoading] = useState(false);
@@ -58,7 +57,6 @@ export const EditProfileForm: React.FC = () => {
             postalCode: profileData.postal_code || '',
             country: profileData.country || '',
             email: user.email || '',
-            currentPassword: '',
             newPassword: ''
           });
         }
@@ -143,18 +141,19 @@ export const EditProfileForm: React.FC = () => {
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Modifier mes informations</DialogTitle>
+          <DialogTitle>Modifier mes informations personnelles</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Adresse e-mail</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
+                placeholder="votre.email@exemple.com"
               />
             </div>
             <div>
@@ -164,6 +163,7 @@ export const EditProfileForm: React.FC = () => {
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
+                placeholder="nom_utilisateur"
               />
             </div>
             <div>
@@ -173,24 +173,27 @@ export const EditProfileForm: React.FC = () => {
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
+                placeholder="Jean"
               />
             </div>
             <div>
-              <Label htmlFor="lastName">Nom</Label>
+              <Label htmlFor="lastName">Nom de famille</Label>
               <Input
                 id="lastName"
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
+                placeholder="Dupont"
               />
             </div>
             <div className="md:col-span-2">
-              <Label htmlFor="streetAddress">Adresse</Label>
+              <Label htmlFor="streetAddress">Adresse postale</Label>
               <Input
                 id="streetAddress"
                 name="streetAddress"
                 value={formData.streetAddress}
                 onChange={handleChange}
+                placeholder="123 rue de la Paix"
               />
             </div>
             <div>
@@ -200,6 +203,7 @@ export const EditProfileForm: React.FC = () => {
                 name="city"
                 value={formData.city}
                 onChange={handleChange}
+                placeholder="Paris"
               />
             </div>
             <div>
@@ -209,6 +213,7 @@ export const EditProfileForm: React.FC = () => {
                 name="postalCode"
                 value={formData.postalCode}
                 onChange={handleChange}
+                placeholder="75001"
               />
             </div>
             <div className="md:col-span-2">
@@ -218,13 +223,14 @@ export const EditProfileForm: React.FC = () => {
                 name="country"
                 value={formData.country}
                 onChange={handleChange}
+                placeholder="France"
               />
             </div>
             <div className="md:col-span-2">
               <hr className="my-4" />
-              <h3 className="font-semibold mb-2">Changer le mot de passe (optionnel)</h3>
+              <h3 className="font-semibold mb-2">Modifier le mot de passe (optionnel)</h3>
             </div>
-            <div>
+            <div className="md:col-span-2">
               <Label htmlFor="newPassword">Nouveau mot de passe</Label>
               <Input
                 id="newPassword"
@@ -232,7 +238,8 @@ export const EditProfileForm: React.FC = () => {
                 type="password"
                 value={formData.newPassword}
                 onChange={handleChange}
-                placeholder="Laisser vide pour ne pas changer"
+                placeholder="Laisser vide pour ne pas modifier"
+                minLength={6}
               />
             </div>
           </div>
@@ -241,7 +248,7 @@ export const EditProfileForm: React.FC = () => {
               Annuler
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Enregistrement...' : 'Enregistrer'}
+              {loading ? 'Enregistrement en cours...' : 'Enregistrer les modifications'}
             </Button>
           </div>
         </form>
