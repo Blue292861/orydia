@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Order } from '@/types/Order';
@@ -13,8 +13,10 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { Search } from 'lucide-react';
 import { checkRateLimit } from '@/utils/security';
 
 const fetchOrders = async (): Promise<Order[]> => {
@@ -38,12 +40,11 @@ const fetchOrders = async (): Promise<Order[]> => {
 
     const { data: profilesData, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url')
+      .select('id, username, avatar_url, first_name, last_name, street_address, city, postal_code, country')
       .in('id', userIds);
 
     if (profilesError) {
       console.error('Profiles fetch error:', profilesError.code);
-      // Gracefully handle profile fetch error by returning orders without profile info
       return ordersData.map((order) => ({
         ...order,
         profiles: null,
@@ -51,12 +52,28 @@ const fetchOrders = async (): Promise<Order[]> => {
     }
 
     const profilesMap = new Map(
-      profilesData.map((p) => [p.id, { username: p.username, avatar_url: p.avatar_url }])
+      profilesData.map((p) => [p.id, {
+        username: p.username,
+        avatar_url: p.avatar_url,
+        first_name: p.first_name,
+        last_name: p.last_name,
+        street_address: p.street_address,
+        city: p.city,
+        postal_code: p.postal_code,
+        country: p.country
+      }])
+    );
+
+    // Récupérer les emails des utilisateurs
+    const { data: usersData } = await supabase.auth.admin.listUsers();
+    const usersMap = new Map(
+      usersData.users.map((u) => [u.id, u.email])
     );
 
     const ordersWithProfiles = ordersData.map((order) => ({
       ...order,
       profiles: profilesMap.get(order.user_id) || null,
+      user_email: usersMap.get(order.user_id) || null,
     }));
 
     return ordersWithProfiles as Order[];
@@ -68,6 +85,7 @@ const fetchOrders = async (): Promise<Order[]> => {
 
 export const OrdersAdmin: React.FC = () => {
   const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState('');
   const { data: orders, isLoading, error } = useQuery({
     queryKey: ['orders'], 
     queryFn: fetchOrders
@@ -75,7 +93,6 @@ export const OrdersAdmin: React.FC = () => {
 
   const mutation = useMutation({
     mutationFn: async (orderId: string) => {
-      // Rate limiting for order processing
       if (!checkRateLimit('order-processing', 10, 60000)) {
         throw new Error('Trop de tentatives, veuillez attendre');
       }
@@ -110,15 +127,42 @@ export const OrdersAdmin: React.FC = () => {
     }
   });
 
-  const pendingOrders = orders?.filter((o) => o.status === 'pending') || [];
-  const processedOrders = orders?.filter((o) => o.status === 'processed') || [];
+  // Filtrer les commandes selon le terme de recherche
+  const filteredOrders = orders?.filter((order) => {
+    if (!searchTerm) return true;
+    const searchLower = searchTerm.toLowerCase();
+    
+    return (
+      order.item_name.toLowerCase().includes(searchLower) ||
+      order.profiles?.username?.toLowerCase().includes(searchLower) ||
+      order.profiles?.first_name?.toLowerCase().includes(searchLower) ||
+      order.profiles?.last_name?.toLowerCase().includes(searchLower) ||
+      order.user_email?.toLowerCase().includes(searchLower) ||
+      order.profiles?.city?.toLowerCase().includes(searchLower)
+    );
+  }) || [];
+
+  const pendingOrders = filteredOrders.filter((o) => o.status === 'pending');
+  const processedOrders = filteredOrders.filter((o) => o.status === 'processed');
 
   if (isLoading) return <div>Chargement des commandes...</div>;
   if (error) return <div>Erreur lors du chargement des commandes</div>;
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold">Gestion des commandes</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold">Gestion des commandes</h2>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Rechercher par nom, email, produit, ville..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 w-80"
+          />
+        </div>
+      </div>
+      
       <Tabs defaultValue="pending">
         <TabsList>
           <TabsTrigger value="pending">En attente ({pendingOrders.length})</TabsTrigger>
@@ -136,44 +180,81 @@ export const OrdersAdmin: React.FC = () => {
 };
 
 interface OrdersTableProps {
-  orders: Order[];
+  orders: (Order & { user_email?: string | null })[];
   isHistory?: boolean;
   onProcessOrder?: (id: string) => void;
 }
 
 const OrdersTable: React.FC<OrdersTableProps> = ({ orders, isHistory = false, onProcessOrder }) => {
   if (orders.length === 0) {
-    return <div className="text-center py-12 text-muted-foreground">Aucune commande ici.</div>;
+    return <div className="text-center py-12 text-muted-foreground">Aucune commande trouvée.</div>;
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Client</TableHead>
-          <TableHead>Objet</TableHead>
-          <TableHead>Prix</TableHead>
-          <TableHead>Date</TableHead>
-          {!isHistory && <TableHead>Action</TableHead>}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {orders.map((order) => (
-          <TableRow key={order.id}>
-            <TableCell>{order.profiles?.username || 'Utilisateur inconnu'}</TableCell>
-            <TableCell>{order.item_name}</TableCell>
-            <TableCell>
-                <Badge variant="outline">{order.price} Tensens</Badge>
-            </TableCell>
-            <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-            {!isHistory && (
-              <TableCell>
-                <Button size="sm" onClick={() => onProcessOrder?.(order.id)}>Marquer comme traité</Button>
-              </TableCell>
-            )}
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Client</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Adresse</TableHead>
+            <TableHead>Objet</TableHead>
+            <TableHead>Prix</TableHead>
+            <TableHead>Date</TableHead>
+            {!isHistory && <TableHead>Action</TableHead>}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {orders.map((order) => (
+            <TableRow key={order.id}>
+              <TableCell>
+                <div>
+                  <div className="font-medium">
+                    {order.profiles?.first_name || order.profiles?.last_name 
+                      ? `${order.profiles.first_name || ''} ${order.profiles.last_name || ''}`.trim()
+                      : order.profiles?.username || 'Utilisateur inconnu'
+                    }
+                  </div>
+                  {order.profiles?.username && (order.profiles?.first_name || order.profiles?.last_name) && (
+                    <div className="text-sm text-muted-foreground">@{order.profiles.username}</div>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>{order.user_email || 'Email non disponible'}</TableCell>
+              <TableCell>
+                <div className="text-sm">
+                  {order.profiles?.street_address && (
+                    <div>{order.profiles.street_address}</div>
+                  )}
+                  {(order.profiles?.city || order.profiles?.postal_code) && (
+                    <div>
+                      {order.profiles.postal_code} {order.profiles.city}
+                    </div>
+                  )}
+                  {order.profiles?.country && (
+                    <div className="text-muted-foreground">{order.profiles.country}</div>
+                  )}
+                  {!order.profiles?.street_address && !order.profiles?.city && (
+                    <span className="text-muted-foreground">Adresse non renseignée</span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>{order.item_name}</TableCell>
+              <TableCell>
+                <Badge variant="outline">{order.price} Tensens</Badge>
+              </TableCell>
+              <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+              {!isHistory && (
+                <TableCell>
+                  <Button size="sm" onClick={() => onProcessOrder?.(order.id)}>
+                    Marquer comme traité
+                  </Button>
+                </TableCell>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };

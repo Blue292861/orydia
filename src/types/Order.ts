@@ -10,5 +10,12 @@ export interface Order {
   profiles: {
     username: string | null;
     avatar_url: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    street_address: string | null;
+    city: string | null;
+    postal_code: string | null;
+    country: string | null;
   } | null;
+  user_email?: string | null;
 }

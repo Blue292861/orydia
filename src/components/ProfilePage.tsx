@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Star, Crown, Trophy, Zap } from 'lucide-react';
+import { EditProfileForm } from '@/components/EditProfileForm';
 
 export const ProfilePage: React.FC = () => {
   const { userStats } = useUserStats();
@@ -51,6 +51,11 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-20 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen text-white p-4">
+      {/* Edit Profile Button */}
+      <div className="flex justify-end mb-4">
+        <EditProfileForm />
+      </div>
+
       {/* Player Card */}
       <Card className="bg-gradient-to-r from-amber-700 to-amber-900 border-2 border-amber-400 shadow-xl">
         <CardHeader className="text-center pb-2">
@@ -107,7 +112,7 @@ export const ProfilePage: React.FC = () => {
           <CardContent className="p-6 text-center">
             <Star className="h-12 w-12 text-yellow-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-purple-100 mb-2">Débloquez le Premium !</h3>
-            <p className="text-purple-200 mb-4">Obtenez des points bonus et débloquez des succès exclusifs</p>
+            <p className="text-purple-200 mb-4">Obtenez des points bonus et débloquez des succ6s exclusifs</p>
             <Button 
               onClick={handlePremiumClick}
               disabled={loading}
