@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -22,6 +23,7 @@ export default {
 				sans: ['Inter', 'sans-serif'],
 				serif: ['Playfair Display', 'serif'],
         cursive: ['Dancing Script', 'cursive'],
+        medieval: ['Cinzel', 'serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -67,7 +69,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom greenish and wooden brown colors
+				// Custom greenish and wooden brown colors for medieval fantasy
 				forest: {
 					50: '#f0f9f0',
 					100: '#dcf2dc',
@@ -92,7 +94,12 @@ export default {
 					800: '#715342',
 					900: '#5c4439',
 				},
-        'title-blue': '#6E86AC',
+        'title-blue': '#4A90E2',
+        gold: {
+          400: '#DAA520',
+          500: '#B8860B',
+          600: '#996F00',
+        }
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -126,16 +133,36 @@ export default {
             transform: 'translateY(0)'
           },
         },
+        'fade-in': {
+          '0%': {
+            opacity: '0',
+          },
+          '100%': {
+            opacity: '1',
+          },
+        },
         sway: {
           '0%, 100%': { transform: 'rotate(-2deg) translateX(-4%)' },
           '50%': { transform: 'rotate(2deg) translateX(4%)' },
+        },
+        'mystical-pulse': {
+          '0%, 100%': { 
+            opacity: '0.6',
+            transform: 'scale(1)' 
+          },
+          '50%': { 
+            opacity: '1',
+            transform: 'scale(1.05)' 
+          },
         }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-        'fade-in-down': 'fade-in-down 0.6s ease-out',
+        'fade-in-down': 'fade-in-down 0.8s ease-out',
+        'fade-in': 'fade-in 1s ease-out',
         'sway': 'sway 18s ease-in-out infinite alternate',
+        'mystical-pulse': 'mystical-pulse 2s ease-in-out infinite',
 			}
 		}
 	},
