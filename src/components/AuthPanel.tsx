@@ -159,33 +159,33 @@ export const AuthPanel: React.FC = () => {
       <Card className="w-full max-w-2xl mx-auto bg-wood-50/95 backdrop-blur-sm border-2 border-gold-400/30 shadow-2xl mystical-glow">
         <CardHeader className="bg-gradient-to-r from-forest-700 via-forest-600 to-forest-700 text-white rounded-t-lg relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-gold-400/10 via-transparent to-gold-400/10" />
-          <CardTitle className="text-center text-2xl font-medieval relative z-10">
+          <CardTitle className="text-center text-xl sm:text-2xl font-medieval relative z-10">
             Portail des Aventuriers
           </CardTitle>
-          <div className="absolute -top-2 -right-2 w-8 h-8 bg-gold-400/20 rounded-full animate-mystical-pulse" />
-          <div className="absolute -bottom-1 -left-1 w-6 h-6 bg-gold-400/20 rounded-full animate-mystical-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute -top-2 -right-2 w-6 sm:w-8 h-6 sm:h-8 bg-gold-400/20 rounded-full animate-mystical-pulse" />
+          <div className="absolute -bottom-1 -left-1 w-4 sm:w-6 h-4 sm:h-6 bg-gold-400/20 rounded-full animate-mystical-pulse" style={{ animationDelay: '1s' }} />
         </CardHeader>
-        <CardContent className="p-6 parchment-texture">
+        <CardContent className="p-4 sm:p-6 parchment-texture">
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-wood-200/80 backdrop-blur-sm">
               <TabsTrigger 
                 value="login" 
-                className="data-[state=active]:bg-forest-500 data-[state=active]:text-white font-medieval text-sm"
+                className="data-[state=active]:bg-forest-500 data-[state=active]:text-white font-medieval text-xs sm:text-sm"
               >
                 Se connecter
               </TabsTrigger>
               <TabsTrigger 
                 value="signup"
-                className="data-[state=active]:bg-forest-500 data-[state=active]:text-white font-medieval text-sm"
+                className="data-[state=active]:bg-forest-500 data-[state=active]:text-white font-medieval text-xs sm:text-sm"
               >
                 Rejoindre la guilde
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="login" className="space-y-4 mt-6">
-              <form onSubmit={handleLogin} className="space-y-4">
+            <TabsContent value="login" className="space-y-3 sm:space-y-4 mt-4 sm:mt-6">
+              <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
                 <div>
-                  <Label htmlFor="login-email" className="text-forest-800 font-medium font-medieval">
+                  <Label htmlFor="login-email" className="text-forest-800 font-medium font-medieval text-sm">
                     Adresse de messagerie
                   </Label>
                   <Input
@@ -196,11 +196,11 @@ export const AuthPanel: React.FC = () => {
                     onChange={handleLoginChange}
                     required
                     placeholder="votre.quete@orydia.com"
-                    className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm"
+                    className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="login-password" className="text-forest-800 font-medium font-medieval">
+                  <Label htmlFor="login-password" className="text-forest-800 font-medium font-medieval text-sm">
                     Mot de passe secret
                   </Label>
                   <Input
@@ -211,24 +211,24 @@ export const AuthPanel: React.FC = () => {
                     onChange={handleLoginChange}
                     required
                     placeholder="••••••••"
-                    className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm"
+                    className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
                   />
                 </div>
                 <Button 
                   type="submit" 
                   disabled={loading} 
-                  className="w-full bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white font-medieval shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white font-medieval shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
                 >
                   {loading ? 'Invocation en cours...' : 'Entrer en Orydia'}
                 </Button>
               </form>
             </TabsContent>
             
-            <TabsContent value="signup" className="space-y-4 mt-6">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <TabsContent value="signup" className="space-y-3 sm:space-y-4 mt-4 sm:mt-6">
+              <form onSubmit={handleSignup} className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label htmlFor="signup-email" className="text-forest-800 font-medium font-medieval">
+                    <Label htmlFor="signup-email" className="text-forest-800 font-medium font-medieval text-sm">
                       Adresse de messagerie *
                     </Label>
                     <Input
@@ -239,11 +239,11 @@ export const AuthPanel: React.FC = () => {
                       onChange={handleSignupChange}
                       required
                       placeholder="votre.quete@orydia.com"
-                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm"
+                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="signup-password" className="text-forest-800 font-medium font-medieval">
+                    <Label htmlFor="signup-password" className="text-forest-800 font-medium font-medieval text-sm">
                       Mot de passe secret *
                     </Label>
                     <Input
@@ -255,11 +255,11 @@ export const AuthPanel: React.FC = () => {
                       required
                       placeholder="Au moins 6 runes"
                       minLength={6}
-                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm"
+                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="signup-username" className="text-forest-800 font-medium font-medieval">
+                    <Label htmlFor="signup-username" className="text-forest-800 font-medium font-medieval text-sm">
                       Nom d'aventurier *
                     </Label>
                     <Input
@@ -269,11 +269,11 @@ export const AuthPanel: React.FC = () => {
                       onChange={handleSignupChange}
                       required
                       placeholder="Héros_Légendaire"
-                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm"
+                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="signup-firstName" className="text-forest-800 font-medium font-medieval">
+                    <Label htmlFor="signup-firstName" className="text-forest-800 font-medium font-medieval text-sm">
                       Prénom *
                     </Label>
                     <Input
@@ -283,11 +283,11 @@ export const AuthPanel: React.FC = () => {
                       onChange={handleSignupChange}
                       required
                       placeholder="Arion"
-                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm"
+                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="signup-lastName" className="text-forest-800 font-medium font-medieval">
+                    <Label htmlFor="signup-lastName" className="text-forest-800 font-medium font-medieval text-sm">
                       Nom de famille *
                     </Label>
                     <Input
@@ -297,11 +297,11 @@ export const AuthPanel: React.FC = () => {
                       onChange={handleSignupChange}
                       required
                       placeholder="Fortelame"
-                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm"
+                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="signup-address" className="text-forest-800 font-medium font-medieval">
+                    <Label htmlFor="signup-address" className="text-forest-800 font-medium font-medieval text-sm">
                       Adresse de résidence *
                     </Label>
                     <Input
@@ -311,11 +311,11 @@ export const AuthPanel: React.FC = () => {
                       onChange={handleSignupChange}
                       required
                       placeholder="123 Rue des Héros"
-                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm"
+                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="signup-city" className="text-forest-800 font-medium font-medieval">
+                    <Label htmlFor="signup-city" className="text-forest-800 font-medium font-medieval text-sm">
                       Cité *
                     </Label>
                     <Input
@@ -325,11 +325,11 @@ export const AuthPanel: React.FC = () => {
                       onChange={handleSignupChange}
                       required
                       placeholder="Valorhall"
-                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm"
+                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="signup-postal" className="text-forest-800 font-medium font-medieval">
+                    <Label htmlFor="signup-postal" className="text-forest-800 font-medium font-medieval text-sm">
                       Code postal *
                     </Label>
                     <Input
@@ -339,11 +339,11 @@ export const AuthPanel: React.FC = () => {
                       onChange={handleSignupChange}
                       required
                       placeholder="75001"
-                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm"
+                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <Label htmlFor="signup-country" className="text-forest-800 font-medium font-medieval">
+                    <Label htmlFor="signup-country" className="text-forest-800 font-medium font-medieval text-sm">
                       Royaume *
                     </Label>
                     <Input
@@ -353,14 +353,14 @@ export const AuthPanel: React.FC = () => {
                       onChange={handleSignupChange}
                       required
                       placeholder="Orydia"
-                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm"
+                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
                     />
                   </div>
                 </div>
                 <Button 
                   type="submit" 
                   disabled={loading} 
-                  className="w-full bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white font-medieval shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white font-medieval shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
                 >
                   {loading ? 'Inscription à la guilde...' : 'Rejoindre l\'aventure'}
                 </Button>

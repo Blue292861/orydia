@@ -35,7 +35,7 @@ const AppContent = () => {
   const { shopItems } = useShopItems();
   const { userStats, addAchievement, updateAchievement, deleteAchievement } = useUserStats();
   const { subscription } = useAuth();
-  const { isMobile } = useResponsive();
+  const { isMobile, isTablet } = useResponsive();
 
   const handleBookSelect = (book: Book) => {
     const adWatched = localStorage.getItem(`ad_watched_${book.id}`);
@@ -118,6 +118,18 @@ const AppContent = () => {
       }
     }
     
+    if (isTablet) {
+      switch (currentPage) {
+        case 'library':
+          return 'p-3';
+        case 'shop':
+        case 'profile':
+          return 'p-2';
+        default:
+          return 'p-3';
+      }
+    }
+    
     switch (currentPage) {
       case 'library':
         return 'p-4 sm:p-6 lg:p-8';
@@ -130,12 +142,18 @@ const AppContent = () => {
     }
   };
 
+  const getBottomPadding = () => {
+    if (isMobile) return 'pb-16';
+    if (isTablet) return 'pb-18';
+    return 'pb-16 sm:pb-20';
+  };
+
   return (
     <>
       <SecurityHeaders />
       <div className={`min-h-screen ${pageBackground} transition-colors duration-500 max-w-full overflow-x-hidden`}>
         {currentPage !== 'video-ad' && <Header onNavigate={setCurrentPage as any} currentPage={currentPage} />}
-        <main className={`flex-1 ${getMainPadding()} ${isMobile ? 'pb-16' : 'pb-16 sm:pb-20'} max-w-full overflow-x-hidden`}>
+        <main className={`flex-1 ${getMainPadding()} ${getBottomPadding()} max-w-full overflow-x-hidden`}>
           {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
           {renderCurrentPage()}
         </main>

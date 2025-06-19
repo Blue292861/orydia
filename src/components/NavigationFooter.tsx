@@ -8,7 +8,7 @@ interface NavigationFooterProps {
 }
 
 export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }) => {
-  const { isMobile } = useResponsive();
+  const { isMobile, isTablet } = useResponsive();
   
   const navItems = [
     { id: 'library' as const, icon: '/lovable-uploads/b50e70c6-4063-405e-8340-84ade6817368.png', label: 'Bibliothèque' },
@@ -17,10 +17,28 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
     { id: 'profile' as const, icon: '/lovable-uploads/fcea3651-a91a-445a-b535-d6b02cde2864.png', label: 'Mon Profil' },
   ];
 
+  const getIconSize = () => {
+    if (isMobile) return 'h-5 w-5';
+    if (isTablet) return 'h-6 w-6';
+    return 'h-6 w-6 sm:h-7 sm:w-7';
+  };
+
+  const getTextSize = () => {
+    if (isMobile) return 'text-[7px]';
+    if (isTablet) return 'text-[8px]';
+    return 'text-[8px] sm:text-[9px] md:text-[10px]';
+  };
+
+  const getPadding = () => {
+    if (isMobile) return 'px-1 py-1';
+    if (isTablet) return 'px-1 py-1';
+    return 'px-1 py-1';
+  };
+
   return (
     <footer className="fixed bottom-0 left-0 right-0 bg-wood-300 border-t border-wood-400 shadow-lg z-40 pb-safe-bottom">
       <div className="w-full max-w-full overflow-hidden">
-        <div className="flex justify-around items-center px-1 py-1">
+        <div className={`flex justify-around items-center ${getPadding()}`}>
           {navItems.map((item) => {
             return (
               <Button
@@ -33,11 +51,9 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
                 <img 
                   src={item.icon} 
                   alt={item.label} 
-                  className={`object-contain ${isMobile ? 'h-5 w-5' : 'h-6 w-6 sm:h-7 sm:w-7'}`}
+                  className={`object-contain ${getIconSize()}`}
                 />
-                <span className={`font-medium leading-none text-center truncate max-w-full ${
-                  isMobile ? 'text-[7px]' : 'text-[8px] sm:text-[9px] md:text-[10px]'
-                }`}>
+                <span className={`font-medium leading-none text-center truncate max-w-full ${getTextSize()}`}>
                   {isMobile && item.label.length > 8 ? item.label.substring(0, 8) + '...' : item.label}
                 </span>
               </Button>
