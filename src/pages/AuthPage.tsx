@@ -1,10 +1,49 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AuthPanel } from '@/components/AuthPanel';
 
 const AuthPage: React.FC = () => {
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Detect if virtual keyboard is open by checking viewport height change
+      const viewportHeight = window.visualViewport?.height || window.innerHeight;
+      const windowHeight = window.innerHeight;
+      const heightDiff = windowHeight - viewportHeight;
+      
+      // If height difference is significant, keyboard is likely open
+      if (heightDiff > 150) {
+        setKeyboardHeight(heightDiff);
+      } else {
+        setKeyboardHeight(0);
+      }
+    };
+
+    // Listen for visual viewport changes (better for mobile keyboard detection)
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+    } else {
+      // Fallback for older browsers
+      window.addEventListener('resize', handleResize);
+    }
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+      } else {
+        window.removeEventListener('resize', handleResize);
+      }
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-forest-900 via-forest-800 to-forest-700 relative overflow-hidden flex items-center justify-center p-4">
+    <div 
+      className="min-h-screen bg-gradient-to-br from-forest-900 via-forest-800 to-forest-700 relative overflow-hidden flex items-center justify-center p-4 transition-all duration-300"
+      style={{
+        paddingBottom: keyboardHeight > 0 ? `${keyboardHeight + 20}px` : '1rem'
+      }}
+    >
       {/* Fond animé avec des particules et effets magiques */}
       <div className="absolute inset-0 bg-gradient-to-br from-forest-900/80 via-forest-800/60 to-forest-700/80">
         {/* Particules flottantes */}
@@ -31,7 +70,12 @@ const AuthPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="relative z-10 w-full max-w-4xl">
+      <div 
+        className="relative z-10 w-full max-w-4xl transition-transform duration-300"
+        style={{
+          transform: keyboardHeight > 0 ? 'translateY(-20px)' : 'translateY(0)'
+        }}
+      >
         {/* En-tête Bienvenue en Orydia */}
         <div className="text-center mb-8">
           <h1 className="font-cursive text-6xl md:text-7xl text-title-blue drop-shadow-2xl mb-4 animate-fade-in-down">

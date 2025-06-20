@@ -65,13 +65,13 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
               variant="ghost"
               size="icon"
               onClick={handleInstagramClick}
-              className={`${getButtonSize()} rounded-full bg-wood-200/50 hover:bg-wood-200 border border-wood-400 transition-all duration-200 hover:scale-105`}
+              className={`${getButtonSize()} rounded-full overflow-hidden p-0 border-2 border-wood-400/30 hover:border-wood-400 transition-all duration-200 hover:scale-105 bg-transparent hover:bg-wood-200/20`}
               title="Suivez-nous sur Instagram"
             >
               <img 
                 src="/lovable-uploads/f08448a1-fba4-4f9f-926d-515ddd185b17.png" 
                 alt="Instagram La Toison d'Or" 
-                className={`${getImageSize()} object-contain`}
+                className={`${getImageSize()} object-cover rounded-full`}
               />
             </Button>
           </div>
