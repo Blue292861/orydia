@@ -1,123 +1,95 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { PointsDisplay } from '@/components/PointsDisplay';
-import { BookOpen, Settings, ShoppingCart, Trophy, LogOut } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useUserStats } from '@/contexts/UserStatsContext';
 import { useResponsive } from '@/hooks/useResponsive';
 
+type Page = 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'shop' | 'search' | 'profile' | 'video-ad';
+
 interface HeaderProps {
-  onNavigate: (page: 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'shop' | 'search' | 'profile') => void;
-  currentPage: string;
+  onNavigate: (page: Page) => void;
+  currentPage: Page;
 }
 
 export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
-  const { session, isAdmin } = useAuth();
+  const { user, subscription } = useAuth();
+  const { userStats } = useUserStats();
   const { isMobile, isTablet } = useResponsive();
 
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error(`Erreur lors de la déconnexion : ${error.message}`);
-    } else {
-      toast.success('Vous avez été déconnecté avec succès.');
-    }
-  };
-
-  const getIconSize = () => {
-    if (isMobile) return 'h-3 w-3';
-    if (isTablet) return 'h-4 w-4';
-    return 'h-4 w-4';
-  };
-
-  const getTextSize = () => {
-    if (isMobile) return 'text-[10px]';
-    if (isTablet) return 'text-xs';
-    return 'text-xs';
-  };
-
-  const getPadding = () => {
-    if (isMobile) return 'px-2 py-1';
-    if (isTablet) return 'px-2 py-1';
-    return 'px-2 py-1';
+  const handleInstagramClick = () => {
+    window.open('https://www.instagram.com/la_toison_d_or_sarl?igsh=N2NjcGV1bWVuMTAy', '_blank');
   };
 
   const getHeaderPadding = () => {
-    if (isMobile) return 'px-2 py-1';
-    if (isTablet) return 'px-3 py-1';
-    return 'px-2 py-1';
+    if (isMobile) return 'py-2 px-2';
+    if (isTablet) return 'py-3 px-4';
+    return 'py-4 px-4 sm:px-6 lg:px-8';
+  };
+
+  const getButtonSize = () => {
+    if (isMobile) return 'h-8 w-8';
+    if (isTablet) return 'h-9 w-9';
+    return 'h-10 w-10';
+  };
+
+  const getImageSize = () => {
+    if (isMobile) return 'h-5 w-5';
+    if (isTablet) return 'h-6 w-6';
+    return 'h-7 w-7';
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-safe-top">
+    <header className="bg-wood-300 border-b border-wood-400 shadow-lg sticky top-0 z-50">
       <div className={`w-full max-w-full ${getHeaderPadding()}`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center text-amber-400 flex-shrink-0">
-            <PointsDisplay />
+          {/* Left side - Admin buttons */}
+          <div className="flex items-center space-x-2 flex-1">
+            {user?.role === 'admin' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onNavigate('admin')}
+                className={`bg-wood-100 hover:bg-wood-200 text-wood-800 border-wood-400 ${
+                  isMobile ? 'text-xs px-2 py-1' : 'text-sm'
+                }`}
+              >
+                Admin
+              </Button>
+            )}
           </div>
 
-          <div className={`flex items-center flex-shrink-0 ${
-            isMobile ? 'space-x-1' : isTablet ? 'space-x-1' : 'space-x-1'
-          }`}>
-            {isAdmin && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant={['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin'].includes(currentPage) ? 'default' : 'ghost'}
-                    size="sm"
-                    className={`flex items-center gap-1 ${getPadding()} ${getTextSize()}`}
-                  >
-                    <Settings className={getIconSize()} />
-                    {!isMobile && <span>Admin</span>}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-background border z-50">
-                  <DropdownMenuItem onClick={() => onNavigate('admin')}>
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    <span>Gérer la bibliothèque</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onNavigate('shop-admin')}>
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    <span>Gérer la boutique</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onNavigate('achievement-admin')}>
-                    <Trophy className="h-4 w-4 mr-2" />
-                    <span>Gérer les succès</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onNavigate('orders-admin')}>
-                    <Settings className="h-4 w-4 mr-2" />
-                    <span>Gérer les commandes</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onNavigate('reading-stats-admin')}>
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    <span>Statistiques de lecture</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onNavigate('audiobook-admin')}>
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    <span>Gérer les audiobooks</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            
-            {session && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className={`flex items-center gap-1 ${getPadding()} ${getTextSize()}`}
-              >
-                <LogOut className={getIconSize()} />
-                {!isMobile && <span>Déconnexion</span>}
-              </Button>
+          {/* Center - Instagram button */}
+          <div className="flex justify-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleInstagramClick}
+              className={`${getButtonSize()} rounded-full bg-wood-200/50 hover:bg-wood-200 border border-wood-400 transition-all duration-200 hover:scale-105`}
+              title="Suivez-nous sur Instagram"
+            >
+              <img 
+                src="/lovable-uploads/f08448a1-fba4-4f9f-926d-515ddd185b17.png" 
+                alt="Instagram La Toison d'Or" 
+                className={`${getImageSize()} object-contain`}
+              />
+            </Button>
+          </div>
+
+          {/* Right side - User stats and Premium */}
+          <div className="flex items-center space-x-2 flex-1 justify-end">
+            {subscription?.isPremium ? (
+              <div className="text-sm text-green-500 font-semibold">Premium</div>
+            ) : (
+              userStats.availablePoints > 0 && currentPage !== 'shop' && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => onNavigate('shop')}
+                  className="bg-amber-500 hover:bg-amber-600 text-white"
+                >
+                  {isMobile ? 'Boutique' : '兑 Boutique'}
+                </Button>
+              )
             )}
           </div>
         </div>
