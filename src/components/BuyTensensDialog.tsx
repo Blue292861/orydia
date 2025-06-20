@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Coins, Crown, Shield, Sword } from 'lucide-react';
+import { Coins, Crown, Shield, Sword, ArrowLeft } from 'lucide-react';
 
 const TENSENS_PACKS = [
   { 
@@ -111,7 +110,16 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger }) =
         )}
       </DialogTrigger>
       <DialogContent className="max-w-5xl bg-gradient-to-b from-wood-50 via-wood-100 to-wood-200 border-2 border-gold-400 shadow-2xl">
-        <DialogHeader className="text-center">
+        <DialogHeader className="text-center relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setOpen(false)}
+            className="absolute left-0 top-0 flex items-center gap-1 text-forest-700 hover:text-forest-900 hover:bg-wood-300/50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour
+          </Button>
           <DialogTitle className="flex items-center justify-center gap-3 text-2xl font-medieval text-forest-800">
             <Coins className="h-6 w-6 text-gold-500" />
             Comptoir du Changeur de Monnaie
