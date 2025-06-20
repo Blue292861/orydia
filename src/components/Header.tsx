@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -80,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             {subscription?.isPremium ? (
               <div className="text-sm text-green-500 font-semibold">Premium</div>
             ) : (
-              userStats.availablePoints > 0 && currentPage !== 'shop' && (
+              userStats.totalPoints > 0 && currentPage !== 'shop' && (
                 <Button
                   variant="secondary"
                   size="sm"
