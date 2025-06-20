@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { LoginCrow } from '@/components/LoginCrow';
@@ -29,6 +29,8 @@ export const AuthPanel: React.FC = () => {
   
   const [loading, setLoading] = useState(false);
   const [showPasswordError, setShowPasswordError] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginData({
@@ -203,16 +205,32 @@ export const AuthPanel: React.FC = () => {
                   <Label htmlFor="login-password" className="text-forest-800 font-medium font-medieval text-sm">
                     Mot de passe secret
                   </Label>
-                  <Input
-                    id="login-password"
-                    name="password"
-                    type="password"
-                    value={loginData.password}
-                    onChange={handleLoginChange}
-                    required
-                    placeholder="••••••••"
-                    className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="login-password"
+                      name="password"
+                      type={showLoginPassword ? "text" : "password"}
+                      value={loginData.password}
+                      onChange={handleLoginChange}
+                      required
+                      placeholder="••••••••"
+                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-forest-600 hover:text-gold-600"
+                      title={showLoginPassword ? "Masquer le mot de passe" : "Révéler le mot de passe"}
+                    >
+                      {showLoginPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <Button 
                   type="submit" 
@@ -246,17 +264,33 @@ export const AuthPanel: React.FC = () => {
                     <Label htmlFor="signup-password" className="text-forest-800 font-medium font-medieval text-sm">
                       Mot de passe secret *
                     </Label>
-                    <Input
-                      id="signup-password"
-                      name="password"
-                      type="password"
-                      value={signupData.password}
-                      onChange={handleSignupChange}
-                      required
-                      placeholder="Au moins 6 runes"
-                      minLength={6}
-                      className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="signup-password"
+                        name="password"
+                        type={showSignupPassword ? "text" : "password"}
+                        value={signupData.password}
+                        onChange={handleSignupChange}
+                        required
+                        placeholder="Au moins 6 runes"
+                        minLength={6}
+                        className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowSignupPassword(!showSignupPassword)}
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-forest-600 hover:text-gold-600"
+                        title={showSignupPassword ? "Masquer le mot de passe" : "Révéler le mot de passe"}
+                      >
+                        {showSignupPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="signup-username" className="text-forest-800 font-medium font-medieval text-sm">
