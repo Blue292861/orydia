@@ -15,7 +15,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
-  const { user, subscription } = useAuth();
+  const { user, subscription, isAdmin } = useAuth();
   const { userStats } = useUserStats();
   const { isMobile, isTablet } = useResponsive();
 
@@ -52,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
         <div className="flex items-center justify-between">
           {/* Left side - Admin and Tensens counter */}
           <div className="flex items-center space-x-2 flex-1">
-            {user?.role === 'admin' && (
+            {isAdmin && (
               <Button
                 variant="outline"
                 size="sm"
@@ -72,11 +72,15 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className={`bg-gradient-to-r from-amber-100 to-yellow-100 hover:from-amber-200 hover:to-yellow-200 text-amber-800 border-amber-400 ${
+                  className={`bg-gradient-to-r from-amber-800 to-amber-900 hover:from-amber-700 hover:to-amber-800 text-amber-100 border-amber-600 shadow-lg ${
                     isMobile ? 'text-xs px-2 py-1' : 'text-sm'
                   }`}
                 >
-                  <span className="text-amber-600 mr-1">💰</span>
+                  <img 
+                    src="/lovable-uploads/c831f469-03da-458d-8428-2f156b930e87.png" 
+                    alt="Tensens" 
+                    className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-1`}
+                  />
                   {userStats.totalPoints} Tensens
                 </Button>
               }
