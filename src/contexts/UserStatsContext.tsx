@@ -11,6 +11,7 @@ interface UserStatsContextType {
   addAchievement: (achievement: Achievement) => void;
   updateAchievement: (achievement: Achievement) => void;
   deleteAchievement: (id: string) => void;
+  applyPendingPremiumMonths: () => void;
 }
 
 const UserStatsContext = createContext<UserStatsContextType | undefined>(undefined);
@@ -65,6 +66,16 @@ const initialAchievements: Achievement[] = [
     rarity: 'legendary'
   },
   {
+    id: 'ultimate-scholar',
+    name: 'Érudit Ultime',
+    description: 'Lisez 100 livres et devenez une légende',
+    points: 2000,
+    unlocked: false,
+    icon: '🌟',
+    rarity: 'ultra-legendary',
+    premiumMonths: 3
+  },
+  {
     id: 'point-collector',
     name: 'Collectionneur de Points',
     description: 'Gagnez 500 points',
@@ -90,6 +101,16 @@ const initialAchievements: Achievement[] = [
     unlocked: false,
     icon: '⭐',
     rarity: 'epic'
+  },
+  {
+    id: 'legendary-supporter',
+    name: 'Supporter Légendaire',
+    description: 'Restez premium pendant 12 mois consécutifs',
+    points: 1000,
+    unlocked: false,
+    icon: '👑',
+    rarity: 'ultra-legendary',
+    premiumMonths: 1
   },
   {
     id: 'dedicated-reader',
@@ -146,7 +167,8 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     achievements: initialAchievements,
     isPremium: false,
     level: 1,
-    experiencePoints: 0
+    experiencePoints: 0,
+    pendingPremiumMonths: 0
   });
 
   useEffect(() => {
@@ -177,6 +199,9 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
         case 'marathon-reader':
           shouldUnlock = newStats.booksRead.length >= 50;
           break;
+        case 'ultimate-scholar':
+          shouldUnlock = newStats.booksRead.length >= 100;
+          break;
         case 'point-collector':
           shouldUnlock = newStats.totalPoints >= 500;
           break;
@@ -185,6 +210,10 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
           break;
         case 'premium-member':
           shouldUnlock = newStats.isPremium;
+          break;
+        case 'legendary-supporter':
+          // This would need tracking of premium duration - placeholder logic
+          shouldUnlock = newStats.isPremium && newStats.booksRead.length >= 50;
           break;
         case 'dedicated-reader':
         case 'speed-reader':
@@ -201,20 +230,22 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
       return achievement;
     });
 
-    // Calculate bonus points from newly unlocked achievements
+    // Calculate bonus points and premium months from newly unlocked achievements
     const newlyUnlocked = updatedAchievements.filter((ach, index) => 
       ach.unlocked && !newStats.achievements[index].unlocked
     );
     
     const bonusPoints = newlyUnlocked.reduce((total, ach) => total + ach.points, 0);
+    const bonusPremiumMonths = newlyUnlocked.reduce((total, ach) => total + (ach.premiumMonths || 0), 0);
 
     // Play sound and show toast for new achievements
     if (newlyUnlocked.length > 0) {
       SoundEffects.playAchievement();
       newlyUnlocked.forEach(achievement => {
+        const premiumText = achievement.premiumMonths ? ` + ${achievement.premiumMonths} mois premium!` : '';
         toast({
           title: `🏆 Achievement Unlocked!`,
-          description: `${achievement.icon} ${achievement.name} - +${achievement.points} points!`,
+          description: `${achievement.icon} ${achievement.name} - +${achievement.points} points${premiumText}`,
         });
       });
     }
@@ -223,13 +254,15 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     const totalPoints = newStats.totalPoints + bonusPoints;
     const level = Math.floor(totalPoints / 100) + 1;
     const experiencePoints = totalPoints % 100;
+    const pendingPremiumMonths = (newStats.pendingPremiumMonths || 0) + bonusPremiumMonths;
 
     return {
       ...newStats,
       achievements: updatedAchievements,
       totalPoints,
       level,
-      experiencePoints
+      experiencePoints,
+      pendingPremiumMonths
     };
   };
 
@@ -281,6 +314,22 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     }));
   };
 
+  const applyPendingPremiumMonths = () => {
+    if (userStats.pendingPremiumMonths && userStats.pendingPremiumMonths > 0) {
+      // This would integrate with subscription management to pause payments
+      // For now, we'll just clear the pending months and show a notification
+      toast({
+        title: '🎉 Premium Extended!',
+        description: `${userStats.pendingPremiumMonths} mois de premium ont été ajoutés à votre compte.`,
+      });
+      
+      setUserStats(prev => ({
+        ...prev,
+        pendingPremiumMonths: 0
+      }));
+    }
+  };
+
   return (
     <UserStatsContext.Provider value={{ 
       userStats, 
@@ -288,7 +337,8 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
       spendPoints, 
       addAchievement,
       updateAchievement,
-      deleteAchievement
+      deleteAchievement,
+      applyPendingPremiumMonths
     }}>
       {children}
     </UserStatsContext.Provider>

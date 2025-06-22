@@ -6,7 +6,8 @@ export interface Achievement {
   points: number;
   unlocked: boolean;
   icon: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  rarity: 'common' | 'rare' | 'epic' | 'legendary' | 'ultra-legendary';
+  premiumMonths?: number; // Number of premium months offered as reward
 }
 
 export interface UserStats {
@@ -16,4 +17,5 @@ export interface UserStats {
   isPremium: boolean;
   level: number;
   experiencePoints: number;
+  pendingPremiumMonths?: number; // Months of premium pending to be applied
 }

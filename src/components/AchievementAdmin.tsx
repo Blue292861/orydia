@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Trophy } from 'lucide-react';
+import { Plus, Pencil, Trash2, Trophy, Crown } from 'lucide-react';
 
 interface AchievementAdminProps {
   achievements: Achievement[];
@@ -33,7 +33,8 @@ export const AchievementAdmin: React.FC<AchievementAdminProps> = ({
     points: 0,
     unlocked: false,
     icon: '🏆',
-    rarity: 'common'
+    rarity: 'common',
+    premiumMonths: 0
   });
 
   const handleOpenAdd = () => {
@@ -45,7 +46,8 @@ export const AchievementAdmin: React.FC<AchievementAdminProps> = ({
       points: 0,
       unlocked: false,
       icon: '🏆',
-      rarity: 'common'
+      rarity: 'common',
+      premiumMonths: 0
     });
     setShowDialog(true);
   };
@@ -60,7 +62,8 @@ export const AchievementAdmin: React.FC<AchievementAdminProps> = ({
     e.preventDefault();
     const achievementData = {
       ...formData,
-      id: editingAchievement ? editingAchievement.id : Date.now().toString()
+      id: editingAchievement ? editingAchievement.id : Date.now().toString(),
+      premiumMonths: formData.premiumMonths || 0
     };
 
     if (editingAchievement) {
@@ -83,6 +86,7 @@ export const AchievementAdmin: React.FC<AchievementAdminProps> = ({
       case 'rare': return 'bg-blue-500';
       case 'epic': return 'bg-purple-500';
       case 'legendary': return 'bg-yellow-500';
+      case 'ultra-legendary': return 'bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500';
       default: return 'bg-gray-500';
     }
   };
@@ -108,15 +112,30 @@ export const AchievementAdmin: React.FC<AchievementAdminProps> = ({
                   <span className="text-2xl">{achievement.icon}</span>
                   <CardTitle className="text-lg">{achievement.name}</CardTitle>
                 </div>
-                <Badge className={`${getRarityColor(achievement.rarity)} text-white`}>
-                  {achievement.rarity}
+                <Badge className={`${getRarityColor(achievement.rarity)} text-white border-0`}>
+                  {achievement.rarity === 'ultra-legendary' ? (
+                    <span className="flex items-center gap-1">
+                      <Crown className="h-3 w-3" />
+                      Ultra-Legendary
+                    </span>
+                  ) : (
+                    achievement.rarity
+                  )}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">{achievement.description}</p>
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-primary">{achievement.points} points</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-primary">{achievement.points} points</span>
+                </div>
+                {achievement.premiumMonths && achievement.premiumMonths > 0 && (
+                  <div className="flex items-center gap-1 text-sm text-amber-600">
+                    <Crown className="h-4 w-4" />
+                    <span>{achievement.premiumMonths} mois premium offert{achievement.premiumMonths > 1 ? 's' : ''}</span>
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => handleOpenEdit(achievement)}>
                     <Pencil className="h-4 w-4" />
@@ -186,6 +205,18 @@ export const AchievementAdmin: React.FC<AchievementAdminProps> = ({
             </div>
             
             <div>
+              <Label htmlFor="premiumMonths">Premium Months Reward (optional)</Label>
+              <Input
+                id="premiumMonths"
+                type="number"
+                min="0"
+                value={formData.premiumMonths || 0}
+                onChange={(e) => setFormData({...formData, premiumMonths: parseInt(e.target.value) || 0})}
+                placeholder="0"
+              />
+            </div>
+            
+            <div>
               <Label htmlFor="rarity">Rarity</Label>
               <Select value={formData.rarity} onValueChange={(value: any) => setFormData({...formData, rarity: value})}>
                 <SelectTrigger>
@@ -196,6 +227,7 @@ export const AchievementAdmin: React.FC<AchievementAdminProps> = ({
                   <SelectItem value="rare">Rare</SelectItem>
                   <SelectItem value="epic">Epic</SelectItem>
                   <SelectItem value="legendary">Legendary</SelectItem>
+                  <SelectItem value="ultra-legendary">Ultra-Legendary</SelectItem>
                 </SelectContent>
               </Select>
             </div>
