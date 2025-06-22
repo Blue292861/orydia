@@ -46,8 +46,20 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
     return 'h-7 w-7';
   };
 
+  const getInstagramButtonSize = () => {
+    if (isMobile) return 'h-14 w-14';
+    if (isTablet) return 'h-16 w-16';
+    return 'h-20 w-20';
+  };
+
+  const getInstagramImageSize = () => {
+    if (isMobile) return 'h-8 w-8';
+    if (isTablet) return 'h-10 w-10';
+    return 'h-12 w-12';
+  };
+
   return (
-    <header className="bg-wood-300 border-b border-wood-400 shadow-lg sticky top-0 z-50">
+    <header className="bg-wood-300 border-b border-wood-400 shadow-lg sticky top-0 z-50 relative">
       <div className={`w-full max-w-full ${getHeaderPadding()}`}>
         <div className="flex items-center justify-between">
           {/* Left side - Admin and Tensens counter */}
@@ -87,21 +99,23 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             />
           </div>
 
-          {/* Center - Instagram button */}
-          <div className="flex justify-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleInstagramClick}
-              className={`${getButtonSize()} rounded-full overflow-hidden p-0 border-2 border-wood-400/30 hover:border-wood-400 transition-all duration-200 hover:scale-105 bg-transparent hover:bg-wood-200/20`}
-              title="Suivez-nous sur Instagram"
-            >
-              <img 
-                src="/lovable-uploads/f08448a1-fba4-4f9f-926d-515ddd185b17.png" 
-                alt="Instagram La Toison d'Or" 
-                className={`${getImageSize()} object-cover rounded-full`}
-              />
-            </Button>
+          {/* Center - Instagram button with bandeau style */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 -top-2 z-10">
+            <div className="bg-gradient-to-r from-wood-200 via-wood-100 to-wood-200 rounded-full p-2 border-2 border-wood-400 shadow-xl">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleInstagramClick}
+                className={`${getInstagramButtonSize()} rounded-full overflow-hidden p-0 border-3 border-wood-500/50 hover:border-wood-600 transition-all duration-300 hover:scale-110 bg-gradient-to-br from-pink-400 via-purple-500 to-orange-400 hover:from-pink-500 hover:via-purple-600 hover:to-orange-500 shadow-lg hover:shadow-xl`}
+                title="Suivez-nous sur Instagram"
+              >
+                <img 
+                  src="/lovable-uploads/f08448a1-fba4-4f9f-926d-515ddd185b17.png" 
+                  alt="Instagram La Toison d'Or" 
+                  className={`${getInstagramImageSize()} object-cover rounded-full`}
+                />
+              </Button>
+            </div>
           </div>
 
           {/* Right side - Premium status and Logout */}
