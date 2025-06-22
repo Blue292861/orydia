@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { UserStats } from '@/types/UserStats';
+import { UserStats, Achievement } from '@/types/UserStats';
 import { UserStatsContextType } from '@/types/UserStatsContext';
 import { SoundEffects } from '@/utils/soundEffects';
 import { toast } from '@/components/ui/use-toast';
