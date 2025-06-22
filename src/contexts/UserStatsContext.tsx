@@ -1,18 +1,12 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { UserStats, Achievement } from '@/types/UserStats';
+import { UserStats } from '@/types/UserStats';
+import { UserStatsContextType } from '@/types/UserStatsContext';
 import { SoundEffects } from '@/utils/soundEffects';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from './AuthContext';
-
-interface UserStatsContextType {
-  userStats: UserStats;
-  addPointsForBook: (bookId: string, points: number) => void;
-  spendPoints: (amount: number) => void;
-  addAchievement: (achievement: Achievement) => void;
-  updateAchievement: (achievement: Achievement) => void;
-  deleteAchievement: (id: string) => void;
-  applyPendingPremiumMonths: () => void;
-}
+import { initialAchievements } from '@/data/initialAchievements';
+import { checkAndUnlockAchievements } from '@/utils/achievementChecker';
 
 const UserStatsContext = createContext<UserStatsContextType | undefined>(undefined);
 
@@ -27,137 +21,6 @@ export const useUserStats = () => {
 interface UserStatsProviderProps {
   children: ReactNode;
 }
-
-const initialAchievements: Achievement[] = [
-  {
-    id: 'first-book',
-    name: 'Premier Livre',
-    description: 'Lisez votre premier livre',
-    points: 25,
-    unlocked: false,
-    icon: '📖',
-    rarity: 'common'
-  },
-  {
-    id: 'bookworm',
-    name: 'Rat de Bibliothèque',
-    description: 'Lisez 5 livres',
-    points: 100,
-    unlocked: false,
-    icon: '🐛',
-    rarity: 'rare'
-  },
-  {
-    id: 'scholar',
-    name: 'Érudit',
-    description: 'Lisez 10 livres',
-    points: 200,
-    unlocked: false,
-    icon: '🎓',
-    rarity: 'epic'
-  },
-  {
-    id: 'master-reader',
-    name: 'Maître Lecteur',
-    description: 'Lisez 20 livres',
-    points: 500,
-    unlocked: false,
-    icon: '👑',
-    rarity: 'legendary'
-  },
-  {
-    id: 'ultimate-scholar',
-    name: 'Érudit Ultime',
-    description: 'Lisez 100 livres et devenez une légende',
-    points: 2000,
-    unlocked: false,
-    icon: '🌟',
-    rarity: 'ultra-legendary',
-    premiumMonths: 3
-  },
-  {
-    id: 'point-collector',
-    name: 'Collectionneur de Points',
-    description: 'Gagnez 500 points',
-    points: 50,
-    unlocked: false,
-    icon: '💰',
-    rarity: 'common'
-  },
-  {
-    id: 'point-master',
-    name: 'Maître des Points',
-    description: 'Gagnez 1000 points',
-    points: 150,
-    unlocked: false,
-    icon: '💎',
-    rarity: 'rare'
-  },
-  {
-    id: 'premium-member',
-    name: 'Membre Premium',
-    description: 'Devenez membre premium',
-    points: 300,
-    unlocked: false,
-    icon: '⭐',
-    rarity: 'epic'
-  },
-  {
-    id: 'legendary-supporter',
-    name: 'Supporter Légendaire',
-    description: 'Restez premium pendant 12 mois consécutifs',
-    points: 1000,
-    unlocked: false,
-    icon: '👑',
-    rarity: 'ultra-legendary',
-    premiumMonths: 1
-  },
-  {
-    id: 'dedicated-reader',
-    name: 'Lecteur Dévoué',
-    description: 'Lisez pendant 7 jours consécutifs',
-    points: 175,
-    unlocked: false,
-    icon: '🔥',
-    rarity: 'rare'
-  },
-  {
-    id: 'speed-reader',
-    name: 'Lecteur Rapide',
-    description: 'Lisez 3 livres en une journée',
-    points: 150,
-    unlocked: false,
-    icon: '⚡',
-    rarity: 'rare'
-  },
-  {
-    id: 'night-owl',
-    name: 'Oiseau de Nuit',
-    description: 'Lisez après minuit',
-    points: 75,
-    unlocked: false,
-    icon: '🦉',
-    rarity: 'common'
-  },
-  {
-    id: 'genre-explorer',
-    name: 'Explorateur de Genres',
-    description: 'Lisez des livres de 5 genres différents',
-    points: 250,
-    unlocked: false,
-    icon: '🗺️',
-    rarity: 'epic'
-  },
-  {
-    id: 'marathon-reader',
-    name: 'Lecteur Marathon',
-    description: 'Lisez 50 livres',
-    points: 1000,
-    unlocked: false,
-    icon: '🏃‍♂️',
-    rarity: 'legendary'
-  }
-];
 
 export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }) => {
   const { subscription } = useAuth();
@@ -176,95 +39,6 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
       setUserStats(prev => checkAndUnlockAchievements({ ...prev, isPremium: subscription.isPremium }));
     }
   }, [subscription.isPremium]);
-
-  const checkAndUnlockAchievements = (newStats: UserStats) => {
-    const updatedAchievements = newStats.achievements.map(achievement => {
-      if (achievement.unlocked) return achievement;
-
-      let shouldUnlock = false;
-      
-      switch (achievement.id) {
-        case 'first-book':
-          shouldUnlock = newStats.booksRead.length >= 1;
-          break;
-        case 'bookworm':
-          shouldUnlock = newStats.booksRead.length >= 5;
-          break;
-        case 'scholar':
-          shouldUnlock = newStats.booksRead.length >= 10;
-          break;
-        case 'master-reader':
-          shouldUnlock = newStats.booksRead.length >= 20;
-          break;
-        case 'marathon-reader':
-          shouldUnlock = newStats.booksRead.length >= 50;
-          break;
-        case 'ultimate-scholar':
-          shouldUnlock = newStats.booksRead.length >= 100;
-          break;
-        case 'point-collector':
-          shouldUnlock = newStats.totalPoints >= 500;
-          break;
-        case 'point-master':
-          shouldUnlock = newStats.totalPoints >= 1000;
-          break;
-        case 'premium-member':
-          shouldUnlock = newStats.isPremium;
-          break;
-        case 'legendary-supporter':
-          // This would need tracking of premium duration - placeholder logic
-          shouldUnlock = newStats.isPremium && newStats.booksRead.length >= 50;
-          break;
-        case 'dedicated-reader':
-        case 'speed-reader':
-        case 'night-owl':
-        case 'genre-explorer':
-          // For now, we'll unlock these randomly as we don't track these specific metrics
-          shouldUnlock = newStats.booksRead.length >= 3;
-          break;
-      }
-
-      if (shouldUnlock) {
-        return { ...achievement, unlocked: true };
-      }
-      return achievement;
-    });
-
-    // Calculate bonus points and premium months from newly unlocked achievements
-    const newlyUnlocked = updatedAchievements.filter((ach, index) => 
-      ach.unlocked && !newStats.achievements[index].unlocked
-    );
-    
-    const bonusPoints = newlyUnlocked.reduce((total, ach) => total + ach.points, 0);
-    const bonusPremiumMonths = newlyUnlocked.reduce((total, ach) => total + (ach.premiumMonths || 0), 0);
-
-    // Play sound and show toast for new achievements
-    if (newlyUnlocked.length > 0) {
-      SoundEffects.playAchievement();
-      newlyUnlocked.forEach(achievement => {
-        const premiumText = achievement.premiumMonths ? ` + ${achievement.premiumMonths} mois premium!` : '';
-        toast({
-          title: `🏆 Achievement Unlocked!`,
-          description: `${achievement.icon} ${achievement.name} - +${achievement.points} points${premiumText}`,
-        });
-      });
-    }
-
-    // Calculate level and experience
-    const totalPoints = newStats.totalPoints + bonusPoints;
-    const level = Math.floor(totalPoints / 100) + 1;
-    const experiencePoints = totalPoints % 100;
-    const pendingPremiumMonths = (newStats.pendingPremiumMonths || 0) + bonusPremiumMonths;
-
-    return {
-      ...newStats,
-      achievements: updatedAchievements,
-      totalPoints,
-      level,
-      experiencePoints,
-      pendingPremiumMonths
-    };
-  };
 
   const addPointsForBook = (bookId: string, points: number) => {
     setUserStats(prev => {
