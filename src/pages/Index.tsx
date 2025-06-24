@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { BookLibrary } from '@/components/BookLibrary';
@@ -154,9 +155,9 @@ const AppContent = () => {
     <>
       <SecurityHeaders />
       <div className={`min-h-screen ${pageBackground} transition-colors duration-500 max-w-full overflow-x-hidden`}>
-        {currentPage !== 'video-ad' && <Header onNavigate={setCurrentPage as any} currentPage={currentPage} />}
+        {currentPage !== 'video-ad' && <Header onNavigate={setCurrentPage} currentPage={currentPage} />}
         <main className={`flex-1 ${getMainPadding()} ${getBottomPadding()} max-w-full overflow-x-hidden`}>
-          {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
+          {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage} />}
           {renderCurrentPage()}
         </main>
         {currentPage !== 'reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={setCurrentPage as any} />}
