@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { BookLibrary } from '@/components/BookLibrary';
@@ -25,7 +24,7 @@ import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 
 type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'form-config-admin';
-type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'video-ad' | AdminPage;
+type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'video-ad' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'form-config-admin';
 
 const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<Page>('library');
