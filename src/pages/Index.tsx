@@ -150,6 +150,10 @@ const AppContent = () => {
     return 'pb-16 sm:pb-20';
   };
 
+  const handleNavigationFooterNavigate = (page: 'library' | 'search' | 'shop' | 'profile') => {
+    setCurrentPage(page);
+  };
+
   return (
     <>
       <SecurityHeaders />
@@ -159,7 +163,7 @@ const AppContent = () => {
           {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage} />}
           {renderCurrentPage()}
         </main>
-        {currentPage !== 'reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={setCurrentPage as any} />}
+        {currentPage !== 'reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={handleNavigationFooterNavigate} />}
       </div>
     </>
   );
