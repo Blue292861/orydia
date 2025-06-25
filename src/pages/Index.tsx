@@ -7,7 +7,6 @@ import { AdminDashboard } from '@/components/AdminDashboard';
 import { ShopAdmin } from '@/components/ShopAdmin';
 import { AchievementAdmin } from '@/components/AchievementAdmin';
 import { AudiobookAdmin } from '@/components/AudiobookAdmin';
-import { FormConfigAdmin } from '@/components/FormConfigAdmin';
 import { Shop } from '@/components/Shop';
 import { SearchPage } from '@/components/SearchPage';
 import { ProfilePage } from '@/components/ProfilePage';
@@ -24,8 +23,8 @@ import { useBooks } from '@/hooks/useBooks';
 import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'form-config-admin';
-type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'video-ad' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'form-config-admin';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin';
+type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'video-ad' | AdminPage;
 
 const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<Page>('library');
@@ -78,8 +77,6 @@ const AppContent = () => {
         return <AudiobookAdmin />;
       case 'shop-admin':
         return <ShopAdmin />;
-      case 'form-config-admin':
-        return <FormConfigAdmin />;
       case 'achievement-admin':
         return (
           <AchievementAdmin
@@ -106,7 +103,7 @@ const AppContent = () => {
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
   
-  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin', 'form-config-admin'].includes(currentPage);
+  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin'].includes(currentPage);
 
   const getMainPadding = () => {
     if (isMobile) {
@@ -151,24 +148,16 @@ const AppContent = () => {
     return 'pb-16 sm:pb-20';
   };
 
-  const handleNavigationFooterNavigate = (page: 'library' | 'search' | 'shop' | 'profile') => {
-    setCurrentPage(page);
-  };
-
-  const handleAdminNavigate = (page: AdminPage) => {
-    setCurrentPage(page);
-  };
-
   return (
     <>
       <SecurityHeaders />
       <div className={`min-h-screen ${pageBackground} transition-colors duration-500 max-w-full overflow-x-hidden`}>
-        {currentPage !== 'video-ad' && <Header onNavigate={setCurrentPage} currentPage={currentPage} />}
+        {currentPage !== 'video-ad' && <Header onNavigate={setCurrentPage as any} currentPage={currentPage} />}
         <main className={`flex-1 ${getMainPadding()} ${getBottomPadding()} max-w-full overflow-x-hidden`}>
-          {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={handleAdminNavigate} />}
+          {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
           {renderCurrentPage()}
         </main>
-        {currentPage !== 'reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={handleNavigationFooterNavigate} />}
+        {currentPage !== 'reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={setCurrentPage as any} />}
       </div>
     </>
   );
