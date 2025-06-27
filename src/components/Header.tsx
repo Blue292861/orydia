@@ -19,10 +19,6 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const { userStats } = useUserStats();
   const { isMobile, isTablet } = useResponsive();
 
-  const handleInstagramClick = () => {
-    window.open('https://www.instagram.com/la_toison_d_or_sarl?igsh=N2NjcGV1bWVuMTAy', '_blank');
-  };
-
   const handleLogout = async () => {
     const { supabase } = await import('@/integrations/supabase/client');
     await supabase.auth.signOut();
@@ -46,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
     return 'h-7 w-7';
   };
 
-  const getInstagramButtonSize = () => {
+  const getInstagramContainerSize = () => {
     if (isMobile) return 'h-14 w-14';
     if (isTablet) return 'h-16 w-16';
     return 'h-20 w-20';
@@ -99,22 +95,16 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             />
           </div>
 
-          {/* Center - Instagram button with bandeau style */}
+          {/* Center - Instagram image with bandeau style (no longer clickable) */}
           <div className="absolute left-1/2 transform -translate-x-1/2 -top-2 z-10">
             <div className="bg-gradient-to-r from-wood-200 via-wood-100 to-wood-200 rounded-full p-2 border-2 border-wood-400 shadow-xl">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleInstagramClick}
-                className={`${getInstagramButtonSize()} rounded-full overflow-hidden p-0 border-3 border-wood-500/50 hover:border-wood-600 transition-all duration-300 hover:scale-110 bg-gradient-to-br from-pink-400 via-purple-500 to-orange-400 hover:from-pink-500 hover:via-purple-600 hover:to-orange-500 shadow-lg hover:shadow-xl`}
-                title="Suivez-nous sur Instagram"
-              >
+              <div className={`${getInstagramContainerSize()} rounded-full overflow-hidden border-3 border-wood-500/50 bg-gradient-to-br from-pink-400 via-purple-500 to-orange-400 shadow-lg flex items-center justify-center`}>
                 <img 
                   src="/lovable-uploads/f08448a1-fba4-4f9f-926d-515ddd185b17.png" 
                   alt="Instagram La Toison d'Or" 
                   className={`${getInstagramImageSize()} object-cover rounded-full`}
                 />
-              </Button>
+              </div>
             </div>
           </div>
 
