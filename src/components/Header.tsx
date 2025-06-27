@@ -49,9 +49,9 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   };
 
   const getInstagramImageSize = () => {
-    if (isMobile) return 'h-10 w-10';
-    if (isTablet) return 'h-12 w-12';
-    return 'h-16 w-16';
+    if (isMobile) return 'h-12 w-12';
+    if (isTablet) return 'h-14 w-14';
+    return 'h-18 w-18';
   };
 
   return (
