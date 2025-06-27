@@ -49,9 +49,9 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   };
 
   const getInstagramImageSize = () => {
-    if (isMobile) return 'h-8 w-8';
-    if (isTablet) return 'h-10 w-10';
-    return 'h-12 w-12';
+    if (isMobile) return 'h-10 w-10';
+    if (isTablet) return 'h-12 w-12';
+    return 'h-16 w-16';
   };
 
   return (
@@ -98,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
           {/* Center - Instagram image with bandeau style (no longer clickable) */}
           <div className="absolute left-1/2 transform -translate-x-1/2 -top-2 z-10">
             <div className="bg-gradient-to-r from-wood-200 via-wood-100 to-wood-200 rounded-full p-2 border-2 border-wood-400 shadow-xl">
-              <div className={`${getInstagramContainerSize()} rounded-full overflow-hidden border-3 border-wood-500/50 bg-gradient-to-br from-pink-400 via-purple-500 to-orange-400 shadow-lg flex items-center justify-center`}>
+              <div className={`${getInstagramContainerSize()} rounded-full overflow-hidden border-2 border-wood-500/50 bg-wood-100 shadow-lg flex items-center justify-center`}>
                 <img 
                   src="/lovable-uploads/f08448a1-fba4-4f9f-926d-515ddd185b17.png" 
                   alt="Instagram La Toison d'Or" 
