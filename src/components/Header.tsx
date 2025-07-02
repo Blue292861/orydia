@@ -7,7 +7,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { BuyTensensDialog } from '@/components/BuyTensensDialog';
 import { LogOut, Settings } from 'lucide-react';
 
-type Page = 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'shop' | 'search' | 'profile' | 'video-ad';
+type Page = 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin' | 'shop' | 'search' | 'profile' | 'video-ad';
 
 interface HeaderProps {
   onNavigate: (page: Page) => void;
@@ -98,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
           {/* Center - Instagram image with bandeau style (no longer clickable) */}
           <div className="absolute left-1/2 transform -translate-x-1/2 -top-2 z-10">
             <div className="bg-gradient-to-r from-wood-200 via-wood-100 to-wood-200 rounded-full p-2 border-2 border-wood-400 shadow-xl">
-              <div className={`${getInstagramContainerSize()} rounded-full overflow-hidden border-2 border-wood-500/50 bg-wood-100 shadow-lg flex items-center justify-center`}>
+              <div className={`${getInstagramContainerSize()} rounded-full overflow-hidden bg-wood-100 shadow-lg flex items-center justify-center`}>
                 <img 
                   src="/lovable-uploads/f08448a1-fba4-4f9f-926d-515ddd185b17.png" 
                   alt="Instagram La Toison d'Or" 

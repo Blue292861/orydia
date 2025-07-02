@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin';
 
 interface AdminNavProps {
   currentPage: AdminPage;
@@ -16,6 +16,7 @@ const navItems: { id: AdminPage; label: string }[] = [
   { id: 'achievement-admin', label: 'Gestion Succès' },
   { id: 'orders-admin', label: 'Commandes' },
   { id: 'reading-stats-admin', label: 'Statistiques Lecture' },
+  { id: 'points-admin', label: 'Attribution Points' },
 ];
 
 export const AdminNav: React.FC<AdminNavProps> = ({ currentPage, onNavigate }) => {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { BookLibrary } from '@/components/BookLibrary';
@@ -7,6 +6,7 @@ import { AdminDashboard } from '@/components/AdminDashboard';
 import { ShopAdmin } from '@/components/ShopAdmin';
 import { AchievementAdmin } from '@/components/AchievementAdmin';
 import { AudiobookAdmin } from '@/components/AudiobookAdmin';
+import { PointsAdmin } from '@/components/PointsAdmin';
 import { Shop } from '@/components/Shop';
 import { SearchPage } from '@/components/SearchPage';
 import { ProfilePage } from '@/components/ProfilePage';
@@ -23,7 +23,7 @@ import { useBooks } from '@/hooks/useBooks';
 import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'video-ad' | AdminPage;
 
 const AppContent = () => {
@@ -90,6 +90,8 @@ const AppContent = () => {
         return <OrdersAdmin />;
       case 'reading-stats-admin':
         return <ReadingStatsAdmin books={books} />;
+      case 'points-admin':
+        return <PointsAdmin />;
       case 'shop':
         return <Shop shopItems={shopItems} />;
       case 'search':
@@ -103,7 +105,7 @@ const AppContent = () => {
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
   
-  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin'].includes(currentPage);
+  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin', 'points-admin'].includes(currentPage);
 
   const getMainPadding = () => {
     if (isMobile) {
