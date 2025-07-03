@@ -67,6 +67,7 @@
     "terser": "^5.42.0",
     "vaul": "^0.9.3",
     "vite-plugin-compression": "^0.5.1",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {

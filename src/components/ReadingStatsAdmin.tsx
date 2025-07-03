@@ -13,7 +13,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, TrendingUp, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { BookOpen, TrendingUp, Calendar, FileDown } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface BookCompletion {
   book_id: string;
@@ -68,6 +70,51 @@ export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) =
     return acc;
   }, {} as Record<string, number>);
 
+  // Statistiques mensuelles par livre
+  const monthlyBookReadCounts = enrichedCompletions
+    .filter(c => new Date(c.completed_at) >= thisMonth)
+    .reduce((acc, completion) => {
+      if (completion.book) {
+        const key = completion.book_id;
+        acc[key] = (acc[key] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+  const generateMonthlyReport = () => {
+    // Préparer les données pour Excel
+    const excelData = books.map(book => ({
+      'Nom de l\'œuvre': book.title,
+      'Nom de l\'auteur': book.author,
+      'Vues ce mois-ci': monthlyBookReadCounts[book.id] || 0,
+      'Vues totales': bookReadCounts[book.id] || 0
+    }));
+
+    // Créer le workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(excelData);
+
+    // Ajuster la largeur des colonnes
+    const colWidths = [
+      { wch: 30 }, // Nom de l'œuvre
+      { wch: 20 }, // Nom de l'auteur
+      { wch: 15 }, // Vues ce mois-ci
+      { wch: 15 }  // Vues totales
+    ];
+    ws['!cols'] = colWidths;
+
+    // Ajouter la feuille au workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Statistiques Mensuelles');
+
+    // Générer le nom du fichier avec la date actuelle
+    const currentDate = new Date();
+    const monthYear = `${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
+    const fileName = `statistiques-lecture-${monthYear}.xlsx`;
+
+    // Télécharger le fichier
+    XLSX.writeFile(wb, fileName);
+  };
+
   const topBooks = Object.entries(bookReadCounts)
     .map(([bookId, count]) => ({
       book: books.find(b => b.id === bookId),
@@ -84,7 +131,13 @@ export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) =
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold">Statistiques de lecture</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold">Statistiques de lecture</h2>
+        <Button onClick={generateMonthlyReport} className="flex items-center gap-2">
+          <FileDown className="h-4 w-4" />
+          Générer la fin de mois
+        </Button>
+      </div>
       
       {/* Cartes de statistiques globales */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
