@@ -38,38 +38,12 @@ export const PointsAdmin: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Rechercher l'utilisateur par email via les profils
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', (await supabase.auth.admin.getUserByEmail(email)).data.user?.id)
-        .single();
-
-      if (profileError || !profile) {
-        // Si pas trouvé dans les profils, chercher directement dans auth.users
-        const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(email);
-        
-        if (userError || !userData.user) {
-          toast({
-            title: 'Erreur',
-            description: 'Aucun utilisateur trouvé avec cette adresse email.',
-            variant: 'destructive',
-          });
-          return;
-        }
-
-        // Créer un profil s'il n'existe pas
-        const { error: createProfileError } = await supabase
-          .from('profiles')
-          .insert([{ id: userData.user.id }]);
-
-        if (createProfileError) {
-          console.error('Erreur lors de la création du profil:', createProfileError);
-        }
-      }
-
-      // Ici, dans un vrai système, vous devriez avoir une table pour stocker les points
       // Pour l'instant, nous simulons l'ajout de points
+      // Dans un vrai système, vous devriez avoir une table pour stocker les points des utilisateurs
+      // et une fonction pour rechercher l'utilisateur par email
+      
+      console.log(`Attribution de ${pointsNumber} points à ${email}`);
+      
       toast({
         title: 'Succès',
         description: `${pointsNumber} points Tensens ont été attribués à ${email}.`,
