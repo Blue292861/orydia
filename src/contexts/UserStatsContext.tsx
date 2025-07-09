@@ -7,6 +7,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useAuth } from './AuthContext';
 import { initialAchievements } from '@/data/initialAchievements';
 import { checkAndUnlockAchievements } from '@/utils/achievementChecker';
+import { supabase } from '@/integrations/supabase/client';
 
 const UserStatsContext = createContext<UserStatsContextType | undefined>(undefined);
 
@@ -23,7 +24,7 @@ interface UserStatsProviderProps {
 }
 
 export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }) => {
-  const { subscription } = useAuth();
+  const { subscription, session } = useAuth();
   const [userStats, setUserStats] = useState<UserStats>({
     totalPoints: 0,
     booksRead: [],
@@ -39,6 +40,49 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
       setUserStats(prev => checkAndUnlockAchievements({ ...prev, isPremium: subscription.isPremium }));
     }
   }, [subscription.isPremium]);
+
+  const checkDailyAdLimit = async (): Promise<boolean> => {
+    if (!session?.user?.id) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const { data, error } = await supabase
+      .from('ad_views')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .eq('ad_type', 'tensens')
+      .gte('viewed_at', today.toISOString())
+      .lt('viewed_at', tomorrow.toISOString());
+
+    if (error) {
+      console.error('Error checking ad limit:', error);
+      return false;
+    }
+
+    return (data?.length || 0) < 5;
+  };
+
+  const recordAdView = async (): Promise<boolean> => {
+    if (!session?.user?.id) return false;
+
+    const { error } = await supabase
+      .from('ad_views')
+      .insert({
+        user_id: session.user.id,
+        ad_type: 'tensens',
+        tensens_earned: 10
+      });
+
+    if (error) {
+      console.error('Error recording ad view:', error);
+      return false;
+    }
+
+    return true;
+  };
 
   const addPointsForBook = (bookId: string, points: number) => {
     setUserStats(prev => {
@@ -112,7 +156,9 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
       addAchievement,
       updateAchievement,
       deleteAchievement,
-      applyPendingPremiumMonths
+      applyPendingPremiumMonths,
+      checkDailyAdLimit,
+      recordAdView
     }}>
       {children}
     </UserStatsContext.Provider>

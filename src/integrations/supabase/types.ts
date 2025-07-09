@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_views: {
+        Row: {
+          ad_type: string
+          id: string
+          tensens_earned: number
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          ad_type?: string
+          id?: string
+          tensens_earned?: number
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          ad_type?: string
+          id?: string
+          tensens_earned?: number
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: []
+      }
       audiobooks: {
         Row: {
           audio_url: string

@@ -1,5 +1,5 @@
 
-import { UserStats, Achievement } from '@/types/UserStats';
+import { UserStats, Achievement } from './UserStats';
 
 export interface UserStatsContextType {
   userStats: UserStats;
@@ -9,4 +9,6 @@ export interface UserStatsContextType {
   updateAchievement: (achievement: Achievement) => void;
   deleteAchievement: (id: string) => void;
   applyPendingPremiumMonths: () => void;
+  checkDailyAdLimit: () => Promise<boolean>;
+  recordAdView: () => Promise<boolean>;
 }
