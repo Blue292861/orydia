@@ -224,6 +224,7 @@ export type Database = {
       shop_items: {
         Row: {
           category: string
+          content: string | null
           created_at: string
           description: string
           id: string
@@ -235,6 +236,7 @@ export type Database = {
         }
         Insert: {
           category: string
+          content?: string | null
           created_at?: string
           description: string
           id?: string
@@ -246,6 +248,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          content?: string | null
           created_at?: string
           description?: string
           id?: string

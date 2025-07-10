@@ -17,7 +17,7 @@ export const fetchShopItemsFromDB = async (): Promise<ShopItem[]> => {
     id: item.id,
     name: item.name,
     description: item.description,
-    content: item.content,
+    content: item.content || '',
     price: item.price,
     imageUrl: item.image_url,
     category: item.category,

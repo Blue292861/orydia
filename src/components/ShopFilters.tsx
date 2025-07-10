@@ -1,26 +1,28 @@
 
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { useResponsive } from '@/hooks/useResponsive';
 
 interface ShopFiltersProps {
-  filters: {
-    seller: string;
-    category: string;
-    affordable: boolean;
-  };
-  uniqueSellers: string[];
-  uniqueCategories: string[];
-  onFiltersChange: (filters: { seller?: string; category?: string; affordable?: boolean }) => void;
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  selectedCategory: string;
+  onCategoryChange: (value: string) => void;
+  categories: string[];
+  sortBy: string;
+  onSortChange: (value: string) => void;
 }
 
 export const ShopFilters: React.FC<ShopFiltersProps> = ({
-  filters,
-  uniqueSellers,
-  uniqueCategories,
-  onFiltersChange,
+  searchTerm,
+  onSearchChange,
+  selectedCategory,
+  onCategoryChange,
+  categories,
+  sortBy,
+  onSortChange,
 }) => {
   const { isMobile, isTablet } = useResponsive();
 
@@ -31,68 +33,68 @@ export const ShopFilters: React.FC<ShopFiltersProps> = ({
       <h3 className={`font-semibold text-amber-200 mb-3 ${
         isMobile ? 'text-base' : 'text-lg'
       }`}>
-        Filtres :
+        Filtres et recherche :
       </h3>
       <div className={`grid gap-3 ${
-        isMobile ? 'grid-cols-1' : isTablet ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'
+        isMobile ? 'grid-cols-1' : isTablet ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4'
       }`}>
         <div>
-          <Label htmlFor="seller-filter" className={`font-medium text-slate-300 ${
+          <Label htmlFor="search" className={`font-medium text-slate-300 ${
             isMobile ? 'text-xs' : 'text-sm'
           }`}>
-            Vendeur
+            Rechercher
           </Label>
-          <Select 
-            value={filters.seller} 
-            onValueChange={seller => onFiltersChange({ seller })}
-          >
-            <SelectTrigger id="seller-filter" className={`bg-slate-700 border-slate-600 text-white ${
+          <Input
+            id="search"
+            type="text"
+            placeholder="Nom, description, vendeur..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className={`bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 ${
               isMobile ? 'text-xs h-8' : 'text-sm'
-            }`}>
-              <SelectValue placeholder="Choisir un vendeur" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-800 border-slate-600 text-white">
-              {uniqueSellers.map(seller => (
-                <SelectItem key={seller} value={seller}>{seller}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            }`}
+          />
         </div>
+        
         <div>
           <Label htmlFor="category-filter" className={`font-medium text-slate-300 ${
             isMobile ? 'text-xs' : 'text-sm'
           }`}>
             Catégorie
           </Label>
-          <Select 
-            value={filters.category} 
-            onValueChange={category => onFiltersChange({ category })}
-          >
+          <Select value={selectedCategory} onValueChange={onCategoryChange}>
             <SelectTrigger id="category-filter" className={`bg-slate-700 border-slate-600 text-white ${
               isMobile ? 'text-xs h-8' : 'text-sm'
             }`}>
-              <SelectValue placeholder="Choisir une catégorie" />
+              <SelectValue placeholder="Toutes les catégories" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-slate-600 text-white">
-              {uniqueCategories.map(cat => (
-                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+              <SelectItem value="">Toutes les catégories</SelectItem>
+              {categories.map(category => (
+                <SelectItem key={category} value={category}>{category}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        <div className={`flex items-center space-x-2 ${
-          isMobile ? 'pt-2' : isTablet ? 'pt-4' : 'pt-6'
-        }`}>
-          <Switch 
-            id="affordable-filter" 
-            checked={filters.affordable}
-            onCheckedChange={checked => onFiltersChange({ affordable: checked })}
-          />
-          <Label htmlFor="affordable-filter" className={`text-slate-300 ${
+
+        <div>
+          <Label htmlFor="sort-filter" className={`font-medium text-slate-300 ${
             isMobile ? 'text-xs' : 'text-sm'
           }`}>
-            Abordables seulement
+            Trier par
           </Label>
+          <Select value={sortBy} onValueChange={onSortChange}>
+            <SelectTrigger id="sort-filter" className={`bg-slate-700 border-slate-600 text-white ${
+              isMobile ? 'text-xs h-8' : 'text-sm'
+            }`}>
+              <SelectValue placeholder="Trier par" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-800 border-slate-600 text-white">
+              <SelectItem value="name">Nom (A-Z)</SelectItem>
+              <SelectItem value="price-asc">Prix (croissant)</SelectItem>
+              <SelectItem value="price-desc">Prix (décroissant)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>
