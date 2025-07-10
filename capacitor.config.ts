@@ -10,8 +10,25 @@ const config: CapacitorConfig = {
   },
   plugins: {
     StatusBar: {
-      style: 'dark'
+      style: 'dark',
+      backgroundColor: '#000000'
+    },
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#000000',
+      showSpinner: false
+    },
+    Keyboard: {
+      resize: 'body'
     }
+  },
+  ios: {
+    contentInset: 'automatic',
+    scrollEnabled: true
+  },
+  android: {
+    allowMixedContent: true,
+    captureInput: true
   }
 };
 
