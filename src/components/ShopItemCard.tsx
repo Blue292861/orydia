@@ -14,9 +14,10 @@ import { useResponsive } from '@/hooks/useResponsive';
 
 interface ShopItemCardProps {
   item: ShopItem;
+  onItemClick: (item: ShopItem) => void;
 }
 
-export const ShopItemCard: React.FC<ShopItemCardProps> = ({ item }) => {
+export const ShopItemCard: React.FC<ShopItemCardProps> = ({ item, onItemClick }) => {
   const { userStats, spendPoints } = useUserStats();
   const { session } = useAuth();
   const { toast } = useToast();
@@ -37,7 +38,9 @@ export const ShopItemCard: React.FC<ShopItemCardProps> = ({ item }) => {
     }
   };
 
-  const handlePurchase = async () => {
+  const handlePurchase = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when clicking buy button
+    
     if (!session) {
       toast({ title: "Erreur", description: "Vous devez être connecté pour acheter.", variant: "destructive" });
       return;
@@ -76,8 +79,15 @@ export const ShopItemCard: React.FC<ShopItemCardProps> = ({ item }) => {
     }
   };
 
+  const handleCardClick = () => {
+    onItemClick(item);
+  };
+
   return (
-    <Card className="bg-gradient-to-b from-slate-800 to-slate-900 border-2 border-slate-600 hover:border-amber-500 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/20 group flex flex-col">
+    <Card 
+      className="bg-gradient-to-b from-slate-800 to-slate-900 border-2 border-slate-600 hover:border-amber-500 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/20 group flex flex-col cursor-pointer"
+      onClick={handleCardClick}
+    >
       <div className="relative">
         <div className="aspect-square overflow-hidden rounded-t-lg">
           <img 

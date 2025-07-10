@@ -1,68 +1,69 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { ShopItem } from '@/types/ShopItem';
-import { useUserStats } from '@/contexts/UserStatsContext';
 import { ShopHeader } from '@/components/ShopHeader';
 import { ShopFilters } from '@/components/ShopFilters';
 import { ShopItemGrid } from '@/components/ShopItemGrid';
-import { useResponsive } from '@/hooks/useResponsive';
+import { ShopItemDetail } from '@/components/ShopItemDetail';
 
 interface ShopProps {
   shopItems: ShopItem[];
 }
 
 export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
-  const { userStats } = useUserStats();
-  const { isMobile, isTablet } = useResponsive();
-  const [filters, setFilters] = useState({
-    seller: 'Tous',
-    category: 'Toutes',
-    affordable: false,
-  });
+  const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [sortBy, setSortBy] = useState('name');
 
-  const handleFiltersChange = (newFilters: { seller?: string; category?: string; affordable?: boolean }) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+  const categories = Array.from(new Set(shopItems.map(item => item.category)));
+
+  const filteredItems = shopItems
+    .filter(item => 
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.seller.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter(item => selectedCategory === '' || item.category === selectedCategory)
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'price-asc':
+          return a.price - b.price;
+        case 'price-desc':
+          return b.price - a.price;
+        case 'name':
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+
+  const handleItemClick = (item: ShopItem) => {
+    setSelectedItem(item);
   };
 
-  const { uniqueSellers, uniqueCategories, filteredItems } = useMemo(() => {
-    const sellers = ['Tous', ...Array.from(new Set(shopItems.map(item => item.seller)))];
-    const categories = ['Toutes', ...Array.from(new Set(shopItems.map(item => item.category)))];
-
-    let items = shopItems;
-
-    if (filters.seller !== 'Tous') {
-      items = items.filter(item => item.seller === filters.seller);
-    }
-    if (filters.category !== 'Toutes') {
-      items = items.filter(item => item.category === filters.category);
-    }
-    if (filters.affordable) {
-      items = items.filter(item => userStats.totalPoints >= item.price);
-    }
-
-    return { uniqueSellers: sellers, uniqueCategories: categories, filteredItems: items };
-  }, [shopItems, filters, userStats.totalPoints]);
-
-  const getContainerPadding = () => {
-    if (isMobile) return 'px-2 py-4';
-    if (isTablet) return 'px-4 py-6';
-    return 'px-4 py-8';
+  const handleCloseDetail = () => {
+    setSelectedItem(null);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white max-w-full overflow-x-hidden">
+    <div className="space-y-6">
       <ShopHeader />
       
-      <div className={`container mx-auto max-w-full ${getContainerPadding()}`}>
-        <ShopFilters
-          filters={filters}
-          uniqueSellers={uniqueSellers}
-          uniqueCategories={uniqueCategories}
-          onFiltersChange={handleFiltersChange}
-        />
-        
-        <ShopItemGrid items={filteredItems} />
-      </div>
+      <ShopFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        categories={categories}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
+
+      <ShopItemGrid items={filteredItems} onItemClick={handleItemClick} />
+
+      {selectedItem && (
+        <ShopItemDetail item={selectedItem} onClose={handleCloseDetail} />
+      )}
     </div>
   );
 };

@@ -2,45 +2,26 @@
 import React from 'react';
 import { ShopItem } from '@/types/ShopItem';
 import { ShopItemCard } from '@/components/ShopItemCard';
-import { useResponsive } from '@/hooks/useResponsive';
 
 interface ShopItemGridProps {
   items: ShopItem[];
+  onItemClick: (item: ShopItem) => void;
 }
 
-export const ShopItemGrid: React.FC<ShopItemGridProps> = ({ items }) => {
-  const { isMobile, isTablet } = useResponsive();
-
-  const getGridCols = () => {
-    if (isMobile) return 'grid-cols-1';
-    if (isTablet) return 'grid-cols-2';
-    return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
-  };
-
+export const ShopItemGrid: React.FC<ShopItemGridProps> = ({ items, onItemClick }) => {
   if (items.length === 0) {
     return (
-      <div className="text-center py-16">
-        <div className={`bg-slate-800/50 border border-slate-600 rounded-lg max-w-md mx-auto ${
-          isMobile ? 'p-6' : 'p-8'
-        }`}>
-          <div className={`mb-4 ${isMobile ? 'text-4xl' : 'text-6xl'}`}>🏺</div>
-          <p className={`text-slate-300 ${isMobile ? 'text-base' : 'text-lg'}`}>
-            Les étagères du marchand sont vides...
-          </p>
-          <p className={`text-slate-400 mt-2 ${isMobile ? 'text-sm' : 'text-base'}`}>
-            Aucun objet ne correspond à vos filtres. Essayez de les modifier !
-          </p>
-        </div>
+      <div className="text-center py-12 border rounded-lg border-slate-600 bg-slate-900/30">
+        <p className="text-slate-400 text-lg">Aucun objet trouvé</p>
+        <p className="text-slate-500 text-sm mt-2">Essayez de modifier vos critères de recherche</p>
       </div>
     );
   }
 
   return (
-    <div className={`grid gap-4 ${getGridCols()} ${
-      isMobile ? 'gap-3' : isTablet ? 'gap-4' : 'gap-6'
-    }`}>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
       {items.map((item) => (
-        <ShopItemCard key={item.id} item={item} />
+        <ShopItemCard key={item.id} item={item} onItemClick={onItemClick} />
       ))}
     </div>
   );

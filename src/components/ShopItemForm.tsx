@@ -25,6 +25,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
       if (field === 'name') maxLength = 100;
       else if (field === 'category') maxLength = 50;
       else if (field === 'seller') maxLength = 100;
+      else if (field === 'content') maxLength = 2000; // larger limit for content
       
       if (!validateTextLength(value, maxLength)) {
         toast({
@@ -140,6 +141,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
       seller: sanitizeText(formData.seller),
       category: sanitizeText(formData.category),
       description: sanitizeText(formData.description),
+      content: formData.content ? sanitizeText(formData.content) : undefined,
       imageUrl: sanitizeText(formData.imageUrl)
     };
 
@@ -190,6 +192,18 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
           maxLength={500}
           required
           rows={3}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="content">Contenu détaillé</Label>
+        <Textarea
+          id="content"
+          value={formData.content || ''}
+          onChange={(e) => handleChange('content', e.target.value)}
+          maxLength={2000}
+          placeholder="Contenu détaillé de l'objet (optionnel)"
+          rows={5}
         />
       </div>
 

@@ -104,6 +104,7 @@ export const ShopAdmin: React.FC = () => {
               id: '',
               name: '',
               description: '',
+              content: '',
               price: 0,
               imageUrl: '',
               category: '',
