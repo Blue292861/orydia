@@ -16,15 +16,17 @@ import {
 import { ReadingStatsCards } from './ReadingStatsCards';
 import { TopBooksTable } from './TopBooksTable';
 import { RecentReadsTable } from './RecentReadsTable';
+import { useResponsive } from '@/hooks/useResponsive';
 
 export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) => {
   const { data: completions, isLoading, error } = useQuery({
     queryKey: ['book-completions'],
     queryFn: fetchBookCompletions
   });
+  const { isMobile, isTablet } = useResponsive();
 
-  if (isLoading) return <div>Chargement des statistiques...</div>;
-  if (error) return <div>Erreur lors du chargement des statistiques</div>;
+  if (isLoading) return <div className="text-center py-12">Chargement des statistiques...</div>;
+  if (error) return <div className="text-center py-12 text-red-500">Erreur lors du chargement des statistiques</div>;
 
   // Enrichir les complétions avec les données des livres
   const enrichedCompletions = enrichCompletionsWithBooks(completions || [], books);
@@ -51,11 +53,16 @@ export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) =
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold">Statistiques de lecture</h2>
-        <Button onClick={handleGenerateMonthlyReport} className="flex items-center gap-2">
+      <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between items-center'}`}>
+        <h2 className={`font-bold ${isMobile ? 'text-2xl' : isTablet ? 'text-3xl' : 'text-3xl'}`}>
+          Statistiques de lecture
+        </h2>
+        <Button 
+          onClick={handleGenerateMonthlyReport} 
+          className={`flex items-center gap-2 ${isMobile ? 'w-full justify-center' : ''}`}
+        >
           <FileDown className="h-4 w-4" />
-          Générer la fin de mois
+          {isMobile ? 'Rapport mensuel' : 'Générer la fin de mois'}
         </Button>
       </div>
       
@@ -65,14 +72,16 @@ export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) =
         totalBooks={books.length}
       />
 
-      <TopBooksTable
-        topBooks={topBooks}
-        maxReadCount={maxReadCount}
-      />
+      <div className={`space-y-6 ${isMobile ? 'space-y-4' : ''}`}>
+        <TopBooksTable
+          topBooks={topBooks}
+          maxReadCount={maxReadCount}
+        />
 
-      <RecentReadsTable
-        recentReads={recentReads}
-      />
+        <RecentReadsTable
+          recentReads={recentReads}
+        />
+      </div>
     </div>
   );
 };

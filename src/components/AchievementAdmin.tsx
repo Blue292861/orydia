@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Trophy } from 'lucide-react';
 import { AchievementGrid } from './AchievementGrid';
 import { AchievementDialog } from './AchievementDialog';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface AchievementAdminProps {
   achievements: Achievement[];
@@ -21,6 +22,7 @@ export const AchievementAdmin: React.FC<AchievementAdminProps> = ({
 }) => {
   const [showDialog, setShowDialog] = useState(false);
   const [editingAchievement, setEditingAchievement] = useState<Achievement | null>(null);
+  const { isMobile, isTablet } = useResponsive();
 
   const handleOpenAdd = () => {
     setEditingAchievement(null);
@@ -42,13 +44,17 @@ export const AchievementAdmin: React.FC<AchievementAdminProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold flex items-center gap-2">
-          <Trophy className="h-8 w-8 text-amber-500" />
-          Achievement Management
+      <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between items-center'}`}>
+        <h2 className={`font-bold flex items-center gap-2 ${isMobile ? 'text-2xl' : isTablet ? 'text-3xl' : 'text-3xl'}`}>
+          <Trophy className={`text-amber-500 ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} />
+          {isMobile ? 'Succès' : 'Gestion des Succès'}
         </h2>
-        <Button onClick={handleOpenAdd} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" /> Add Achievement
+        <Button 
+          onClick={handleOpenAdd} 
+          className={`flex items-center gap-2 ${isMobile ? 'w-full justify-center' : ''}`}
+        >
+          <Plus className="h-4 w-4" /> 
+          {isMobile ? 'Ajouter' : 'Ajouter un Succès'}
         </Button>
       </div>
 
