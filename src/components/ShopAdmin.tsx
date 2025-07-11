@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ShopItemForm } from '@/components/ShopItemForm';
+import { ShopItemForm } from '@/components/shop/ShopItemForm';
 import { Plus, Pencil, Trash2, Coins, User } from 'lucide-react';
 import { useShopItems } from '@/hooks/useShopItems';
 import { ShopItem } from '@/types/ShopItem';
