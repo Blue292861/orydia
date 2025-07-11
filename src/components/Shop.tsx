@@ -13,7 +13,7 @@ interface ShopProps {
 export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('name');
 
   const categories = Array.from(new Set(shopItems.map(item => item.category)));
@@ -24,7 +24,7 @@ export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
       item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.seller.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    .filter(item => selectedCategory === '' || item.category === selectedCategory)
+    .filter(item => selectedCategory === 'all' || item.category === selectedCategory)
     .sort((a, b) => {
       switch (sortBy) {
         case 'price-asc':

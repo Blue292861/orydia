@@ -69,7 +69,7 @@ export const ShopFilters: React.FC<ShopFiltersProps> = ({
               <SelectValue placeholder="Toutes les catégories" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-slate-600 text-white">
-              <SelectItem value="">Toutes les catégories</SelectItem>
+              <SelectItem value="all">Toutes les catégories</SelectItem>
               {categories.map(category => (
                 <SelectItem key={category} value={category}>{category}</SelectItem>
               ))}
