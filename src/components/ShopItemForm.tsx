@@ -19,61 +19,98 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
   const { toast } = useToast();
 
   const handleChange = (field: keyof ShopItem, value: string | number) => {
-    // Validate text length for string fields
-    if (typeof value === 'string') {
-      let maxLength = 500; // default for description
-      if (field === 'name') maxLength = 100;
-      else if (field === 'category') maxLength = 50;
-      else if (field === 'seller') maxLength = 100;
-      else if (field === 'content') maxLength = 2000; // larger limit for content
-      
-      if (!validateTextLength(value, maxLength)) {
-        toast({
-          title: "Input too long",
-          description: `${field} must be less than ${maxLength} characters.`,
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-
-    // Validate price
-    if (field === 'price' && typeof value === 'number') {
-      if (!validatePrice(value)) {
-        toast({
-          title: "Invalid price",
-          description: "Price must be a positive integer up to 1,000,000.",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-
-    // Validate URL
-    if (field === 'imageUrl' && typeof value === 'string' && value) {
-      if (!validateUrl(value)) {
-        toast({
-          title: "Invalid URL",
-          description: "Please enter a valid image URL.",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-
-    const sanitizedValue = typeof value === 'string' ? sanitizeText(value) : value;
-    
+    // Simple update without immediate validation to allow typing
     setFormData(prev => ({
       ...prev,
-      [field]: sanitizedValue
+      [field]: value
     }));
   };
 
   const validateForm = (): boolean => {
+    // Validate text length for string fields
+    if (typeof formData.name === 'string') {
+      if (!validateTextLength(formData.name, 100)) {
+        toast({
+          title: "Input too long",
+          description: "Le nom doit faire moins de 100 caractères.",
+          variant: "destructive"
+        });
+        return false;
+      }
+    }
+
+    if (typeof formData.seller === 'string') {
+      if (!validateTextLength(formData.seller, 100)) {
+        toast({
+          title: "Input too long",
+          description: "Le nom du vendeur doit faire moins de 100 caractères.",
+          variant: "destructive"
+        });
+        return false;
+      }
+    }
+
+    if (typeof formData.category === 'string') {
+      if (!validateTextLength(formData.category, 50)) {
+        toast({
+          title: "Input too long",
+          description: "La catégorie doit faire moins de 50 caractères.",
+          variant: "destructive"
+        });
+        return false;
+      }
+    }
+
+    if (typeof formData.description === 'string') {
+      if (!validateTextLength(formData.description, 500)) {
+        toast({
+          title: "Input too long",
+          description: "La description doit faire moins de 500 caractères.",
+          variant: "destructive"
+        });
+        return false;
+      }
+    }
+
+    if (typeof formData.content === 'string' && formData.content) {
+      if (!validateTextLength(formData.content, 2000)) {
+        toast({
+          title: "Input too long",
+          description: "Le contenu doit faire moins de 2000 caractères.",
+          variant: "destructive"
+        });
+        return false;
+      }
+    }
+
+    // Validate price
+    if (typeof formData.price === 'number') {
+      if (!validatePrice(formData.price)) {
+        toast({
+          title: "Invalid price",
+          description: "Le prix doit être un nombre entier positif jusqu'à 1,000,000.",
+          variant: "destructive"
+        });
+        return false;
+      }
+    }
+
+    // Validate URL
+    if (typeof formData.imageUrl === 'string' && formData.imageUrl) {
+      if (!validateUrl(formData.imageUrl)) {
+        toast({
+          title: "Invalid URL",
+          description: "Veuillez entrer une URL d'image valide.",
+          variant: "destructive"
+        });
+        return false;
+      }
+    }
+
     if (!formData.name?.trim()) {
       toast({
         title: "Validation Error",
-        description: "Item name is required.",
+        description: "Le nom de l'objet est requis.",
         variant: "destructive"
       });
       return false;
@@ -82,7 +119,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
     if (!formData.seller?.trim()) {
       toast({
         title: "Validation Error",
-        description: "Seller name is required.",
+        description: "Le nom du vendeur est requis.",
         variant: "destructive"
       });
       return false;
@@ -91,7 +128,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
     if (!formData.category?.trim()) {
       toast({
         title: "Validation Error",
-        description: "Category is required.",
+        description: "La catégorie est requise.",
         variant: "destructive"
       });
       return false;
@@ -100,7 +137,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
     if (!formData.description?.trim()) {
       toast({
         title: "Validation Error",
-        description: "Description is required.",
+        description: "La description est requise.",
         variant: "destructive"
       });
       return false;
@@ -109,7 +146,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
     if (!formData.imageUrl?.trim()) {
       toast({
         title: "Validation Error",
-        description: "Image URL is required.",
+        description: "L'URL de l'image est requise.",
         variant: "destructive"
       });
       return false;
@@ -118,7 +155,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
     if (formData.price <= 0) {
       toast({
         title: "Validation Error",
-        description: "Price must be greater than 0.",
+        description: "Le prix doit être supérieur à 0.",
         variant: "destructive"
       });
       return false;
