@@ -10,6 +10,7 @@ import { PointsAdmin } from '@/components/PointsAdmin';
 import { Shop } from '@/components/Shop';
 import { SearchPage } from '@/components/SearchPage';
 import { ProfilePage } from '@/components/ProfilePage';
+import { PremiumPage } from '@/components/PremiumPage';
 import { Header } from '@/components/Header';
 import { NavigationFooter } from '@/components/NavigationFooter';
 import { SecurityHeaders } from '@/components/SecurityHeaders';
@@ -24,7 +25,7 @@ import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 
 type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin';
-type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'video-ad' | AdminPage;
+type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
 
 const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<Page>('library');
@@ -38,6 +39,12 @@ const AppContent = () => {
   const { isMobile, isTablet } = useResponsive();
 
   const handleBookSelect = (book: Book) => {
+    // Si le livre est premium et l'utilisateur n'est pas premium, rediriger vers la page premium
+    if (book.isPremium && !subscription.isPremium) {
+      setCurrentPage('premium');
+      return;
+    }
+
     const adWatched = localStorage.getItem(`ad_watched_${book.id}`);
 
     if (subscription.isPremium || adWatched) {
@@ -98,6 +105,8 @@ const AppContent = () => {
         return <SearchPage books={books} onBookSelect={handleBookSelect} />;
       case 'profile':
         return <ProfilePage />;
+      case 'premium':
+        return <PremiumPage />;
       default:
         return <BookLibrary books={books} onBookSelect={handleBookSelect} />;
     }

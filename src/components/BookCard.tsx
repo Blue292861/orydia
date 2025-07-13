@@ -3,7 +3,8 @@ import React from 'react';
 import { Book } from '@/types/Book';
 import { Card, CardContent } from '@/components/ui/card';
 import { useUserStats } from '@/contexts/UserStatsContext';
-import { CheckCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { CheckCircle, Crown } from 'lucide-react';
 import { useResponsive } from '@/hooks/useResponsive';
 
 interface BookCardProps {
@@ -14,8 +15,11 @@ interface BookCardProps {
 
 export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = false }) => {
   const { userStats } = useUserStats();
+  const { subscription } = useAuth();
   const { isMobile, isTablet } = useResponsive();
   const isRead = userStats.booksRead.includes(book.id);
+  const isPremiumBook = book.isPremium;
+  const isUserPremium = subscription.isPremium;
 
   const getCardWidth = () => {
     if (isMobile) {
@@ -53,6 +57,11 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = 
         {isRead && (
           <div className={`absolute top-1 right-1 bg-primary text-primary-foreground rounded-full ${getPadding()}`}>
             <CheckCircle className={getCheckIconSize()} />
+          </div>
+        )}
+        {isPremiumBook && !isUserPremium && (
+          <div className={`absolute top-1 left-1 bg-gradient-to-br from-yellow-400 to-yellow-600 text-yellow-900 rounded-full ${getPadding()} shadow-lg`}>
+            <Crown className={`${getCheckIconSize()} fill-current`} />
           </div>
         )}
       </div>
