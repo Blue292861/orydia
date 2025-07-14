@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useResponsive } from '@/hooks/useResponsive';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'ecommerce-demo';
 
 interface AdminNavProps {
   currentPage: AdminPage;
@@ -18,6 +18,8 @@ const navItems: { id: AdminPage; label: string; shortLabel?: string }[] = [
   { id: 'orders-admin', label: 'Commandes', shortLabel: 'Commandes' },
   { id: 'reading-stats-admin', label: 'Statistiques Lecture', shortLabel: 'Stats' },
   { id: 'points-admin', label: 'Attribution Points', shortLabel: 'Points' },
+  { id: 'api-keys-admin', label: 'Clés API', shortLabel: 'API' },
+  { id: 'ecommerce-demo', label: 'Démo E-commerce', shortLabel: 'E-com' },
 ];
 
 export const AdminNav: React.FC<AdminNavProps> = ({ currentPage, onNavigate }) => {

@@ -34,6 +34,62 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     experiencePoints: 0,
     pendingPremiumMonths: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Charger les stats depuis la base de données
+  const loadUserStats = async () => {
+    if (!session?.user?.id) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('get-user-stats');
+      if (error) throw error;
+
+      if (data?.user_stats) {
+        const dbStats = data.user_stats;
+        const dbAchievements = data.achievements || [];
+        
+        // Convertir les achievements de la DB au format attendu
+        const achievements = dbAchievements.map((ach: any) => ({
+          id: ach.achievement_id,
+          name: ach.name,
+          description: ach.description,
+          points: ach.points,
+          unlocked: true,
+          icon: ach.icon,
+          rarity: ach.rarity,
+          premiumMonths: ach.premium_months
+        }));
+
+        // Ajouter les achievements non débloqués
+        const unlockedIds = achievements.map((a: Achievement) => a.id);
+        const remainingAchievements = initialAchievements.filter(
+          (a: Achievement) => !unlockedIds.includes(a.id)
+        );
+
+        setUserStats({
+          totalPoints: dbStats.total_points,
+          booksRead: dbStats.books_read || [],
+          achievements: [...achievements, ...remainingAchievements],
+          isPremium: subscription.isPremium,
+          level: dbStats.level,
+          experiencePoints: dbStats.experience_points,
+          pendingPremiumMonths: dbStats.pending_premium_months
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des stats:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Charger les stats au montage et quand la session change
+  useEffect(() => {
+    loadUserStats();
+  }, [session?.user?.id]);
 
   useEffect(() => {
     if (userStats.isPremium !== subscription.isPremium) {
@@ -84,22 +140,54 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     return true;
   };
 
-  const addPointsForBook = (bookId: string, points: number) => {
-    setUserStats(prev => {
-      if (prev.booksRead.includes(bookId)) {
-        return prev; // Already read this book
-      }
-      
+  const addPointsForBook = async (bookId: string, points: number) => {
+    if (!session?.user?.id) return;
+    
+    // Vérifier si le livre a déjà été lu
+    if (userStats.booksRead.includes(bookId)) {
+      return;
+    }
+    
+    try {
       SoundEffects.playPoints();
       
-      const newStats = {
-        ...prev,
-        totalPoints: prev.totalPoints + points,
-        booksRead: [...prev.booksRead, bookId]
-      };
+      // Attribuer les points via l'API
+      const { data, error } = await supabase.functions.invoke('award-points', {
+        body: {
+          user_id: session.user.id,
+          points,
+          transaction_type: 'book_completion',
+          reference_id: bookId,
+          description: `Points gagnés pour la lecture du livre ID: ${bookId}`,
+          source_app: 'main_app'
+        }
+      });
+      
+      if (error) throw error;
 
-      return checkAndUnlockAchievements(newStats);
-    });
+      // Mettre à jour l'état local immédiatement
+      setUserStats(prev => {
+        const newStats = {
+          ...prev,
+          totalPoints: data.new_total_points,
+          level: data.new_level,
+          booksRead: [...prev.booksRead, bookId],
+          experiencePoints: prev.experiencePoints + points
+        };
+        return checkAndUnlockAchievements(newStats);
+      });
+
+      // Recharger les stats complètes depuis la DB
+      await loadUserStats();
+      
+    } catch (error) {
+      console.error('Erreur lors de l\'attribution des points:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'attribuer les points. Veuillez réessayer.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const spendPoints = (amount: number) => {

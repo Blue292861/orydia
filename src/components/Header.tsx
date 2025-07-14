@@ -7,7 +7,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { BuyTensensDialog } from '@/components/BuyTensensDialog';
 import { LogOut, Settings } from 'lucide-react';
 
-type Page = 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad';
+type Page = 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad';
 
 interface HeaderProps {
   onNavigate: (page: Page) => void;

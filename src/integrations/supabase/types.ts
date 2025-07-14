@@ -38,6 +38,42 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys: {
+        Row: {
+          app_name: string
+          created_at: string
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_name: string
+          last_used_at: string | null
+          permissions: string[]
+          usage_count: number
+        }
+        Insert: {
+          app_name: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_name: string
+          last_used_at?: string | null
+          permissions?: string[]
+          usage_count?: number
+        }
+        Update: {
+          app_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_name?: string
+          last_used_at?: string | null
+          permissions?: string[]
+          usage_count?: number
+        }
+        Relationships: []
+      }
       audiobooks: {
         Row: {
           audio_url: string
@@ -182,6 +218,39 @@ export type Database = {
         }
         Relationships: []
       }
+      point_transactions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          points: number
+          reference_id: string | null
+          source_app: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points: number
+          reference_id?: string | null
+          source_app?: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          reference_id?: string | null
+          source_app?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -296,6 +365,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          points: number
+          premium_months: number | null
+          rarity: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          description: string
+          icon: string
+          id?: string
+          name: string
+          points: number
+          premium_months?: number | null
+          rarity: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          points?: number
+          premium_months?: number | null
+          rarity?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -314,11 +422,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_stats: {
+        Row: {
+          books_read: string[]
+          created_at: string
+          experience_points: number
+          id: string
+          level: number
+          pending_premium_months: number
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          books_read?: string[]
+          created_at?: string
+          experience_points?: number
+          id?: string
+          level?: number
+          pending_premium_months?: number
+          total_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          books_read?: string[]
+          created_at?: string
+          experience_points?: number
+          id?: string
+          level?: number
+          pending_premium_months?: number
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      calculate_level: {
+        Args: { experience_points: number }
+        Returns: number
+      }
       user_has_role: {
         Args: {
           p_user_id: string

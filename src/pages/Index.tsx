@@ -7,6 +7,7 @@ import { ShopAdmin } from '@/components/ShopAdmin';
 import { AchievementAdmin } from '@/components/AchievementAdmin';
 import { AudiobookAdmin } from '@/components/AudiobookAdmin';
 import { PointsAdmin } from '@/components/PointsAdmin';
+import { ApiKeysAdmin } from '@/components/ApiKeysAdmin';
 import { Shop } from '@/components/Shop';
 import { SearchPage } from '@/components/SearchPage';
 import { ProfilePage } from '@/components/ProfilePage';
@@ -25,7 +26,7 @@ import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
 
 const AppContent = () => {
@@ -110,6 +111,8 @@ const AppContent = () => {
         return <ReadingStatsAdmin books={books} />;
       case 'points-admin':
         return <PointsAdmin />;
+      case 'api-keys-admin':
+        return <ApiKeysAdmin />;
       case 'shop':
         return <Shop shopItems={shopItems} />;
       case 'search':
@@ -125,7 +128,7 @@ const AppContent = () => {
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
   
-  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin', 'points-admin'].includes(currentPage);
+  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin', 'points-admin', 'api-keys-admin'].includes(currentPage);
 
   const getMainPadding = () => {
     if (isMobile) {
