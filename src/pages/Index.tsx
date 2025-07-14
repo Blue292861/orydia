@@ -23,6 +23,7 @@ import { VideoAd } from '@/components/VideoAd';
 import { useBooks } from '@/hooks/useBooks';
 import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
+import { supabase } from '@/integrations/supabase/client';
 
 type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
@@ -38,10 +39,20 @@ const AppContent = () => {
   const { subscription } = useAuth();
   const { isMobile, isTablet } = useResponsive();
 
-  const handleBookSelect = (book: Book) => {
-    // Si le livre est premium et l'utilisateur n'est pas premium, rediriger vers la page premium
+  const handleBookSelect = async (book: Book) => {
+    // Si le livre est premium et l'utilisateur n'est pas premium, lancer le processus de paiement
     if (book.isPremium && !subscription.isPremium) {
-      setCurrentPage('premium');
+      try {
+        const { data, error } = await supabase.functions.invoke('create-checkout');
+        if (error) throw error;
+        
+        // Ouvrir la page de paiement Stripe dans un nouvel onglet
+        if (data?.url) {
+          window.open(data.url, '_blank');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la création du checkout:', error);
+      }
       return;
     }
 
