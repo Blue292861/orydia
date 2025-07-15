@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { createHash } from "https://deno.land/std@0.190.0/hash/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -45,7 +44,12 @@ serve(async (req) => {
 
     // Générer une clé API unique
     const apiKey = `pk_${crypto.randomUUID().replace(/-/g, '')}_${Date.now()}`;
-    const keyHash = createHash("sha256").update(apiKey).toString();
+    const encoder = new TextEncoder();
+    const data = encoder.encode(apiKey);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const keyHash = Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
 
     // Insérer la clé API dans la base de données
     const { data: newApiKey, error: insertError } = await supabaseClient
