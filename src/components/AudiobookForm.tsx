@@ -130,7 +130,8 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="h-full max-h-[80vh] overflow-y-auto pr-2">
+      <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="name">Nom</Label>
         <Input
@@ -256,6 +257,7 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
       <Button type="submit" className="w-full">
         {initialAudiobook.id ? 'Mettre à jour l\'audiobook' : 'Ajouter l\'audiobook'}
       </Button>
-    </form>
+      </form>
+    </div>
   );
 };

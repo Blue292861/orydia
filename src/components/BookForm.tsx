@@ -218,7 +218,8 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="h-full max-h-[80vh] overflow-y-auto pr-2">
+      <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-2">
         <Label htmlFor="title">Titre du livre</Label>
         <Input
@@ -365,6 +366,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
           {initialBook.id ? 'Mettre à jour le livre' : 'Ajouter le livre'}
         </Button>
       </div>
-    </form>
+      </form>
+    </div>
   );
 };

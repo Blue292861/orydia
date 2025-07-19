@@ -54,13 +54,15 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="h-full max-h-[80vh] overflow-y-auto pr-2">
+      <form onSubmit={handleSubmit} className="space-y-4">
       <ShopItemBasicFields formData={formData} onFieldChange={handleChange} />
       <ShopItemImageField formData={formData} onFieldChange={handleChange} />
 
       <Button type="submit" className="w-full">
         {initialItem.id ? "Mettre à jour l'objet" : "Ajouter l'objet"}
       </Button>
-    </form>
+      </form>
+    </div>
   );
 };
