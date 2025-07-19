@@ -67,6 +67,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
         title="Les conseils de Paco"
         books={pacoBooks}
         onBookSelect={onBookSelect}
+        large={true}
         emptyMessage="Aucun livre dans cette catégorie pour le moment."
       />
 

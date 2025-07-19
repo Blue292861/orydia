@@ -28,7 +28,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = 
     if (isTablet) {
       return large ? 'w-32' : 'w-24';
     }
-    return large ? 'w-48 lg:w-60' : 'w-32 lg:w-40';
+    return large ? 'min-w-[200px] max-w-[280px]' : 'w-32 lg:w-40';
   };
 
   const getCheckIconSize = () => {
