@@ -6,6 +6,7 @@ import { AdminDashboard } from '@/components/AdminDashboard';
 import { ShopAdmin } from '@/components/ShopAdmin';
 import { AchievementAdmin } from '@/components/AchievementAdmin';
 import { AudiobookAdmin } from '@/components/AudiobookAdmin';
+import { GameAdmin } from '@/components/GameAdmin';
 import { PointsAdmin } from '@/components/PointsAdmin';
 import { ApiKeysAdmin } from '@/components/ApiKeysAdmin';
 import { Shop } from '@/components/Shop';
@@ -27,8 +28,8 @@ import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'chapter-editor';
-type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin' | 'chapter-editor';
+type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'game-reader' | AdminPage;
 
 const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<Page>('library');
@@ -95,6 +96,8 @@ const AppContent = () => {
         return <AdminDashboard />;
       case 'audiobook-admin':
         return <AudiobookAdmin />;
+      case 'game-admin':
+        return <GameAdmin />;
       case 'shop-admin':
         return <ShopAdmin />;
       case 'achievement-admin':
@@ -131,7 +134,7 @@ const AppContent = () => {
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
   
-  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin', 'points-admin', 'api-keys-admin', 'chapter-editor'].includes(currentPage);
+  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin', 'game-admin', 'points-admin', 'api-keys-admin', 'chapter-editor'].includes(currentPage as string);
 
   const getMainPadding = () => {
     if (isMobile) {

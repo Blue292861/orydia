@@ -82,6 +82,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_featured: boolean
           is_month_success: boolean
           is_paco_favourite: boolean
           is_premium: boolean
@@ -97,6 +98,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_featured?: boolean
           is_month_success?: boolean
           is_paco_favourite?: boolean
           is_premium?: boolean
@@ -112,6 +114,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_featured?: boolean
           is_month_success?: boolean
           is_paco_favourite?: boolean
           is_premium?: boolean
@@ -231,6 +234,128 @@ export type Database = {
           points?: number
           tags?: string[] | null
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      game_chapters: {
+        Row: {
+          chapter_number: number
+          content: string
+          created_at: string
+          ending_reward_points: number | null
+          game_id: string
+          id: string
+          is_ending: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          chapter_number: number
+          content: string
+          created_at?: string
+          ending_reward_points?: number | null
+          game_id: string
+          id?: string
+          is_ending?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          chapter_number?: number
+          content?: string
+          created_at?: string
+          ending_reward_points?: number | null
+          game_id?: string
+          id?: string
+          is_ending?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_chapters_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_choices: {
+        Row: {
+          chapter_id: string
+          choice_text: string
+          created_at: string
+          id: string
+          next_chapter_id: string | null
+          points_reward: number
+        }
+        Insert: {
+          chapter_id: string
+          choice_text: string
+          created_at?: string
+          id?: string
+          next_chapter_id?: string | null
+          points_reward?: number
+        }
+        Update: {
+          chapter_id?: string
+          choice_text?: string
+          created_at?: string
+          id?: string
+          next_chapter_id?: string | null
+          points_reward?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_choices_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "game_chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_choices_next_chapter_id_fkey"
+            columns: ["next_chapter_id"]
+            isOneToOne: false
+            referencedRelation: "game_chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      games: {
+        Row: {
+          author: string
+          cover_url: string
+          created_at: string
+          description: string | null
+          id: string
+          is_featured: boolean
+          name: string
+          points_reward: number
+          updated_at: string
+        }
+        Insert: {
+          author: string
+          cover_url: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_featured?: boolean
+          name: string
+          points_reward?: number
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          cover_url?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_featured?: boolean
+          name?: string
+          points_reward?: number
           updated_at?: string
         }
         Relationships: []

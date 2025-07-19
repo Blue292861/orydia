@@ -68,6 +68,7 @@ export const AudiobookAdmin: React.FC = () => {
             is_premium: audiobookData.is_premium,
             is_month_success: audiobookData.is_month_success,
             is_paco_favourite: audiobookData.is_paco_favourite,
+            is_featured: audiobookData.is_featured,
           })
           .eq('id', editingAudiobook.id);
 
@@ -91,6 +92,7 @@ export const AudiobookAdmin: React.FC = () => {
             is_premium: audiobookData.is_premium,
             is_month_success: audiobookData.is_month_success,
             is_paco_favourite: audiobookData.is_paco_favourite,
+            is_featured: audiobookData.is_featured,
           });
 
         if (error) throw error;
@@ -240,6 +242,7 @@ export const AudiobookAdmin: React.FC = () => {
               is_premium: false,
               is_month_success: false,
               is_paco_favourite: false,
+              is_featured: false,
             }}
             onSubmit={handleSubmit}
           />

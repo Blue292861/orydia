@@ -11,6 +11,7 @@ export interface Audiobook {
   is_premium: boolean;
   is_month_success: boolean;
   is_paco_favourite: boolean;
+  is_featured: boolean;
   created_at?: string;
   updated_at?: string;
 }

@@ -252,6 +252,15 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
           />
           <Label htmlFor="is_paco_favourite">Coup de cœur de Paco</Label>
         </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="is_featured"
+            checked={formData.is_featured}
+            onCheckedChange={(checked) => handleChange('is_featured', !!checked)}
+          />
+          <Label htmlFor="is_featured">À la une</Label>
+        </div>
       </div>
 
       <Button type="submit" className="w-full">
