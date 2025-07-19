@@ -10,6 +10,8 @@ import { TagInput } from '@/components/TagInput';
 import { FileImport } from '@/components/FileImport';
 import { sanitizeText, sanitizeHtml, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2, BookOpen } from 'lucide-react';
 
 interface BookFormProps {
   initialBook: Book;
@@ -18,6 +20,7 @@ interface BookFormProps {
 
 export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => {
   const [book, setBook] = React.useState<Book>(initialBook);
+  const [isExtracting, setIsExtracting] = React.useState(false);
   const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -95,6 +98,58 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
   const handleContentImport = (content: string) => {
     const sanitizedContent = sanitizeHtml(content);
     setBook(prev => ({ ...prev, content: sanitizedContent }));
+  };
+
+  const handleExtractChapters = async () => {
+    if (!book.content?.trim()) {
+      toast({
+        title: "Contenu requis",
+        description: "Veuillez d'abord ajouter du contenu au livre pour extraire les chapitres.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsExtracting(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('extract-chapters', {
+        body: { 
+          content: book.content,
+          title: book.title || 'Livre sans titre'
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.hasChapters) {
+        setBook(prev => ({ 
+          ...prev, 
+          hasChapters: true,
+          isInteractive: data.isInteractive || false 
+        }));
+        
+        toast({
+          title: "Chapitres extraits avec succès",
+          description: `${data.chaptersCount} chapitres détectés. ${data.isInteractive ? 'Contenu interactif détecté!' : ''}`,
+        });
+      } else {
+        toast({
+          title: "Aucun chapitre détecté",
+          description: "Le contenu ne semble pas avoir de structure en chapitres claire.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'extraction des chapitres:', error);
+      toast({
+        title: "Erreur d'extraction",
+        description: "Une erreur s'est produite lors de l'extraction des chapitres.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExtracting(false);
+    }
   };
 
   const validateForm = (): boolean => {
@@ -272,6 +327,36 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
             required
           />
           <FileImport type="pdf" onFileImport={handleContentImport} />
+          
+          {book.content && (
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleExtractChapters}
+                disabled={isExtracting}
+                className="w-full"
+              >
+                {isExtracting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Extraction en cours...
+                  </>
+                ) : (
+                  <>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Détecter et extraire les chapitres
+                  </>
+                )}
+              </Button>
+              
+              {book.hasChapters && (
+                <div className="text-sm text-green-600 dark:text-green-400">
+                  ✓ Chapitres détectés {book.isInteractive && '(Contenu interactif)'}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

@@ -20,13 +20,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AdminNav } from '@/components/AdminNav';
 import { OrdersAdmin } from '@/components/OrdersAdmin';
 import { ReadingStatsAdmin } from '@/components/ReadingStatsAdmin';
+import { ChapterEditorAdmin } from '@/components/ChapterEditorAdmin';
 import { VideoAd } from '@/components/VideoAd';
 import { useBooks } from '@/hooks/useBooks';
 import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'chapter-editor';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
 
 const AppContent = () => {
@@ -113,6 +114,8 @@ const AppContent = () => {
         return <PointsAdmin />;
       case 'api-keys-admin':
         return <ApiKeysAdmin />;
+      case 'chapter-editor':
+        return <ChapterEditorAdmin />;
       case 'shop':
         return <Shop shopItems={shopItems} />;
       case 'search':
@@ -128,7 +131,7 @@ const AppContent = () => {
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
   
-  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin', 'points-admin', 'api-keys-admin'].includes(currentPage);
+  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin', 'points-admin', 'api-keys-admin', 'chapter-editor'].includes(currentPage);
 
   const getMainPadding = () => {
     if (isMobile) {

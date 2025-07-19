@@ -2,8 +2,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useResponsive } from '@/hooks/useResponsive';
+import { BookOpen, BarChart, Package, Trophy, ShoppingCart, Headphones, Coins, Key } from 'lucide-react';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'ecommerce-demo';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'chapter-editor';
 
 interface AdminNavProps {
   currentPage: AdminPage;
@@ -19,7 +20,7 @@ const navItems: { id: AdminPage; label: string; shortLabel?: string }[] = [
   { id: 'reading-stats-admin', label: 'Statistiques Lecture', shortLabel: 'Stats' },
   { id: 'points-admin', label: 'Attribution Points', shortLabel: 'Points' },
   { id: 'api-keys-admin', label: 'Clés API', shortLabel: 'API' },
-  { id: 'ecommerce-demo', label: 'Démo E-commerce', shortLabel: 'E-com' },
+  { id: 'chapter-editor', label: 'Éditeur de Chapitres', shortLabel: 'Chapitres' },
 ];
 
 export const AdminNav: React.FC<AdminNavProps> = ({ currentPage, onNavigate }) => {
