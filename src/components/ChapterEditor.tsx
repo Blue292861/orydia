@@ -102,7 +102,7 @@ export const ChapterEditor: React.FC<ChapterEditorProps> = ({ book, onClose }) =
   }
 
   return (
-    <div className="space-y-6">
+    <div className="h-full max-h-screen overflow-y-auto space-y-6 pr-2">
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div>

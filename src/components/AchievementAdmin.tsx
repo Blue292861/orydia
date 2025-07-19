@@ -43,7 +43,7 @@ export const AchievementAdmin: React.FC<AchievementAdminProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="h-full max-h-screen overflow-y-auto space-y-6 pr-2">
       <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between items-center'}`}>
         <h2 className={`font-bold flex items-center gap-2 ${isMobile ? 'text-2xl' : isTablet ? 'text-3xl' : 'text-3xl'}`}>
           <Trophy className={`text-amber-500 ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} />

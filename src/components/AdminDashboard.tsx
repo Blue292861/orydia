@@ -46,7 +46,7 @@ export const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="h-full max-h-screen overflow-y-auto space-y-6 pr-2">
       <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between items-center'}`}>
         <h2 className={`font-bold ${isMobile ? 'text-2xl' : isTablet ? 'text-3xl' : 'text-3xl'}`}>
           Tableau de bord Admin

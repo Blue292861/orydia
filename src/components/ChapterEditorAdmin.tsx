@@ -30,7 +30,7 @@ export const ChapterEditorAdmin: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="h-full max-h-screen overflow-y-auto space-y-6 pr-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <BookOpen className="h-6 w-6" />

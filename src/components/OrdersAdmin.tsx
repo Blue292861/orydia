@@ -150,7 +150,7 @@ export const OrdersAdmin: React.FC = () => {
   if (error) return <div>Erreur lors du chargement des commandes</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="h-full max-h-screen overflow-y-auto space-y-6 pr-2">
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold">Gestion des commandes</h2>
         <div className="relative">

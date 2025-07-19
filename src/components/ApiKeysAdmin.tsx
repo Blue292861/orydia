@@ -131,7 +131,7 @@ export const ApiKeysAdmin: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="h-full max-h-screen overflow-y-auto space-y-6 pr-2">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

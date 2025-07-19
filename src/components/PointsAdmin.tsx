@@ -65,7 +65,7 @@ export const PointsAdmin: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="h-full max-h-screen overflow-y-auto space-y-6 pr-2">
       <div className="flex items-center gap-2">
         <Coins className="h-6 w-6 text-amber-600" />
         <h2 className="text-3xl font-bold">Attribution de Points Tensens</h2>
