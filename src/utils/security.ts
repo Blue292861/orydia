@@ -63,7 +63,7 @@ export const validateFileName = (fileName: string): boolean => {
   const invalidChars = /[<>"|*?\\\/\x00-\x1f\x7f]/;
   
   return !dangerousPatterns.some(pattern => pattern.test(fileName)) && 
-         fileName.length <= 255 &&
+         fileName.length <= 500 &&
          fileName.length > 0 &&
          !invalidChars.test(fileName) &&
          !fileName.startsWith('.') &&
