@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -13,15 +14,17 @@ interface ChapterExtraction {
   isInteractive: boolean;
 }
 
-// Patterns pour détecter les chapitres
+// Enhanced patterns for chapter detection
 const CHAPTER_PATTERNS = [
   /^(chapitre|chapter)\s*(\d+|\w+)[\s:.-]*(.*)$/im,
   /^(\d+)[\s.-]+(.*)$/m,
   /^(partie|part)\s*(\d+|\w+)[\s:.-]*(.*)$/im,
   /^(section)\s*(\d+|\w+)[\s:.-]*(.*)$/im,
+  // Add patterns for PDF-extracted content
+  /^Page\s+\d+:\s*(chapitre|chapter)\s*(\d+|\w+)[\s:.-]*(.*)$/im,
 ];
 
-// Patterns pour détecter l'interactivité
+// Enhanced patterns for interactivity detection
 const INTERACTIVE_PATTERNS = [
   /que\s+(feriez-vous|choisissez-vous|voulez-vous)/i,
   /comment\s+(réagir|procéder)/i,
@@ -29,11 +32,30 @@ const INTERACTIVE_PATTERNS = [
   /décidez\s+de/i,
   /option\s*[ab12]/i,
   /\bchoix\b.*[12ab]/i,
+  /(a\)|b\)|1\)|2\))/i,
+  /choisir\s+entre/i,
 ];
 
+function cleanPDFContent(content: string): string {
+  // Clean up PDF-extracted content
+  return content
+    // Remove page markers
+    .replace(/^Page\s+\d+:\s*/gm, '')
+    // Clean up excessive whitespace
+    .replace(/\s{3,}/g, ' ')
+    // Fix line breaks
+    .replace(/\n{3,}/g, '\n\n')
+    // Remove weird characters that PDFs sometimes have
+    .replace(/[^\x20-\x7E\n\r\t\u00A0-\u017F\u0100-\u024F]/g, ' ')
+    .trim();
+}
+
 function extractChapters(content: string): ChapterExtraction[] {
+  // Clean PDF content first
+  const cleanedContent = cleanPDFContent(content);
+  
   const chapters: ChapterExtraction[] = [];
-  const lines = content.split('\n');
+  const lines = cleanedContent.split('\n');
   let currentChapter: ChapterExtraction | null = null;
   let chapterNumber = 1;
 
@@ -42,7 +64,7 @@ function extractChapters(content: string): ChapterExtraction[] {
     
     if (!line) continue;
 
-    // Tenter de détecter un nouveau chapitre
+    // Try to detect a new chapter
     let isChapterStart = false;
     let chapterTitle = '';
     
@@ -51,13 +73,14 @@ function extractChapters(content: string): ChapterExtraction[] {
       if (match) {
         isChapterStart = true;
         chapterTitle = match[3] || match[2] || `Chapitre ${chapterNumber}`;
+        console.log(`Found chapter: ${chapterTitle}`);
         break;
       }
     }
 
-    // Si on trouve un nouveau chapitre, finaliser le précédent
+    // If we find a new chapter, finalize the previous one
     if (isChapterStart) {
-      if (currentChapter) {
+      if (currentChapter && currentChapter.content.trim()) {
         chapters.push(currentChapter);
       }
       
@@ -70,21 +93,22 @@ function extractChapters(content: string): ChapterExtraction[] {
       continue;
     }
 
-    // Ajouter le contenu au chapitre actuel
+    // Add content to current chapter
     if (currentChapter) {
       currentChapter.content += line + '\n';
       
-      // Vérifier si le contenu est interactif
+      // Check if content is interactive
       if (!currentChapter.isInteractive) {
         for (const pattern of INTERACTIVE_PATTERNS) {
           if (pattern.test(line)) {
             currentChapter.isInteractive = true;
+            console.log(`Interactive content detected in chapter: ${currentChapter.title}`);
             break;
           }
         }
       }
     } else {
-      // Premier contenu sans titre de chapitre détecté
+      // First content without chapter title detected
       currentChapter = {
         title: `Chapitre ${chapterNumber}`,
         content: line + '\n',
@@ -94,37 +118,44 @@ function extractChapters(content: string): ChapterExtraction[] {
     }
   }
 
-  // Ajouter le dernier chapitre
-  if (currentChapter) {
+  // Add the last chapter
+  if (currentChapter && currentChapter.content.trim()) {
     chapters.push(currentChapter);
   }
 
-  // Si aucun chapitre détecté, créer un chapitre unique
+  // If no chapters detected, create a single chapter
   if (chapters.length === 0) {
+    const isInteractive = INTERACTIVE_PATTERNS.some(pattern => pattern.test(cleanedContent));
     return [{
       title: "Chapitre 1",
-      content: content,
+      content: cleanedContent,
       chapterNumber: 1,
-      isInteractive: INTERACTIVE_PATTERNS.some(pattern => pattern.test(content)),
+      isInteractive,
     }];
   }
 
-  return chapters;
+  // Clean up chapter content
+  return chapters.map(chapter => ({
+    ...chapter,
+    content: chapter.content.trim(),
+  }));
 }
 
 function splitContentIntoChapters(content: string, targetLength: number = 3000): ChapterExtraction[] {
-  const paragraphs = content.split('\n\n').filter(p => p.trim());
+  const cleanedContent = cleanPDFContent(content);
+  const paragraphs = cleanedContent.split('\n\n').filter(p => p.trim());
   const chapters: ChapterExtraction[] = [];
   let currentChapter = '';
   let chapterNumber = 1;
 
   for (const paragraph of paragraphs) {
     if (currentChapter.length + paragraph.length > targetLength && currentChapter.length > 500) {
+      const isInteractive = INTERACTIVE_PATTERNS.some(pattern => pattern.test(currentChapter));
       chapters.push({
         title: `Chapitre ${chapterNumber}`,
         content: currentChapter.trim(),
         chapterNumber: chapterNumber++,
-        isInteractive: INTERACTIVE_PATTERNS.some(pattern => pattern.test(currentChapter)),
+        isInteractive,
       });
       currentChapter = paragraph + '\n\n';
     } else {
@@ -132,13 +163,14 @@ function splitContentIntoChapters(content: string, targetLength: number = 3000):
     }
   }
 
-  // Ajouter le dernier chapitre
+  // Add the last chapter
   if (currentChapter.trim()) {
+    const isInteractive = INTERACTIVE_PATTERNS.some(pattern => pattern.test(currentChapter));
     chapters.push({
       title: `Chapitre ${chapterNumber}`,
       content: currentChapter.trim(),
       chapterNumber: chapterNumber,
-      isInteractive: INTERACTIVE_PATTERNS.some(pattern => pattern.test(currentChapter)),
+      isInteractive,
     });
   }
 
@@ -168,18 +200,28 @@ serve(async (req) => {
       );
     }
 
-    // Extraire les chapitres du contenu
+    console.log(`Processing content for book ${bookId}, autoSplit: ${autoSplit}`);
+    console.log(`Content length: ${content.length} characters`);
+
+    // Extract chapters from content
     let chapters: ChapterExtraction[];
     
     if (autoSplit) {
-      // Division automatique en chapitres de taille similaire
+      // Automatic division into similar-sized chapters
       chapters = splitContentIntoChapters(content);
+      console.log(`Auto-split created ${chapters.length} chapters`);
     } else {
-      // Détection intelligente des chapitres
+      // Intelligent chapter detection
       chapters = extractChapters(content);
+      console.log(`Smart detection found ${chapters.length} chapters`);
     }
 
-    // Sauvegarder les chapitres dans la base de données
+    // Log chapter info
+    chapters.forEach((chapter, index) => {
+      console.log(`Chapter ${index + 1}: "${chapter.title}" (${chapter.content.length} chars, interactive: ${chapter.isInteractive})`);
+    });
+
+    // Save chapters to database
     const chapterInserts = chapters.map(chapter => ({
       book_id: bookId,
       chapter_number: chapter.chapterNumber,
@@ -194,10 +236,11 @@ serve(async (req) => {
       .select();
 
     if (insertError) {
+      console.error('Insert error:', insertError);
       throw insertError;
     }
 
-    // Mettre à jour le livre pour indiquer qu'il a des chapitres
+    // Update book to indicate it has chapters
     const { error: updateError } = await supabaseClient
       .from('books')
       .update({ 
@@ -207,15 +250,19 @@ serve(async (req) => {
       .eq('id', bookId);
 
     if (updateError) {
+      console.error('Update error:', updateError);
       throw updateError;
     }
+
+    const interactiveCount = chapters.filter(c => c.isInteractive).length;
+    console.log(`Successfully processed ${chapters.length} chapters, ${interactiveCount} interactive`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         chapters: insertedChapters,
         totalChapters: chapters.length,
-        interactiveChapters: chapters.filter(c => c.isInteractive).length
+        interactiveChapters: interactiveCount
       }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" }
@@ -223,9 +270,12 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Erreur lors de l\'extraction des chapitres:', error);
+    console.error('Chapter extraction error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack 
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, "Content-Type": "application/json" }

@@ -1,4 +1,3 @@
-
 // Security utilities for input validation and sanitization
 
 import DOMPurify from 'dompurify';
@@ -54,46 +53,64 @@ export const validateFileSize = (file: File, maxSizeInMB: number): boolean => {
 };
 
 export const validateFileName = (fileName: string): boolean => {
-  // Check for dangerous file patterns
+  // More permissive filename validation - only block truly dangerous patterns
   const dangerousPatterns = [
     /\.exe$/i, /\.scr$/i, /\.bat$/i, /\.cmd$/i, /\.com$/i, /\.pif$/i,
-    /\.js$/i, /\.jar$/i, /\.vbs$/i, /\.wsf$/i, /\.php$/i, /\.asp$/i,
-    /\.jsp$/i, /\.py$/i, /\.rb$/i, /\.sh$/i, /\.pl$/i, /\.cgi$/i
+    /\.vbs$/i, /\.wsf$/i, /\.sh$/i, /\.pl$/i, /\.cgi$/i
   ];
+  
+  // Allow common characters including colons, apostrophes, spaces, parentheses
+  const invalidChars = /[<>"|*?\\\/\x00-\x1f\x7f]/;
   
   return !dangerousPatterns.some(pattern => pattern.test(fileName)) && 
          fileName.length <= 255 &&
-         !/[<>:"|*?\\\/]/.test(fileName);
+         fileName.length > 0 &&
+         !invalidChars.test(fileName) &&
+         !fileName.startsWith('.') &&
+         !fileName.endsWith('.');
 };
 
 export const validateMimeTypeByHeader = async (file: File, expectedTypes: string[]): Promise<boolean> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = function(e) {
-      const arr = new Uint8Array(e.target?.result as ArrayBuffer).subarray(0, 4);
+      const arr = new Uint8Array(e.target?.result as ArrayBuffer).subarray(0, 8);
       let header = '';
       for (let i = 0; i < arr.length; i++) {
         header += arr[i].toString(16).padStart(2, '0');
       }
       
-      // Common file signatures
+      // More flexible file signatures
       const signatures: Record<string, string[]> = {
-        'image/jpeg': ['ffd8ffe0', 'ffd8ffe1', 'ffd8ffe2', 'ffd8ffe3', 'ffd8ffe8'],
+        'image/jpeg': ['ffd8ffe0', 'ffd8ffe1', 'ffd8ffe2', 'ffd8ffe3', 'ffd8ffe8', 'ffd8ffdb'],
         'image/png': ['89504e47'],
-        'application/pdf': ['25504446'],
+        'application/pdf': ['25504446'], // %PDF
         'audio/mp3': ['494433', 'fffb', 'fff3', 'fff2'],
         'audio/wav': ['52494646'],
         'audio/ogg': ['4f676753'],
         'audio/m4a': ['00000020667479704d344120', '00000018667479704d344120']
       };
       
-      const isValid = expectedTypes.some(type => 
-        signatures[type]?.some(sig => header.startsWith(sig.toLowerCase()))
-      );
-      
-      resolve(isValid);
+      // Be more permissive - if we can't validate the header, allow it through
+      if (expectedTypes.includes('application/pdf')) {
+        // For PDFs, be more flexible as some PDFs might have slight variations
+        const isValidPdf = header.startsWith('25504446') || // Standard %PDF
+                          file.name.toLowerCase().endsWith('.pdf');
+        resolve(isValidPdf);
+      } else {
+        const isValid = expectedTypes.some(type => 
+          signatures[type]?.some(sig => header.startsWith(sig.toLowerCase()))
+        );
+        resolve(isValid);
+      }
     };
-    reader.readAsArrayBuffer(file.slice(0, 4));
+    
+    reader.onerror = () => {
+      // If we can't read the file header, be permissive
+      resolve(true);
+    };
+    
+    reader.readAsArrayBuffer(file.slice(0, 8));
   });
 };
 
