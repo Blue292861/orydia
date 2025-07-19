@@ -122,6 +122,47 @@ export type Database = {
         }
         Relationships: []
       }
+      book_chapters: {
+        Row: {
+          book_id: string
+          chapter_number: number
+          content: string
+          created_at: string
+          id: string
+          is_interactive: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          book_id: string
+          chapter_number: number
+          content: string
+          created_at?: string
+          id?: string
+          is_interactive?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          book_id?: string
+          chapter_number?: number
+          content?: string
+          created_at?: string
+          id?: string
+          is_interactive?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_chapters_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       book_completions: {
         Row: {
           book_id: string
@@ -149,7 +190,9 @@ export type Database = {
           content: string
           cover_url: string
           created_at: string
+          has_chapters: boolean
           id: string
+          is_interactive: boolean
           is_month_success: boolean
           is_paco_favourite: boolean
           is_premium: boolean
@@ -163,7 +206,9 @@ export type Database = {
           content: string
           cover_url: string
           created_at?: string
+          has_chapters?: boolean
           id?: string
+          is_interactive?: boolean
           is_month_success?: boolean
           is_paco_favourite?: boolean
           is_premium?: boolean
@@ -177,7 +222,9 @@ export type Database = {
           content?: string
           cover_url?: string
           created_at?: string
+          has_chapters?: boolean
           id?: string
+          is_interactive?: boolean
           is_month_success?: boolean
           is_paco_favourite?: boolean
           is_premium?: boolean
@@ -187,6 +234,51 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      interactive_choices: {
+        Row: {
+          chapter_id: string
+          choice_text: string
+          consequence_text: string | null
+          created_at: string
+          id: string
+          next_chapter_id: string | null
+          points_modifier: number | null
+        }
+        Insert: {
+          chapter_id: string
+          choice_text: string
+          consequence_text?: string | null
+          created_at?: string
+          id?: string
+          next_chapter_id?: string | null
+          points_modifier?: number | null
+        }
+        Update: {
+          chapter_id?: string
+          choice_text?: string
+          consequence_text?: string | null
+          created_at?: string
+          id?: string
+          next_chapter_id?: string | null
+          points_modifier?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interactive_choices_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "book_chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interactive_choices_next_chapter_id_fkey"
+            columns: ["next_chapter_id"]
+            isOneToOne: false
+            referencedRelation: "book_chapters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -404,6 +496,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_chapter_progress: {
+        Row: {
+          book_id: string
+          chapter_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          is_completed: boolean
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          chapter_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          chapter_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_chapter_progress_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_chapter_progress_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "book_chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -457,6 +594,55 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_story_choices: {
+        Row: {
+          book_id: string
+          chapter_id: string
+          choice_id: string
+          chosen_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          chapter_id: string
+          choice_id: string
+          chosen_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          chapter_id?: string
+          choice_id?: string
+          chosen_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_story_choices_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_story_choices_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "book_chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_story_choices_choice_id_fkey"
+            columns: ["choice_id"]
+            isOneToOne: false
+            referencedRelation: "interactive_choices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { BannerAd } from '@/components/BannerAd';
 import { RewardAd } from '@/components/RewardAd';
+import { InteractiveBookReader } from '@/components/InteractiveBookReader';
 
 interface BookReaderProps {
   book: Book;
@@ -17,6 +18,11 @@ interface BookReaderProps {
 }
 
 export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
+  // Si le livre a des chapitres, utiliser le lecteur interactif
+  if (book.hasChapters) {
+    return <InteractiveBookReader book={book} onClose={onBack} />;
+  }
+
   const { userStats, addPointsForBook } = useUserStats();
   const { session, subscription } = useAuth();
   const { toast } = useToast();

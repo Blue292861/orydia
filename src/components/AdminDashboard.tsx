@@ -167,6 +167,8 @@ export const AdminDashboard: React.FC = () => {
               isPremium: false,
               isMonthSuccess: false,
               isPacoFavourite: false,
+              hasChapters: false,
+              isInteractive: false,
             }}
             onSubmit={handleSubmit}
           />
