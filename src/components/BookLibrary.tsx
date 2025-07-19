@@ -55,16 +55,31 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
 
   return (
     <div className={`max-w-full overflow-hidden ${getSpacing()}`}>
+      <BookCarousel
+        title="Succès du mois"
+        books={successBooks}
+        onBookSelect={onBookSelect}
+        large={true}
+        emptyMessage="Aucun livre dans cette catégorie pour le moment."
+      />
+
+      <BookCarousel
+        title="Les conseils de Paco"
+        books={pacoBooks}
+        onBookSelect={onBookSelect}
+        emptyMessage="Aucun livre dans cette catégorie pour le moment."
+      />
+
       {/* Audio à la une */}
-      {featuredAudiobooks.length > 0 && (
-        <div className={getSpacing()}>
-          <h2 className={`font-cursive text-wood-300 px-2 flex items-center gap-2 ${
-            isMobile ? 'text-lg' : isTablet ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'
-          }`}>
-            <Headphones className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
-            Audio à la une
-          </h2>
-          <div className="px-2">
+      <div className={getSpacing()}>
+        <h2 className={`font-cursive text-wood-300 px-2 flex items-center gap-2 ${
+          isMobile ? 'text-lg' : isTablet ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'
+        }`}>
+          <Headphones className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
+          Audio à la une
+        </h2>
+        <div className="px-2">
+          {featuredAudiobooks.length > 0 ? (
             <div className={`flex gap-4 overflow-x-auto pb-4 ${
               isMobile ? 'scroll-smooth' : ''
             }`}>
@@ -87,20 +102,26 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <div className={`text-wood-300 px-2 ${
+              isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-sm'
+            }`}>
+              Aucun audiobook à la une pour le moment.
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Jeux à la une */}
-      {featuredGames.length > 0 && (
-        <div className={getSpacing()}>
-          <h2 className={`font-cursive text-wood-300 px-2 flex items-center gap-2 ${
-            isMobile ? 'text-lg' : isTablet ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'
-          }`}>
-            <Gamepad2 className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
-            Jeux à la une
-          </h2>
-          <div className="px-2">
+      <div className={getSpacing()}>
+        <h2 className={`font-cursive text-wood-300 px-2 flex items-center gap-2 ${
+          isMobile ? 'text-lg' : isTablet ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'
+        }`}>
+          <Gamepad2 className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
+          Jeux à la une
+        </h2>
+        <div className="px-2">
+          {featuredGames.length > 0 ? (
             <div className={`flex gap-4 overflow-x-auto pb-4 ${
               isMobile ? 'scroll-smooth' : ''
             }`}>
@@ -112,24 +133,15 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
                 />
               ))}
             </div>
-          </div>
+          ) : (
+            <div className={`text-wood-300 px-2 ${
+              isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-sm'
+            }`}>
+              Aucun jeu à la une pour le moment.
+            </div>
+          )}
         </div>
-      )}
-
-      <BookCarousel
-        title="Succès du mois"
-        books={successBooks}
-        onBookSelect={onBookSelect}
-        large={true}
-        emptyMessage="Aucun livre dans cette catégorie pour le moment."
-      />
-
-      <BookCarousel
-        title="Les conseils de Paco"
-        books={pacoBooks}
-        onBookSelect={onBookSelect}
-        emptyMessage="Aucun livre dans cette catégorie pour le moment."
-      />
+      </div>
       
       <div className={getSpacing()}>
         <h2 className={`font-cursive text-wood-300 px-2 ${
