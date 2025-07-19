@@ -74,7 +74,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
                     <img 
                       src={audiobook.cover_url} 
                       alt={audiobook.name}
-                      className="w-full aspect-[3/4] object-cover rounded-md mb-3"
+                      className="w-full aspect-[2/3] object-cover rounded-md mb-3"
                     />
                     <h3 className="text-wood-100 font-semibold text-sm mb-1 line-clamp-2">
                       {audiobook.name}

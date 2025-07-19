@@ -14,7 +14,7 @@ export function GameCard({ game, onSelect }: GameCardProps) {
   return (
     <Card className="group cursor-pointer hover:shadow-lg transition-all duration-300 min-w-[200px] max-w-[280px]">
       <CardContent className="p-0" onClick={() => onSelect(game)}>
-        <div className="aspect-[3/4] relative overflow-hidden rounded-t-lg">
+        <div className="aspect-[2/3] relative overflow-hidden rounded-t-lg">
           <img
             src={game.cover_url}
             alt={game.name}
