@@ -7,6 +7,7 @@ import { ShopAdmin } from '@/components/ShopAdmin';
 import { AchievementAdmin } from '@/components/AchievementAdmin';
 import { AudiobookAdmin } from '@/components/AudiobookAdmin';
 import { GameAdmin } from '@/components/GameAdmin';
+import { GameReader } from '@/components/GameReader';
 import { PointsAdmin } from '@/components/PointsAdmin';
 import { ApiKeysAdmin } from '@/components/ApiKeysAdmin';
 import { Shop } from '@/components/Shop';
@@ -21,19 +22,20 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AdminNav } from '@/components/AdminNav';
 import { OrdersAdmin } from '@/components/OrdersAdmin';
 import { ReadingStatsAdmin } from '@/components/ReadingStatsAdmin';
-import { ChapterEditorAdmin } from '@/components/ChapterEditorAdmin';
+
 import { VideoAd } from '@/components/VideoAd';
 import { useBooks } from '@/hooks/useBooks';
 import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin' | 'chapter-editor';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'game-reader' | AdminPage;
 
 const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<Page>('library');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [selectedGame, setSelectedGame] = useState<any>(null);
   const [bookForAd, setBookForAd] = useState<Book | null>(null);
   
   const { books } = useBooks();
@@ -79,8 +81,14 @@ const AppContent = () => {
     }
   };
 
+  const handleGameSelect = (game: any) => {
+    setSelectedGame(game);
+    setCurrentPage('game-reader');
+  };
+
   const handleBackToLibrary = () => {
     setSelectedBook(null);
+    setSelectedGame(null);
     setCurrentPage('library');
   };
 
@@ -91,6 +99,10 @@ const AppContent = () => {
       case 'reader':
         return selectedBook ? (
           <BookReader book={selectedBook} onBack={handleBackToLibrary} />
+        ) : null;
+      case 'game-reader':
+        return selectedGame ? (
+          <GameReader game={selectedGame} onBack={handleBackToLibrary} />
         ) : null;
       case 'admin':
         return <AdminDashboard />;
@@ -117,8 +129,6 @@ const AppContent = () => {
         return <PointsAdmin />;
       case 'api-keys-admin':
         return <ApiKeysAdmin />;
-      case 'chapter-editor':
-        return <ChapterEditorAdmin />;
       case 'shop':
         return <Shop shopItems={shopItems} />;
       case 'search':
@@ -128,13 +138,13 @@ const AppContent = () => {
       case 'premium':
         return <PremiumPage />;
       default:
-        return <BookLibrary books={books} onBookSelect={handleBookSelect} />;
+        return <BookLibrary books={books} onBookSelect={handleBookSelect} onGameSelect={handleGameSelect} />;
     }
   };
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
   
-  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin', 'game-admin', 'points-admin', 'api-keys-admin', 'chapter-editor'].includes(currentPage as string);
+  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin', 'game-admin', 'points-admin', 'api-keys-admin'].includes(currentPage as string);
 
   const getMainPadding = () => {
     if (isMobile) {
@@ -188,7 +198,7 @@ const AppContent = () => {
           {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
           {renderCurrentPage()}
         </main>
-        {currentPage !== 'reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={setCurrentPage as any} />}
+        {currentPage !== 'reader' && currentPage !== 'game-reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={setCurrentPage as any} />}
       </div>
     </>
   );
