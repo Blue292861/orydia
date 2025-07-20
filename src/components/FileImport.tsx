@@ -2,6 +2,7 @@
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, FileImage, FileText, FileAudio } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
   validateFileType, 
@@ -126,25 +127,45 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
 
       // Process the file based on type
       if (type === 'image') {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          if (result) {
-            onFileImport(result);
-            toast({
-              title: "Image importée",
-              description: "L'image de couverture a été téléchargée avec succès."
+        try {
+          // Generate unique filename
+          const fileExt = file.name.split('.').pop()?.toLowerCase();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+          
+          // Upload to Supabase Storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('book-covers')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false
             });
+
+          if (uploadError) {
+            throw new Error(`Upload failed: ${uploadError.message}`);
           }
-        };
-        reader.onerror = () => {
+
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from('book-covers')
+            .getPublicUrl(fileName);
+
+          if (!urlData.publicUrl) {
+            throw new Error('Failed to get public URL');
+          }
+
+          onFileImport(urlData.publicUrl);
           toast({
-            title: "Erreur de lecture",
-            description: "Impossible de lire le fichier image.",
+            title: "Image uploadée",
+            description: "L'image de couverture a été sauvegardée sur le serveur."
+          });
+        } catch (uploadError) {
+          console.error('Upload error:', uploadError);
+          toast({
+            title: "Erreur d'upload",
+            description: `Impossible d'uploader l'image: ${uploadError instanceof Error ? uploadError.message : 'Erreur inconnue'}`,
             variant: "destructive"
           });
-        };
-        reader.readAsDataURL(file);
+        }
         
       } else if (type === 'pdf') {
         try {
