@@ -156,10 +156,7 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       setUploadProgress(75);
       
       if (uploadError) {
-        console.error('💥 Erreur Supabase:', {
-          message: uploadError.message,
-          status: uploadError.statusCode || 'unknown'
-        });
+        console.error('💥 Erreur Supabase:', uploadError);
         throw uploadError;
       }
       
