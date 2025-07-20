@@ -11,9 +11,10 @@ interface BookCardProps {
   book: Book;
   onBookSelect: (book: Book) => void;
   large?: boolean;
+  showPreview?: boolean;
 }
 
-export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = false }) => {
+export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = false, showPreview = false }) => {
   const { userStats } = useUserStats();
   const { subscription } = useAuth();
   const { isMobile, isTablet } = useResponsive();

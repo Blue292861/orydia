@@ -200,6 +200,7 @@ export type Database = {
           is_paco_favourite: boolean
           is_premium: boolean
           points: number
+          summary: string | null
           tags: string[] | null
           title: string
           updated_at: string
@@ -216,6 +217,7 @@ export type Database = {
           is_paco_favourite?: boolean
           is_premium?: boolean
           points?: number
+          summary?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string
@@ -232,6 +234,7 @@ export type Database = {
           is_paco_favourite?: boolean
           is_premium?: boolean
           points?: number
+          summary?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string
@@ -515,9 +518,13 @@ export type Database = {
           description: string
           id: string
           image_url: string
+          is_on_sale: boolean
+          is_temporary: boolean | null
           name: string
           price: number
+          sale_price: number | null
           seller: string
+          tags: string[] | null
           updated_at: string
         }
         Insert: {
@@ -527,9 +534,13 @@ export type Database = {
           description: string
           id?: string
           image_url: string
+          is_on_sale?: boolean
+          is_temporary?: boolean | null
           name: string
           price: number
+          sale_price?: number | null
           seller: string
+          tags?: string[] | null
           updated_at?: string
         }
         Update: {
@@ -539,9 +550,13 @@ export type Database = {
           description?: string
           id?: string
           image_url?: string
+          is_on_sale?: boolean
+          is_temporary?: boolean | null
           name?: string
           price?: number
+          sale_price?: number | null
           seller?: string
+          tags?: string[] | null
           updated_at?: string
         }
         Relationships: []

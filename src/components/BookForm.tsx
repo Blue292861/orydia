@@ -30,6 +30,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     let maxLength = 200; // default
     if (name === 'title') maxLength = 200;
     else if (name === 'author') maxLength = 100;
+    else if (name === 'summary') maxLength = 1000;
     else if (name === 'content') maxLength = 500000;
     
     if (!validateTextLength(value, maxLength)) {
@@ -212,6 +213,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       ...book,
       title: sanitizeText(book.title),
       author: sanitizeText(book.author),
+      summary: book.summary ? sanitizeText(book.summary) : undefined,
       content: sanitizeHtml(book.content),
       coverUrl: sanitizeText(book.coverUrl)
     });
@@ -243,6 +245,19 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
           placeholder="Entrez le nom de l'auteur"
           maxLength={100}
           required
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="summary">Résumé</Label>
+        <Textarea
+          id="summary"
+          name="summary"
+          value={book.summary || ''}
+          onChange={handleChange}
+          placeholder="Entrez un résumé du livre"
+          className="min-h-[100px]"
+          maxLength={1000}
         />
       </div>
 

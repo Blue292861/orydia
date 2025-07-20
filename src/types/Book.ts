@@ -5,6 +5,7 @@ export interface Book {
   author: string;
   coverUrl: string;
   content: string;
+  summary?: string;
   points: number;
   tags: string[];
   isPremium: boolean;

@@ -5,6 +5,7 @@ import { Game } from '@/types/Game';
 import { Audiobook } from '@/types/Audiobook';
 import { Info, Headphones, Gamepad2 } from 'lucide-react';
 import { BookCarousel } from './BookCarousel';
+import { BookPreviewDialog } from './BookPreviewDialog';
 import { GameCard } from './GameCard';
 import { gameService } from '@/services/gameService';
 import { audiobookService } from '@/services/audiobookService';
@@ -20,9 +21,20 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
   const { isMobile, isTablet } = useResponsive();
   const [featuredAudiobooks, setFeaturedAudiobooks] = useState<Audiobook[]>([]);
   const [featuredGames, setFeaturedGames] = useState<Game[]>([]);
+  const [previewBook, setPreviewBook] = useState<Book | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   
   const successBooks = books.filter(b => b.isMonthSuccess);
   const pacoBooks = books.filter(b => b.isPacoFavourite);
+
+  const handleBookPreview = (book: Book) => {
+    setPreviewBook(book);
+    setShowPreview(true);
+  };
+
+  const handleReadBook = (book: Book) => {
+    onBookSelect(book);
+  };
 
   useEffect(() => {
     const loadFeaturedContent = async () => {
@@ -58,7 +70,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
       <BookCarousel
         title="Succès du mois"
         books={successBooks}
-        onBookSelect={onBookSelect}
+        onBookSelect={handleBookPreview}
         large={true}
         emptyMessage="Aucun livre dans cette catégorie pour le moment."
       />
@@ -66,7 +78,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
       <BookCarousel
         title="Les conseils de Paco"
         books={pacoBooks}
-        onBookSelect={onBookSelect}
+        onBookSelect={handleBookPreview}
         large={true}
         emptyMessage="Aucun livre dans cette catégorie pour le moment."
       />
@@ -178,6 +190,13 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
           </p>
         </div>
       )}
+
+      <BookPreviewDialog
+        book={previewBook}
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        onReadBook={handleReadBook}
+      />
     </div>
   );
 };
