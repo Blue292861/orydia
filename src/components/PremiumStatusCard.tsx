@@ -5,21 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Crown, Star } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useResponsive } from '@/hooks/useResponsive';
+import { PremiumSelectionDialog } from '@/components/PremiumSelectionDialog';
 
 interface PremiumStatusCardProps {
   isPremium: boolean;
 }
 
 export const PremiumStatusCard: React.FC<PremiumStatusCardProps> = ({ isPremium }) => {
-  const { createCheckout } = useAuth();
   const { isMobile } = useResponsive();
-  const [loading, setLoading] = useState(false);
-
-  const handlePremiumClick = async () => {
-    setLoading(true);
-    await createCheckout();
-    setLoading(false);
-  };
 
   if (isPremium) return null;
 
@@ -39,16 +32,18 @@ export const PremiumStatusCard: React.FC<PremiumStatusCardProps> = ({ isPremium 
         }`}>
           Obtenez des points bonus et débloquez des succès exclusifs
         </p>
-        <Button 
-          onClick={handlePremiumClick}
-          disabled={loading}
-          className={`bg-yellow-500 hover:bg-yellow-600 text-black font-bold ${
-            isMobile ? 'text-sm px-4 py-2' : ''
-          }`}
-        >
-          <Crown className={`mr-2 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-          {loading ? "Chargement..." : "Activer Premium"}
-        </Button>
+        <PremiumSelectionDialog
+          trigger={
+            <Button 
+              className={`bg-yellow-500 hover:bg-yellow-600 text-black font-bold ${
+                isMobile ? 'text-sm px-4 py-2' : ''
+              }`}
+            >
+              <Crown className={`mr-2 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+              Activer Premium
+            </Button>
+          }
+        />
       </CardContent>
     </Card>
   );

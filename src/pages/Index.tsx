@@ -14,6 +14,7 @@ import { Shop } from '@/components/Shop';
 import { SearchPage } from '@/components/SearchPage';
 import { ProfilePage } from '@/components/ProfilePage';
 import { PremiumPage } from '@/components/PremiumPage';
+import { PremiumSelectionDialog } from '@/components/PremiumSelectionDialog';
 import { Header } from '@/components/Header';
 import { NavigationFooter } from '@/components/NavigationFooter';
 import { SecurityHeaders } from '@/components/SecurityHeaders';
@@ -44,20 +45,12 @@ const AppContent = () => {
   const { subscription } = useAuth();
   const { isMobile, isTablet } = useResponsive();
 
+  const [showPremiumDialog, setShowPremiumDialog] = useState(false);
+
   const handleBookSelect = async (book: Book) => {
-    // Si le livre est premium et l'utilisateur n'est pas premium, lancer le processus de paiement
+    // Si le livre est premium et l'utilisateur n'est pas premium, ouvrir le panel de sélection
     if (book.isPremium && !subscription.isPremium) {
-      try {
-        const { data, error } = await supabase.functions.invoke('create-checkout');
-        if (error) throw error;
-        
-        // Ouvrir la page de paiement Stripe dans un nouvel onglet
-        if (data?.url) {
-          window.open(data.url, '_blank');
-        }
-      } catch (error) {
-        console.error('Erreur lors de la création du checkout:', error);
-      }
+      setShowPremiumDialog(true);
       return;
     }
 
@@ -199,6 +192,21 @@ const AppContent = () => {
           {renderCurrentPage()}
         </main>
         {currentPage !== 'reader' && currentPage !== 'game-reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={setCurrentPage as any} />}
+        
+        {/* Panel de sélection premium */}
+        <PremiumSelectionDialog 
+          trigger={
+            <button 
+              style={{ display: 'none' }} 
+              ref={(el) => {
+                if (el && showPremiumDialog) {
+                  el.click();
+                  setShowPremiumDialog(false);
+                }
+              }}
+            />
+          }
+        />
       </div>
     </>
   );
