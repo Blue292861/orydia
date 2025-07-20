@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut, RotateCw, Maximize, Download, RefreshCw } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCw, Maximize, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface EmbeddedPDFReaderProps {
@@ -29,20 +29,6 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
     setError('Impossible de charger le PDF. Vérifiez votre connexion internet.');
   };
 
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.download = `${title}.pdf`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast({
-      title: "Téléchargement démarré",
-      description: "Le PDF va être téléchargé dans votre dossier de téléchargements."
-    });
-  };
 
   const handleFullscreen = () => {
     window.open(pdfUrl, '_blank');
@@ -87,16 +73,6 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
           >
             <Maximize className="h-3 w-3" />
             Plein écran
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownload}
-            className="flex items-center gap-1"
-          >
-            <Download className="h-3 w-3" />
-            Télécharger
           </Button>
         </div>
       </div>
