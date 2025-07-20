@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { BannerAd } from '@/components/BannerAd';
 import { RewardAd } from '@/components/RewardAd';
 import { InteractiveBookReader } from '@/components/InteractiveBookReader';
+import { PDFViewer } from '@/components/PDFViewer';
 
 interface BookReaderProps {
   book: Book;
@@ -30,10 +31,14 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const [fontSize, setFontSize] = useState(16);
   const [highContrast, setHighContrast] = useState(false);
   const [showRewardAd, setShowRewardAd] = useState(false);
+  const [showPDFViewer, setShowPDFViewer] = useState(false);
   
   const isAlreadyRead = userStats.booksRead.includes(book.id);
   const isPremium = subscription.isPremium;
   const pointsToWin = isPremium ? book.points * 2 : book.points;
+  
+  // Check if the content is a PDF URL
+  const isPDFContent = book.content?.startsWith('http') && book.content.includes('.pdf');
   
   const handleFinishReading = async () => {
     if (!session) {
@@ -138,19 +143,33 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
             ? 'bg-black text-white border border-gray-600' 
             : 'bg-card text-card-foreground'
         }`}>
-          <div className="prose prose-lg max-w-none">
-            {book.content.split('\n\n').map((paragraph, index) => (
-              <p 
-                key={index} 
-                className={`mb-4 leading-relaxed ${
-                  highContrast ? 'text-white' : 'text-foreground'
-                }`}
-                style={{ fontSize: `${fontSize}px` }}
+          {isPDFContent ? (
+            <div className="text-center">
+              <Button 
+                onClick={() => setShowPDFViewer(true)}
+                className="mb-4"
               >
-                {paragraph}
+                Ouvrir le PDF
+              </Button>
+              <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-muted-foreground'}`}>
+                Ce livre est disponible au format PDF. Cliquez sur le bouton pour l'ouvrir.
               </p>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="prose prose-lg max-w-none">
+              {book.content.split('\n\n').map((paragraph, index) => (
+                <p 
+                  key={index} 
+                  className={`mb-4 leading-relaxed ${
+                    highContrast ? 'text-white' : 'text-foreground'
+                  }`}
+                  style={{ fontSize: `${fontSize}px` }}
+                >
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          )}
           
           <div className="mt-8 pt-6 border-t flex justify-center">
             {isAlreadyRead ? (
@@ -179,6 +198,16 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           <div className="mt-12">
             <BannerAd />
           </div>
+        )}
+        
+        {isPDFContent && (
+          <PDFViewer
+            isOpen={showPDFViewer}
+            onClose={() => setShowPDFViewer(false)}
+            pdfDataUrl={book.content}
+            fileName={book.title}
+            onTextExtracted={() => {}} // Pas d'extraction de texte nécessaire
+          />
         )}
       </div>
     </>

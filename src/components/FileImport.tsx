@@ -138,28 +138,45 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
         }
         
       } else if (type === 'pdf') {
-        // For PDF files, directly show the viewer for manual content extraction
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          if (result) {
-            setPdfDataUrl(result);
-            setPdfFileName(file.name);
-            setPdfViewerOpen(true);
-            toast({
-              title: "PDF ouvert",
-              description: "Le PDF s'ouvre pour que vous puissiez copier-coller le contenu manuellement."
+        try {
+          // Generate unique filename
+          const fileExt = file.name.split('.').pop()?.toLowerCase();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+          
+          // Upload to Supabase Storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('book-covers')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false
             });
+
+          if (uploadError) {
+            throw new Error(`Upload failed: ${uploadError.message}`);
           }
-        };
-        reader.onerror = () => {
+
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from('book-covers')
+            .getPublicUrl(fileName);
+
+          if (!urlData.publicUrl) {
+            throw new Error('Failed to get public URL');
+          }
+
+          onFileImport(urlData.publicUrl);
           toast({
-            title: "Erreur de lecture",
-            description: "Impossible de lire le fichier PDF.",
+            title: "PDF uploadé",
+            description: "Le PDF a été sauvegardé sur le serveur."
+          });
+        } catch (uploadError) {
+          console.error('Upload error:', uploadError);
+          toast({
+            title: "Erreur d'upload",
+            description: `Impossible d'uploader le PDF: ${uploadError instanceof Error ? uploadError.message : 'Erreur inconnue'}`,
             variant: "destructive"
           });
-        };
-        reader.readAsDataURL(file);
+        }
       } else if (type === 'audio') {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -224,7 +241,7 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       case 'image':
         return `Importer une image (max ${maxSize}MB)`;
       case 'pdf':
-        return `Importer un PDF pour saisie manuelle (max ${maxSize}MB)`;
+        return `Uploader un PDF (max ${maxSize}MB)`;
       case 'audio':
         return `Importer un audio (max ${maxSize}MB)`;
       default:
