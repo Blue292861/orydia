@@ -35,6 +35,22 @@ export const sanitizeTextWithSpaces = (text: string): string => {
     .replace(/data:/gi, ''); // Remove data: URIs for safety
 };
 
+export const sanitizeImageUrl = (url: string): string => {
+  if (!url) return '';
+  
+  // For data URLs (uploaded images), don't remove the data: prefix
+  if (url.startsWith('data:image/')) {
+    // Use DOMPurify but keep the data URL intact
+    return DOMPurify.sanitize(url, { 
+      ALLOWED_TAGS: [], 
+      ALLOWED_ATTR: [] 
+    });
+  }
+  
+  // For regular URLs, use standard sanitization
+  return sanitizeText(url);
+};
+
 export const sanitizeHtml = (html: string): string => {
   if (!html) return '';
   
@@ -54,6 +70,21 @@ export const validateUrl = (url: string): boolean => {
   try {
     const urlObj = new URL(url);
     return ['http:', 'https:', 'data:'].includes(urlObj.protocol) && url.length <= 2048;
+  } catch {
+    return false;
+  }
+};
+
+export const validateImageUrl = (url: string): boolean => {
+  try {
+    // Allow data URLs for uploaded images
+    if (url.startsWith('data:image/')) {
+      return url.length <= 10 * 1024 * 1024; // Max 10MB for base64 images
+    }
+    
+    // For regular URLs
+    const urlObj = new URL(url);
+    return ['http:', 'https:'].includes(urlObj.protocol) && url.length <= 2048;
   } catch {
     return false;
   }

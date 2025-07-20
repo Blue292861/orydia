@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { TagInput } from '@/components/TagInput';
 import { FileImport } from '@/components/FileImport';
-import { sanitizeText, sanitizeTextWithSpaces, sanitizeHtml, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
+import { sanitizeText, sanitizeImageUrl, sanitizeTextWithSpaces, sanitizeHtml, validateTextLength, validateImageUrl, validatePoints } from '@/utils/security';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, BookOpen } from 'lucide-react';
@@ -54,7 +54,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
 
   const handleCoverUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value && !validateUrl(value)) {
+    if (value && !validateImageUrl(value)) {
       toast({
         title: "Invalid URL",
         description: "Please enter a valid image URL.",
@@ -62,7 +62,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       });
       return;
     }
-    setBook(prev => ({ ...prev, coverUrl: sanitizeText(value) }));
+    setBook(prev => ({ ...prev, coverUrl: sanitizeImageUrl(value) }));
   };
 
   const handlePointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,7 +192,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       return false;
     }
 
-    if (!validateUrl(book.coverUrl)) {
+    if (!validateImageUrl(book.coverUrl)) {
       toast({
         title: "Validation Error",
         description: "Please enter a valid cover URL.",
@@ -217,7 +217,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       author: sanitizeText(book.author),
       summary: book.summary ? sanitizeTextWithSpaces(book.summary) : undefined,
       content: sanitizeHtml(book.content),
-      coverUrl: sanitizeText(book.coverUrl)
+      coverUrl: sanitizeImageUrl(book.coverUrl)
     });
   };
 
