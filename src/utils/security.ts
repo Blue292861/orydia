@@ -19,6 +19,22 @@ export const sanitizeText = (text: string): string => {
     .trim();
 };
 
+export const sanitizeTextWithSpaces = (text: string): string => {
+  if (!text) return '';
+  
+  // Use DOMPurify for comprehensive XSS protection but preserve spaces
+  const sanitized = DOMPurify.sanitize(text, { 
+    ALLOWED_TAGS: [], 
+    ALLOWED_ATTR: [] 
+  });
+  
+  // Additional sanitization for dangerous patterns but keep leading/trailing spaces
+  return sanitized
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+=/gi, '') // Remove event handlers like onclick=
+    .replace(/data:/gi, ''); // Remove data: URIs for safety
+};
+
 export const sanitizeHtml = (html: string): string => {
   if (!html) return '';
   

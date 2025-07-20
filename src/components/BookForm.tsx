@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { TagInput } from '@/components/TagInput';
 import { FileImport } from '@/components/FileImport';
-import { sanitizeText, sanitizeHtml, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
+import { sanitizeText, sanitizeTextWithSpaces, sanitizeHtml, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, BookOpen } from 'lucide-react';
@@ -42,7 +42,9 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       return;
     }
 
-    const sanitizedValue = name === 'content' ? sanitizeHtml(value) : sanitizeText(value);
+    const sanitizedValue = name === 'content' ? sanitizeHtml(value) : 
+                          name === 'summary' ? sanitizeTextWithSpaces(value) :
+                          sanitizeText(value);
     
     setBook(prev => ({ 
       ...prev, 
@@ -213,7 +215,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       ...book,
       title: sanitizeText(book.title),
       author: sanitizeText(book.author),
-      summary: book.summary ? sanitizeText(book.summary) : undefined,
+      summary: book.summary ? sanitizeTextWithSpaces(book.summary) : undefined,
       content: sanitizeHtml(book.content),
       coverUrl: sanitizeText(book.coverUrl)
     });
