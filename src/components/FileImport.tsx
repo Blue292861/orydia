@@ -1,9 +1,10 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, FileImage, FileText, FileAudio } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { PDFViewer } from './PDFViewer';
 import { 
   validateFileType, 
   validateFileSize, 
@@ -61,6 +62,9 @@ const extractTextFromPDF = async (file: File): Promise<string> => {
 export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disabled }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [pdfDataUrl, setPdfDataUrl] = useState('');
+  const [pdfFileName, setPdfFileName] = useState('');
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -168,27 +172,44 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
         }
         
       } else if (type === 'pdf') {
-        try {
-          console.log('Starting PDF text extraction...');
-          const text = await extractTextFromPDF(file);
-          onFileImport(text);
+        // Create a data URL for the PDF to display it
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const result = e.target?.result as string;
+          if (result) {
+            try {
+              console.log('Starting PDF text extraction...');
+              const text = await extractTextFromPDF(file);
+              if (text && text.trim().length > 50) {
+                // Si l'extraction automatique réussit avec un contenu suffisant
+                onFileImport(text);
+                toast({
+                  title: "PDF importé automatiquement",
+                  description: `Le contenu du PDF a été extrait avec succès (${text.length} caractères).`
+                });
+              } else {
+                // Si l'extraction automatique échoue ou donne peu de contenu, afficher le PDF
+                setPdfDataUrl(result);
+                setPdfFileName(file.name);
+                setPdfViewerOpen(true);
+              }
+            } catch (pdfError) {
+              console.error('PDF processing error:', pdfError);
+              // En cas d'erreur, afficher le PDF pour extraction manuelle
+              setPdfDataUrl(result);
+              setPdfFileName(file.name);
+              setPdfViewerOpen(true);
+            }
+          }
+        };
+        reader.onerror = () => {
           toast({
-            title: "PDF importé",
-            description: `Le contenu du PDF a été extrait avec succès (${text.length} caractères).`
-          });
-        } catch (pdfError) {
-          console.error('PDF processing error:', pdfError);
-          // Fallback to basic import
-          const sanitizedFileName = sanitizeText(file.name);
-          const fallbackText = `Contenu PDF importé: ${sanitizedFileName}\n\n[Erreur lors de l'extraction automatique du texte. Veuillez copier-coller le contenu manuellement.]`;
-          onFileImport(fallbackText);
-          toast({
-            title: "PDF partiellement importé",
-            description: "Le fichier a été importé mais le texte n'a pas pu être extrait automatiquement.",
+            title: "Erreur de lecture",
+            description: "Impossible de lire le fichier PDF.",
             variant: "destructive"
           });
-        }
-        
+        };
+        reader.readAsDataURL(file);
       } else if (type === 'audio') {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -280,6 +301,17 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
         {getIcon()}
         {getButtonText()}
       </Button>
+      
+      <PDFViewer
+        isOpen={pdfViewerOpen}
+        onClose={() => setPdfViewerOpen(false)}
+        pdfDataUrl={pdfDataUrl}
+        fileName={pdfFileName}
+        onTextExtracted={(text) => {
+          onFileImport(text);
+          setPdfViewerOpen(false);
+        }}
+      />
     </>
   );
 };
