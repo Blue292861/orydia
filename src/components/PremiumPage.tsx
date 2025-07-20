@@ -4,34 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star, Check, Crown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { PremiumSelectionDialog } from '@/components/PremiumSelectionDialog';
 
 export const PremiumPage: React.FC = () => {
   const { subscription, manageSubscription } = useAuth();
-  const [loading, setLoading] = useState(false);
-
-  const handleCheckout = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout');
-      if (error) {
-        throw error;
-      }
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error: any) {
-      console.error('Error creating checkout session:', error);
-      toast({
-        title: "Erreur de paiement",
-        description: "Impossible de démarrer la session de paiement. Veuillez réessayer.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const features = [
     'Accès illimité à tous les livres',
@@ -89,9 +65,13 @@ export const PremiumPage: React.FC = () => {
               Gérer mon abonnement Premium
             </Button>
           ) : (
-            <Button className="w-full" size="lg" onClick={handleCheckout} disabled={loading}>
-              {loading ? 'Redirection vers le paiement...' : 'Passer à Premium maintenant'}
-            </Button>
+            <PremiumSelectionDialog
+              trigger={
+                <Button className="w-full" size="lg">
+                  Passer à Premium maintenant
+                </Button>
+              }
+            />
           )}
           
           <p className="text-xs text-center text-muted-foreground">

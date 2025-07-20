@@ -110,19 +110,8 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
 
           {/* Right side - Premium status and Logout */}
           <div className="flex items-center space-x-2 flex-1 justify-end">
-            {subscription?.isPremium ? (
+            {subscription?.isPremium && (
               <div className="text-sm text-green-500 font-semibold">Premium</div>
-            ) : (
-              userStats.totalPoints > 0 && currentPage !== 'shop' && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onNavigate('shop')}
-                  className="bg-amber-500 hover:bg-amber-600 text-white"
-                >
-                  {isMobile ? 'Boutique' : '兑 Boutique'}
-                </Button>
-              )
             )}
             
             {/* Logout Button */}
