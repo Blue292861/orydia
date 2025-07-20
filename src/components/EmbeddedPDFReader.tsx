@@ -8,12 +8,14 @@ interface EmbeddedPDFReaderProps {
   pdfUrl: string;
   title: string;
   className?: string;
+  onScrollToEnd?: () => void;
 }
 
 export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
   pdfUrl,
   title,
-  className = ""
+  className = "",
+  onScrollToEnd
 }) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -22,6 +24,14 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
   const handleIframeLoad = () => {
     setIsLoading(false);
     setError(null);
+    
+    // Simulate PDF completion after 10 seconds for demo purposes
+    // In a real implementation, you'd need to detect actual PDF scroll position
+    if (onScrollToEnd) {
+      setTimeout(() => {
+        onScrollToEnd();
+      }, 10000);
+    }
   };
 
   const handleIframeError = () => {

@@ -31,6 +31,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const [fontSize, setFontSize] = useState(16);
   const [highContrast, setHighContrast] = useState(false);
   const [showRewardAd, setShowRewardAd] = useState(false);
+  const [pdfFinished, setPdfFinished] = useState(false);
   
   const isAlreadyRead = userStats.booksRead.includes(book.id);
   const isPremium = subscription.isPremium;
@@ -150,6 +151,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
               pdfUrl={book.content}
               title={book.title}
               className="mb-8"
+              onScrollToEnd={() => setPdfFinished(true)}
             />
           ) : (
             <div className="prose prose-lg max-w-none">
@@ -167,6 +169,13 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
             </div>
           )}
           
+          {/* Publicité pour les non-premium */}
+          {!isPremium && (
+            <div className="mt-8 mb-6">
+              <BannerAd />
+            </div>
+          )}
+          
           <div className="mt-8 pt-6 border-t flex justify-center">
             {isAlreadyRead ? (
               <div className={`text-center ${highContrast && !isPDFContent ? 'text-gray-300' : 'text-muted-foreground'}`}>
@@ -179,22 +188,23 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
                 <p>Tensens accordés ! Bien joué !</p>
               </div>
             ) : (
-              <Button onClick={handleFinishReading} className="flex items-center gap-2">
+              <Button 
+                onClick={handleFinishReading} 
+                className="flex items-center gap-2"
+                disabled={isPDFContent && !pdfFinished}
+              >
                 <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-4 w-4" />
-                {isPremium ? 
-                  `Terminer la lecture & Gagner ${pointsToWin} Tensens` :
-                  `Regarder une publicité & Gagner ${pointsToWin} Tensens`
+                {isPDFContent && !pdfFinished ? 
+                  "Terminez la lecture du PDF pour réclamer vos Tensens" :
+                  isPremium ? 
+                    `Terminer la lecture & Gagner ${pointsToWin} Tensens` :
+                    `Regarder une publicité & Gagner ${pointsToWin} Tensens`
                 }
               </Button>
             )}
           </div>
         </div>
 
-        {!isPremium && (
-          <div className="mt-12">
-            <BannerAd />
-          </div>
-        )}
       </div>
     </>
   );
