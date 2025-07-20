@@ -103,6 +103,17 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     setBook(prev => ({ ...prev, content: sanitizedContent }));
   };
 
+  const handleClearErrorContent = () => {
+    const isErrorContent = book.content?.includes('[Le contenu du PDF n\'a pas pu être extrait automatiquement');
+    if (isErrorContent) {
+      setBook(prev => ({ ...prev, content: '' }));
+      toast({
+        title: "Contenu effacé",
+        description: "Le contenu d'erreur a été supprimé. Vous pouvez maintenant importer votre PDF.",
+      });
+    }
+  };
+
   const handleExtractChapters = async () => {
     if (!book.content?.trim()) {
       toast({
@@ -348,6 +359,17 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
           
           {book.content && (
             <div className="flex flex-col gap-2">
+              {book.content.includes('[Le contenu du PDF n\'a pas pu être extrait automatiquement') && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleClearErrorContent}
+                  className="w-full"
+                >
+                  Effacer le contenu d'erreur et réimporter le PDF
+                </Button>
+              )}
+              
               <Button
                 type="button"
                 variant="outline"
