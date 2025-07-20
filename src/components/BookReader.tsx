@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { BannerAd } from '@/components/BannerAd';
 import { RewardAd } from '@/components/RewardAd';
 import { InteractiveBookReader } from '@/components/InteractiveBookReader';
-import { PDFViewer } from '@/components/PDFViewer';
+import { EmbeddedPDFReader } from '@/components/EmbeddedPDFReader';
 
 interface BookReaderProps {
   book: Book;
@@ -31,7 +31,6 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const [fontSize, setFontSize] = useState(16);
   const [highContrast, setHighContrast] = useState(false);
   const [showRewardAd, setShowRewardAd] = useState(false);
-  const [showPDFViewer, setShowPDFViewer] = useState(false);
   
   const isAlreadyRead = userStats.booksRead.includes(book.id);
   const isPremium = subscription.isPremium;
@@ -102,7 +101,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
         />
       )}
       
-      <div className="max-w-3xl mx-auto pb-10">
+      <div className="max-w-4xl mx-auto pb-10">
         <div className="flex justify-between items-center mb-6">
           <Button variant="ghost" onClick={onBack} className="flex items-center gap-1">
             <ChevronLeft className="h-4 w-4" />
@@ -129,32 +128,29 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           </Button>
         </div>
         
-        <div className="mb-4">
-          <TextSizeControls 
-            fontSize={fontSize} 
-            onFontSizeChange={setFontSize}
-            highContrast={highContrast}
-            onHighContrastChange={setHighContrast}
-          />
-        </div>
+        {/* Text size controls only for non-PDF content */}
+        {!isPDFContent && (
+          <div className="mb-4">
+            <TextSizeControls 
+              fontSize={fontSize} 
+              onFontSizeChange={setFontSize}
+              highContrast={highContrast}
+              onHighContrastChange={setHighContrast}
+            />
+          </div>
+        )}
         
         <div className={`rounded-lg p-8 shadow-md ${
-          highContrast 
+          highContrast && !isPDFContent
             ? 'bg-black text-white border border-gray-600' 
             : 'bg-card text-card-foreground'
         }`}>
           {isPDFContent ? (
-            <div className="text-center">
-              <Button 
-                onClick={() => setShowPDFViewer(true)}
-                className="mb-4"
-              >
-                Ouvrir le PDF
-              </Button>
-              <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-muted-foreground'}`}>
-                Ce livre est disponible au format PDF. Cliquez sur le bouton pour l'ouvrir.
-              </p>
-            </div>
+            <EmbeddedPDFReader 
+              pdfUrl={book.content}
+              title={book.title}
+              className="mb-8"
+            />
           ) : (
             <div className="prose prose-lg max-w-none">
               {book.content.split('\n\n').map((paragraph, index) => (
@@ -173,7 +169,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           
           <div className="mt-8 pt-6 border-t flex justify-center">
             {isAlreadyRead ? (
-              <div className={`text-center ${highContrast ? 'text-gray-300' : 'text-muted-foreground'}`}>
+              <div className={`text-center ${highContrast && !isPDFContent ? 'text-gray-300' : 'text-muted-foreground'}`}>
                 <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-6 w-6 mx-auto mb-2" />
                 <p>Vous avez déjà gagné des Tensens pour ce livre</p>
               </div>
@@ -198,16 +194,6 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           <div className="mt-12">
             <BannerAd />
           </div>
-        )}
-        
-        {isPDFContent && (
-          <PDFViewer
-            isOpen={showPDFViewer}
-            onClose={() => setShowPDFViewer(false)}
-            pdfDataUrl={book.content}
-            fileName={book.title}
-            onTextExtracted={() => {}} // Pas d'extraction de texte nécessaire
-          />
         )}
       </div>
     </>

@@ -1,10 +1,9 @@
-
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, FileImage, FileText, FileAudio, Loader2, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { PDFViewer } from './PDFViewer';
+import { PDFExtractor } from './PDFExtractor';
 import { 
   validateFileType, 
   validateFileSize, 
@@ -40,7 +39,7 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
   const [lastError, setLastError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [isConnected, setIsConnected] = useState(true);
-  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [pdfExtractorOpen, setPdfExtractorOpen] = useState(false);
   const [pdfDataUrl, setPdfDataUrl] = useState('');
   const [pdfFileName, setPdfFileName] = useState('');
 
@@ -83,8 +82,9 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       return 'Problème de connexion Internet. Vérifiez votre réseau et réessayez.';
     }
     
-    if (error?.statusCode) {
-      switch (error.statusCode) {
+    // Fix: Check for status instead of statusCode
+    if (error?.status) {
+      switch (error.status) {
         case 413:
           return 'Fichier trop volumineux pour le serveur. Réduisez la taille du fichier.';
         case 403:
@@ -100,7 +100,7 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
         case 504:
           return 'Service temporairement indisponible. Réessayez plus tard.';
         default:
-          return `Erreur serveur (${error.statusCode}). Réessayez ou contactez le support.`;
+          return `Erreur serveur (${error.status}). Réessayez ou contactez le support.`;
       }
     }
     
@@ -158,8 +158,7 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       if (uploadError) {
         console.error('💥 Erreur Supabase:', {
           message: uploadError.message,
-          statusCode: uploadError.statusCode,
-          error: uploadError.error
+          status: uploadError.statusCode || 'unknown'
         });
         throw uploadError;
       }
@@ -460,14 +459,14 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
         )}
       </div>
       
-      <PDFViewer
-        isOpen={pdfViewerOpen}
-        onClose={() => setPdfViewerOpen(false)}
+      <PDFExtractor
+        isOpen={pdfExtractorOpen}
+        onClose={() => setPdfExtractorOpen(false)}
         pdfDataUrl={pdfDataUrl}
         fileName={pdfFileName}
         onTextExtracted={(text) => {
           onFileImport(text);
-          setPdfViewerOpen(false);
+          setPdfExtractorOpen(false);
         }}
       />
     </>
