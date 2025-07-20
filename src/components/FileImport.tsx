@@ -25,40 +25,6 @@ const FILE_LIMITS = {
   audio: { maxSize: 50, types: ['audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/mpeg'] }
 };
 
-// PDF text extraction function
-const extractTextFromPDF = async (file: File): Promise<string> => {
-  try {
-    // Dynamic import to avoid bundling issues
-    const pdfjsLib = await import('pdfjs-dist');
-    
-    // Set up worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-    
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    
-    let fullText = '';
-    
-    // Extract text from all pages
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const textContent = await page.getTextContent();
-      
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      
-      fullText += `Page ${pageNum}:\n${pageText}\n\n`;
-    }
-    
-    return fullText.trim();
-  } catch (error) {
-    console.error('PDF extraction error:', error);
-    // Fallback to placeholder text if extraction fails
-    return `Contenu du PDF: ${sanitizeText(file.name)}\n\n[Le contenu du PDF n'a pas pu être extrait automatiquement. Veuillez copier-coller le texte manuellement si nécessaire.]`;
-  }
-};
-
 export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disabled }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -172,34 +138,18 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
         }
         
       } else if (type === 'pdf') {
-        // Create a data URL for the PDF to display it
+        // For PDF files, directly show the viewer for manual content extraction
         const reader = new FileReader();
-        reader.onload = async (e) => {
+        reader.onload = (e) => {
           const result = e.target?.result as string;
           if (result) {
-            try {
-              console.log('Starting PDF text extraction...');
-              const text = await extractTextFromPDF(file);
-              if (text && text.trim().length > 50) {
-                // Si l'extraction automatique réussit avec un contenu suffisant
-                onFileImport(text);
-                toast({
-                  title: "PDF importé automatiquement",
-                  description: `Le contenu du PDF a été extrait avec succès (${text.length} caractères).`
-                });
-              } else {
-                // Si l'extraction automatique échoue ou donne peu de contenu, afficher le PDF
-                setPdfDataUrl(result);
-                setPdfFileName(file.name);
-                setPdfViewerOpen(true);
-              }
-            } catch (pdfError) {
-              console.error('PDF processing error:', pdfError);
-              // En cas d'erreur, afficher le PDF pour extraction manuelle
-              setPdfDataUrl(result);
-              setPdfFileName(file.name);
-              setPdfViewerOpen(true);
-            }
+            setPdfDataUrl(result);
+            setPdfFileName(file.name);
+            setPdfViewerOpen(true);
+            toast({
+              title: "PDF ouvert",
+              description: "Le PDF s'ouvre pour que vous puissiez copier-coller le contenu manuellement."
+            });
           }
         };
         reader.onerror = () => {
@@ -274,7 +224,7 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       case 'image':
         return `Importer une image (max ${maxSize}MB)`;
       case 'pdf':
-        return `Importer un PDF (max ${maxSize}MB)`;
+        return `Importer un PDF pour saisie manuelle (max ${maxSize}MB)`;
       case 'audio':
         return `Importer un audio (max ${maxSize}MB)`;
       default:
