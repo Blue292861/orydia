@@ -39,3 +39,45 @@ export const generateMonthlyReport = (
   // Télécharger le fichier
   XLSX.writeFile(wb, fileName);
 };
+
+export const generateCustomReport = (
+  books: Book[],
+  periodBookReadCounts: Record<string, number>,
+  totalBookReadCounts: Record<string, number>,
+  startDate: Date,
+  endDate: Date
+) => {
+  // Préparer les données pour Excel
+  const excelData = books.map(book => ({
+    'Nom de l\'œuvre': book.title,
+    'Nom de l\'auteur': book.author,
+    'Vues sur la période': periodBookReadCounts[book.id] || 0,
+    'Vues totales': totalBookReadCounts[book.id] || 0
+  }));
+
+  // Créer le workbook
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(excelData);
+
+  // Ajuster la largeur des colonnes
+  const colWidths = [
+    { wch: 30 }, // Nom de l'œuvre
+    { wch: 20 }, // Nom de l'auteur
+    { wch: 18 }, // Vues sur la période
+    { wch: 15 }  // Vues totales
+  ];
+  ws['!cols'] = colWidths;
+
+  // Ajouter la feuille au workbook
+  XLSX.utils.book_append_sheet(wb, ws, 'Statistiques Période');
+
+  // Générer le nom du fichier avec les dates
+  const formatDate = (date: Date) => {
+    return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+  };
+  
+  const fileName = `statistiques-lecture-${formatDate(startDate)}_${formatDate(endDate)}.xlsx`;
+
+  // Télécharger le fichier
+  XLSX.writeFile(wb, fileName);
+};

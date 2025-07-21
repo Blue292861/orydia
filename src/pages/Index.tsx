@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AdminNav } from '@/components/AdminNav';
 import { OrdersAdmin } from '@/components/OrdersAdmin';
 import { ReadingStatsAdmin } from '@/components/ReadingStatsAdmin';
+import { ReadingStatsExport } from '@/components/ReadingStatsExport';
 
 import { VideoAd } from '@/components/VideoAd';
 import { useBooks } from '@/hooks/useBooks';
@@ -30,7 +31,7 @@ import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'game-reader' | AdminPage;
 
 const AppContent = () => {
@@ -118,6 +119,8 @@ const AppContent = () => {
         return <OrdersAdmin />;
       case 'reading-stats-admin':
         return <ReadingStatsAdmin books={books} />;
+      case 'reading-stats-export':
+        return <ReadingStatsExport books={books} />;
       case 'points-admin':
         return <PointsAdmin />;
       case 'api-keys-admin':
@@ -137,7 +140,7 @@ const AppContent = () => {
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
   
-  const isAdminPage = ['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'audiobook-admin', 'game-admin', 'points-admin', 'api-keys-admin'].includes(currentPage as string);
+  const isAdminPage = (['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'reading-stats-export', 'audiobook-admin', 'game-admin', 'points-admin', 'api-keys-admin'] as const).includes(currentPage as any);
 
   const getMainPadding = () => {
     if (isMobile) {
@@ -186,7 +189,7 @@ const AppContent = () => {
     <>
       <SecurityHeaders />
       <div className={`min-h-screen ${pageBackground} transition-colors duration-500 max-w-full overflow-x-hidden`}>
-        {currentPage !== 'video-ad' && <Header onNavigate={setCurrentPage as any} currentPage={currentPage} />}
+        {currentPage !== 'video-ad' && <Header onNavigate={setCurrentPage as any} currentPage={currentPage as any} />}
         <main className={`flex-1 ${getMainPadding()} ${getBottomPadding()} max-w-full overflow-x-hidden`}>
           {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
           {renderCurrentPage()}

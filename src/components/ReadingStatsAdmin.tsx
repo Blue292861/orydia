@@ -57,13 +57,15 @@ export const ReadingStatsAdmin: React.FC<ReadingStatsAdminProps> = ({ books }) =
         <h2 className={`font-bold ${isMobile ? 'text-2xl' : isTablet ? 'text-3xl' : 'text-3xl'}`}>
           Statistiques de lecture
         </h2>
-        <Button 
-          onClick={handleGenerateMonthlyReport} 
-          className={`flex items-center gap-2 ${isMobile ? 'w-full justify-center' : ''}`}
-        >
-          <FileDown className="h-4 w-4" />
-          {isMobile ? 'Rapport mensuel' : 'Générer la fin de mois'}
-        </Button>
+        <div className={`flex gap-2 ${isMobile ? 'flex-col' : ''}`}>
+          <Button 
+            onClick={handleGenerateMonthlyReport} 
+            className={`flex items-center gap-2 ${isMobile ? 'w-full justify-center' : ''}`}
+          >
+            <FileDown className="h-4 w-4" />
+            {isMobile ? 'Rapport mensuel' : 'Générer la fin de mois'}
+          </Button>
+        </div>
       </div>
       
       <ReadingStatsCards
