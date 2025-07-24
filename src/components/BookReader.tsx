@@ -12,6 +12,7 @@ import { BannerAd } from '@/components/BannerAd';
 import { RewardAd } from '@/components/RewardAd';
 import { InteractiveBookReader } from '@/components/InteractiveBookReader';
 import { EmbeddedPDFReader } from '@/components/EmbeddedPDFReader';
+import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 
 interface BookReaderProps {
   book: Book;
@@ -32,6 +33,8 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const [highContrast, setHighContrast] = useState(false);
   const [showRewardAd, setShowRewardAd] = useState(false);
   const [pdfFinished, setPdfFinished] = useState(false);
+  const [showAgeVerification, setShowAgeVerification] = useState(book.isAdultContent);
+  const [ageVerified, setAgeVerified] = useState(false);
   
   const isAlreadyRead = userStats.booksRead.includes(book.id);
   const isPremium = subscription.isPremium;
@@ -90,6 +93,27 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
       variant: "destructive"
     });
   };
+
+  const handleAgeVerified = () => {
+    setAgeVerified(true);
+    setShowAgeVerification(false);
+  };
+
+  const handleAgeVerificationCanceled = () => {
+    setShowAgeVerification(false);
+    onBack();
+  };
+
+  // If age verification is needed and not yet verified, show only the verification dialog
+  if (book.isAdultContent && !ageVerified) {
+    return (
+      <AgeVerificationDialog
+        isOpen={showAgeVerification}
+        onConfirm={handleAgeVerified}
+        onCancel={handleAgeVerificationCanceled}
+      />
+    );
+  }
   
   return (
     <>

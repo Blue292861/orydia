@@ -337,6 +337,17 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
         </Label>
       </div>
 
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="isAdultContent"
+          checked={book.isAdultContent}
+          onCheckedChange={(checked) => setBook(prev => ({ ...prev, isAdultContent: checked }))}
+        />
+        <Label htmlFor="isAdultContent" className="cursor-pointer">
+          Contenu +16 ans
+        </Label>
+      </div>
+
       <div className="grid gap-2">
         <Label>Étiquettes</Label>
         <TagInput tags={book.tags} onTagsChange={handleTagsChange} />

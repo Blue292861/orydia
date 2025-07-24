@@ -13,6 +13,7 @@ export interface Book {
   isPacoFavourite: boolean;
   hasChapters: boolean;
   isInteractive: boolean;
+  isAdultContent: boolean;
 }
 
 export interface Chapter {

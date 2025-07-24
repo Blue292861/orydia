@@ -27,6 +27,7 @@ export const fetchBooksFromDB = async (): Promise<Book[]> => {
     isPacoFavourite: book.is_paco_favourite,
     hasChapters: book.has_chapters || false,
     isInteractive: book.is_interactive || false,
+    isAdultContent: false, // Default value for existing books
   }));
 
   return mappedBooks;
@@ -48,6 +49,7 @@ export const addBookToDB = async (book: Book): Promise<void> => {
       is_paco_favourite: book.isPacoFavourite,
       has_chapters: book.hasChapters,
       is_interactive: book.isInteractive,
+      is_adult_content: book.isAdultContent,
     });
 
   if (error) {
@@ -72,6 +74,7 @@ export const updateBookInDB = async (book: Book): Promise<void> => {
       is_paco_favourite: book.isPacoFavourite,
       has_chapters: book.hasChapters,
       is_interactive: book.isInteractive,
+      is_adult_content: book.isAdultContent,
     })
     .eq('id', book.id);
 
