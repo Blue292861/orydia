@@ -195,6 +195,7 @@ export type Database = {
           created_at: string
           has_chapters: boolean
           id: string
+          is_adult_content: boolean
           is_interactive: boolean
           is_month_success: boolean
           is_paco_favourite: boolean
@@ -212,6 +213,7 @@ export type Database = {
           created_at?: string
           has_chapters?: boolean
           id?: string
+          is_adult_content?: boolean
           is_interactive?: boolean
           is_month_success?: boolean
           is_paco_favourite?: boolean
@@ -229,6 +231,7 @@ export type Database = {
           created_at?: string
           has_chapters?: boolean
           id?: string
+          is_adult_content?: boolean
           is_interactive?: boolean
           is_month_success?: boolean
           is_paco_favourite?: boolean
@@ -512,48 +515,60 @@ export type Database = {
       }
       shop_items: {
         Row: {
+          additional_images: string[] | null
+          available_sizes: string[] | null
           category: string
           content: string | null
           created_at: string
           description: string
           id: string
           image_url: string
+          is_clothing: boolean
           is_on_sale: boolean
           is_temporary: boolean | null
           name: string
           price: number
+          product_id: string | null
           sale_price: number | null
           seller: string
           tags: string[] | null
           updated_at: string
         }
         Insert: {
+          additional_images?: string[] | null
+          available_sizes?: string[] | null
           category: string
           content?: string | null
           created_at?: string
           description: string
           id?: string
           image_url: string
+          is_clothing?: boolean
           is_on_sale?: boolean
           is_temporary?: boolean | null
           name: string
           price: number
+          product_id?: string | null
           sale_price?: number | null
           seller: string
           tags?: string[] | null
           updated_at?: string
         }
         Update: {
+          additional_images?: string[] | null
+          available_sizes?: string[] | null
           category?: string
           content?: string | null
           created_at?: string
           description?: string
           id?: string
           image_url?: string
+          is_clothing?: boolean
           is_on_sale?: boolean
           is_temporary?: boolean | null
           name?: string
           price?: number
+          product_id?: string | null
           sale_price?: number | null
           seller?: string
           tags?: string[] | null
