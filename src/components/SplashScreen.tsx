@@ -49,42 +49,34 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
         <div 
           className={`
             absolute inset-0 flex items-center justify-center
-            transition-all duration-1500 ease-out
-            ${stage === 'first-image' ? 'opacity-100 page-turn-0' : 
-              stage === 'turning-1' ? 'opacity-100 page-turn-right' : 
+            transition-opacity duration-1000 ease-out
+            ${stage === 'first-image' ? 'opacity-100' : 
+              stage === 'turning-1' ? 'opacity-0' : 
               'opacity-0'}
           `}
-          style={{ transformStyle: 'preserve-3d' }}
         >
-          <div className="relative backface-hidden">
-            <img 
-              src="/lovable-uploads/5e38b74d-d359-40b2-9b2a-fc6a285acb97.png"
-              alt="Neptune Group et Neptune Editions"
-              className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
-            />
-            <div className="absolute inset-0 bg-gradient-to-l from-black/20 to-transparent opacity-0 transition-opacity duration-500 pointer-events-none" />
-          </div>
+          <img 
+            src="/lovable-uploads/5e38b74d-d359-40b2-9b2a-fc6a285acb97.png"
+            alt="Neptune Group et Neptune Editions"
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+          />
         </div>
 
         {/* Page droite - Deuxième image */}
         <div 
           className={`
             absolute inset-0 flex items-center justify-center
-            transition-all duration-1500 ease-out
-            ${stage === 'second-image' ? 'opacity-100 page-turn-0' : 
-              stage === 'turning-2' ? 'opacity-100 page-turn-left' : 
-              stage === 'turning-1' ? 'opacity-0' : 'opacity-0'}
+            transition-opacity duration-1000 ease-out
+            ${stage === 'second-image' ? 'opacity-100' : 
+              stage === 'turning-2' ? 'opacity-0' : 
+              'opacity-0'}
           `}
-          style={{ transformStyle: 'preserve-3d' }}
         >
-          <div className="relative backface-hidden">
-            <img 
-              src="/lovable-uploads/42bd291d-6f9c-4dbe-a698-7260960f8687.png"
-              alt="Orydia"
-              className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent opacity-0 transition-opacity duration-500 pointer-events-none" />
-          </div>
+          <img 
+            src="/lovable-uploads/42bd291d-6f9c-4dbe-a698-7260960f8687.png"
+            alt="Orydia"
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+          />
         </div>
 
         {/* Effets de particules */}
