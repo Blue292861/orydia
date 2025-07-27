@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Upload, FileImage, FileText, FileAudio, Loader2, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { PDFExtractor } from './PDFExtractor';
+
 import { 
   validateFileType, 
   validateFileSize, 
@@ -39,9 +39,6 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
   const [lastError, setLastError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [isConnected, setIsConnected] = useState(true);
-  const [pdfExtractorOpen, setPdfExtractorOpen] = useState(false);
-  const [pdfDataUrl, setPdfDataUrl] = useState('');
-  const [pdfFileName, setPdfFileName] = useState('');
 
   const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -455,17 +452,6 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
           </div>
         )}
       </div>
-      
-      <PDFExtractor
-        isOpen={pdfExtractorOpen}
-        onClose={() => setPdfExtractorOpen(false)}
-        pdfDataUrl={pdfDataUrl}
-        fileName={pdfFileName}
-        onTextExtracted={(text) => {
-          onFileImport(text);
-          setPdfExtractorOpen(false);
-        }}
-      />
     </>
   );
 };
