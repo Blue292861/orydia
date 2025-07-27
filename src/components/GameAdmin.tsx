@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { FileImport } from "@/components/FileImport";
+import { PDFExtractor } from "@/components/PDFExtractor";
 import { Trash2, Edit, Plus, FileText, ArrowRight } from "lucide-react";
 import { gameService } from "@/services/gameService";
 import { Game, GameChapter, GameChoice } from "@/types/Game";
@@ -41,6 +42,10 @@ export function GameAdmin() {
     is_ending: false,
     ending_reward_points: 0
   });
+
+  const [pdfExtractorOpen, setPdfExtractorOpen] = useState(false);
+  const [pdfDataUrl, setPdfDataUrl] = useState('');
+  const [pdfFileName, setPdfFileName] = useState('');
 
   const [choiceForm, setChoiceForm] = useState({
     choice_text: '',
@@ -168,6 +173,20 @@ export function GameAdmin() {
     } catch (error) {
       toast.error("Erreur lors de la suppression");
     }
+  };
+
+  const handlePdfImport = (pdfDataUrl: string) => {
+    // Extraire le nom du fichier de l'URL si possible
+    const fileName = `chapitre-${chapterForm.chapter_number}.pdf`;
+    setPdfDataUrl(pdfDataUrl);
+    setPdfFileName(fileName);
+    setPdfExtractorOpen(true);
+  };
+
+  const handleTextExtracted = (extractedText: string) => {
+    setChapterForm(prev => ({ ...prev, content: extractedText }));
+    setPdfExtractorOpen(false);
+    toast.success("Contenu du PDF importé avec succès !");
   };
 
   if (loading) {
@@ -325,12 +344,24 @@ export function GameAdmin() {
                       </div>
                       <div>
                         <Label htmlFor="chapter_content">Contenu</Label>
-                        <Textarea
-                          id="chapter_content"
-                          value={chapterForm.content}
-                          onChange={(e) => setChapterForm(prev => ({ ...prev, content: e.target.value }))}
-                          rows={6}
-                        />
+                        <div className="space-y-2">
+                          <Textarea
+                            id="chapter_content"
+                            value={chapterForm.content}
+                            onChange={(e) => setChapterForm(prev => ({ ...prev, content: e.target.value }))}
+                            rows={6}
+                            placeholder="Saisissez le contenu du chapitre ou importez un PDF"
+                          />
+                          <div className="flex items-center gap-2">
+                            <FileImport 
+                              type="pdf" 
+                              onFileImport={handlePdfImport}
+                            />
+                            <p className="text-sm text-muted-foreground">
+                              Importez un PDF pour extraire automatiquement le contenu
+                            </p>
+                          </div>
+                        </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Label htmlFor="is_ending">Chapitre de fin</Label>
@@ -462,6 +493,15 @@ export function GameAdmin() {
           )}
         </TabsContent>
       </Tabs>
+      
+      {/* PDF Extractor Dialog */}
+      <PDFExtractor
+        isOpen={pdfExtractorOpen}
+        onClose={() => setPdfExtractorOpen(false)}
+        pdfDataUrl={pdfDataUrl}
+        fileName={pdfFileName}
+        onTextExtracted={handleTextExtracted}
+      />
     </div>
   );
 }
