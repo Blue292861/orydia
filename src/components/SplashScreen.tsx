@@ -9,19 +9,19 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
 
   useEffect(() => {
     const timers = [
-      // Livre qui s'ouvre (1.5s)
-      setTimeout(() => setStage('first-image'), 1500),
-      // Première image visible (2s)
-      setTimeout(() => setStage('turning-1'), 3500),
-      // Transition page qui se tourne (1s)
-      setTimeout(() => setStage('second-image'), 4500),
-      // Deuxième image visible (2s)
-      setTimeout(() => setStage('turning-2'), 6500),
-      // Transition finale (1s)
+      // Livre qui s'ouvre (2s)
+      setTimeout(() => setStage('first-image'), 2000),
+      // Première image visible (2.5s)
+      setTimeout(() => setStage('turning-1'), 4500),
+      // Transition page qui se tourne (1.5s)
+      setTimeout(() => setStage('second-image'), 6000),
+      // Deuxième image visible (2.5s)
+      setTimeout(() => setStage('turning-2'), 8500),
+      // Transition finale (1.5s)
       setTimeout(() => {
         setStage('complete');
         onComplete();
-      }, 7500),
+      }, 10000),
     ];
 
     return () => timers.forEach(clearTimeout);
@@ -49,36 +49,42 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
         <div 
           className={`
             absolute inset-0 flex items-center justify-center
-            transition-all duration-1000 ease-out origin-right
-            ${stage === 'first-image' ? 'rotateY-0 opacity-100' : 
-              stage === 'turning-1' ? 'rotateY-180 opacity-0' : 
-              'rotateY-0 opacity-0'}
+            transition-all duration-1500 ease-out
+            ${stage === 'first-image' ? 'opacity-100 page-turn-0' : 
+              stage === 'turning-1' ? 'opacity-100 page-turn-right' : 
+              'opacity-0'}
           `}
           style={{ transformStyle: 'preserve-3d' }}
         >
-          <img 
-            src="/lovable-uploads/5e38b74d-d359-40b2-9b2a-fc6a285acb97.png"
-            alt="Neptune Group et Neptune Editions"
-            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
-          />
+          <div className="relative backface-hidden">
+            <img 
+              src="/lovable-uploads/5e38b74d-d359-40b2-9b2a-fc6a285acb97.png"
+              alt="Neptune Group et Neptune Editions"
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            />
+            <div className="absolute inset-0 bg-gradient-to-l from-black/20 to-transparent opacity-0 transition-opacity duration-500 pointer-events-none" />
+          </div>
         </div>
 
         {/* Page droite - Deuxième image */}
         <div 
           className={`
             absolute inset-0 flex items-center justify-center
-            transition-all duration-1000 ease-out origin-left
-            ${stage === 'second-image' ? 'rotateY-0 opacity-100' : 
-              stage === 'turning-2' ? 'rotateY-180 opacity-0' : 
-              'rotateY-180 opacity-0'}
+            transition-all duration-1500 ease-out
+            ${stage === 'second-image' ? 'opacity-100 page-turn-0' : 
+              stage === 'turning-2' ? 'opacity-100 page-turn-left' : 
+              stage === 'turning-1' ? 'opacity-0' : 'opacity-0'}
           `}
           style={{ transformStyle: 'preserve-3d' }}
         >
-          <img 
-            src="/lovable-uploads/42bd291d-6f9c-4dbe-a698-7260960f8687.png"
-            alt="Orydia"
-            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
-          />
+          <div className="relative backface-hidden">
+            <img 
+              src="/lovable-uploads/42bd291d-6f9c-4dbe-a698-7260960f8687.png"
+              alt="Orydia"
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent opacity-0 transition-opacity duration-500 pointer-events-none" />
+          </div>
         </div>
 
         {/* Effets de particules */}

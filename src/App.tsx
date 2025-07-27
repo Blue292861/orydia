@@ -25,7 +25,7 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/auth" element={!session ? <AuthPage /> : <Navigate to="/" />} />
+      <Route path="/auth" element={<AuthPage />} />
       <Route path="/*" element={session ? <Index /> : <Navigate to="/auth" />} />
     </Routes>
   );

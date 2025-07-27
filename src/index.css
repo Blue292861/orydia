@@ -112,12 +112,8 @@
     perspective: 1000px;
   }
 
-  .rotateY-0 {
+  .page-turn-0 {
     transform: rotateY(0deg);
-  }
-
-  .rotateY-180 {
-    transform: rotateY(-180deg);
   }
 
   .preserve-3d {
@@ -147,25 +143,41 @@
 
 @keyframes page-turn-right {
   0% {
-    transform: perspective(1000px) rotateY(0deg);
+    transform: perspective(1000px) rotateY(0deg) translateZ(0px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   }
-  50% {
-    transform: perspective(1000px) rotateY(-90deg);
+  25% {
+    transform: perspective(1000px) rotateY(-45deg) translateZ(50px);
+    box-shadow: 20px 15px 40px rgba(0, 0, 0, 0.5);
+  }
+  75% {
+    transform: perspective(1000px) rotateY(-135deg) translateZ(50px);
+    box-shadow: -20px 15px 40px rgba(0, 0, 0, 0.5);
   }
   100% {
-    transform: perspective(1000px) rotateY(-180deg);
+    transform: perspective(1000px) rotateY(-180deg) translateZ(0px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    opacity: 0;
   }
 }
 
 @keyframes page-turn-left {
   0% {
-    transform: perspective(1000px) rotateY(-180deg);
+    transform: perspective(1000px) rotateY(0deg) translateZ(0px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   }
-  50% {
-    transform: perspective(1000px) rotateY(-90deg);
+  25% {
+    transform: perspective(1000px) rotateY(45deg) translateZ(50px);
+    box-shadow: -20px 15px 40px rgba(0, 0, 0, 0.5);
+  }
+  75% {
+    transform: perspective(1000px) rotateY(135deg) translateZ(50px);
+    box-shadow: 20px 15px 40px rgba(0, 0, 0, 0.5);
   }
   100% {
-    transform: perspective(1000px) rotateY(0deg);
+    transform: perspective(1000px) rotateY(180deg) translateZ(0px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    opacity: 0;
   }
 }
 
@@ -174,11 +186,11 @@
 }
 
 .page-turn-right {
-  animation: page-turn-right 1s ease-in-out forwards;
+  animation: page-turn-right 1.5s ease-in-out forwards;
 }
 
 .page-turn-left {
-  animation: page-turn-left 1s ease-in-out forwards;
+  animation: page-turn-left 1.5s ease-in-out forwards;
 }
 
 /* Particules flottantes */
