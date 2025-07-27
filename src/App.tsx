@@ -40,8 +40,8 @@ const AppContent = () => {
     );
   }
 
-  // Si on est sur la page d'auth, afficher directement AuthPage
-  if (isAuthPage || !session) {
+  // Si pas de session, aller à la page d'auth
+  if (!session) {
     return (
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
@@ -50,8 +50,8 @@ const AppContent = () => {
     );
   }
 
-  // Si on est connecté et sur une autre page
-  if (showSplash && !isAuthPage) {
+  // Si connecté, afficher le splash puis l'app
+  if (showSplash) {
     return <SplashScreen onComplete={handleSplashComplete} />;
   }
 
