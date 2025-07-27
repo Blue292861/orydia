@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { FileImport } from "@/components/FileImport";
 import { Trash2, Edit, Plus, FileText, ArrowRight } from "lucide-react";
 import { gameService } from "@/services/gameService";
 import { Game, GameChapter, GameChoice } from "@/types/Game";
@@ -214,12 +215,23 @@ export function GameAdmin() {
                 />
               </div>
               <div>
-                <Label htmlFor="cover_url">URL de l'image de couverture</Label>
-                <Input
-                  id="cover_url"
-                  value={gameForm.cover_url}
-                  onChange={(e) => setGameForm(prev => ({ ...prev, cover_url: e.target.value }))}
-                />
+                <Label htmlFor="cover_url">Image de couverture</Label>
+                <div className="space-y-2">
+                  <Input
+                    id="cover_url"
+                    type="text"
+                    value={gameForm.cover_url}
+                    onChange={(e) => setGameForm(prev => ({ ...prev, cover_url: e.target.value }))}
+                    placeholder="URL de l'image ou importer un fichier"
+                  />
+                  <FileImport 
+                    type="image" 
+                    onFileImport={(dataUrl) => setGameForm(prev => ({ ...prev, cover_url: dataUrl }))} 
+                  />
+                </div>
+                {gameForm.cover_url && (
+                  <img src={gameForm.cover_url} alt="Aperçu" className="mt-2 h-20 w-20 object-cover rounded-md" />
+                )}
               </div>
               <div>
                 <Label htmlFor="points_reward">Points de récompense</Label>
