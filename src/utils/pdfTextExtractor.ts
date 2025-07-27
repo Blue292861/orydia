@@ -1,21 +1,3 @@
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Configuration de PDF.js pour Vite - utilisation du worker local
-try {
-  const workerUrl = new URL(
-    'pdfjs-dist/build/pdf.worker.min.js',
-    import.meta.url
-  ).toString();
-  pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
-  console.log('✅ Worker PDF.js configuré avec URL locale:', workerUrl);
-} catch (error) {
-  // Fallback si l'URL locale ne fonctionne pas
-  console.warn('⚠️ Worker local non disponible, utilisation du CDN:', error);
-  const fallbackUrl = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
-  pdfjsLib.GlobalWorkerOptions.workerSrc = fallbackUrl;
-  console.log('🔄 Worker PDF.js configuré avec CDN:', fallbackUrl);
-}
-
 interface PDFExtractionResult {
   success: boolean;
   text?: string;
@@ -24,86 +6,125 @@ interface PDFExtractionResult {
 
 export const extractTextFromPDF = async (file: File): Promise<PDFExtractionResult> => {
   try {
-    console.log('🔄 Début de l\'extraction PDF automatique...');
+    console.log('🔄 Début de l\'extraction PDF avec solution alternative...');
     
-    // Convertir le fichier en ArrayBuffer
-    const arrayBuffer = await file.arrayBuffer();
+    // Créer un FormData pour envoyer le PDF à un service d'extraction
+    const formData = new FormData();
+    formData.append('file', file);
     
-    // Charger le document PDF
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    console.log(`📄 PDF chargé: ${pdf.numPages} page(s)`);
-    
-    let fullText = '';
-    
-    // Extraire le texte de chaque page
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      try {
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        
-        // Combiner tous les éléments de texte de la page
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ')
-          .trim();
-        
-        if (pageText) {
-          fullText += pageText + '\n\n';
+    // Utiliser l'API de Mozilla PDF.js via CDN en mode direct
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      
+      reader.onload = async function(event) {
+        try {
+          const arrayBuffer = event.target?.result as ArrayBuffer;
+          
+          // Charger PDF.js dynamiquement depuis CDN
+          const script = document.createElement('script');
+          script.src = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js';
+          
+          script.onload = async () => {
+            try {
+              // @ts-ignore - PDF.js sera disponible globalement
+              const pdfjsLib = window.pdfjsLib;
+              pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+              
+              console.log('📚 PDF.js chargé dynamiquement');
+              
+              const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+              console.log(`📄 PDF chargé: ${pdf.numPages} page(s)`);
+              
+              let fullText = '';
+              
+              for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                try {
+                  const page = await pdf.getPage(pageNum);
+                  const textContent = await page.getTextContent();
+                  
+                  const pageText = textContent.items
+                    .map((item: any) => item.str)
+                    .join(' ')
+                    .trim();
+                  
+                  if (pageText) {
+                    fullText += pageText + '\n\n';
+                  }
+                  
+                  console.log(`✅ Page ${pageNum}/${pdf.numPages} extraite`);
+                } catch (pageError) {
+                  console.error(`❌ Erreur page ${pageNum}:`, pageError);
+                }
+              }
+              
+              if (!fullText.trim()) {
+                resolve({
+                  success: false,
+                  error: 'Aucun texte extractible trouvé dans le PDF'
+                });
+                return;
+              }
+              
+              const cleanedText = fullText
+                .replace(/\s+/g, ' ')
+                .replace(/\n\s*\n/g, '\n\n')
+                .trim();
+              
+              console.log(`🎉 Extraction terminée: ${cleanedText.length} caractères`);
+              
+              resolve({
+                success: true,
+                text: cleanedText
+              });
+              
+            } catch (error) {
+              console.error('💥 Erreur PDF.js dynamique:', error);
+              resolve({
+                success: false,
+                error: 'Erreur lors de l\'extraction avec PDF.js'
+              });
+            }
+          };
+          
+          script.onerror = () => {
+            console.error('💥 Impossible de charger PDF.js');
+            resolve({
+              success: false,
+              error: 'Impossible de charger la bibliothèque PDF.js'
+            });
+          };
+          
+          document.head.appendChild(script);
+          
+        } catch (error) {
+          console.error('💥 Erreur lecture fichier:', error);
+          resolve({
+            success: false,
+            error: 'Erreur lors de la lecture du fichier PDF'
+          });
         }
-        
-        console.log(`✅ Page ${pageNum}/${pdf.numPages} extraite`);
-      } catch (pageError) {
-        console.error(`❌ Erreur page ${pageNum}:`, pageError);
-        // Continuer avec les autres pages même si une page échoue
-      }
-    }
-    
-    if (!fullText.trim()) {
-      return {
-        success: false,
-        error: 'Aucun texte extractible trouvé dans le PDF. Le PDF pourrait contenir uniquement des images ou être protégé.'
       };
-    }
-    
-    // Nettoyer le texte extrait
-    const cleanedText = fullText
-      .replace(/\s+/g, ' ') // Remplacer les espaces multiples par un seul
-      .replace(/\n\s*\n/g, '\n\n') // Nettoyer les sauts de ligne multiples
-      .trim();
-    
-    console.log(`🎉 Extraction terminée: ${cleanedText.length} caractères`);
-    
-    return {
-      success: true,
-      text: cleanedText
-    };
+      
+      reader.onerror = () => {
+        resolve({
+          success: false,
+          error: 'Erreur lors de la lecture du fichier'
+        });
+      };
+      
+      reader.readAsArrayBuffer(file);
+    });
     
   } catch (error) {
-    console.error('💥 Erreur lors de l\'extraction PDF:', error);
-    
-    let errorMessage = 'Erreur inconnue lors de l\'extraction';
-    
-    if (error instanceof Error) {
-      if (error.message.includes('Invalid PDF')) {
-        errorMessage = 'Le fichier PDF est invalide ou corrompu';
-      } else if (error.message.includes('Password')) {
-        errorMessage = 'Le PDF est protégé par mot de passe';
-      } else if (error.message.includes('fetch')) {
-        errorMessage = 'Erreur de réseau lors du chargement du PDF';
-      } else {
-        errorMessage = error.message;
-      }
-    }
-    
+    console.error('💥 Erreur générale:', error);
     return {
       success: false,
-      error: errorMessage
+      error: 'Erreur technique lors du traitement du PDF'
     };
   }
 };
 
 export const validatePDFFile = (file: File): { valid: boolean; error?: string } => {
-  // Vérifier le type MIME
   if (!file.type.includes('pdf')) {
     return {
       valid: false,
@@ -111,7 +132,6 @@ export const validatePDFFile = (file: File): { valid: boolean; error?: string } 
     };
   }
   
-  // Vérifier la taille (max 25MB comme défini dans FileImport)
   const maxSize = 25 * 1024 * 1024; // 25MB
   if (file.size > maxSize) {
     return {
