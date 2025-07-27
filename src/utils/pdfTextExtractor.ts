@@ -1,7 +1,20 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configuration de PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Configuration de PDF.js pour Vite - utilisation du worker local
+try {
+  const workerUrl = new URL(
+    'pdfjs-dist/build/pdf.worker.min.js',
+    import.meta.url
+  ).toString();
+  pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+  console.log('✅ Worker PDF.js configuré avec URL locale:', workerUrl);
+} catch (error) {
+  // Fallback si l'URL locale ne fonctionne pas
+  console.warn('⚠️ Worker local non disponible, utilisation du CDN:', error);
+  const fallbackUrl = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = fallbackUrl;
+  console.log('🔄 Worker PDF.js configuré avec CDN:', fallbackUrl);
+}
 
 interface PDFExtractionResult {
   success: boolean;
