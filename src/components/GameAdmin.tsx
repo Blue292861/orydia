@@ -17,6 +17,7 @@ import { Game, GameChapter, GameChoice } from "@/types/Game";
 import { toast } from "sonner";
 
 export function GameAdmin() {
+  console.log('GameAdmin component loading - PDFExtractor should be removed');
   const [games, setGames] = useState<Game[]>([]);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [chapters, setChapters] = useState<GameChapter[]>([]);
