@@ -5,7 +5,7 @@ interface SplashScreenProps {
 }
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
-  const [stage, setStage] = useState<'opening' | 'first-image' | 'turning-1' | 'second-image' | 'turning-2' | 'complete'>('opening');
+  const [stage, setStage] = useState<'opening' | 'first-image' | 'turning-1' | 'second-image' | 'turning-2' | 'black-pause' | 'complete'>('opening');
 
   useEffect(() => {
     const timers = [
@@ -17,11 +17,13 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
       setTimeout(() => setStage('second-image'), 3000),
       // Deuxième image visible (1.5s)
       setTimeout(() => setStage('turning-2'), 4500),
-      // Transition finale (0.5s)
+      // Fondu au noir (0.5s)
+      setTimeout(() => setStage('black-pause'), 5000),
+      // Pause sur noir (1s)
       setTimeout(() => {
         setStage('complete');
         onComplete();
-      }, 5000),
+      }, 6000),
     ];
 
     return () => timers.forEach(clearTimeout);
@@ -104,7 +106,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
           className={`
             absolute inset-0 bg-background
             transition-opacity duration-1000 ease-out
-            ${stage === 'complete' ? 'opacity-100' : 'opacity-0'}
+            ${stage === 'black-pause' || stage === 'complete' ? 'opacity-100' : 'opacity-0'}
           `}
         />
       </div>
