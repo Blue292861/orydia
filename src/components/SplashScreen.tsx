@@ -9,21 +9,19 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
 
   useEffect(() => {
     const timers = [
-      // Livre qui s'ouvre (1s)
-      setTimeout(() => setStage('first-image'), 1000),
-      // Première image visible (1.5s)
-      setTimeout(() => setStage('turning-1'), 2500),
-      // Premier fondu au noir (7s)
-      setTimeout(() => setStage('second-image'), 9500),
-      // Deuxième image visible (1.5s)
-      setTimeout(() => setStage('turning-2'), 11000),
-      // Deuxième fondu au noir (7s)
-      setTimeout(() => setStage('black-pause'), 18000),
-      // Pause sur noir (1s)
+      // Apparition de la première image (2.5s)
+      setTimeout(() => setStage('first-image'), 2500),
+      // Première image persiste (1.5s)
+      setTimeout(() => setStage('turning-1'), 4000),
+      // Fondu vers la deuxième image (3s)
+      setTimeout(() => setStage('second-image'), 7000),
+      // Deuxième image persiste (1.5s)
+      setTimeout(() => setStage('turning-2'), 8500),
+      // Fondu vers la page d'accueil (3s)
       setTimeout(() => {
         setStage('complete');
         onComplete();
-      }, 19000),
+      }, 11500),
     ];
 
     return () => timers.forEach(clearTimeout);
