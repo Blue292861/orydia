@@ -143,39 +143,45 @@
 
 @keyframes page-turn-right {
   0% {
-    transform: perspective(1000px) rotateY(0deg) rotateX(0deg) skewY(0deg);
+    transform: perspective(1000px) rotateY(0deg) rotateX(0deg) skewY(0deg) scaleY(1);
     transform-origin: bottom right;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   }
-  15% {
-    transform: perspective(1000px) rotateY(-10deg) rotateX(5deg) skewY(2deg);
+  10% {
+    transform: perspective(1000px) rotateY(-5deg) rotateX(8deg) skewY(3deg) scaleY(0.98);
     transform-origin: bottom right;
-    box-shadow: 5px 10px 20px rgba(0, 0, 0, 0.3);
-    clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 0% 100%);
+    box-shadow: 3px 8px 15px rgba(0, 0, 0, 0.2);
+    clip-path: polygon(0% 0%, 100% 0%, 98% 95%, 0% 100%);
   }
-  30% {
-    transform: perspective(1000px) rotateY(-30deg) rotateX(15deg) skewY(5deg);
+  25% {
+    transform: perspective(1000px) rotateY(-20deg) rotateX(20deg) skewY(8deg) scaleY(0.92);
     transform-origin: bottom right;
-    box-shadow: 10px 15px 30px rgba(0, 0, 0, 0.4);
-    clip-path: polygon(0% 0%, 100% 0%, 85% 100%, 0% 100%);
+    box-shadow: 8px 15px 25px rgba(0, 0, 0, 0.3);
+    clip-path: polygon(0% 0%, 100% 0%, 90% 85%, 0% 100%);
   }
-  60% {
-    transform: perspective(1000px) rotateY(-90deg) rotateX(25deg) skewY(8deg);
+  50% {
+    transform: perspective(1000px) rotateY(-60deg) rotateX(35deg) skewY(15deg) scaleY(0.85);
     transform-origin: bottom right;
-    box-shadow: 20px 25px 45px rgba(0, 0, 0, 0.6);
-    clip-path: polygon(0% 0%, 100% 0%, 70% 100%, 0% 100%);
+    box-shadow: 15px 25px 40px rgba(0, 0, 0, 0.5);
+    clip-path: polygon(0% 0%, 100% 0%, 75% 70%, 0% 100%);
   }
-  85% {
-    transform: perspective(1000px) rotateY(-150deg) rotateX(15deg) skewY(3deg);
+  75% {
+    transform: perspective(1000px) rotateY(-120deg) rotateX(25deg) skewY(10deg) scaleY(0.9);
     transform-origin: bottom right;
-    box-shadow: -10px 15px 30px rgba(0, 0, 0, 0.4);
-    clip-path: polygon(0% 0%, 100% 0%, 85% 100%, 0% 100%);
+    box-shadow: -5px 20px 35px rgba(0, 0, 0, 0.4);
+    clip-path: polygon(0% 0%, 100% 0%, 85% 80%, 0% 100%);
+  }
+  90% {
+    transform: perspective(1000px) rotateY(-165deg) rotateX(10deg) skewY(4deg) scaleY(0.96);
+    transform-origin: bottom right;
+    box-shadow: -3px 10px 20px rgba(0, 0, 0, 0.2);
+    clip-path: polygon(0% 0%, 100% 0%, 95% 90%, 0% 100%);
   }
   100% {
-    transform: perspective(1000px) rotateY(-180deg) rotateX(0deg) skewY(0deg);
+    transform: perspective(1000px) rotateY(-180deg) rotateX(0deg) skewY(0deg) scaleY(1);
     transform-origin: bottom right;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
     opacity: 0;
   }
@@ -183,39 +189,45 @@
 
 @keyframes page-turn-left {
   0% {
-    transform: perspective(1000px) rotateY(0deg) rotateX(0deg) skewY(0deg);
+    transform: perspective(1000px) rotateY(0deg) rotateX(0deg) skewY(0deg) scaleY(1);
     transform-origin: bottom right;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   }
-  15% {
-    transform: perspective(1000px) rotateY(10deg) rotateX(5deg) skewY(-2deg);
+  10% {
+    transform: perspective(1000px) rotateY(5deg) rotateX(8deg) skewY(-3deg) scaleY(0.98);
     transform-origin: bottom right;
-    box-shadow: -5px 10px 20px rgba(0, 0, 0, 0.3);
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 5% 100%);
+    box-shadow: -3px 8px 15px rgba(0, 0, 0, 0.2);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 95%, 2% 100%);
   }
-  30% {
-    transform: perspective(1000px) rotateY(30deg) rotateX(15deg) skewY(-5deg);
+  25% {
+    transform: perspective(1000px) rotateY(20deg) rotateX(20deg) skewY(-8deg) scaleY(0.92);
     transform-origin: bottom right;
-    box-shadow: -10px 15px 30px rgba(0, 0, 0, 0.4);
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 15% 100%);
+    box-shadow: -8px 15px 25px rgba(0, 0, 0, 0.3);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 85%, 10% 100%);
   }
-  60% {
-    transform: perspective(1000px) rotateY(90deg) rotateX(25deg) skewY(-8deg);
+  50% {
+    transform: perspective(1000px) rotateY(60deg) rotateX(35deg) skewY(-15deg) scaleY(0.85);
     transform-origin: bottom right;
-    box-shadow: -20px 25px 45px rgba(0, 0, 0, 0.6);
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 30% 100%);
+    box-shadow: -15px 25px 40px rgba(0, 0, 0, 0.5);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 70%, 25% 100%);
   }
-  85% {
-    transform: perspective(1000px) rotateY(150deg) rotateX(15deg) skewY(-3deg);
+  75% {
+    transform: perspective(1000px) rotateY(120deg) rotateX(25deg) skewY(-10deg) scaleY(0.9);
     transform-origin: bottom right;
-    box-shadow: 10px 15px 30px rgba(0, 0, 0, 0.4);
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 15% 100%);
+    box-shadow: 5px 20px 35px rgba(0, 0, 0, 0.4);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 80%, 15% 100%);
+  }
+  90% {
+    transform: perspective(1000px) rotateY(165deg) rotateX(10deg) skewY(-4deg) scaleY(0.96);
+    transform-origin: bottom right;
+    box-shadow: 3px 10px 20px rgba(0, 0, 0, 0.2);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 90%, 5% 100%);
   }
   100% {
-    transform: perspective(1000px) rotateY(180deg) rotateX(0deg) skewY(0deg);
+    transform: perspective(1000px) rotateY(180deg) rotateX(0deg) skewY(0deg) scaleY(1);
     transform-origin: bottom right;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
     opacity: 0;
   }
