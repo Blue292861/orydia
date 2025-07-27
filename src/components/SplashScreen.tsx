@@ -13,15 +13,15 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
       setTimeout(() => setStage('first-image'), 2500),
       // Première image persiste (1.5s)
       setTimeout(() => setStage('turning-1'), 4000),
-      // Fondu vers la deuxième image (2s)
-      setTimeout(() => setStage('second-image'), 6000),
+      // Fondu vers la deuxième image (1.5s)
+      setTimeout(() => setStage('second-image'), 5500),
       // Deuxième image persiste (2s)
-      setTimeout(() => setStage('turning-2'), 8000),
-      // Fondu vers la page d'accueil (2s)
+      setTimeout(() => setStage('turning-2'), 7500),
+      // Fondu vers la page d'accueil (1.5s)
       setTimeout(() => {
         setStage('complete');
         onComplete();
-      }, 10000),
+      }, 9000),
     ];
 
     return () => timers.forEach(clearTimeout);
