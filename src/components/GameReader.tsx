@@ -176,10 +176,25 @@ export function GameReader({ game, onBack }: GameReaderProps) {
           <CardContent className="space-y-6">
             {/* Chapter Content */}
             <div className="prose max-w-none">
-              <div 
-                className="text-base leading-relaxed whitespace-pre-wrap"
-                dangerouslySetInnerHTML={{ __html: currentChapter.content }}
-              />
+              {currentChapter.content.includes('.pdf') ? (
+                // Affichage PDF intégré
+                <div className="w-full">
+                  <iframe
+                    src={currentChapter.content}
+                    className="w-full h-[70vh] border border-gray-200 rounded-lg"
+                    title={`Chapitre ${currentChapter.chapter_number}: ${currentChapter.title}`}
+                  />
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    📄 Document PDF - Mise en page originale conservée
+                  </p>
+                </div>
+              ) : (
+                // Affichage texte classique
+                <div 
+                  className="text-base leading-relaxed whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ __html: currentChapter.content }}
+                />
+              )}
             </div>
 
             {/* Choices */}

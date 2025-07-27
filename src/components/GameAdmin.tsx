@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { FileImport } from "@/components/FileImport";
-import { SimplePDFImport } from "@/components/SimplePDFImport";
+import { PDFUpload } from "@/components/PDFUpload";
 import { Trash2, Edit, Plus, FileText, ArrowRight } from "lucide-react";
 import { gameService } from "@/services/gameService";
 import { Game, GameChapter, GameChoice } from "@/types/Game";
@@ -172,9 +172,9 @@ export function GameAdmin() {
     }
   };
 
-  const handleAutoTextExtracted = (extractedText: string) => {
-    setChapterForm(prev => ({ ...prev, content: extractedText }));
-    toast.success("Contenu du PDF extrait automatiquement !");
+  const handlePDFUploaded = (pdfUrl: string) => {
+    setChapterForm(prev => ({ ...prev, content: pdfUrl }));
+    toast.success("PDF uploadé ! Il sera affiché directement dans le lecteur.");
   };
 
   if (loading) {
@@ -341,8 +341,8 @@ export function GameAdmin() {
                             placeholder="Saisissez le contenu du chapitre ou importez un PDF"
                           />
                           <div className="space-y-2">
-                            <SimplePDFImport 
-                              onTextExtracted={handleAutoTextExtracted}
+                            <PDFUpload 
+                              onPDFUploaded={handlePDFUploaded}
                             />
                           </div>
                         </div>
