@@ -10,14 +10,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { FileImport } from "@/components/FileImport";
-import { AutoPDFImport } from "@/components/AutoPDFImport";
+import { SimplePDFImport } from "@/components/SimplePDFImport";
 import { Trash2, Edit, Plus, FileText, ArrowRight } from "lucide-react";
 import { gameService } from "@/services/gameService";
 import { Game, GameChapter, GameChoice } from "@/types/Game";
 import { toast } from "sonner";
 
 export function GameAdmin() {
-  console.log('GameAdmin component loading - PDFExtractor should be removed');
   const [games, setGames] = useState<Game[]>([]);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [chapters, setChapters] = useState<GameChapter[]>([]);
@@ -342,7 +341,7 @@ export function GameAdmin() {
                             placeholder="Saisissez le contenu du chapitre ou importez un PDF"
                           />
                           <div className="space-y-2">
-                            <AutoPDFImport 
+                            <SimplePDFImport 
                               onTextExtracted={handleAutoTextExtracted}
                             />
                           </div>
