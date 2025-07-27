@@ -105,3 +105,92 @@
     @apply bg-accent-foreground;
   }
 }
+
+/* Utilitaires pour les animations 3D du splash screen */
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .rotateY-0 {
+    transform: rotateY(0deg);
+  }
+
+  .rotateY-180 {
+    transform: rotateY(-180deg);
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+}
+
+/* Animations pour le splash screen */
+@keyframes book-open {
+  0% {
+    transform: perspective(1000px) rotateY(-90deg) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: perspective(1000px) rotateY(-45deg) scale(0.9);
+    opacity: 0.7;
+  }
+  100% {
+    transform: perspective(1000px) rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes page-turn-right {
+  0% {
+    transform: perspective(1000px) rotateY(0deg);
+  }
+  50% {
+    transform: perspective(1000px) rotateY(-90deg);
+  }
+  100% {
+    transform: perspective(1000px) rotateY(-180deg);
+  }
+}
+
+@keyframes page-turn-left {
+  0% {
+    transform: perspective(1000px) rotateY(-180deg);
+  }
+  50% {
+    transform: perspective(1000px) rotateY(-90deg);
+  }
+  100% {
+    transform: perspective(1000px) rotateY(0deg);
+  }
+}
+
+.book-open {
+  animation: book-open 1.5s ease-out forwards;
+}
+
+.page-turn-right {
+  animation: page-turn-right 1s ease-in-out forwards;
+}
+
+.page-turn-left {
+  animation: page-turn-left 1s ease-in-out forwards;
+}
+
+/* Particules flottantes */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}

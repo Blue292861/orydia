@@ -180,6 +180,9 @@ export default {
         'fade-in': 'fade-in 1s ease-out',
         'sway': 'sway 18s ease-in-out infinite alternate',
         'mystical-pulse': 'mystical-pulse 2s ease-in-out infinite',
+			},
+			perspective: {
+				'1000': '1000px',
 			}
 		}
 	},
