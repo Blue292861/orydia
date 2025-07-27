@@ -58,7 +58,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
           <img 
             src="/lovable-uploads/5e38b74d-d359-40b2-9b2a-fc6a285acb97.png"
             alt="Neptune Group et Neptune Editions"
-            className="w-full h-full object-cover"
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
           />
         </div>
 
@@ -75,7 +75,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
           <img 
             src="/lovable-uploads/42bd291d-6f9c-4dbe-a698-7260960f8687.png"
             alt="Orydia"
-            className="w-full h-full object-cover"
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
           />
         </div>
 
