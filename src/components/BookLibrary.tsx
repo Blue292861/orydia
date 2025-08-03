@@ -20,6 +20,7 @@ interface BookLibraryProps {
 export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, onGameSelect }) => {
   const { isMobile, isTablet } = useResponsive();
   const [featuredAudiobooks, setFeaturedAudiobooks] = useState<Audiobook[]>([]);
+  const [pacoChronicleAudiobooks, setPacoChronicleAudiobooks] = useState<Audiobook[]>([]);
   const [featuredGames, setFeaturedGames] = useState<Game[]>([]);
   const [previewBook, setPreviewBook] = useState<Book | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -39,11 +40,13 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
   useEffect(() => {
     const loadFeaturedContent = async () => {
       try {
-        const [audiobooks, games] = await Promise.all([
+        const [audiobooks, pacoChronicleData, games] = await Promise.all([
           audiobookService.getFeaturedAudiobooks(),
+          audiobookService.getPacoChronicleAudiobooks(),
           gameService.getFeaturedGames()
         ]);
         setFeaturedAudiobooks(audiobooks);
+        setPacoChronicleAudiobooks(pacoChronicleData);
         setFeaturedGames(games);
       } catch (error) {
         console.error('Erreur lors du chargement du contenu à la une:', error);
@@ -82,6 +85,42 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
         large={true}
         emptyMessage="Aucun livre dans cette catégorie pour le moment."
       />
+
+      {/* La Chronique de Paco */}
+      {pacoChronicleAudiobooks.length > 0 && (
+        <div className={getSpacing()}>
+          <h2 className={`font-cursive text-wood-300 px-2 flex items-center gap-2 ${
+            isMobile ? 'text-lg' : isTablet ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'
+          }`}>
+            <Headphones className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
+            La Chronique de Paco
+          </h2>
+          <div className="px-2">
+            <div className={`flex gap-4 overflow-x-auto pb-4 ${
+              isMobile ? 'scroll-smooth' : ''
+            }`}>
+              {pacoChronicleAudiobooks.map((audiobook) => (
+                <div key={audiobook.id} className="min-w-[200px] max-w-[280px]">
+                  <div className="bg-wood-800/60 border border-wood-700 rounded-lg p-4 cursor-pointer hover:bg-wood-700/60 transition-colors">
+                    <img 
+                      src={audiobook.cover_url} 
+                      alt={audiobook.name}
+                      className="w-full aspect-[2/3] object-cover rounded-md mb-3"
+                    />
+                    <h3 className="text-wood-100 font-semibold text-sm mb-1 line-clamp-2">
+                      {audiobook.name}
+                    </h3>
+                    <p className="text-wood-400 text-xs mb-2">par {audiobook.author}</p>
+                    {audiobook.points > 0 && (
+                      <div className="text-primary text-xs">+{audiobook.points} Tensens</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Audio à la une */}
       <div className={getSpacing()}>
