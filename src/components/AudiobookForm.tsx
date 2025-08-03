@@ -255,6 +255,15 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
 
         <div className="flex items-center space-x-2">
           <Checkbox
+            id="is_paco_chronicle"
+            checked={formData.is_paco_chronicle}
+            onCheckedChange={(checked) => handleChange('is_paco_chronicle', !!checked)}
+          />
+          <Label htmlFor="is_paco_chronicle">La Chronique de Paco</Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
             id="is_featured"
             checked={formData.is_featured}
             onCheckedChange={(checked) => handleChange('is_featured', !!checked)}

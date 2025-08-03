@@ -21,5 +21,16 @@ export const audiobookService = {
     
     if (error) throw error;
     return data || [];
+  },
+
+  async getPacoChronicleAudiobooks(): Promise<Audiobook[]> {
+    const { data, error } = await supabase
+      .from('audiobooks')
+      .select('*')
+      .eq('is_paco_chronicle', true)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
   }
 };
