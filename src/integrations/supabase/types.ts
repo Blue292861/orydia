@@ -615,6 +615,54 @@ export type Database = {
         }
         Relationships: []
       }
+      ui_themes: {
+        Row: {
+          accent_color: string
+          background_color: string
+          created_at: string
+          description: string | null
+          font_family: string
+          id: string
+          name: string
+          primary_color: string
+          secondary_color: string
+          text_color: string
+          theme_key: Database["public"]["Enums"]["ui_theme"]
+          updated_at: string
+          vocabulary: Json
+        }
+        Insert: {
+          accent_color: string
+          background_color: string
+          created_at?: string
+          description?: string | null
+          font_family: string
+          id?: string
+          name: string
+          primary_color: string
+          secondary_color: string
+          text_color: string
+          theme_key: Database["public"]["Enums"]["ui_theme"]
+          updated_at?: string
+          vocabulary?: Json
+        }
+        Update: {
+          accent_color?: string
+          background_color?: string
+          created_at?: string
+          description?: string | null
+          font_family?: string
+          id?: string
+          name?: string
+          primary_color?: string
+          secondary_color?: string
+          text_color?: string
+          theme_key?: Database["public"]["Enums"]["ui_theme"]
+          updated_at?: string
+          vocabulary?: Json
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -698,6 +746,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_genre_preferences: {
+        Row: {
+          created_at: string
+          genre: string
+          id: string
+          last_read_at: string | null
+          preference_score: number
+          read_count: number
+          total_time_minutes: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          genre: string
+          id?: string
+          last_read_at?: string | null
+          preference_score?: number
+          read_count?: number
+          total_time_minutes?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          genre?: string
+          id?: string
+          last_read_at?: string | null
+          preference_score?: number
+          read_count?: number
+          total_time_minutes?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -802,6 +886,36 @@ export type Database = {
           },
         ]
       }
+      user_theme_preferences: {
+        Row: {
+          admin_override_theme: Database["public"]["Enums"]["ui_theme"] | null
+          auto_theme_enabled: boolean
+          created_at: string
+          current_theme: Database["public"]["Enums"]["ui_theme"]
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_override_theme?: Database["public"]["Enums"]["ui_theme"] | null
+          auto_theme_enabled?: boolean
+          created_at?: string
+          current_theme?: Database["public"]["Enums"]["ui_theme"]
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_override_theme?: Database["public"]["Enums"]["ui_theme"] | null
+          auto_theme_enabled?: boolean
+          created_at?: string
+          current_theme?: Database["public"]["Enums"]["ui_theme"]
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -810,6 +924,18 @@ export type Database = {
       calculate_level: {
         Args: { experience_points: number }
         Returns: number
+      }
+      get_recommended_theme: {
+        Args: { p_user_id: string }
+        Returns: Database["public"]["Enums"]["ui_theme"]
+      }
+      update_genre_preference: {
+        Args: {
+          p_user_id: string
+          p_genre: string
+          p_reading_time_minutes?: number
+        }
+        Returns: undefined
       }
       user_has_role: {
         Args: {
@@ -821,6 +947,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin"
+      ui_theme:
+        | "medieval_fantasy"
+        | "science_fiction"
+        | "slice_of_life"
+        | "romance"
+        | "western"
+        | "default"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -949,6 +1082,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin"],
+      ui_theme: [
+        "medieval_fantasy",
+        "science_fiction",
+        "slice_of_life",
+        "romance",
+        "western",
+        "default",
+      ],
     },
   },
 } as const

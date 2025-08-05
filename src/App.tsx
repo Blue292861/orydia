@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import SplashScreen from "./components/SplashScreen";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { UserStatsProvider } from "./contexts/UserStatsContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 const queryClient = new QueryClient();
 
@@ -68,11 +70,15 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <AppContent />
-          </TooltipProvider>
+          <ThemeProvider>
+            <UserStatsProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <AppContent />
+              </TooltipProvider>
+            </UserStatsProvider>
+          </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

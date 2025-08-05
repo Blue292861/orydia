@@ -21,6 +21,7 @@ import { SecurityHeaders } from '@/components/SecurityHeaders';
 import { UserStatsProvider, useUserStats } from '@/contexts/UserStatsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { AdminNav } from '@/components/AdminNav';
+import { AdminThemePreview } from '@/components/AdminThemePreview';
 import { OrdersAdmin } from '@/components/OrdersAdmin';
 import { ReadingStatsAdmin } from '@/components/ReadingStatsAdmin';
 import { ReadingStatsExport } from '@/components/ReadingStatsExport';
@@ -31,7 +32,7 @@ import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin' | 'theme-preview';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'game-reader' | AdminPage;
 
 const AppContent = () => {
@@ -125,6 +126,8 @@ const AppContent = () => {
         return <PointsAdmin />;
       case 'api-keys-admin':
         return <ApiKeysAdmin />;
+      case 'theme-preview':
+        return <AdminThemePreview />;
       case 'shop':
         return <Shop shopItems={shopItems} />;
       case 'search':
@@ -140,7 +143,7 @@ const AppContent = () => {
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
   
-  const isAdminPage = (['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'reading-stats-export', 'audiobook-admin', 'game-admin', 'points-admin', 'api-keys-admin'] as const).includes(currentPage as any);
+  const isAdminPage = (['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'reading-stats-export', 'audiobook-admin', 'game-admin', 'points-admin', 'api-keys-admin', 'theme-preview'] as const).includes(currentPage as any);
 
   const getMainPadding = () => {
     if (isMobile) {
