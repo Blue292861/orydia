@@ -4,6 +4,7 @@ import { ShopItem } from '@/types/ShopItem';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Shield } from 'lucide-react';
 
 interface ShopItemBasicFieldsProps {
   formData: ShopItem;
@@ -81,6 +82,25 @@ export const ShopItemBasicFields: React.FC<ShopItemBasicFieldsProps> = ({ formDa
           onChange={(e) => onFieldChange('price', parseInt(e.target.value) || 0)}
           required
         />
+      </div>
+
+      <div>
+        <Label htmlFor="requiredLevel" className="flex items-center gap-2">
+          <Shield className="h-4 w-4" />
+          Niveau requis (optionnel)
+        </Label>
+        <Input
+          id="requiredLevel"
+          type="number"
+          min="1"
+          max="50"
+          placeholder="1"
+          value={formData.requiredLevel || ''}
+          onChange={(e) => onFieldChange('requiredLevel', e.target.value ? parseInt(e.target.value) : undefined)}
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Niveau minimum pour acheter cet article (1-50)
+        </p>
       </div>
     </>
   );

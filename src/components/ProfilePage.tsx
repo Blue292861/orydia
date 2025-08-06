@@ -6,6 +6,7 @@ import { PlayerCard } from '@/components/PlayerCard';
 import { PremiumStatusCard } from '@/components/PremiumStatusCard';
 import { AchievementInventory } from '@/components/AchievementInventory';
 import { StatsSummary } from '@/components/StatsSummary';
+import { LevelProgressBar } from '@/components/LevelProgressBar';
 import { useResponsive } from '@/hooks/useResponsive';
 
 export const ProfilePage: React.FC = () => {
@@ -50,6 +51,11 @@ export const ProfilePage: React.FC = () => {
         totalAchievementsCount={userStats.achievements.length}
         playerLevel={playerLevel}
       />
+
+      {/* Level Progress */}
+      {userStats.levelInfo && (
+        <LevelProgressBar levelInfo={userStats.levelInfo} />
+      )}
 
       {/* Premium Status */}
       <PremiumStatusCard isPremium={userStats.isPremium} />

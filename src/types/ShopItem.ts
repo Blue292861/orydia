@@ -8,4 +8,5 @@ export interface ShopItem {
   imageUrl: string;
   category: string;
   seller: string;
+  requiredLevel?: number; // Niveau minimum requis pour acheter l'article
 }

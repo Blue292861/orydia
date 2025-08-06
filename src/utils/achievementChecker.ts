@@ -2,6 +2,7 @@
 import { UserStats, Achievement } from '@/types/UserStats';
 import { SoundEffects } from '@/utils/soundEffects';
 import { toast } from '@/components/ui/use-toast';
+import { calculateLevelInfo } from '@/utils/levelCalculations';
 
 export const checkAndUnlockAchievements = (newStats: UserStats): UserStats => {
   const updatedAchievements = newStats.achievements.map(achievement => {
@@ -56,38 +57,41 @@ export const checkAndUnlockAchievements = (newStats: UserStats): UserStats => {
     return achievement;
   });
 
-  // Calculate bonus points and premium months from newly unlocked achievements
+  // Calculate bonus points, XP and premium months from newly unlocked achievements
   const newlyUnlocked = updatedAchievements.filter((ach, index) => 
     ach.unlocked && !newStats.achievements[index].unlocked
   );
   
   const bonusPoints = newlyUnlocked.reduce((total, ach) => total + ach.points, 0);
+  const bonusXp = newlyUnlocked.reduce((total, ach) => total + (ach.xpReward || ach.points), 0);
   const bonusPremiumMonths = newlyUnlocked.reduce((total, ach) => total + (ach.premiumMonths || 0), 0);
 
   // Play sound and show toast for new achievements
   if (newlyUnlocked.length > 0) {
     SoundEffects.playAchievement();
     newlyUnlocked.forEach(achievement => {
+      const xpText = achievement.xpReward ? ` + ${achievement.xpReward} XP` : ` + ${achievement.points} XP`;
       const premiumText = achievement.premiumMonths ? ` + ${achievement.premiumMonths} mois premium!` : '';
       toast({
         title: `🏆 Achievement Unlocked!`,
-        description: `${achievement.icon} ${achievement.name} - +${achievement.points} points${premiumText}`,
+        description: `${achievement.icon} ${achievement.name} - +${achievement.points} points${xpText}${premiumText}`,
       });
     });
   }
 
-  // Calculate level and experience
+  // Calculate level and experience with new XP system
   const totalPoints = newStats.totalPoints + bonusPoints;
-  const level = Math.floor(totalPoints / 100) + 1;
-  const experiencePoints = totalPoints % 100;
+  const newExperiencePoints = newStats.experiencePoints + bonusXp;
+  const levelInfo = calculateLevelInfo(newExperiencePoints);
   const pendingPremiumMonths = (newStats.pendingPremiumMonths || 0) + bonusPremiumMonths;
 
   return {
     ...newStats,
     achievements: updatedAchievements,
     totalPoints,
-    level,
-    experiencePoints,
+    level: levelInfo.level,
+    experiencePoints: newExperiencePoints,
+    levelInfo,
     pendingPremiumMonths
   };
 };

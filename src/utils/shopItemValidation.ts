@@ -29,6 +29,10 @@ export const validateShopItem = (item: ShopItem): string[] => {
     errors.push('Le vendeur est requis et doit faire moins de 100 caractères');
   }
 
+  if (item.requiredLevel && (item.requiredLevel < 1 || item.requiredLevel > 50)) {
+    errors.push('Le niveau requis doit être entre 1 et 50');
+  }
+
   return errors;
 };
 

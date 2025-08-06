@@ -8,6 +8,7 @@ import { useAuth } from './AuthContext';
 import { initialAchievements } from '@/data/initialAchievements';
 import { checkAndUnlockAchievements } from '@/utils/achievementChecker';
 import { supabase } from '@/integrations/supabase/client';
+import { calculateLevelInfo } from '@/utils/levelCalculations';
 
 const UserStatsContext = createContext<UserStatsContextType | undefined>(undefined);
 
@@ -69,6 +70,8 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
           (a: Achievement) => !unlockedIds.includes(a.id)
         );
 
+        const levelInfo = calculateLevelInfo(dbStats.experience_points);
+        
         setUserStats({
           totalPoints: dbStats.total_points,
           booksRead: dbStats.books_read || [],
@@ -76,6 +79,7 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
           isPremium: subscription.isPremium,
           level: dbStats.level,
           experiencePoints: dbStats.experience_points,
+          levelInfo,
           pendingPremiumMonths: dbStats.pending_premium_months
         });
       }
@@ -167,12 +171,15 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
 
       // Mettre à jour l'état local immédiatement
       setUserStats(prev => {
+        const newExperiencePoints = prev.experiencePoints + points;
+        const levelInfo = calculateLevelInfo(newExperiencePoints);
         const newStats = {
           ...prev,
           totalPoints: data.new_total_points,
           level: data.new_level,
           booksRead: [...prev.booksRead, bookId],
-          experiencePoints: prev.experiencePoints + points
+          experiencePoints: newExperiencePoints,
+          levelInfo
         };
         return checkAndUnlockAchievements(newStats);
       });

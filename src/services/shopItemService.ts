@@ -22,6 +22,7 @@ export const fetchShopItemsFromDB = async (): Promise<ShopItem[]> => {
     imageUrl: item.image_url,
     category: item.category,
     seller: item.seller,
+    requiredLevel: item.required_level,
   }));
 
   return mappedItems;
@@ -38,6 +39,7 @@ export const addShopItemToDB = async (item: ShopItem): Promise<void> => {
       image_url: item.imageUrl,
       category: item.category,
       seller: item.seller,
+      required_level: item.requiredLevel,
     });
 
   if (error) {
@@ -57,6 +59,7 @@ export const updateShopItemInDB = async (item: ShopItem): Promise<void> => {
       image_url: item.imageUrl,
       category: item.category,
       seller: item.seller,
+      required_level: item.requiredLevel,
     })
     .eq('id', item.id);
 

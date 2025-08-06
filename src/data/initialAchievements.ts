@@ -7,6 +7,7 @@ export const initialAchievements: Achievement[] = [
     name: 'Premier Livre',
     description: 'Lisez votre premier livre',
     points: 25,
+    xpReward: 50,
     unlocked: false,
     icon: '📖',
     rarity: 'common'
@@ -16,6 +17,7 @@ export const initialAchievements: Achievement[] = [
     name: 'Rat de Bibliothèque',
     description: 'Lisez 5 livres',
     points: 100,
+    xpReward: 150,
     unlocked: false,
     icon: '🐛',
     rarity: 'rare'
@@ -25,6 +27,7 @@ export const initialAchievements: Achievement[] = [
     name: 'Érudit',
     description: 'Lisez 10 livres',
     points: 200,
+    xpReward: 300,
     unlocked: false,
     icon: '🎓',
     rarity: 'epic'
@@ -34,6 +37,7 @@ export const initialAchievements: Achievement[] = [
     name: 'Maître Lecteur',
     description: 'Lisez 20 livres',
     points: 500,
+    xpReward: 750,
     unlocked: false,
     icon: '👑',
     rarity: 'legendary'
@@ -43,6 +47,7 @@ export const initialAchievements: Achievement[] = [
     name: 'Érudit Ultime',
     description: 'Lisez 100 livres et devenez une légende',
     points: 2000,
+    xpReward: 2000,
     unlocked: false,
     icon: '🌟',
     rarity: 'ultra-legendary',

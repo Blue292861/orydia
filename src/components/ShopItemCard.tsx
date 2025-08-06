@@ -5,6 +5,7 @@ import { useUserStats } from '@/contexts/UserStatsContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ShopItemLevelGuard } from '@/components/ShopItemLevelGuard';
 import { Sword, Shield, Sparkles, Star, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { SoundEffects } from '@/utils/soundEffects';
@@ -22,6 +23,9 @@ export const ShopItemCard: React.FC<ShopItemCardProps> = ({ item, onItemClick })
   const { session } = useAuth();
   const { toast } = useToast();
   const { isMobile } = useResponsive();
+
+  const requiredLevel = item.requiredLevel || 1;
+  const userLevel = userStats.level || 1;
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {
@@ -45,6 +49,15 @@ export const ShopItemCard: React.FC<ShopItemCardProps> = ({ item, onItemClick })
       toast({ title: "Erreur", description: "Vous devez être connecté pour acheter.", variant: "destructive" });
       return;
     }
+    if (userLevel < requiredLevel) {
+      toast({ 
+        title: "Niveau insuffisant", 
+        description: `Vous devez être niveau ${requiredLevel} pour acheter cet article.`, 
+        variant: "destructive" 
+      });
+      return;
+    }
+    
     if (userStats.totalPoints >= item.price) {
       spendPoints(item.price);
       
@@ -84,10 +97,11 @@ export const ShopItemCard: React.FC<ShopItemCardProps> = ({ item, onItemClick })
   };
 
   return (
-    <Card 
-      className="bg-gradient-to-b from-slate-800 to-slate-900 border-2 border-slate-600 hover:border-amber-500 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/20 group flex flex-col cursor-pointer"
-      onClick={handleCardClick}
-    >
+    <ShopItemLevelGuard requiredLevel={requiredLevel} userLevel={userLevel}>
+      <Card 
+        className="bg-gradient-to-b from-slate-800 to-slate-900 border-2 border-slate-600 hover:border-amber-500 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/20 group flex flex-col cursor-pointer"
+        onClick={handleCardClick}
+      >
       <div className="relative">
         <div className="aspect-square overflow-hidden rounded-t-lg">
           <img 
@@ -145,17 +159,30 @@ export const ShopItemCard: React.FC<ShopItemCardProps> = ({ item, onItemClick })
           
           <Button 
             onClick={handlePurchase}
-            disabled={userStats.totalPoints < item.price}
+            disabled={userStats.totalPoints < item.price || userLevel < requiredLevel}
             className={`font-semibold transition-all duration-200 ${
-              userStats.totalPoints >= item.price 
+              userStats.totalPoints >= item.price && userLevel >= requiredLevel
                 ? 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-black border-2 border-amber-400 hover:border-amber-300 shadow-lg hover:shadow-amber-400/50' 
                 : 'bg-slate-600 text-slate-400 cursor-not-allowed border-2 border-slate-500'
             } ${isMobile ? 'px-2 py-1 text-xs' : 'px-4 py-2 text-sm'}`}
           >
-            {userStats.totalPoints >= item.price ? '⚔️ Acheter' : '🔒 Verrouillé'}
+            {userLevel < requiredLevel 
+              ? `🔒 Niveau ${requiredLevel}` 
+              : userStats.totalPoints >= item.price 
+                ? '⚔️ Acheter' 
+                : '💰 Insuffisant'}
           </Button>
         </div>
+        
+        {/* Badge de niveau requis */}
+        {requiredLevel > 1 && (
+          <div className="flex items-center gap-1 text-xs text-slate-400 mt-2">
+            <Shield className="h-3 w-3" />
+            <span>Niveau {requiredLevel} requis</span>
+          </div>
+        )}
       </CardContent>
     </Card>
+    </ShopItemLevelGuard>
   );
 };

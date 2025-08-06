@@ -532,6 +532,7 @@ export type Database = {
           name: string
           price: number
           product_id: string | null
+          required_level: number | null
           sale_price: number | null
           seller: string
           tags: string[] | null
@@ -552,6 +553,7 @@ export type Database = {
           name: string
           price: number
           product_id?: string | null
+          required_level?: number | null
           sale_price?: number | null
           seller: string
           tags?: string[] | null
@@ -572,6 +574,7 @@ export type Database = {
           name?: string
           price?: number
           product_id?: string | null
+          required_level?: number | null
           sale_price?: number | null
           seller?: string
           tags?: string[] | null
@@ -918,9 +921,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_level_info: {
+        Row: {
+          current_xp: number | null
+          experience_points: number | null
+          level: number | null
+          level_title: string | null
+          next_level_xp: number | null
+          total_points: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      calculate_exponential_level: {
+        Args: { xp_points: number }
+        Returns: {
+          level: number
+          current_xp: number
+          next_level_xp: number
+          level_title: string
+        }[]
+      }
       calculate_level: {
         Args: { experience_points: number }
         Returns: number
