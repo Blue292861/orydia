@@ -4,13 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Crown, Trophy } from 'lucide-react';
 import { useResponsive } from '@/hooks/useResponsive';
+import { LevelInfo } from '@/types/UserStats';
 
 interface PlayerCardProps {
   totalPoints: number;
   booksReadCount: number;
   unlockedAchievementsCount: number;
   totalAchievementsCount: number;
-  playerLevel: { level: number; title: string };
+  levelInfo?: LevelInfo;
 }
 
 export const PlayerCard: React.FC<PlayerCardProps> = ({
@@ -18,7 +19,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
   booksReadCount,
   unlockedAchievementsCount,
   totalAchievementsCount,
-  playerLevel
+  levelInfo
 }) => {
   const { isMobile, isTablet } = useResponsive();
 
@@ -48,12 +49,12 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           <Badge className={`bg-amber-600 text-amber-100 ${
             isMobile ? 'text-sm px-3 py-1' : 'text-lg px-4 py-1'
           }`}>
-            Niveau {playerLevel.level}
+            Niveau {levelInfo?.level || 1}
           </Badge>
           <Badge className={`bg-purple-600 text-purple-100 ${
             isMobile ? 'text-sm px-3 py-1' : 'text-lg px-4 py-1'
           }`}>
-            {playerLevel.title}
+            {levelInfo?.levelTitle || 'Apprenti Lecteur'}
           </Badge>
         </div>
       </CardHeader>

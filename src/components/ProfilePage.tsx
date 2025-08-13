@@ -13,14 +13,6 @@ export const ProfilePage: React.FC = () => {
   const { userStats } = useUserStats();
   const { isMobile, isTablet } = useResponsive();
 
-  const getPlayerLevel = () => {
-    if (userStats.booksRead.length < 5) return { level: 1, title: 'Apprenti Lecteur' };
-    if (userStats.booksRead.length < 15) return { level: 2, title: 'Lecteur Confirmé' };
-    if (userStats.booksRead.length < 30) return { level: 3, title: 'Maître Lecteur' };
-    return { level: 4, title: 'Grand Maître' };
-  };
-
-  const playerLevel = getPlayerLevel();
   const unlockedAchievements = userStats.achievements.filter(a => a.unlocked);
   const totalAchievementPoints = unlockedAchievements.reduce((sum, a) => sum + a.points, 0);
 
@@ -49,7 +41,7 @@ export const ProfilePage: React.FC = () => {
         booksReadCount={userStats.booksRead.length}
         unlockedAchievementsCount={unlockedAchievements.length}
         totalAchievementsCount={userStats.achievements.length}
-        playerLevel={playerLevel}
+        levelInfo={userStats.levelInfo}
       />
 
       {/* Level Progress */}
@@ -71,7 +63,7 @@ export const ProfilePage: React.FC = () => {
         totalPoints={userStats.totalPoints}
         totalAchievementPoints={totalAchievementPoints}
         unlockedAchievementsCount={unlockedAchievements.length}
-        playerLevel={playerLevel.level}
+        playerLevel={userStats.levelInfo?.level || 1}
       />
     </div>
   );
