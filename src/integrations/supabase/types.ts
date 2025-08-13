@@ -74,6 +74,98 @@ export type Database = {
         }
         Relationships: []
       }
+      audiobook_chapters: {
+        Row: {
+          audio_url: string
+          audiobook_id: string
+          chapter_number: number
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audio_url: string
+          audiobook_id: string
+          chapter_number: number
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audio_url?: string
+          audiobook_id?: string
+          chapter_number?: number
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_chapters_audiobook_id_fkey"
+            columns: ["audiobook_id"]
+            isOneToOne: false
+            referencedRelation: "audiobooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audiobook_progress: {
+        Row: {
+          audiobook_id: string
+          chapter_id: string
+          created_at: string
+          current_time_seconds: number
+          id: string
+          is_completed: boolean
+          last_played_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          audiobook_id: string
+          chapter_id: string
+          created_at?: string
+          current_time_seconds?: number
+          id?: string
+          is_completed?: boolean
+          last_played_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          audiobook_id?: string
+          chapter_id?: string
+          created_at?: string
+          current_time_seconds?: number
+          id?: string
+          is_completed?: boolean
+          last_played_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audiobook_progress_audiobook_id_fkey"
+            columns: ["audiobook_id"]
+            isOneToOne: false
+            referencedRelation: "audiobooks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audiobook_progress_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "audiobook_chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audiobooks: {
         Row: {
           audio_url: string
@@ -81,6 +173,7 @@ export type Database = {
           cover_url: string
           created_at: string
           description: string | null
+          genre: string | null
           id: string
           is_featured: boolean
           is_month_success: boolean
@@ -98,6 +191,7 @@ export type Database = {
           cover_url: string
           created_at?: string
           description?: string | null
+          genre?: string | null
           id?: string
           is_featured?: boolean
           is_month_success?: boolean
@@ -115,6 +209,7 @@ export type Database = {
           cover_url?: string
           created_at?: string
           description?: string | null
+          genre?: string | null
           id?: string
           is_featured?: boolean
           is_month_success?: boolean

@@ -5,7 +5,8 @@ export interface Audiobook {
   author: string;
   description?: string;
   cover_url: string;
-  audio_url: string;
+  audio_url: string; // Maintenant utilisé seulement pour la rétrocompatibilité
+  genre?: string;
   tags: string[];
   points: number;
   is_premium: boolean;

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { AudiobookForm } from '@/components/AudiobookForm';
+import { AudiobookFormV2 } from '@/components/AudiobookFormV2';
 import { Plus, Pencil, Trash2, Crown, Star, Zap, Play } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -52,9 +52,12 @@ export const AudiobookAdmin: React.FC = () => {
     setShowDialog(true);
   };
 
-  const handleSubmit = async (audiobookData: Audiobook) => {
+  const handleSubmit = async (audiobookData: Audiobook, chapters: any[]) => {
     try {
+      let audiobookId = editingAudiobook?.id;
+      
       if (editingAudiobook) {
+        // Mise à jour de l'audiobook existant
         const { error } = await supabase
           .from('audiobooks')
           .update({
@@ -62,7 +65,7 @@ export const AudiobookAdmin: React.FC = () => {
             author: audiobookData.author,
             description: audiobookData.description,
             cover_url: audiobookData.cover_url,
-            audio_url: audiobookData.audio_url,
+            genre: audiobookData.genre,
             tags: audiobookData.tags,
             points: audiobookData.points,
             is_premium: audiobookData.is_premium,
@@ -75,19 +78,22 @@ export const AudiobookAdmin: React.FC = () => {
 
         if (error) throw error;
         
-        toast({
-          title: "Succès",
-          description: "Audiobook mis à jour avec succès",
-        });
+        // Supprimer les anciens chapitres
+        await supabase
+          .from('audiobook_chapters')
+          .delete()
+          .eq('audiobook_id', editingAudiobook.id);
+        
       } else {
-        const { error } = await supabase
+        // Création d'un nouvel audiobook
+        const { data: newAudiobook, error } = await supabase
           .from('audiobooks')
           .insert({
             name: audiobookData.name,
             author: audiobookData.author,
             description: audiobookData.description,
             cover_url: audiobookData.cover_url,
-            audio_url: audiobookData.audio_url,
+            genre: audiobookData.genre,
             tags: audiobookData.tags,
             points: audiobookData.points,
             is_premium: audiobookData.is_premium,
@@ -95,15 +101,33 @@ export const AudiobookAdmin: React.FC = () => {
             is_paco_favourite: audiobookData.is_paco_favourite,
             is_paco_chronicle: audiobookData.is_paco_chronicle,
             is_featured: audiobookData.is_featured,
-          });
+            audio_url: '', // Rétrocompatibilité
+          })
+          .select()
+          .single();
 
         if (error) throw error;
-        
-        toast({
-          title: "Succès",
-          description: "Audiobook ajouté avec succès",
-        });
+        audiobookId = newAudiobook.id;
       }
+
+      // Ajouter les nouveaux chapitres
+      if (chapters.length > 0) {
+        const chapterData = chapters.map(chapter => ({
+          ...chapter,
+          audiobook_id: audiobookId
+        }));
+
+        const { error: chaptersError } = await supabase
+          .from('audiobook_chapters')
+          .insert(chapterData);
+
+        if (chaptersError) throw chaptersError;
+      }
+        
+      toast({
+        title: "Succès",
+        description: editingAudiobook ? "Audiobook mis à jour avec succès" : "Audiobook créé avec succès",
+      });
       
       setShowDialog(false);
       fetchAudiobooks();
@@ -231,7 +255,7 @@ export const AudiobookAdmin: React.FC = () => {
           <DialogHeader>
             <DialogTitle>{editingAudiobook ? 'Modifier l\'audiobook' : 'Ajouter un nouvel audiobook'}</DialogTitle>
           </DialogHeader>
-          <AudiobookForm 
+          <AudiobookFormV2 
             initialAudiobook={editingAudiobook || {
               id: '',
               name: '',
@@ -239,6 +263,7 @@ export const AudiobookAdmin: React.FC = () => {
               description: '',
               cover_url: '',
               audio_url: '',
+              genre: '',
               tags: [],
               points: 0,
               is_premium: false,
