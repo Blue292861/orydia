@@ -27,9 +27,9 @@ serve(async (req) => {
 
     const userId = userData.user.id;
 
-    // Récupérer ou créer les stats de l'utilisateur
+    // Récupérer ou créer les stats de l'utilisateur avec les informations de niveau
     let { data: userStats, error: statsError } = await supabaseClient
-      .from("user_stats")
+      .from("user_level_info")
       .select("*")
       .eq("user_id", userId)
       .single();
@@ -43,7 +43,16 @@ serve(async (req) => {
         .single();
       
       if (createError) throw createError;
-      userStats = newStats;
+      
+      // Récupérer les données avec les infos de niveau
+      const { data: levelStats, error: levelError } = await supabaseClient
+        .from("user_level_info")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+      
+      if (levelError) throw levelError;
+      userStats = levelStats;
     } else if (statsError) {
       throw statsError;
     }

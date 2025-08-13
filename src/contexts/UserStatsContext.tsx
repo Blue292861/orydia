@@ -70,17 +70,24 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
           (a: Achievement) => !unlockedIds.includes(a.id)
         );
 
-        const levelInfo = calculateLevelInfo(dbStats.experience_points);
+        // Utiliser les données de niveau de la vue user_level_info
+        const levelInfo = {
+          level: dbStats.level || 1,
+          currentXp: dbStats.current_xp || 0,
+          nextLevelXp: dbStats.next_level_xp || 100,
+          levelTitle: dbStats.level_title || 'Apprenti Lecteur',
+          progressPercentage: Math.round(((dbStats.current_xp || 0) / (dbStats.next_level_xp || 100)) * 100)
+        };
         
         setUserStats({
-          totalPoints: dbStats.total_points,
+          totalPoints: dbStats.total_points || 0,
           booksRead: dbStats.books_read || [],
           achievements: [...achievements, ...remainingAchievements],
           isPremium: subscription.isPremium,
-          level: dbStats.level,
-          experiencePoints: dbStats.experience_points,
+          level: dbStats.level || 1,
+          experiencePoints: dbStats.experience_points || 0,
           levelInfo,
-          pendingPremiumMonths: dbStats.pending_premium_months
+          pendingPremiumMonths: dbStats.pending_premium_months || 0
         });
       }
     } catch (error) {
