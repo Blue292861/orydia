@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -713,6 +713,77 @@ export type Database = {
         }
         Relationships: []
       }
+      tensens_code_redemptions: {
+        Row: {
+          code_id: string
+          id: string
+          points_awarded: number
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          code_id: string
+          id?: string
+          points_awarded: number
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          code_id?: string
+          id?: string
+          points_awarded?: number
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tensens_code_redemptions_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "tensens_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tensens_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          current_uses: number
+          expires_at: string | null
+          id: string
+          is_single_use: boolean
+          max_uses: number | null
+          points_value: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          current_uses?: number
+          expires_at?: string | null
+          id?: string
+          is_single_use?: boolean
+          max_uses?: number | null
+          points_value: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          current_uses?: number
+          expires_at?: string | null
+          id?: string
+          is_single_use?: boolean
+          max_uses?: number | null
+          points_value?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ui_themes: {
         Row: {
           accent_color: string
@@ -1033,10 +1104,10 @@ export type Database = {
       calculate_exponential_level: {
         Args: { xp_points: number }
         Returns: {
-          level: number
           current_xp: number
-          next_level_xp: number
+          level: number
           level_title: string
+          next_level_xp: number
         }[]
       }
       calculate_level: {
@@ -1049,16 +1120,16 @@ export type Database = {
       }
       update_genre_preference: {
         Args: {
-          p_user_id: string
           p_genre: string
           p_reading_time_minutes?: number
+          p_user_id: string
         }
         Returns: undefined
       }
       user_has_role: {
         Args: {
-          p_user_id: string
           p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
         }
         Returns: boolean
       }

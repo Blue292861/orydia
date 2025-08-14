@@ -2,9 +2,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useResponsive } from '@/hooks/useResponsive';
-import { BookOpen, BarChart, Package, Trophy, ShoppingCart, Headphones, Coins, Key, Gamepad2, Palette } from 'lucide-react';
+import { BookOpen, BarChart, Package, Trophy, ShoppingCart, Headphones, Coins, Key, Gamepad2, Palette, Gift } from 'lucide-react';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin' | 'theme-preview';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin' | 'theme-preview' | 'tensens-codes';
 
 interface AdminNavProps {
   currentPage: AdminPage;
@@ -21,6 +21,7 @@ const navItems: { id: AdminPage; label: string; shortLabel?: string }[] = [
   { id: 'reading-stats-admin', label: 'Statistiques Lecture', shortLabel: 'Stats' },
   { id: 'reading-stats-export', label: 'Extraction Lecture', shortLabel: 'Export' },
   { id: 'points-admin', label: 'Attribution Points', shortLabel: 'Points' },
+  { id: 'tensens-codes', label: 'Codes Tensens', shortLabel: 'Codes' },
   { id: 'api-keys-admin', label: 'Clés API', shortLabel: 'API' },
   { id: 'theme-preview', label: 'Aperçu Thèmes', shortLabel: 'Thèmes' },
 ];
