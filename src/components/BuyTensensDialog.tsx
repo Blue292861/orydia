@@ -153,16 +153,16 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger }) =
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-5xl bg-gradient-to-b from-wood-50 via-wood-100 to-wood-200 border-2 border-gold-400 shadow-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-b from-wood-50 via-wood-100 to-wood-200 border-2 border-gold-400 shadow-2xl">
         <TensensDialogHeader onClose={() => setOpen(false)} />
         
         {/* Free Tensens section */}
-        <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg">
+        <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 rounded-lg">
           <div className="text-center">
-            <h3 className="text-lg font-bold text-green-800 mb-2">
+            <h3 className="text-base font-bold text-green-800 mb-1">
               🎁 Tensens Gratuits !
             </h3>
-            <p className="text-green-700 mb-3">
+            <p className="text-green-700 text-sm mb-2">
               Regardez une courte publicité et obtenez 10 Tensens gratuits
             </p>
             {canWatchAd ? (

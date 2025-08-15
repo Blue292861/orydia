@@ -15,7 +15,7 @@ export const TensensPackGrid: React.FC<TensensPackGridProps> = ({
   onPurchase,
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
       {packs.map((pack) => (
         <TensensPackCard
           key={pack.id}
