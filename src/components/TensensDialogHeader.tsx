@@ -13,12 +13,11 @@ export const TensensDialogHeader: React.FC<TensensDialogHeaderProps> = ({ onClos
     <DialogHeader className="text-center relative">
       <Button
         variant="ghost"
-        size="sm"
+        size="icon"
         onClick={onClose}
-        className="absolute left-0 top-0 flex items-center gap-1 text-forest-700 hover:text-forest-900 hover:bg-wood-300/50"
+        className="absolute left-0 top-0 h-8 w-8 text-forest-700 hover:text-forest-900 hover:bg-wood-300/50"
       >
         <ArrowLeft className="h-4 w-4" />
-        Retour
       </Button>
       <DialogTitle className="flex items-center justify-center gap-3 text-2xl font-medieval text-forest-800">
         <Coins className="h-6 w-6 text-gold-500" />

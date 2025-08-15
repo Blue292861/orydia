@@ -11,6 +11,7 @@ import { TensensPackGrid } from './TensensPackGrid';
 import { TensensDialogHeader } from './TensensDialogHeader';
 import { TensensDialogFooter } from './TensensDialogFooter';
 import { AdForTensens } from './AdForTensens';
+import { TensensCodeRedemption } from './TensensCodeRedemption';
 import { useUserStats } from '@/contexts/UserStatsContext';
 
 interface BuyTensensDialogProps {
@@ -193,6 +194,11 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger }) =
               </div>
             )}
           </div>
+        </div>
+        
+        {/* Code redemption section */}
+        <div className="mb-4">
+          <TensensCodeRedemption />
         </div>
         
         <TensensPackGrid
