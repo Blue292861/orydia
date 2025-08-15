@@ -2,9 +2,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserStats } from '@/contexts/UserStatsContext';
 import { useResponsive } from '@/hooks/useResponsive';
-import { BuyTensensDialog } from '@/components/BuyTensensDialog';
+import { PointsDisplay } from '@/components/PointsDisplay';
 import { LogOut, Settings } from 'lucide-react';
 
 type Page = 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'game-reader';
@@ -16,7 +15,6 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const { user, subscription, isAdmin } = useAuth();
-  const { userStats } = useUserStats();
   const { isMobile, isTablet } = useResponsive();
 
   const handleLogout = async () => {
@@ -75,24 +73,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             )}
             
             {/* Tensens Counter */}
-            <BuyTensensDialog
-              trigger={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={`bg-gradient-to-r from-amber-800 to-amber-900 hover:from-amber-700 hover:to-amber-800 text-amber-100 border-amber-600 shadow-lg ${
-                    isMobile ? 'text-xs px-2 py-1' : 'text-sm'
-                  }`}
-                >
-                  <img 
-                    src="/lovable-uploads/c831f469-03da-458d-8428-2f156b930e87.png" 
-                    alt="Tensens" 
-                    className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-1`}
-                  />
-                  {userStats.totalPoints} Tensens
-                </Button>
-              }
-            />
+            <PointsDisplay />
           </div>
 
           {/* Center - Instagram image with bandeau style (no longer clickable) */}
