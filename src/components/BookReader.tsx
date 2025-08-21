@@ -4,7 +4,7 @@ import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, X, Star } from 'lucide-react';
 import { useUserStats } from '@/contexts/UserStatsContext';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { TextSizeControls } from '@/components/TextSizeControls';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';

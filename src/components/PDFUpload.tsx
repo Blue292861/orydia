@@ -31,8 +31,6 @@ export const PDFUpload: React.FC<PDFUploadProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    console.log('📁 Fichier PDF sélectionné:', file.name);
-
     // Validation du fichier
     if (!file.type.includes('pdf')) {
       toast({
@@ -64,7 +62,6 @@ export const PDFUpload: React.FC<PDFUploadProps> = ({
       const randomId = Math.random().toString(36).substring(2, 8);
       const fileName = `chapter-pdf-${timestamp}-${randomId}.${fileExt}`;
       
-      console.log(`📤 Upload vers Supabase: ${fileName}`);
       setProgress(25);
 
       // Upload vers Supabase Storage
@@ -78,11 +75,8 @@ export const PDFUpload: React.FC<PDFUploadProps> = ({
       setProgress(75);
 
       if (uploadError) {
-        console.error('💥 Erreur Supabase:', uploadError);
         throw uploadError;
       }
-
-      console.log('✅ Upload réussi, récupération de l\'URL...');
       
       // Récupération de l'URL publique
       const { data: urlData } = supabase.storage
@@ -94,7 +88,6 @@ export const PDFUpload: React.FC<PDFUploadProps> = ({
       }
 
       setProgress(100);
-      console.log('🎉 Upload terminé avec succès:', urlData.publicUrl);
       
       // Appeler le callback avec l'URL du PDF
       onPDFUploaded(urlData.publicUrl);
@@ -112,8 +105,6 @@ export const PDFUpload: React.FC<PDFUploadProps> = ({
       });
 
     } catch (error) {
-      console.error('💥 Erreur upload:', error);
-      
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       
       setUploadResult({

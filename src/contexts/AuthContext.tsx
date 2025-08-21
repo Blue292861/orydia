@@ -2,7 +2,7 @@
 import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface SubscriptionInfo {
   isPremium: boolean;
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // La fonction createCheckout n'est plus nécessaire car remplacée par PremiumSelectionDialog
+  
 
   useEffect(() => {
     const checkAdminRole = async (user: User | null) => {

@@ -15,10 +15,10 @@ export const VideoAd: React.FC<VideoAdProps> = ({ book, onAdFinished }) => {
   useEffect(() => {
     // Simule le chargement du script AdSense pour cette unité publicitaire
     try {
-      // @ts-ignore
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      (window as any).adsbygoogle = (window as any).adsbygoogle || [];
+      (window as any).adsbygoogle.push({});
     } catch (e) {
-      console.error("Erreur AdSense:", e);
+      // AdSense error silently handled
     }
 
     const timer = setInterval(() => {

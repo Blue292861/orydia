@@ -22,10 +22,10 @@ export const AdForTensens: React.FC<AdForTensensProps> = ({
   useEffect(() => {
     // Simulate AdSense loading
     try {
-      // @ts-ignore
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      (window as any).adsbygoogle = (window as any).adsbygoogle || [];
+      (window as any).adsbygoogle.push({});
     } catch (e) {
-      console.error("Erreur AdSense:", e);
+      // AdSense error silently handled
     }
 
     // Auto-start ad after 1 second

@@ -26,13 +26,7 @@ const AppContent = () => {
   // Ne pas afficher le splash screen sur la page d'auth
   const isAuthPage = location.pathname === '/auth';
 
-  console.log('🔍 Auth State:', { 
-    session: !!session, 
-    loading, 
-    currentPath: location.pathname,
-    showSplash,
-    isAuthPage 
-  });
+  // Debug logs removed for production
 
   if (loading) {
     return (

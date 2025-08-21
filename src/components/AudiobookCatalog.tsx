@@ -309,8 +309,10 @@ export const AudiobookCatalog: React.FC = () => {
                   <div className="space-y-4">
                     {recentProgress.map((chapter) => (
                       <div key={chapter.id} className="bg-card rounded-lg p-4 border">
-                        {/* TODO: Afficher les chapitres en cours avec progression */}
                         <p className="font-medium">{chapter.title}</p>
+                        <div className="text-sm text-muted-foreground">
+                          Progression en cours
+                        </div>
                       </div>
                     ))}
                   </div>

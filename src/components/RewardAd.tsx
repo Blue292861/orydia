@@ -24,10 +24,10 @@ export const RewardAd: React.FC<RewardAdProps> = ({
   useEffect(() => {
     // Simule le chargement du script AdSense pour cette unité publicitaire de récompense
     try {
-      // @ts-ignore
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      (window as any).adsbygoogle = (window as any).adsbygoogle || [];
+      (window as any).adsbygoogle.push({});
     } catch (e) {
-      console.error("Erreur AdSense:", e);
+      // AdSense error silently handled
     }
 
     // Démarrer automatiquement la publicité après 1 seconde

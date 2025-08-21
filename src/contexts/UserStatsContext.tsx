@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { UserStats, Achievement } from '@/types/UserStats';
 import { UserStatsContextType } from '@/types/UserStatsContext';
 import { SoundEffects } from '@/utils/soundEffects';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { useAuth } from './AuthContext';
 import { initialAchievements } from '@/data/initialAchievements';
 import { checkAndUnlockAchievements } from '@/utils/achievementChecker';

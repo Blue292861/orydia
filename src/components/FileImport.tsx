@@ -44,7 +44,6 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
 
   const checkConnectivity = async (): Promise<boolean> => {
     try {
-      console.log('🔍 Vérification de la connectivité...');
       setUploadProgress(5);
       
       const controller = new AbortController();
@@ -62,19 +61,15 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       const connected = response.ok;
       setIsConnected(connected);
       
-      console.log(`📡 Connectivité: ${connected ? '✅ OK' : '❌ Échec'}`);
       return connected;
       
     } catch (error) {
-      console.error('❌ Test de connectivité échoué:', error);
       setIsConnected(false);
       return false;
     }
   };
 
   const getDetailedErrorMessage = (error: any): string => {
-    console.error('📋 Détails de l\'erreur complète:', error);
-    
     if (error?.message?.includes('Failed to fetch')) {
       return 'Problème de connexion Internet. Vérifiez votre réseau et réessayez.';
     }
@@ -113,8 +108,6 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
   };
 
   const uploadWithRetry = async (file: File, fileName: string, attempt: number = 1): Promise<string> => {
-    console.log(`🚀 Tentative d'upload ${attempt}/${UPLOAD_CONFIG.MAX_RETRIES} - Fichier: ${fileName}`);
-    
     try {
       // Progress: Préparation
       setUploadProgress(10 + (attempt - 1) * 5);
@@ -128,13 +121,11 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       }
       
       setUploadProgress(25);
-      console.log('📤 Démarrage de l\'upload vers Supabase...');
       
       // Configuration de l'upload avec timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         controller.abort();
-        console.log('⏰ Timeout d\'upload atteint');
       }, UPLOAD_CONFIG.UPLOAD_TIMEOUT);
       
       setUploadProgress(40);
@@ -144,21 +135,17 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
         .from('book-covers')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false,
-          // @ts-ignore - AbortSignal n'est pas dans les types mais fonctionne
-          signal: controller.signal
+          upsert: false
         });
       
       clearTimeout(timeoutId);
       setUploadProgress(75);
       
       if (uploadError) {
-        console.error('💥 Erreur Supabase:', uploadError);
         throw uploadError;
       }
       
       setUploadProgress(85);
-      console.log('✅ Upload réussi, récupération de l\'URL...');
       
       // Récupération de l'URL publique
       const { data: urlData } = supabase.storage
@@ -170,13 +157,10 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       }
       
       setUploadProgress(100);
-      console.log('🎉 Upload terminé avec succès:', urlData.publicUrl);
       
       return urlData.publicUrl;
       
     } catch (error) {
-      console.error(`❌ Tentative ${attempt} échouée:`, error);
-      
       const errorMessage = getDetailedErrorMessage(error);
       setLastError(errorMessage);
       
@@ -188,7 +172,6 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       
       if (isRetryableError) {
         const delayMs = UPLOAD_CONFIG.RETRY_DELAY_BASE * Math.pow(2, attempt - 1); // Backoff exponentiel
-        console.log(`⏳ Retry dans ${delayMs}ms...`);
         
         toast({
           title: `Tentative ${attempt} échouée`,
@@ -207,12 +190,6 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    console.log('📁 Fichier sélectionné:', { 
-      name: file.name, 
-      type: file.type, 
-      size: `${(file.size / 1024 / 1024).toFixed(2)}MB` 
-    });
 
     setUploading(true);
     setUploadProgress(0);
@@ -241,7 +218,6 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       try {
         const isValidHeader = await validateMimeTypeByHeader(file, limits.types);
         if (!isValidHeader) {
-          console.warn('⚠️ En-tête de fichier suspecte, mais upload autorisé');
           toast({
             title: "Avertissement",
             description: "Le format du fichier semble inhabituel, mais l'upload continue.",
@@ -249,7 +225,7 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
           });
         }
       } catch (headerError) {
-        console.warn('⚠️ Impossible de valider l\'en-tête:', headerError);
+        // Header validation error ignored
       }
 
       // Traitement selon le type de fichier
@@ -260,7 +236,6 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
         const randomId = Math.random().toString(36).substring(2, 8);
         const fileName = `${timestamp}-${randomId}.${fileExt}`;
         
-        console.log(`📤 Upload vers le serveur: ${fileName}`);
         const publicUrl = await uploadWithRetry(file, fileName);
         
         onFileImport(publicUrl);
@@ -275,7 +250,6 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
         
       } else if (type === 'audio') {
         // Audio en base64 (temporaire)
-        console.log('🎵 Traitement audio en base64...');
         setUploadProgress(50);
         
         const reader = new FileReader();
@@ -297,7 +271,6 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       }
       
     } catch (error) {
-      console.error('💥 Erreur d\'importation:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       setLastError(errorMessage);
       
@@ -318,7 +291,6 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
   };
 
   const handleRetry = () => {
-    console.log('🔄 Tentative de retry manuelle');
     setRetryCount(prev => prev + 1);
     
     if (fileInputRef.current && fileInputRef.current.files && fileInputRef.current.files[0]) {

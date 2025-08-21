@@ -56,20 +56,18 @@ const AppContent = () => {
       return;
     }
 
-    const adWatched = localStorage.getItem(`ad_watched_${book.id}`);
-
-    if (subscription.isPremium || adWatched) {
+    // Pour les utilisateurs premium ou les livres non-premium, ouvrir directement le lecteur
+    if (subscription.isPremium || !book.isPremium) {
       setSelectedBook(book);
       setCurrentPage('reader');
     } else {
-      setBookForAd(book);
-      setCurrentPage('video-ad');
+      // Pour les utilisateurs non-premium avec des livres premium, montrer le dialog premium
+      setShowPremiumDialog(true);
     }
   };
 
   const handleAdFinished = () => {
     if (bookForAd) {
-      localStorage.setItem(`ad_watched_${bookForAd.id}`, 'true');
       setSelectedBook(bookForAd);
       setCurrentPage('reader');
       setBookForAd(null);

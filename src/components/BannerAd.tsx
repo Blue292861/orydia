@@ -10,10 +10,10 @@ export const BannerAd: React.FC<BannerAdProps> = ({ className }) => {
     // Simule le chargement du script AdSense pour cette unité publicitaire
     // Google AdSense s'occupe de la rotation régulière des annonces.
     try {
-      // @ts-ignore
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      (window as any).adsbygoogle = (window as any).adsbygoogle || [];
+      (window as any).adsbygoogle.push({});
     } catch (e) {
-      console.error("Erreur AdSense:", e);
+      // AdSense error silently handled
     }
   }, []);
 
