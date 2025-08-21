@@ -10,21 +10,21 @@ interface TensensDialogHeaderProps {
 
 export const TensensDialogHeader: React.FC<TensensDialogHeaderProps> = ({ onClose }) => {
   return (
-    <DialogHeader className="text-center relative">
+    <DialogHeader className="text-center relative px-10">
       <Button
         variant="ghost"
-        size="icon"
+        size="sm"
         onClick={onClose}
-        className="absolute left-0 top-0 h-8 w-8 text-forest-700 hover:text-forest-900 hover:bg-wood-300/50"
+        className="absolute left-0 top-0 h-7 w-7 text-forest-700 hover:text-forest-900 hover:bg-wood-300/50 p-1"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-3 w-3" />
       </Button>
-      <DialogTitle className="flex items-center justify-center gap-3 text-2xl font-medieval text-forest-800">
-        <Coins className="h-6 w-6 text-gold-500" />
-        Comptoir du Changeur de Monnaie
-        <Coins className="h-6 w-6 text-gold-500" />
+      <DialogTitle className="flex items-center justify-center gap-2 text-xl font-medieval text-forest-800 px-2">
+        <Coins className="h-5 w-5 text-gold-500" />
+        <span className="text-center leading-tight">Comptoir du Changeur</span>
+        <Coins className="h-5 w-5 text-gold-500" />
       </DialogTitle>
-      <p className="text-forest-600 font-serif mt-2">
+      <p className="text-forest-600 font-serif mt-1 text-sm">
         Échangez vos pièces d'or contre la monnaie sacrée d'Orydia
       </p>
     </DialogHeader>

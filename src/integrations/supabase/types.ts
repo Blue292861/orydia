@@ -952,6 +952,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_level_info: {
+        Row: {
+          created_at: string | null
+          current_xp: number | null
+          experience_points: number | null
+          level: number | null
+          level_title: string | null
+          next_level_xp: number | null
+          total_points: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_xp?: number | null
+          experience_points?: number | null
+          level?: number | null
+          level_title?: string | null
+          next_level_xp?: number | null
+          total_points?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_xp?: number | null
+          experience_points?: number | null
+          level?: number | null
+          level_title?: string | null
+          next_level_xp?: number | null
+          total_points?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -1087,18 +1123,7 @@ export type Database = {
       }
     }
     Views: {
-      user_level_info: {
-        Row: {
-          current_xp: number | null
-          experience_points: number | null
-          level: number | null
-          level_title: string | null
-          next_level_xp: number | null
-          total_points: number | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       calculate_exponential_level: {
@@ -1117,6 +1142,10 @@ export type Database = {
       get_recommended_theme: {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["ui_theme"]
+      }
+      sync_user_level_info: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       update_genre_preference: {
         Args: {
