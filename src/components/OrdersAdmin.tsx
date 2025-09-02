@@ -40,7 +40,7 @@ const fetchOrders = async (): Promise<Order[]> => {
 
     const { data: profilesData, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, username, avatar_url, first_name, last_name, street_address, city, postal_code, country')
+      .select('id, username, avatar_url, first_name, last_name, city, country')
       .in('id', userIds);
 
     if (profilesError) {
@@ -51,16 +51,13 @@ const fetchOrders = async (): Promise<Order[]> => {
       })) as Order[];
     }
 
-    // Correction : s'assurer que chaque élément est un tuple [string, object]
     const profilesMap = new Map(
       (profilesData || []).map((p) => [p.id as string, {
         username: p.username,
         avatar_url: p.avatar_url,
         first_name: p.first_name,
         last_name: p.last_name,
-        street_address: p.street_address,
         city: p.city,
-        postal_code: p.postal_code,
         country: p.country
       }] as [string, any])
     );
@@ -224,18 +221,12 @@ const OrdersTable: React.FC<OrdersTableProps> = ({ orders, isHistory = false, on
               <TableCell>{order.user_email || 'Email non disponible'}</TableCell>
               <TableCell>
                 <div className="text-sm">
-                  {order.profiles?.street_address && (
-                    <div>{order.profiles.street_address}</div>
-                  )}
-                  {(order.profiles?.city || order.profiles?.postal_code) && (
+                  {order.profiles?.city && order.profiles?.country && (
                     <div>
-                      {order.profiles.postal_code} {order.profiles.city}
+                      {order.profiles.city}, {order.profiles.country}
                     </div>
                   )}
-                  {order.profiles?.country && (
-                    <div className="text-muted-foreground">{order.profiles.country}</div>
-                  )}
-                  {!order.profiles?.street_address && !order.profiles?.city && (
+                  {!order.profiles?.city && !order.profiles?.country && (
                     <span className="text-muted-foreground">Adresse non renseignée</span>
                   )}
                 </div>

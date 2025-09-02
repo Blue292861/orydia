@@ -580,8 +580,6 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
-          postal_code: string | null
-          street_address: string | null
           updated_at: string | null
           username: string | null
         }
@@ -592,8 +590,6 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
-          postal_code?: string | null
-          street_address?: string | null
           updated_at?: string | null
           username?: string | null
         }
@@ -604,8 +600,6 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
-          postal_code?: string | null
-          street_address?: string | null
           updated_at?: string | null
           username?: string | null
         }

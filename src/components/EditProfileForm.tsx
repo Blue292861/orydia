@@ -14,9 +14,7 @@ interface Profile {
   username: string | null;
   first_name: string | null;
   last_name: string | null;
-  street_address: string | null;
   city: string | null;
-  postal_code: string | null;
   country: string | null;
 }
 
@@ -26,9 +24,7 @@ export const EditProfileForm: React.FC = () => {
     username: '',
     firstName: '',
     lastName: '',
-    streetAddress: '',
     city: '',
-    postalCode: '',
     country: '',
     email: '',
     newPassword: ''
@@ -52,9 +48,7 @@ export const EditProfileForm: React.FC = () => {
             username: profileData.username || '',
             firstName: profileData.first_name || '',
             lastName: profileData.last_name || '',
-            streetAddress: profileData.street_address || '',
             city: profileData.city || '',
-            postalCode: profileData.postal_code || '',
             country: profileData.country || '',
             email: user.email || '',
             newPassword: ''
@@ -90,9 +84,7 @@ export const EditProfileForm: React.FC = () => {
           username: formData.username,
           first_name: formData.firstName,
           last_name: formData.lastName,
-          street_address: formData.streetAddress,
           city: formData.city,
-          postal_code: formData.postalCode,
           country: formData.country
         })
         .eq('id', user.id);
@@ -186,16 +178,6 @@ export const EditProfileForm: React.FC = () => {
                 placeholder="Dupont"
               />
             </div>
-            <div className="md:col-span-2">
-              <Label htmlFor="streetAddress">Adresse postale</Label>
-              <Input
-                id="streetAddress"
-                name="streetAddress"
-                value={formData.streetAddress}
-                onChange={handleChange}
-                placeholder="123 rue de la Paix"
-              />
-            </div>
             <div>
               <Label htmlFor="city">Ville</Label>
               <Input
@@ -204,26 +186,6 @@ export const EditProfileForm: React.FC = () => {
                 value={formData.city}
                 onChange={handleChange}
                 placeholder="Paris"
-              />
-            </div>
-            <div>
-              <Label htmlFor="postalCode">Code postal</Label>
-              <Input
-                id="postalCode"
-                name="postalCode"
-                value={formData.postalCode}
-                onChange={handleChange}
-                placeholder="75001"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <Label htmlFor="country">Pays</Label>
-              <Input
-                id="country"
-                name="country"
-                value={formData.country}
-                onChange={handleChange}
-                placeholder="France"
               />
             </div>
             <div className="md:col-span-2">

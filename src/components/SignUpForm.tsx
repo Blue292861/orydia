@@ -18,9 +18,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
     username: '',
     firstName: '',
     lastName: '',
-    streetAddress: '',
     city: '',
-    postalCode: '',
     country: ''
   });
   const [loading, setLoading] = useState(false);
@@ -46,9 +44,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
             username: formData.username,
             first_name: formData.firstName,
             last_name: formData.lastName,
-            street_address: formData.streetAddress,
             city: formData.city,
-            postal_code: formData.postalCode,
             country: formData.country
           }
         }
@@ -138,17 +134,6 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
               />
             </div>
             <div>
-              <Label htmlFor="streetAddress">Adresse *</Label>
-              <Input
-                id="streetAddress"
-                name="streetAddress"
-                value={formData.streetAddress}
-                onChange={handleChange}
-                required
-                placeholder="123 rue de la Paix"
-              />
-            </div>
-            <div>
               <Label htmlFor="city">Ville *</Label>
               <Input
                 id="city"
@@ -157,17 +142,6 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
                 onChange={handleChange}
                 required
                 placeholder="Paris"
-              />
-            </div>
-            <div>
-              <Label htmlFor="postalCode">Code postal *</Label>
-              <Input
-                id="postalCode"
-                name="postalCode"
-                value={formData.postalCode}
-                onChange={handleChange}
-                required
-                placeholder="75001"
               />
             </div>
             <div className="md:col-span-2">

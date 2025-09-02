@@ -14,9 +14,7 @@ export const NewSignupForm: React.FC = () => {
     username: '',
     firstName: '',
     lastName: '',
-    streetAddress: '',
     city: '',
-    postalCode: '',
     country: ''
   });
   
@@ -44,9 +42,7 @@ export const NewSignupForm: React.FC = () => {
             username: signupData.username,
             first_name: signupData.firstName,
             last_name: signupData.lastName,
-            street_address: signupData.streetAddress,
             city: signupData.city,
-            postal_code: signupData.postalCode,
             country: signupData.country
           }
         }
@@ -162,20 +158,6 @@ export const NewSignupForm: React.FC = () => {
           />
         </div>
         <div>
-          <Label htmlFor="signup-address" className="text-forest-800 font-medium font-medieval text-sm">
-            Adresse de résidence *
-          </Label>
-          <Input
-            id="signup-address"
-            name="streetAddress"
-            value={signupData.streetAddress}
-            onChange={handleChange}
-            required
-            placeholder="123 Rue des Héros"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
-          />
-        </div>
-        <div>
           <Label htmlFor="signup-city" className="text-forest-800 font-medium font-medieval text-sm">
             Cité *
           </Label>
@@ -186,20 +168,6 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="Valorhall"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
-          />
-        </div>
-        <div>
-          <Label htmlFor="signup-postal" className="text-forest-800 font-medium font-medieval text-sm">
-            Code postal *
-          </Label>
-          <Input
-            id="signup-postal"
-            name="postalCode"
-            value={signupData.postalCode}
-            onChange={handleChange}
-            required
-            placeholder="75001"
             className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
           />
         </div>
