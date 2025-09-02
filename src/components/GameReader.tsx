@@ -7,6 +7,7 @@ import { Game, GameChapter, GameChoice } from "@/types/Game";
 import { gameService } from "@/services/gameService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { sanitizeHtml } from "@/utils/security";
 
 interface GameReaderProps {
   game: Game;
@@ -189,10 +190,12 @@ export function GameReader({ game, onBack }: GameReaderProps) {
                   </p>
                 </div>
               ) : (
-                // Affichage texte classique
+                // Affichage texte classique avec sanitisation XSS
                 <div 
                   className="text-base leading-relaxed whitespace-pre-wrap"
-                  dangerouslySetInnerHTML={{ __html: currentChapter.content }}
+                  dangerouslySetInnerHTML={{ 
+                    __html: sanitizeHtml(currentChapter.content) 
+                  }}
                 />
               )}
             </div>

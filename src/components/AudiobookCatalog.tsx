@@ -32,6 +32,7 @@ export const AudiobookCatalog: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [genreFilter, setGenreFilter] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
+  const [activeTab, setActiveTab] = useState('all');
   
   const { user, subscription } = useAuth();
   const { toast } = useToast();
@@ -192,7 +193,7 @@ export const AudiobookCatalog: React.FC = () => {
           <div className="text-center py-12">Chargement...</div>
         ) : (
           <>
-            <Tabs defaultValue="all" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="all">Tous les audiobooks</TabsTrigger>
                 <TabsTrigger value="featured">À la Une</TabsTrigger>
@@ -325,16 +326,14 @@ export const AudiobookCatalog: React.FC = () => {
                   <p className="text-muted-foreground">Trouvez votre genre préféré</p>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {getUniqueGenres().map(genre => (
                     <Button
                       key={genre}
                       variant="outline"
                       onClick={() => {
                         setGenreFilter(genre);
-                        // Switch to "all" tab to show filtered results
-                        const allTab = document.querySelector('[data-value="all"]') as HTMLButtonElement;
-                        allTab?.click();
+                        setActiveTab('all');
                       }}
                       className="h-auto p-4 text-center"
                     >

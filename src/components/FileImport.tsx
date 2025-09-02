@@ -49,16 +49,15 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), UPLOAD_CONFIG.CONNECTIVITY_TIMEOUT);
       
-      const response = await fetch(`https://aotzivwzoxmnnawcxioo.supabase.co/rest/v1/`, {
-        method: 'HEAD',
-        headers: {
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvdHppdnd6b3htbm5hd2N4aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5OTEwODYsImV4cCI6MjA2NTU2NzA4Nn0.n-S4MY36dvh2C8f8hRV3AH98VI5gtu3TN_Szb9G_ZQA'
-        },
-        signal: controller.signal
-      });
+      // Use Supabase client for connectivity check instead of hardcoded API key
+      const { error } = await supabase
+        .from('profiles')
+        .select('id')
+        .limit(0)
+        .abortSignal(controller.signal);
       
       clearTimeout(timeoutId);
-      const connected = response.ok;
+      const connected = !error;
       setIsConnected(connected);
       
       return connected;

@@ -25,21 +25,47 @@ serve(async (req) => {
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !userData.user) throw new Error("Authentication failed");
 
-    // Vérifier que l'utilisateur est admin
+    // Vérifier que l'utilisateur est admin avec validation renforcée
     const { data: isAdmin, error: roleError } = await supabaseClient
       .rpc('user_has_role', { 
         p_user_id: userData.user.id, 
         p_role: 'admin' 
       });
 
-    if (roleError || !isAdmin) {
+    if (roleError) {
+      console.error("Role check error:", roleError);
+      throw new Error("Failed to verify admin privileges");
+    }
+
+    if (!isAdmin) {
+      console.warn("Unauthorized API key creation attempt:", userData.user.id);
       throw new Error("Admin access required");
     }
 
-    const { key_name, app_name, permissions = ['award_points'] } = await req.json();
+    const body = await req.json();
+    const { key_name, app_name, permissions = ['award_points'] } = body;
 
-    if (!key_name || !app_name) {
-      throw new Error("key_name and app_name are required");
+    // Enhanced input validation
+    if (!key_name || typeof key_name !== 'string' || key_name.trim().length === 0) {
+      throw new Error("key_name is required and must be a non-empty string");
+    }
+    
+    if (!app_name || typeof app_name !== 'string' || app_name.trim().length === 0) {
+      throw new Error("app_name is required and must be a non-empty string");
+    }
+
+    if (key_name.length > 100 || app_name.length > 100) {
+      throw new Error("key_name and app_name must be less than 100 characters");
+    }
+
+    // Validate permissions array
+    if (!Array.isArray(permissions) || permissions.length === 0) {
+      throw new Error("permissions must be a non-empty array");
+    }
+
+    const validPermissions = ['award_points', 'read_stats', 'manage_content'];
+    if (!permissions.every(p => validPermissions.includes(p))) {
+      throw new Error(`Invalid permissions. Valid options: ${validPermissions.join(', ')}`);
     }
 
     // Générer une clé API unique
