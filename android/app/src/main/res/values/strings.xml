@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Orydia</string>
+    <string name="title_activity_main">Orydia</string>
+    <string name="package_name">com.orydia.app</string>
+    <string name="custom_url_scheme">com.orydia.app</string>
+</resources>
