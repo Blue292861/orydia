@@ -29,6 +29,13 @@ serve(async (req) => {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) throw new Error("User not found");
 
+    // Log security event for subscription check
+    await supabaseAdmin.rpc('log_security_event', {
+      event_type: 'subscription_check',
+      user_id: user.id,
+      details: { timestamp: new Date().toISOString() }
+    });
+
     await supabaseAdmin
       .from('subscribers')
       .upsert({ user_id: user.id, email: user.email! }, { onConflict: 'user_id' });

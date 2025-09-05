@@ -25,6 +25,23 @@ serve(async (req) => {
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !userData.user) throw new Error("Authentication failed");
 
+    // Check rate limit for API key creation
+    const { data: rateLimitOk } = await supabaseClient.rpc('check_rate_limit', {
+      p_user_id: userData.user.id,
+      p_action_type: 'api_key_creation',
+      p_max_attempts: 3,
+      p_window_minutes: 60
+    });
+
+    if (!rateLimitOk) {
+      await supabaseClient.rpc('log_security_event', {
+        event_type: 'rate_limit_exceeded',
+        user_id: userData.user.id,
+        details: { action: 'api_key_creation' }
+      });
+      throw new Error("Rate limit exceeded for API key creation");
+    }
+
     // Vérifier que l'utilisateur est admin avec validation renforcée
     const { data: isAdmin, error: roleError } = await supabaseClient
       .rpc('user_has_role', { 
@@ -34,11 +51,21 @@ serve(async (req) => {
 
     if (roleError) {
       console.error("Role check error:", roleError);
+      await supabaseClient.rpc('log_security_event', {
+        event_type: 'role_check_failed',
+        user_id: userData.user.id,
+        details: { error: roleError.message }
+      });
       throw new Error("Failed to verify admin privileges");
     }
 
     if (!isAdmin) {
       console.warn("Unauthorized API key creation attempt:", userData.user.id);
+      await supabaseClient.rpc('log_security_event', {
+        event_type: 'unauthorized_api_key_attempt',
+        user_id: userData.user.id,
+        details: { timestamp: new Date().toISOString() }
+      });
       throw new Error("Admin access required");
     }
 
@@ -90,6 +117,18 @@ serve(async (req) => {
       .single();
 
     if (insertError) throw insertError;
+
+    // Log successful API key creation
+    await supabaseClient.rpc('log_security_event', {
+      event_type: 'api_key_created',
+      user_id: userData.user.id,
+      details: { 
+        key_name, 
+        app_name, 
+        permissions,
+        key_id: newApiKey.id
+      }
+    });
 
     return new Response(JSON.stringify({
       success: true,
