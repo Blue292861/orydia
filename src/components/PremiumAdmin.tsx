@@ -37,46 +37,25 @@ export const PremiumAdmin: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Chercher l'utilisateur par email dans la table profiles qui est liée aux auth.users
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .ilike('id', `%${email}%`)
+      // Chercher l'utilisateur par email dans la table subscribers
+      const { data: userData, error: userError } = await supabase
+        .from('subscribers')
+        .select('user_id')
+        .eq('email', email.toLowerCase())
         .maybeSingle();
 
-      if (profileError) {
-        // Essayer une approche différente: chercher l'email directement
-        const { data: userData, error: userError } = await supabase
-          .from('subscribers')
-          .select('user_id')
-          .eq('email', email.toLowerCase())
-          .maybeSingle();
+      if (userError || !userData) {
+        throw new Error('Utilisateur non trouvé avec cet email. Assurez-vous que l\'utilisateur existe et a un profil d\'abonné.');
+      }
 
-        if (userError || !userData) {
-          throw new Error('Utilisateur non trouvé avec cet email. Assurez-vous que l\'utilisateur existe.');
-        }
+      // Utiliser l'ID trouvé pour accorder le premium
+      const { error: premiumError } = await supabase.rpc('grant_manual_premium', {
+        p_user_id: userData.user_id,
+        p_months: monthsNumber
+      });
 
-        // Utiliser l'ID trouvé pour accorder le premium
-        const { error: premiumError } = await supabase.rpc('grant_manual_premium', {
-          p_user_id: userData.user_id,
-          p_months: monthsNumber
-        });
-
-        if (premiumError) {
-          throw premiumError;
-        }
-      } else if (profileData) {
-        // Utiliser l'ID du profil pour accorder le premium
-        const { error: premiumError } = await supabase.rpc('grant_manual_premium', {
-          p_user_id: profileData.id,
-          p_months: monthsNumber
-        });
-
-        if (premiumError) {
-          throw premiumError;
-        }
-      } else {
-        throw new Error('Utilisateur non trouvé avec cet email');
+      if (premiumError) {
+        throw premiumError;
       }
 
       toast({
