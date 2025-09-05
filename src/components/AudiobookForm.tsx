@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TagInput } from '@/components/TagInput';
 import { FileImport } from '@/components/FileImport';
-import { sanitizeText, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
+import { sanitizeText, sanitizeTextWithSpaces, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
 import { useToast } from '@/hooks/use-toast';
 
 interface AudiobookFormProps {
@@ -61,7 +61,9 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
       }
     }
 
-    const sanitizedValue = typeof value === 'string' ? sanitizeText(value) : value;
+    const sanitizedValue = typeof value === 'string' ? 
+      (field === 'name' || field === 'author' || field === 'description') ? sanitizeTextWithSpaces(value) : sanitizeText(value) 
+      : value;
     
     setFormData(prev => ({
       ...prev,
@@ -119,9 +121,9 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
     // Final sanitization before submission
     const sanitizedData: Audiobook = {
       ...formData,
-      name: sanitizeText(formData.name),
-      author: sanitizeText(formData.author),
-      description: formData.description ? sanitizeText(formData.description) : null,
+      name: sanitizeTextWithSpaces(formData.name),
+      author: sanitizeTextWithSpaces(formData.author),
+      description: formData.description ? sanitizeTextWithSpaces(formData.description) : null,
       cover_url: sanitizeText(formData.cover_url),
       audio_url: sanitizeText(formData.audio_url)
     };

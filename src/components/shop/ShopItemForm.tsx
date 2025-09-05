@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ShopItemBasicFields } from './ShopItemBasicFields';
 import { ShopItemImageField } from './ShopItemImageField';
 import { validateShopItemForm } from './ShopItemFormValidation';
-import { sanitizeText } from '@/utils/security';
+import { sanitizeText, sanitizeTextWithSpaces } from '@/utils/security';
 import { useToast } from '@/hooks/use-toast';
 
 interface ShopItemFormProps {
@@ -43,11 +43,11 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
     // Final sanitization before submission
     const sanitizedData: ShopItem = {
       ...formData,
-      name: sanitizeText(formData.name),
-      seller: sanitizeText(formData.seller),
-      category: sanitizeText(formData.category),
-      description: sanitizeText(formData.description),
-      content: formData.content ? sanitizeText(formData.content) : undefined,
+      name: sanitizeTextWithSpaces(formData.name),
+      seller: sanitizeTextWithSpaces(formData.seller),
+      category: sanitizeTextWithSpaces(formData.category),
+      description: sanitizeTextWithSpaces(formData.description),
+      content: formData.content ? sanitizeTextWithSpaces(formData.content) : undefined,
       imageUrl: sanitizeText(formData.imageUrl)
     };
 

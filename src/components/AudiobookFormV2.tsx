@@ -10,7 +10,7 @@ import { TagInput } from '@/components/TagInput';
 import { FileImport } from '@/components/FileImport';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trash2, Plus, Upload } from 'lucide-react';
-import { sanitizeText, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
+import { sanitizeText, sanitizeTextWithSpaces, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
 import { useToast } from '@/hooks/use-toast';
 
 interface AudiobookFormV2Props {
@@ -70,7 +70,9 @@ export const AudiobookFormV2: React.FC<AudiobookFormV2Props> = ({ initialAudiobo
       }
     }
 
-    const sanitizedValue = typeof value === 'string' ? sanitizeText(value) : value;
+    const sanitizedValue = typeof value === 'string' ? 
+      (field === 'name' || field === 'author' || field === 'description' || field === 'genre') ? sanitizeTextWithSpaces(value) : sanitizeText(value) 
+      : value;
     
     setFormData(prev => ({
       ...prev,
@@ -169,16 +171,16 @@ export const AudiobookFormV2: React.FC<AudiobookFormV2Props> = ({ initialAudiobo
 
     const sanitizedData: Audiobook = {
       ...formData,
-      name: sanitizeText(formData.name),
-      author: sanitizeText(formData.author),
-      description: formData.description ? sanitizeText(formData.description) : undefined,
-      genre: formData.genre ? sanitizeText(formData.genre) : undefined,
+      name: sanitizeTextWithSpaces(formData.name),
+      author: sanitizeTextWithSpaces(formData.author),
+      description: formData.description ? sanitizeTextWithSpaces(formData.description) : undefined,
+      genre: formData.genre ? sanitizeTextWithSpaces(formData.genre) : undefined,
       cover_url: sanitizeText(formData.cover_url),
       audio_url: '', // Plus utilisé avec le nouveau système
     };
 
     const sanitizedChapters = chapters.map(chapter => ({
-      title: sanitizeText(chapter.title),
+      title: sanitizeTextWithSpaces(chapter.title),
       audio_url: sanitizeText(chapter.audio_url),
       chapter_number: chapter.chapter_number,
       duration_seconds: chapter.duration_seconds

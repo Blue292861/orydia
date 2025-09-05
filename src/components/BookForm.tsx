@@ -45,6 +45,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
 
     const sanitizedValue = name === 'content' ? sanitizeHtml(value) : 
                           name === 'summary' ? sanitizeTextWithSpaces(value) :
+                          (name === 'title' || name === 'author') ? sanitizeTextWithSpaces(value) :
                           sanitizeText(value);
     
     setBook(prev => ({ 
@@ -225,8 +226,8 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
 
     onSubmit({
       ...book,
-      title: sanitizeText(book.title),
-      author: sanitizeText(book.author),
+      title: sanitizeTextWithSpaces(book.title),
+      author: sanitizeTextWithSpaces(book.author),
       summary: book.summary ? sanitizeTextWithSpaces(book.summary) : undefined,
       content: sanitizeHtml(book.content),
       coverUrl: sanitizeImageUrl(book.coverUrl)
