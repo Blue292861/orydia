@@ -29,16 +29,26 @@ export const PremiumSelectionDialog: React.FC<PremiumSelectionDialogProps> = ({ 
       if (error) {
         throw error;
       }
-      if (data.url) {
+      if (data?.url) {
         // Ouvrir le checkout dans un nouvel onglet
         window.open(data.url, '_blank');
         setOpen(false);
+        toast({
+          title: "Redirection vers le paiement",
+          description: "Une nouvelle fenêtre s'est ouverte pour finaliser votre abonnement.",
+        });
+      } else {
+        throw new Error("URL de paiement non reçue");
       }
     } catch (error: any) {
       console.error('Error creating checkout session:', error);
+      
+      // Display user-friendly error message
+      const errorMessage = error.message || error.error || "Impossible de démarrer la session de paiement. Veuillez réessayer.";
+      
       toast({
         title: "Erreur de paiement",
-        description: "Impossible de démarrer la session de paiement. Veuillez réessayer.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
