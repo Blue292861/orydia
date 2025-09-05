@@ -37,20 +37,22 @@ export const PremiumAdmin: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Chercher l'utilisateur par email dans la table subscribers
-      const { data: userData, error: userError } = await supabase
-        .from('subscribers')
-        .select('user_id')
-        .eq('email', email.toLowerCase())
-        .maybeSingle();
+      // Chercher l'utilisateur par email dans la table auth.users
+      const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+      
+      if (userError) {
+        throw new Error('Erreur lors de la recherche de l\'utilisateur: ' + userError.message);
+      }
 
-      if (userError || !userData) {
-        throw new Error('Utilisateur non trouvé avec cet email. Assurez-vous que l\'utilisateur existe et a un profil d\'abonné.');
+      const user = userData.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+      
+      if (!user) {
+        throw new Error('Utilisateur non trouvé avec cet email. Assurez-vous que l\'utilisateur a un compte sur la plateforme.');
       }
 
       // Utiliser l'ID trouvé pour accorder le premium avec la fonction sécurisée
       const { error: premiumError } = await supabase.rpc('grant_manual_premium_secure', {
-        p_user_id: userData.user_id,
+        p_user_id: user.id,
         p_months: monthsNumber
       });
 
@@ -90,19 +92,21 @@ export const PremiumAdmin: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Chercher l'utilisateur par email dans la table subscribers
-      const { data: userData, error: userError } = await supabase
-        .from('subscribers')
-        .select('user_id')
-        .eq('email', email.toLowerCase())
-        .maybeSingle();
+      // Chercher l'utilisateur par email dans la table auth.users
+      const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+      
+      if (userError) {
+        throw new Error('Erreur lors de la recherche de l\'utilisateur: ' + userError.message);
+      }
 
-      if (userError || !userData) {
+      const user = userData.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+      
+      if (!user) {
         throw new Error('Utilisateur non trouvé avec cet email');
       }
 
       const { error: revokeError } = await supabase.rpc('revoke_manual_premium_secure', {
-        p_user_id: userData.user_id
+        p_user_id: user.id
       });
 
       if (revokeError) {
@@ -204,7 +208,8 @@ export const PremiumAdmin: React.FC = () => {
           <CardTitle>Information</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>• L'utilisateur doit avoir un compte existant avec l'email spécifié</p>
+          <p>• L'utilisateur doit avoir un compte inscrit avec l'email spécifié</p>
+          <p>• Fonctionne pour tous les utilisateurs, même ceux sans abonnement existant</p>
           <p>• Le premium manuel remplace tout abonnement Stripe existant</p>
           <p>• La période commence immédiatement à partir d'aujourd'hui</p>
           <p>• Révoquer le premium supprime immédiatement l'accès</p>
