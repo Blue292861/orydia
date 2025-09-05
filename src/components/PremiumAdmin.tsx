@@ -48,8 +48,8 @@ export const PremiumAdmin: React.FC = () => {
         throw new Error('Utilisateur non trouvé avec cet email. Assurez-vous que l\'utilisateur existe et a un profil d\'abonné.');
       }
 
-      // Utiliser l'ID trouvé pour accorder le premium
-      const { error: premiumError } = await supabase.rpc('grant_manual_premium', {
+      // Utiliser l'ID trouvé pour accorder le premium avec la fonction sécurisée
+      const { error: premiumError } = await supabase.rpc('grant_manual_premium_secure', {
         p_user_id: userData.user_id,
         p_months: monthsNumber
       });
@@ -101,7 +101,7 @@ export const PremiumAdmin: React.FC = () => {
         throw new Error('Utilisateur non trouvé avec cet email');
       }
 
-      const { error: revokeError } = await supabase.rpc('revoke_manual_premium', {
+      const { error: revokeError } = await supabase.rpc('revoke_manual_premium_secure', {
         p_user_id: userData.user_id
       });
 

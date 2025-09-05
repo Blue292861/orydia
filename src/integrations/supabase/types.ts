@@ -1201,11 +1201,23 @@ export type Database = {
         Args: { p_months?: number; p_user_id: string }
         Returns: undefined
       }
+      grant_manual_premium_secure: {
+        Args: { p_months?: number; p_user_id: string }
+        Returns: undefined
+      }
+      log_admin_action: {
+        Args: { action_type: string; details?: Json; target_user_id?: string }
+        Returns: undefined
+      }
       log_security_event: {
         Args: { details?: Json; event_type: string; user_id?: string }
         Returns: undefined
       }
       revoke_manual_premium: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      revoke_manual_premium_secure: {
         Args: { p_user_id: string }
         Returns: undefined
       }
