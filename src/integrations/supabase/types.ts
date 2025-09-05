@@ -1197,8 +1197,16 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["ui_theme"]
       }
+      grant_manual_premium: {
+        Args: { p_months?: number; p_user_id: string }
+        Returns: undefined
+      }
       log_security_event: {
         Args: { details?: Json; event_type: string; user_id?: string }
+        Returns: undefined
+      }
+      revoke_manual_premium: {
+        Args: { p_user_id: string }
         Returns: undefined
       }
       sync_user_level_info: {
