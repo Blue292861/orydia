@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ShopItem } from '@/types/ShopItem';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { ShopItemBasicFields } from './ShopItemBasicFields';
 import { ShopItemImageField } from './ShopItemImageField';
 import { validateShopItemForm } from './ShopItemFormValidation';
@@ -54,15 +55,17 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
   };
 
   return (
-    <div className="h-full max-h-[80vh] overflow-y-auto pr-2">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <ScrollArea className="h-full max-h-[80vh]">
+      <div className="pr-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
       <ShopItemBasicFields formData={formData} onFieldChange={handleChange} />
       <ShopItemImageField formData={formData} onFieldChange={handleChange} />
 
       <Button type="submit" className="w-full">
         {initialItem.id ? "Mettre à jour l'objet" : "Ajouter l'objet"}
-      </Button>
-      </form>
-    </div>
+        </Button>
+        </form>
+      </div>
+    </ScrollArea>
   );
 };

@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { TagInput } from '@/components/TagInput';
 import { FileImport } from '@/components/FileImport';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { sanitizeText, sanitizeImageUrl, sanitizeTextWithSpaces, sanitizeHtml, validateTextLength, validateImageUrl, validatePoints } from '@/utils/security';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -233,8 +234,9 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
   };
 
   return (
-    <div className="h-full max-h-[80vh] overflow-y-auto pr-2">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <ScrollArea className="h-full max-h-[80vh]">
+      <div className="pr-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-2">
         <Label htmlFor="title">Titre du livre</Label>
         <Input
@@ -415,8 +417,9 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
         <Button type="submit">
           {initialBook.id ? 'Mettre à jour le livre' : 'Ajouter le livre'}
         </Button>
+        </div>
+        </form>
       </div>
-      </form>
-    </div>
+    </ScrollArea>
   );
 };

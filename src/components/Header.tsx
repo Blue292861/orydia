@@ -18,8 +18,18 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const { isMobile, isTablet } = useResponsive();
 
   const handleLogout = async () => {
-    const { supabase } = await import('@/integrations/supabase/client');
-    await supabase.auth.signOut();
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+      // Force la déconnexion côté client même si le serveur renvoie une erreur
+      const { supabase } = await import('@/integrations/supabase/client');
+      // Clear la session locale
+      await supabase.auth.signOut({ scope: 'local' });
+      // Actualiser la page pour s'assurer que l'état est correctement réinitialisé
+      window.location.reload();
+    }
   };
 
   const getHeaderPadding = () => {
