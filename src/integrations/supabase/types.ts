@@ -1201,6 +1201,10 @@ export type Database = {
         Args: { p_months?: number; p_user_id: string }
         Returns: undefined
       }
+      grant_manual_premium_by_email_secure: {
+        Args: { p_email: string; p_months?: number }
+        Returns: undefined
+      }
       grant_manual_premium_secure: {
         Args: { p_months?: number; p_user_id: string }
         Returns: undefined
@@ -1215,6 +1219,10 @@ export type Database = {
       }
       revoke_manual_premium: {
         Args: { p_user_id: string }
+        Returns: undefined
+      }
+      revoke_manual_premium_by_email_secure: {
+        Args: { p_email: string }
         Returns: undefined
       }
       revoke_manual_premium_secure: {
