@@ -12,7 +12,7 @@ interface GameCardProps {
 
 export function GameCard({ game, onSelect }: GameCardProps) {
   return (
-    <Card className="group cursor-pointer hover:shadow-lg transition-all duration-300 min-w-[200px] max-w-[280px]">
+    <Card className="group cursor-pointer hover:shadow-lg transition-all duration-300 min-w-[120px] max-w-[168px]">
       <CardContent className="p-0" onClick={() => onSelect(game)}>
         <div className="aspect-[2/3] relative overflow-hidden rounded-t-lg">
           <img

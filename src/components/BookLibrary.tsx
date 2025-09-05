@@ -82,7 +82,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
         title="Les conseils de Paco"
         books={pacoBooks}
         onBookSelect={handleBookPreview}
-        large={true}
+        large={false}
         emptyMessage="Aucun livre dans cette catégorie pour le moment."
       />
 
@@ -100,7 +100,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
               isMobile ? 'scroll-smooth' : ''
             }`}>
               {pacoChronicleAudiobooks.map((audiobook) => (
-                <div key={audiobook.id} className="min-w-[200px] max-w-[280px]">
+                <div key={audiobook.id} className="min-w-[120px] max-w-[168px]">
                   <div className="bg-wood-800/60 border border-wood-700 rounded-lg p-4 cursor-pointer hover:bg-wood-700/60 transition-colors">
                     <img 
                       src={audiobook.cover_url} 
@@ -136,7 +136,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
               isMobile ? 'scroll-smooth' : ''
             }`}>
               {featuredAudiobooks.map((audiobook) => (
-                <div key={audiobook.id} className="min-w-[200px] max-w-[280px]">
+                <div key={audiobook.id} className="min-w-[120px] max-w-[168px]">
                   <div className="bg-wood-800/60 border border-wood-700 rounded-lg p-4 cursor-pointer hover:bg-wood-700/60 transition-colors">
                     <img 
                       src={audiobook.cover_url} 
