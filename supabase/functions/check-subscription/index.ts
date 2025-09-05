@@ -8,6 +8,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Security logging function
+async function logSecurityEvent(supabase: any, eventType: string, details: any) {
+  try {
+    await supabase.rpc('log_security_event', {
+      event_type: eventType,
+      details: details
+    });
+  } catch (error) {
+    console.error('Failed to log security event:', error);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -27,7 +39,19 @@ serve(async (req) => {
     );
 
     const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) throw new Error("User not found");
+    if (!user) {
+      await logSecurityEvent(supabaseAdmin, 'unauthorized_subscription_check', {
+        ip: req.headers.get("x-forwarded-for") || 'unknown',
+        user_agent: req.headers.get("user-agent")
+      });
+      throw new Error("User not found");
+    }
+    
+    // Log legitimate access
+    await logSecurityEvent(supabaseAdmin, 'subscription_check', {
+      user_id: user.id,
+      ip: req.headers.get("x-forwarded-for") || 'unknown'
+    });
 
     // Log security event for subscription check
     await supabaseAdmin.rpc('log_security_event', {

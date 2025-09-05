@@ -6,6 +6,34 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Security logging function
+async function logSecurityEvent(supabase: any, eventType: string, details: any) {
+  try {
+    await supabase.rpc('log_security_event', {
+      event_type: eventType,
+      details: details
+    });
+  } catch (error) {
+    console.error('Failed to log security event:', error);
+  }
+}
+
+// Rate limiting check
+async function checkRateLimit(supabase: any, userId: string, action: string): Promise<boolean> {
+  try {
+    const { data } = await supabase.rpc('check_rate_limit', {
+      p_user_id: userId,
+      p_action_type: action,
+      p_max_attempts: 3, // Strict limit for API key creation
+      p_window_minutes: 60 // 1 hour window
+    });
+    return data;
+  } catch (error) {
+    console.error('Rate limit check failed:', error);
+    return false; // Fail safe - deny if we can't check
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
