@@ -12,7 +12,7 @@ interface AudiobookCardProps {
 export const AudiobookCard: React.FC<AudiobookCardProps> = ({ audiobook, onClick }) => {
   return (
     <Card 
-      className={`cursor-pointer transition-all hover:shadow-lg hover:scale-105 ${
+      className={`cursor-pointer transition-all hover:shadow-lg hover:scale-105 max-w-[220px] ${
         audiobook.is_premium ? "ring-2 ring-yellow-500" : ""
       }`}
       onClick={() => onClick(audiobook)}
@@ -21,28 +21,27 @@ export const AudiobookCard: React.FC<AudiobookCardProps> = ({ audiobook, onClick
         <img 
           src={audiobook.cover_url} 
           alt={audiobook.name}
-          className="w-full h-48 object-cover rounded-t-lg" 
+          className="w-full h-36 object-cover rounded-t-lg" 
         />
         <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center rounded-t-lg">
-          <Play className="h-12 w-12 text-white opacity-0 hover:opacity-100 transition-opacity" />
+          <Play className="h-8 w-8 text-white opacity-0 hover:opacity-100 transition-opacity" />
         </div>
         {audiobook.is_premium && (
-          <Crown className="absolute top-2 right-2 h-5 w-5 text-yellow-500" />
+          <Crown className="absolute top-2 right-2 h-4 w-4 text-yellow-500" />
         )}
+        <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
+          <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-3 w-3" />
+          <span className="font-medium text-white text-xs">{audiobook.points}</span>
+        </div>
       </div>
       
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-3 space-y-2">
         <div>
-          <h3 className="font-bold text-lg line-clamp-2">{audiobook.name}</h3>
-          <p className="text-muted-foreground text-sm">{audiobook.author}</p>
+          <h3 className="font-bold text-sm line-clamp-2">{audiobook.name}</h3>
+          <p className="text-muted-foreground text-xs">{audiobook.author}</p>
           {audiobook.genre && (
             <p className="text-primary text-xs font-medium mt-1">{audiobook.genre}</p>
           )}
-        </div>
-
-        <div className="flex items-center gap-1 text-sm">
-          <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-4 w-4" />
-          <span className="font-medium">{audiobook.points} Tensens</span>
         </div>
 
         <div className="flex flex-wrap gap-1">
