@@ -115,7 +115,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onPasswordReset }) => {
             onChange={handleChange}
             required
             placeholder="votre.quete@orydia.com"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
         <div>
@@ -131,7 +131,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onPasswordReset }) => {
               onChange={handleChange}
               required
               placeholder="••••••••"
-              className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm pr-10"
+              className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm pr-10 text-forest-900"
             />
             <Button
               type="button"

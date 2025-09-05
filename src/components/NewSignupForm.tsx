@@ -96,7 +96,7 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="votre.quete@orydia.com"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
         <div>
@@ -113,7 +113,7 @@ export const NewSignupForm: React.FC = () => {
               required
               placeholder="Au moins 6 runes"
               minLength={6}
-              className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm pr-10"
+              className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm pr-10 text-forest-900"
             />
             <Button
               type="button"
@@ -142,7 +142,7 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="Héros_Légendaire"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
         <div>
@@ -156,7 +156,7 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="Arion"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
         <div>
@@ -170,7 +170,7 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="Fortelame"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
         <div className="md:col-span-2">
@@ -184,7 +184,7 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="42 Rue des Chevaliers de la Table Ronde"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
         <div>
@@ -198,7 +198,7 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="Valorhall"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
         <div className="md:col-span-2">
@@ -212,7 +212,7 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="Orydia"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
       </div>
