@@ -14,6 +14,7 @@ export const NewSignupForm: React.FC = () => {
     username: '',
     firstName: '',
     lastName: '',
+    address: '',
     city: '',
     country: ''
   });
@@ -30,6 +31,20 @@ export const NewSignupForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Vérification que tous les champs sont remplis
+    const requiredFields = ['email', 'password', 'username', 'firstName', 'lastName', 'address', 'city', 'country'];
+    const emptyFields = requiredFields.filter(field => !signupData[field as keyof typeof signupData].trim());
+    
+    if (emptyFields.length > 0) {
+      toast({
+        title: 'Inscription incomplète',
+        description: 'Tous les champs du parchemin doivent être remplis pour rejoindre la guilde.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -42,6 +57,7 @@ export const NewSignupForm: React.FC = () => {
             username: signupData.username,
             first_name: signupData.firstName,
             last_name: signupData.lastName,
+            address: signupData.address,
             city: signupData.city,
             country: signupData.country
           }
@@ -154,6 +170,20 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="Fortelame"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
+          />
+        </div>
+        <div className="md:col-span-2">
+          <Label htmlFor="signup-address" className="text-forest-800 font-medium font-medieval text-sm">
+            Demeure et voie *
+          </Label>
+          <Input
+            id="signup-address"
+            name="address"
+            value={signupData.address}
+            onChange={handleChange}
+            required
+            placeholder="42 Rue des Chevaliers de la Table Ronde"
             className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm"
           />
         </div>
