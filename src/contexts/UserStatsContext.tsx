@@ -253,6 +253,7 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
   return (
     <UserStatsContext.Provider value={{ 
       userStats, 
+      loadUserStats,
       addPointsForBook, 
       spendPoints, 
       addAchievement,

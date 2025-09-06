@@ -3,6 +3,7 @@ import { UserStats, Achievement } from './UserStats';
 
 export interface UserStatsContextType {
   userStats: UserStats;
+  loadUserStats: () => Promise<void>;
   addPointsForBook: (bookId: string, points: number) => void;
   spendPoints: (amount: number) => void;
   addAchievement: (achievement: Achievement) => void;

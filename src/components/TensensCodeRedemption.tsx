@@ -12,7 +12,7 @@ export const TensensCodeRedemption: React.FC = () => {
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  // UserStatsContext will automatically refresh stats
+  const { loadUserStats } = useUserStats();
 
   const handleRedeemCode = async () => {
     if (!code.trim()) {
@@ -35,7 +35,8 @@ export const TensensCodeRedemption: React.FC = () => {
           description: response.message,
         });
         setCode('');
-        // Points are already awarded via edge function
+        // Recharger les stats pour mettre à jour le compteur de Tensens
+        await loadUserStats();
       } else {
         toast({
           title: "Erreur",
