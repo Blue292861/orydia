@@ -14,7 +14,7 @@ import {
 
 interface FileImportProps {
   type: 'image' | 'pdf' | 'audio';
-  onFileImport: (content: string) => void;
+  onFileImport: (content: string, file?: File) => void;
   disabled?: boolean;
 }
 
@@ -228,7 +228,7 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
       }
 
       // Traitement selon le type de fichier
-      if (type === 'image' || type === 'pdf') {
+      if (type === 'image') {
         // Génération d'un nom unique
         const fileExt = file.name.split('.').pop()?.toLowerCase();
         const timestamp = Date.now();
@@ -241,9 +241,17 @@ export const FileImport: React.FC<FileImportProps> = ({ type, onFileImport, disa
         
         toast({
           title: "✅ Upload réussi!",
-          description: type === 'image' 
-            ? "Image sauvegardée sur le serveur." 
-            : "PDF sauvegardé sur le serveur.",
+          description: "Image sauvegardée sur le serveur.",
+          variant: "default"
+        });
+        
+      } else if (type === 'pdf') {
+        // Pour les PDFs, on passe directement le fichier pour extraction côté admin
+        onFileImport('', file);
+        
+        toast({
+          title: "✅ PDF chargé!",
+          description: "Utilisez le bouton d'extraction pour traiter le PDF.",
           variant: "default"
         });
         

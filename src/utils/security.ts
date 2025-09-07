@@ -199,12 +199,22 @@ export const checkRateLimit = (identifier: string, maxRequests: number, windowMs
   return true;
 };
 
-// Input sanitization for tags
+// Input sanitization for tags with UTF-8 support
 export const sanitizeTag = (tag: string): string => {
-  return sanitizeText(tag)
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-_]/g, '')
-    .replace(/\s+/g, '-')
+  if (!tag) return '';
+  
+  // Use DOMPurify for XSS protection
+  const sanitized = DOMPurify.sanitize(tag, { 
+    ALLOWED_TAGS: [], 
+    ALLOWED_ATTR: [] 
+  });
+  
+  return sanitized
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+=/gi, '') // Remove event handlers
+    .replace(/data:/gi, '') // Remove data: URIs
+    .replace(/[<>"|*?\\\/\x00-\x1f\x7f]/g, '') // Remove dangerous characters
+    .trim()
     .substring(0, 50);
 };
 

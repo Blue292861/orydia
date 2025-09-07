@@ -105,7 +105,53 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     setBook(prev => ({ ...prev, coverUrl: coverData }));
   };
 
-  const handleContentImport = (content: string) => {
+  const handleExtractPDF = async () => {
+    if (!pdfFile) return;
+    
+    setIsExtracting(true);
+    setExtractionProgress(0);
+    setExtractionStatus('Initialisation...');
+    
+    try {
+      const result = await PDFExtractionService.extractText(
+        pdfFile,
+        (progress, status) => {
+          setExtractionProgress(progress);
+          setExtractionStatus(status);
+        }
+      );
+
+      if (result.success && result.text.trim()) {
+        setBook(prev => ({ ...prev, content: result.text }));
+        toast({
+          title: "PDF extrait avec succès",
+          description: `${result.pageCount} pages extraites par ${result.method}`,
+        });
+      } else {
+        toast({
+          title: "Erreur d'extraction",
+          description: result.error || "Impossible d'extraire le texte du PDF",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'extraction:', error);
+      toast({
+        title: "Erreur d'extraction",
+        description: "Une erreur inattendue s'est produite",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExtracting(false);
+      setPdfFile(null);
+    }
+  };
+
+  const handleContentImport = (content: string, file?: File) => {
+    if (file && file.type === 'application/pdf') {
+      setPdfFile(file);
+      return;
+    }
     const sanitizedContent = sanitizeHtml(content);
     setBook(prev => ({ ...prev, content: sanitizedContent }));
   };
@@ -374,7 +420,46 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
             maxLength={500000}
             required
           />
-          <FileImport type="pdf" onFileImport={handleContentImport} />
+          <div className="flex gap-2">
+            <FileImport type="pdf" onFileImport={handleContentImport} />
+            {pdfFile && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleExtractPDF}
+                disabled={isExtracting}
+                className="flex-1"
+              >
+                {isExtracting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Extraction... ({Math.round(extractionProgress)}%)
+                  </>
+                ) : (
+                  <>
+                    <Zap className="mr-2 h-4 w-4" />
+                    Extraire le texte du PDF
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+          
+          {isExtracting && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Extraction en cours...</span>
+                <span>{Math.round(extractionProgress)}%</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2">
+                <div 
+                  className="bg-primary h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${extractionProgress}%` }}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">{extractionStatus}</p>
+            </div>
+          )}
           
           {book.content && (
             <div className="flex flex-col gap-2">
