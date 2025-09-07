@@ -41,7 +41,9 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
 
 
   const handleFullscreen = () => {
-    window.open(pdfUrl, '_blank');
+    // Créer une URL sécurisée avec des paramètres pour empêcher le téléchargement
+    const secureUrl = `${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH&zoom=100`;
+    window.open(secureUrl, '_blank');
   };
 
   const handleRefresh = () => {
@@ -112,11 +114,12 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
 
         <iframe
           id="pdf-reader-iframe"
-          src={pdfUrl}
+          src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH&zoom=100`}
           className="w-full h-[600px] border-0"
           title={`Lecture PDF: ${title}`}
           onLoad={handleIframeLoad}
           onError={handleIframeError}
+          sandbox="allow-scripts allow-same-origin"
         />
       </div>
 
