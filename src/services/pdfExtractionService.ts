@@ -15,6 +15,24 @@ export interface ExtractionResult {
 
 export class PDFExtractionService {
   /**
+   * Clean extracted text from binary/invalid characters
+   */
+  static cleanExtractedText(text: string): string {
+    if (!text) return '';
+    
+    return text
+      // Remove null bytes and control characters
+      .replace(/\x00/g, '')
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+      // Keep only printable ASCII and UTF-8 characters
+      .replace(/[^\x20-\x7E\u00A0-\uFFFF]/g, '')
+      // Normalize whitespace
+      .replace(/\s+/g, ' ')
+      .replace(/\n\s*\n/g, '\n\n')
+      .trim();
+  }
+
+  /**
    * Extract text from PDF using multiple methods in cascade
    */
   static async extractText(
@@ -26,7 +44,8 @@ export class PDFExtractionService {
       onProgress?.(10, 'Tentative d\'extraction avec PDF.js...');
       const pdfJsResult = await this.extractWithPDFJS(pdfFile, onProgress);
       if (pdfJsResult.success && pdfJsResult.text.trim().length > 50) {
-        return pdfJsResult;
+        const cleanedText = this.cleanExtractedText(pdfJsResult.text);
+        return { ...pdfJsResult, text: cleanedText };
       }
 
       // Method 2: Try server-side extraction
@@ -34,13 +53,19 @@ export class PDFExtractionService {
       if (pdfFile instanceof File) {
         const serverResult = await this.extractWithServer(pdfFile, onProgress);
         if (serverResult.success && serverResult.text.trim().length > 50) {
-          return serverResult;
+          const cleanedText = this.cleanExtractedText(serverResult.text);
+          return { ...serverResult, text: cleanedText };
         }
       }
 
       // Method 3: OCR as last resort (slower but works for scanned PDFs)
       onProgress?.(70, 'Tentative d\'extraction par OCR...');
       const ocrResult = await this.extractWithOCR(pdfFile, onProgress);
+      if (ocrResult.success) {
+        const cleanedText = this.cleanExtractedText(ocrResult.text);
+        return { ...ocrResult, text: cleanedText };
+      }
+      
       return ocrResult;
 
     } catch (error) {

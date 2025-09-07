@@ -24,62 +24,83 @@ serve(async (req) => {
 
     // Convert file to ArrayBuffer
     const arrayBuffer = await pdfFile.arrayBuffer();
-    
-    // Use pdf-parse library for server-side extraction
-    // Note: In a real implementation, you would install pdf-parse via npm
-    // For this example, we'll use a basic text extraction approach
-    
-    const response = await fetch('https://api.pdf.co/v1/pdf/convert/to/text', {
-      method: 'POST',
-      headers: {
-        'x-api-key': Deno.env.get('PDF_CO_API_KEY') || '', // You would need to add this secret
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: '', // Would need to upload to temp storage first
-        async: false
-      })
-    });
-
-    // Fallback: Basic text extraction using simple patterns
-    // This is a simplified version - in production you'd use a proper PDF library
     const uint8Array = new Uint8Array(arrayBuffer);
-    const decoder = new TextDecoder();
+    
+    // Check if this is actually a PDF file
+    const pdfHeader = new TextDecoder().decode(uint8Array.slice(0, 4));
+    if (pdfHeader !== '%PDF') {
+      throw new Error('File is not a valid PDF');
+    }
+    
+    // Simple text extraction from PDF
+    // This is a basic approach - for better results, you'd use a proper PDF library
+    const decoder = new TextDecoder('utf-8', { fatal: false });
     const pdfContent = decoder.decode(uint8Array);
     
-    // Extract text between stream objects (very basic approach)
-    const textRegex = /BT\s*.*?ET/gs;
-    const matches = pdfContent.match(textRegex) || [];
-    
+    // Extract readable text using improved regex patterns
     let extractedText = '';
-    let pageCount = 0;
     
-    for (const match of matches) {
-      // Remove PDF commands and extract readable text
-      const cleaned = match
-        .replace(/BT|ET|Tf|TD|Td|Tj|TJ|'|"/g, ' ')
-        .replace(/\d+\.\d+|\d+/g, ' ')
-        .replace(/[()[\]<>]/g, ' ')
-        .replace(/\s+/g, ' ')
+    // Method 1: Look for text between BT and ET commands
+    const textBlocks = pdfContent.match(/BT\s*.*?ET/gs) || [];
+    
+    for (const block of textBlocks) {
+      // Clean up the text block
+      let cleanText = block
+        .replace(/BT|ET/g, '') // Remove BT/ET markers
+        .replace(/\/[A-Za-z]+\s+\d+(\.\d+)?\s+Tf/g, '') // Remove font definitions
+        .replace(/\d+(\.\d+)?\s+\d+(\.\d+)?\s+Td/g, '') // Remove positioning
+        .replace(/\d+(\.\d+)?\s+TL/g, '') // Remove leading
+        .replace(/q|Q/g, '') // Remove graphics state
+        .replace(/\[.*?\]\s*TJ/g, '') // Remove complex text positioning
+        .replace(/\((.*?)\)\s*Tj/g, '$1') // Extract text from Tj commands
+        .replace(/\((.*?)\)\s*'/g, '$1') // Extract text from ' commands
+        .replace(/\\[rn]/g, '\n') // Convert escape sequences
+        .replace(/\\t/g, '\t')
+        .replace(/\\\\/g, '\\')
+        .replace(/\\\(/g, '(')
+        .replace(/\\\)/g, ')')
         .trim();
       
-      if (cleaned.length > 10) {
-        extractedText += cleaned + '\n\n';
-        pageCount++;
+      if (cleanText.length > 3) {
+        extractedText += cleanText + '\n';
       }
     }
-
-    // If no text found with basic extraction, return error
-    if (!extractedText.trim()) {
-      throw new Error('No text could be extracted from this PDF. It might be scanned or image-based.');
+    
+    // Method 2: If no text found with BT/ET, try alternative patterns
+    if (extractedText.length < 50) {
+      // Look for parenthetical text patterns
+      const textMatches = pdfContent.match(/\([^)]{3,}\)/g) || [];
+      for (const match of textMatches) {
+        const text = match.slice(1, -1).trim();
+        if (text.length > 2 && /[a-zA-ZÀ-ÿ]/.test(text)) {
+          extractedText += text + ' ';
+        }
+      }
     }
-
-    console.log(`Extracted ${extractedText.length} characters from ${pageCount} sections`);
+    
+    // Clean up the final text
+    extractedText = extractedText
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .replace(/\n\s*\n/g, '\n\n') // Normalize line breaks
+      .trim();
+    
+    // Ensure we have some meaningful text
+    if (!extractedText || extractedText.length < 10) {
+      throw new Error('No readable text could be extracted from this PDF. It might be scanned or image-based.');
+    }
+    
+    // Final validation - remove any null bytes or invalid characters
+    extractedText = extractedText
+      .replace(/\x00/g, '') // Remove null bytes
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+      .replace(/[^\x20-\x7E\u00A0-\uFFFF]/g, ''); // Keep only printable characters
+    
+    console.log(`Successfully extracted ${extractedText.length} characters`);
 
     return new Response(
       JSON.stringify({
-        text: extractedText.trim(),
-        pageCount: pageCount,
+        text: extractedText,
+        pageCount: Math.max(1, textBlocks.length),
         method: 'server',
         success: true
       }),
