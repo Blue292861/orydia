@@ -23,11 +23,13 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
   const [rotation, setRotation] = useState(0);
 
   const handleObjectLoad = () => {
+    console.log('PDF object loaded successfully');
     setIsLoading(false);
     setError(null);
   };
 
   const handleObjectError = () => {
+    console.log('PDF object failed to load');
     setIsLoading(false);
     setError('Impossible de charger le PDF. Vérifiez que le fichier est accessible.');
   };
@@ -66,15 +68,31 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
   };
 
   useEffect(() => {
+    console.log('EmbeddedPDFReader mounted with URL:', pdfUrl);
+    
+    // Timeout pour détecter si le PDF ne se charge jamais
+    const loadTimeout = setTimeout(() => {
+      if (isLoading) {
+        console.log('PDF load timeout - switching to fallback');
+        setIsLoading(false);
+        setError('Le chargement du PDF prend trop de temps. Essayez de rafraîchir.');
+      }
+    }, 10000); // 10 secondes
+    
     // Simuler la détection de fin de lecture après 30 secondes
     if (onScrollToEnd) {
       const timer = setTimeout(() => {
         onScrollToEnd();
       }, 30000);
       
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(loadTimeout);
+      };
     }
-  }, [onScrollToEnd]);
+    
+    return () => clearTimeout(loadTimeout);
+  }, [pdfUrl, onScrollToEnd, isLoading]);
 
   return (
     <div className={`w-full ${className}`} onKeyDown={handleKeyDown} tabIndex={-1}>
@@ -157,31 +175,42 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
           </div>
         )}
 
-        <object
-          data={pdfUrl}
-          type="application/pdf"
-          className="w-full h-[600px]"
-          onLoad={handleObjectLoad}
-          onError={handleObjectError}
-          style={{
-            transform: `scale(${scale}) rotate(${rotation}deg)`,
-            transformOrigin: 'center center',
-            transition: 'transform 0.2s ease'
-          }}
-        >
-          <p className="p-4 text-center text-muted-foreground">
-            Votre navigateur ne supporte pas l'affichage PDF intégré.
-            <br />
-            <a 
-              href={pdfUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              Cliquez ici pour ouvrir le PDF
-            </a>
-          </p>
-        </object>
+        <div className="w-full h-[600px] relative">
+          <iframe
+            src={`https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`}
+            className="w-full h-full border-0 rounded"
+            title={`Lecture PDF: ${title}`}
+            onLoad={handleObjectLoad}
+            onError={handleObjectError}
+            style={{
+              transform: `scale(${scale}) rotate(${rotation}deg)`,
+              transformOrigin: 'center center',
+              transition: 'transform 0.2s ease'
+            }}
+            sandbox="allow-scripts allow-same-origin"
+          />
+          
+          {/* Fallback object */}
+          <object
+            data={pdfUrl}
+            type="application/pdf"
+            className="w-full h-full absolute top-0 left-0 -z-10"
+            style={{ display: 'none' }}
+          >
+            <p className="p-4 text-center text-muted-foreground">
+              Votre navigateur ne supporte pas l'affichage PDF intégré.
+              <br />
+              <a 
+                href={pdfUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Cliquez ici pour ouvrir le PDF
+              </a>
+            </p>
+          </object>
+        </div>
       </div>
 
       {/* Info */}
