@@ -32,7 +32,6 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const [fontSize, setFontSize] = useState(16);
   const [highContrast, setHighContrast] = useState(false);
   const [showRewardAd, setShowRewardAd] = useState(false);
-  const [pdfFinished, setPdfFinished] = useState(false);
   const [showAgeVerification, setShowAgeVerification] = useState(book.isAdultContent);
   const [ageVerified, setAgeVerified] = useState(false);
   
@@ -174,12 +173,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
             <EmbeddedPDFReader 
               pdfUrl={book.content}
               title={book.title}
-              className="mb-8"
-              showTextExtraction={true}
-              onTextExtracted={(text) => {
-                console.log('Text extracted from PDF:', text.length, 'characters');
-              }}
-              onScrollToEnd={() => setPdfFinished(true)}
+              content={book.content}
             />
           ) : (
             <div className="prose prose-lg max-w-none">
@@ -219,14 +213,12 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
               <Button 
                 onClick={handleFinishReading} 
                 className="flex items-center gap-2"
-                disabled={isPDFContent && !pdfFinished}
+                disabled={false}
               >
                 <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-4 w-4" />
-                {isPDFContent && !pdfFinished ? 
-                  "Terminez la lecture du PDF pour réclamer vos Tensens" :
-                  isPremium ? 
-                    `Terminer la lecture & Gagner ${pointsToWin} Tensens` :
-                    `Regarder une publicité & Gagner ${pointsToWin} Tensens`
+                {isPremium ? 
+                  `Terminer la lecture & Gagner ${pointsToWin} Tensens` :
+                  `Regarder une publicité & Gagner ${pointsToWin} Tensens`
                 }
               </Button>
             )}
