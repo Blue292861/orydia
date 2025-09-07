@@ -2,8 +2,13 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { createWorker } from 'tesseract.js';
 import { supabase } from '@/integrations/supabase/client';
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.js`;
+// Configure PDF.js worker with proper path
+if (typeof window !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.js',
+    import.meta.url,
+  ).toString();
+}
 
 export interface ExtractionResult {
   text: string;
@@ -143,9 +148,9 @@ export class PDFExtractionService {
   }
 
   /**
-   * Extract text using server-side edge function
+   * Extract text using server-side edge function (now public method)
    */
-  private static async extractWithServer(
+  static async extractWithServer(
     pdfFile: File,
     onProgress?: (progress: number, status: string) => void
   ): Promise<ExtractionResult> {

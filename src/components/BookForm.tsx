@@ -113,19 +113,24 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     setExtractionStatus('Initialisation...');
     
     try {
-      const result = await PDFExtractionService.extractText(
+      // Skip PDF.js and go directly to server extraction
+      setExtractionProgress(20);
+      setExtractionStatus('Extraction côté serveur...');
+      
+      const result = await PDFExtractionService.extractWithServer(
         pdfFile,
         (progress, status) => {
-          setExtractionProgress(progress);
+          setExtractionProgress(Math.max(20, progress));
           setExtractionStatus(status);
         }
       );
 
       if (result.success && result.text.trim()) {
-        setBook(prev => ({ ...prev, content: result.text }));
+        const cleanedText = PDFExtractionService.cleanExtractedText(result.text);
+        setBook(prev => ({ ...prev, content: cleanedText }));
         toast({
           title: "PDF extrait avec succès",
-          description: `${result.pageCount} pages extraites par ${result.method}`,
+          description: `Texte extrait par ${result.method} (${result.pageCount} pages)`,
         });
       } else {
         toast({

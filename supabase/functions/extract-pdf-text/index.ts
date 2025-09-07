@@ -6,6 +6,68 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to clean text
+function cleanText(text: string): string {
+  return text
+    .replace(/\\n/g, '\n')
+    .replace(/\\t/g, '\t')
+    .replace(/\\r/g, '\r')
+    .replace(/\\([()])/g, '$1')
+    .replace(/\\\\/g, '\\')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Function to extract text from PDF content string
+function extractTextFromPDF(pdfContent: string): string {
+  const extractedTexts = new Set<string>();
+  
+  // Method 1: Extract text from parentheses (most reliable)
+  const parenthesesRegex = /\(([^)]+)\)/g;
+  let match;
+  while ((match = parenthesesRegex.exec(pdfContent)) !== null) {
+    const text = cleanText(match[1]);
+    if (text.length > 1 && /[a-zA-ZÀ-ÿ0-9]/.test(text)) {
+      extractedTexts.add(text);
+    }
+  }
+  
+  // Method 2: Extract from Tj commands
+  const tjRegex = /\(([^)]+)\)\s*Tj/g;
+  while ((match = tjRegex.exec(pdfContent)) !== null) {
+    const text = cleanText(match[1]);
+    if (text.length > 1 && /[a-zA-ZÀ-ÿ0-9]/.test(text)) {
+      extractedTexts.add(text);
+    }
+  }
+  
+  // Method 3: Extract from TJ arrays
+  const tjArrayRegex = /\[\s*(?:\([^)]*\)[^[\]]*)+\s*\]\s*TJ/g;
+  while ((match = tjArrayRegex.exec(pdfContent)) !== null) {
+    const arrayContent = match[0];
+    const innerParentheses = /\(([^)]+)\)/g;
+    let innerMatch;
+    while ((innerMatch = innerParentheses.exec(arrayContent)) !== null) {
+      const text = cleanText(innerMatch[1]);
+      if (text.length > 1 && /[a-zA-ZÀ-ÿ0-9]/.test(text)) {
+        extractedTexts.add(text);
+      }
+    }
+  }
+  
+  // Convert Set to Array and join with spaces
+  const textsArray = Array.from(extractedTexts);
+  let result = textsArray.join(' ');
+  
+  // Add some basic sentence structure
+  result = result
+    .replace(/([.!?])\s*([A-ZÀÁÂÃÄÅÆÇÈÉÊË])/g, '$1\n\n$2')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  return result;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -17,116 +79,44 @@ serve(async (req) => {
     const pdfFile = formData.get('pdf') as File;
 
     if (!pdfFile) {
-      throw new Error('No PDF file provided');
+      throw new Error('Aucun fichier PDF fourni');
     }
 
-    console.log(`Processing PDF: ${pdfFile.name}, size: ${pdfFile.size} bytes`);
+    console.log(`Traitement du PDF: ${pdfFile.name}, taille: ${pdfFile.size} octets`);
 
     // Convert file to ArrayBuffer
     const arrayBuffer = await pdfFile.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
     
-    // Check if this is actually a PDF file
-    const pdfHeader = String.fromCharCode(...uint8Array.slice(0, 4));
-    if (pdfHeader !== '%PDF') {
-      throw new Error('File is not a valid PDF');
+    // Verify this is a PDF file
+    const pdfSignature = new TextDecoder('latin1').decode(uint8Array.slice(0, 4));
+    if (pdfSignature !== '%PDF') {
+      throw new Error('Le fichier n\'est pas un PDF valide');
     }
     
-    // Convert to string for text extraction
-    let pdfContent = '';
-    for (let i = 0; i < uint8Array.length; i++) {
-      const byte = uint8Array[i];
-      if (byte >= 32 && byte <= 126) { // Only printable ASCII
-        pdfContent += String.fromCharCode(byte);
-      } else if (byte === 10 || byte === 13 || byte === 9) { // Allow line breaks and tabs
-        pdfContent += String.fromCharCode(byte);
-      } else {
-        pdfContent += ' '; // Replace non-printable with space
-      }
+    // Convert to string using latin1 encoding to preserve all bytes
+    const pdfContent = new TextDecoder('latin1').decode(uint8Array);
+    
+    // Extract text using our improved method
+    const extractedText = extractTextFromPDF(pdfContent);
+    
+    if (!extractedText || extractedText.length < 10) {
+      throw new Error('Aucun texte lisible n\'a pu être extrait de ce PDF. Il pourrait s\'agir d\'un PDF scanné ou protégé.');
     }
     
-    let extractedText = '';
-    const foundTexts = new Set<string>(); // Avoid duplicates
+    console.log(`Extraction réussie: ${extractedText.length} caractères`);
     
-    // Method 1: Extract text from parentheses (most common in PDFs)
-    const parenthesesMatches = pdfContent.match(/\([^)]+\)/g) || [];
-    for (const match of parenthesesMatches) {
-      let text = match.slice(1, -1) // Remove parentheses
-        .replace(/\\n/g, '\n')
-        .replace(/\\r/g, '\r')
-        .replace(/\\t/g, '\t')
-        .replace(/\\(.)/g, '$1') // Remove escape characters
-        .trim();
-      
-      // Only keep meaningful text (at least 2 chars, contains letters)
-      if (text.length >= 2 && /[a-zA-ZÀ-ÿ]/.test(text) && !foundTexts.has(text)) {
-        foundTexts.add(text);
-        extractedText += text + ' ';
-      }
-    }
-    
-    // Method 2: Look for text commands in PDF streams
-    const streamMatches = pdfContent.match(/BT\s+.*?ET/gs) || [];
-    for (const stream of streamMatches) {
-      const textCommands = stream.match(/\([^)]+\)\s*Tj/g) || [];
-      for (const cmd of textCommands) {
-        let text = cmd.replace(/\([^)]+\)/, (match) => match.slice(1, -1))
-          .replace(/\s*Tj.*/, '')
-          .replace(/\\n/g, '\n')
-          .replace(/\\(.)/g, '$1')
-          .trim();
-        
-        if (text.length >= 2 && /[a-zA-ZÀ-ÿ]/.test(text) && !foundTexts.has(text)) {
-          foundTexts.add(text);
-          extractedText += text + ' ';
-        }
-      }
-    }
-    
-    // Method 3: Extract from square brackets (array format text)
-    const bracketMatches = pdfContent.match(/\[([^\]]+)\]/g) || [];
-    for (const match of bracketMatches) {
-      const content = match.slice(1, -1);
-      const texts = content.match(/\([^)]+\)/g) || [];
-      for (const textMatch of texts) {
-        let text = textMatch.slice(1, -1)
-          .replace(/\\(.)/g, '$1')
-          .trim();
-        
-        if (text.length >= 2 && /[a-zA-ZÀ-ÿ]/.test(text) && !foundTexts.has(text)) {
-          foundTexts.add(text);
-          extractedText += text + ' ';
-        }
-      }
-    }
-    
-    // Clean up the final text
-    extractedText = extractedText
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .replace(/([.!?])\s*([A-ZÀÁÂÃÄÅÆÇÈÉÊË])/g, '$1\n\n$2') // Add paragraphs after sentences
+    // Final cleanup to ensure database compatibility
+    const finalText = extractedText
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+      .replace(/\uFEFF/g, '') // Remove BOM
+      .replace(/[^\x20-\x7E\u00A0-\uFFFF]/g, ' ') // Keep only valid characters
       .trim();
-    
-    // Ensure we have meaningful content
-    if (!extractedText || extractedText.length < 20) {
-      // Try one more simple extraction method
-      const simpleText = pdfContent
-        .replace(/[^\x20-\x7E\u00A0-\uFFFF]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      
-      if (simpleText.length > 100) {
-        extractedText = simpleText.substring(0, 2000) + '...';
-      } else {
-        throw new Error('Aucun texte lisible n\'a pu être extrait de ce PDF. Il pourrait s\'agir d\'un PDF scanné ou basé sur des images.');
-      }
-    }
-    
-    console.log(`Successfully extracted ${extractedText.length} characters`);
 
     return new Response(
       JSON.stringify({
-        text: extractedText,
-        pageCount: Math.max(1, streamMatches.length),
+        text: finalText,
+        pageCount: (pdfContent.match(/\/Page\s/g) || []).length || 1,
         method: 'server',
         success: true
       }),
@@ -136,7 +126,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in extract-pdf-text function:', error);
+    console.error('Erreur dans extract-pdf-text:', error);
     
     return new Response(
       JSON.stringify({
