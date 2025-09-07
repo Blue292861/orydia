@@ -23,15 +23,19 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
   const [rotation, setRotation] = useState(0);
 
   const handleObjectLoad = () => {
-    console.log('PDF object loaded successfully');
+    console.log('PDF embed loaded successfully');
     setIsLoading(false);
     setError(null);
   };
 
   const handleObjectError = () => {
-    console.log('PDF object failed to load');
+    console.log('PDF embed failed to load, showing fallback');
     setIsLoading(false);
-    setError('Impossible de charger le PDF. Vérifiez que le fichier est accessible.');
+    // Show fallback instead of error
+    const fallback = document.getElementById('pdf-fallback');
+    if (fallback) {
+      fallback.style.display = 'flex';
+    }
   };
 
   const zoomIn = () => {
@@ -176,8 +180,9 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
         )}
 
         <div className="w-full h-[600px] relative">
-          <iframe
-            src={`https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`}
+          <embed
+            src={pdfUrl}
+            type="application/pdf"
             className="w-full h-full border-0 rounded"
             title={`Lecture PDF: ${title}`}
             onLoad={handleObjectLoad}
@@ -187,29 +192,24 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
               transformOrigin: 'center center',
               transition: 'transform 0.2s ease'
             }}
-            sandbox="allow-scripts allow-same-origin"
           />
           
-          {/* Fallback object */}
-          <object
-            data={pdfUrl}
-            type="application/pdf"
-            className="w-full h-full absolute top-0 left-0 -z-10"
-            style={{ display: 'none' }}
-          >
-            <p className="p-4 text-center text-muted-foreground">
-              Votre navigateur ne supporte pas l'affichage PDF intégré.
-              <br />
+          {/* Fallback direct link */}
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm" style={{ display: 'none' }} id="pdf-fallback">
+            <div className="text-center p-6">
+              <p className="text-muted-foreground mb-4">
+                Impossible d'afficher le PDF directement.
+              </p>
               <a 
                 href={pdfUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
               >
-                Cliquez ici pour ouvrir le PDF
+                Ouvrir le PDF dans un nouvel onglet
               </a>
-            </p>
-          </object>
+            </div>
+          </div>
         </div>
       </div>
 
