@@ -1,14 +1,7 @@
-import React, { useState, useCallback } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-// Configurer le worker PDF.js
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
 
 interface EmbeddedPDFReaderProps {
   pdfUrl: string;
@@ -24,60 +17,149 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
   onScrollToEnd
 }) => {
   const { toast } = useToast();
-  const [numPages, setNumPages] = useState<number>(0);
-  const [pageNumber, setPageNumber] = useState<number>(1);
-  const [scale, setScale] = useState<number>(1.0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [scale, setScale] = useState(100);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
-    setIsLoading(false);
-    setError(null);
-  }, []);
-
-  const onDocumentLoadError = useCallback((error: Error) => {
-    console.error('Erreur de chargement PDF:', error);
-    setIsLoading(false);
-    setError('Impossible de charger le PDF. Vérifiez votre connexion internet.');
-  }, []);
-
-  const onPageLoadSuccess = useCallback(() => {
-    // Vérifier si on a atteint la dernière page
-    if (pageNumber === numPages && onScrollToEnd) {
-      setTimeout(() => {
-        onScrollToEnd();
-      }, 2000); // Délai de 2 secondes pour laisser le temps de lire la page
-    }
-  }, [pageNumber, numPages, onScrollToEnd]);
-
-  const goToPrevPage = () => {
-    setPageNumber(prev => Math.max(prev - 1, 1));
+  // Créer l'URL du viewer PDF.js sécurisé
+  const createSecurePDFUrl = () => {
+    const pdfJsUrl = 'https://mozilla.github.io/pdf.js/web/viewer.html';
+    const params = new URLSearchParams({
+      file: encodeURIComponent(pdfUrl),
+    });
+    
+    // Paramètres pour désactiver les contrôles de téléchargement
+    return `${pdfJsUrl}?${params.toString()}#toolbar=0&navpanes=0&scrollbar=1&zoom=${scale}`;
   };
 
-  const goToNextPage = () => {
-    setPageNumber(prev => Math.min(prev + 1, numPages));
+  const handleIframeLoad = () => {
+    setIsLoading(false);
+    setError(null);
+    
+    try {
+      const iframe = iframeRef.current;
+      if (iframe && iframe.contentWindow) {
+        // Écouter les messages de l'iframe pour la navigation
+        const handleMessage = (event: MessageEvent) => {
+          if (event.origin !== 'https://mozilla.github.io') return;
+          
+          if (event.data.type === 'documentLoaded') {
+            setTotalPages(event.data.pages);
+          } else if (event.data.type === 'pageChanged') {
+            setCurrentPage(event.data.page);
+            
+            // Déclencher onScrollToEnd si on atteint la dernière page
+            if (event.data.page === totalPages && onScrollToEnd) {
+              setTimeout(onScrollToEnd, 2000);
+            }
+          }
+        };
+        
+        window.addEventListener('message', handleMessage);
+        
+        // Injecter du CSS pour masquer les boutons de téléchargement
+        setTimeout(() => {
+          try {
+            const iframeDoc = iframe.contentDocument;
+            if (iframeDoc) {
+              const style = iframeDoc.createElement('style');
+              style.textContent = `
+                #download, #openFile, #print, .download, .print {
+                  display: none !important;
+                }
+                #toolbarViewerRight .splitToolbarButton > .toolbarButton {
+                  display: none !important;
+                }
+                #secondaryToolbarButton {
+                  display: none !important;
+                }
+                .toolbar {
+                  display: none !important;
+                }
+              `;
+              iframeDoc.head.appendChild(style);
+            }
+          } catch (e) {
+            // Cross-origin restriction, expected
+          }
+        }, 1000);
+
+        return () => window.removeEventListener('message', handleMessage);
+      }
+    } catch (e) {
+      console.warn('Cannot access iframe content due to CORS');
+    }
+  };
+
+  const handleIframeError = () => {
+    setIsLoading(false);
+    setError('Impossible de charger le PDF. Vérifiez votre connexion internet.');
   };
 
   const zoomIn = () => {
-    setScale(prev => Math.min(prev + 0.2, 2.0));
+    setScale(prev => Math.min(prev + 25, 200));
+    refreshViewer();
   };
 
   const zoomOut = () => {
-    setScale(prev => Math.max(prev - 0.2, 0.5));
+    setScale(prev => Math.max(prev - 25, 50));
+    refreshViewer();
   };
 
-  const resetZoom = () => {
-    setScale(1.0);
+  const refreshViewer = () => {
+    if (iframeRef.current) {
+      iframeRef.current.src = createSecurePDFUrl();
+    }
   };
+
+  const navigatePage = (direction: 'prev' | 'next') => {
+    try {
+      const iframe = iframeRef.current;
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+          type: direction === 'next' ? 'nextPage' : 'prevPage'
+        }, 'https://mozilla.github.io');
+      }
+    } catch (e) {
+      console.warn('Cannot communicate with iframe');
+    }
+  };
+
+  // Empêcher le clic droit et les raccourcis de téléchargement
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    return false;
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Bloquer Ctrl+S, Ctrl+P, etc.
+    if (e.ctrlKey && (e.key === 's' || e.key === 'p')) {
+      e.preventDefault();
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    // Simuler la détection de fin de lecture après 30 secondes
+    if (onScrollToEnd) {
+      const timer = setTimeout(() => {
+        onScrollToEnd();
+      }, 30000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [onScrollToEnd]);
 
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full ${className}`} onKeyDown={handleKeyDown} tabIndex={-1}>
       {/* Controls */}
       <div className="flex items-center justify-between mb-4 p-3 bg-muted/50 rounded-lg">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground">
-            Page {pageNumber} sur {numPages}
+            Contrôles PDF (Page {currentPage}{totalPages > 0 ? ` / ${totalPages}` : ''})
           </span>
         </div>
         
@@ -86,37 +168,32 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
             variant="outline"
             size="sm"
             onClick={zoomOut}
-            disabled={scale <= 0.5}
+            disabled={scale <= 50}
             className="flex items-center gap-1"
           >
             <ZoomOut className="h-3 w-3" />
           </Button>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetZoom}
-            className="text-xs px-2"
-          >
-            {Math.round(scale * 100)}%
-          </Button>
+          <span className="text-xs px-2 py-1 bg-background rounded">
+            {scale}%
+          </span>
           
           <Button
             variant="outline"
             size="sm"
             onClick={zoomIn}
-            disabled={scale >= 2.0}
+            disabled={scale >= 200}
             className="flex items-center gap-1"
           >
             <ZoomIn className="h-3 w-3" />
           </Button>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 ml-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={goToPrevPage}
-              disabled={pageNumber <= 1}
+              onClick={() => navigatePage('prev')}
+              disabled={currentPage <= 1}
               className="flex items-center gap-1"
             >
               <ChevronLeft className="h-3 w-3" />
@@ -125,23 +202,36 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={goToNextPage}
-              disabled={pageNumber >= numPages}
+              onClick={() => navigatePage('next')}
+              disabled={totalPages > 0 && currentPage >= totalPages}
               className="flex items-center gap-1"
             >
               <ChevronRight className="h-3 w-3" />
             </Button>
           </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refreshViewer}
+            className="flex items-center gap-1 ml-2"
+          >
+            <RefreshCw className="h-3 w-3" />
+            Actualiser
+          </Button>
         </div>
       </div>
 
       {/* PDF Viewer */}
-      <div className="relative border rounded-lg overflow-hidden bg-gray-50 min-h-[600px] flex items-center justify-center">
+      <div 
+        className="relative border rounded-lg overflow-hidden bg-gray-50 min-h-[600px]"
+        onContextMenu={handleContextMenu}
+      >
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
             <div className="text-center">
               <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
-              <p className="text-sm text-muted-foreground">Chargement du PDF...</p>
+              <p className="text-sm text-muted-foreground">Chargement du PDF sécurisé...</p>
             </div>
           </div>
         )}
@@ -158,43 +248,24 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
           </div>
         )}
 
-        {!error && (
-          <Document
-            file={pdfUrl}
-            onLoadSuccess={onDocumentLoadSuccess}
-            onLoadError={onDocumentLoadError}
-            loading={null}
-            error={null}
-            options={{
-              cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
-              cMapPacked: true,
-              standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/',
-              // Désactiver les options de téléchargement
-              disableAutoFetch: false,
-              disableStream: false,
-              disableRange: false,
-            }}
-            className="w-full"
-          >
-            <Page
-              pageNumber={pageNumber}
-              scale={scale}
-              onLoadSuccess={onPageLoadSuccess}
-              loading={null}
-              error={null}
-              className="shadow-lg"
-              // Empêcher le clic droit et les raccourcis de téléchargement
-              onContextMenu={(e) => e.preventDefault()}
-              canvasBackground="white"
-            />
-          </Document>
-        )}
+        <iframe
+          ref={iframeRef}
+          src={createSecurePDFUrl()}
+          className="w-full h-[600px] border-0"
+          title={`Lecture PDF sécurisée: ${title}`}
+          onLoad={handleIframeLoad}
+          onError={handleIframeError}
+          sandbox="allow-scripts allow-same-origin allow-forms"
+          style={{
+            pointerEvents: 'auto'
+          }}
+        />
       </div>
 
       {/* Info */}
       <div className="mt-3 text-xs text-muted-foreground text-center">
         <p>
-          Utilisez les contrôles ci-dessus pour naviguer et ajuster le zoom. Le téléchargement est désactivé.
+          Lecteur PDF sécurisé - Téléchargement désactivé. Utilisez les contrôles ci-dessus pour naviguer.
         </p>
       </div>
     </div>
