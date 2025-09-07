@@ -39,8 +39,9 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const isPremium = subscription.isPremium;
   const pointsToWin = isPremium ? book.points * 2 : book.points;
   
-  // Check if the content is a PDF URL
+  // Check if the content is a PDF URL or actual extracted text
   const isPDFContent = book.content?.startsWith('http') && book.content.includes('.pdf');
+  const hasExtractedContent = book.content && !isPDFContent;
   
   const handleFinishReading = async () => {
     if (!session) {
@@ -152,8 +153,8 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           </Button>
         </div>
         
-        {/* Text size controls only for non-PDF content */}
-        {!isPDFContent && (
+        {/* Text size controls only for extracted content */}
+        {hasExtractedContent && (
           <div className="mb-4">
             <TextSizeControls 
               fontSize={fontSize} 
@@ -165,7 +166,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
         )}
         
         <div className={`rounded-lg p-8 shadow-md ${
-          highContrast && !isPDFContent
+          highContrast && hasExtractedContent
             ? 'bg-black text-white border border-gray-600' 
             : 'bg-card text-card-foreground'
         }`}>
@@ -173,7 +174,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
             <EmbeddedPDFReader 
               pdfUrl={book.content}
               title={book.title}
-              content={book.content}
+              content="" // Always empty since it's a PDF URL
             />
           ) : (
             <div className="prose prose-lg max-w-none">

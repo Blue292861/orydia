@@ -16,12 +16,12 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
   title = "Document PDF", 
   content 
 }) => {
-  // Si on a du contenu extrait, on l'affiche directement
-  if (content && content.trim() && !content.startsWith('http')) {
+  // Si on a du contenu extrait (et que ce n'est pas une URL PDF), on l'affiche directement
+  if (content && content.trim() && !content.startsWith('http') && !content.includes('.pdf')) {
     return <TextReader content={content} title={title} />;
   }
 
-  // Fallback: afficher une alerte pour indiquer que le contenu n'est pas disponible
+  // Sinon, afficher le message d'attente d'extraction admin
   return (
     <Card className="w-full h-full">
       <CardHeader className="pb-4">
@@ -29,31 +29,24 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
           <FileText className="h-5 w-5" />
           {title}
         </CardTitle>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => window.open(pdfUrl, '_blank')}
-            variant="outline"
-            size="sm"
-          >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Ouvrir le PDF
-          </Button>
-        </div>
       </CardHeader>
       
       <CardContent className="p-4">
         <Alert>
           <FileText className="h-4 w-4" />
           <AlertDescription>
-            Le contenu de ce document n'a pas encore été extrait. Veuillez contacter l'administrateur pour que le texte soit rendu disponible.
+            Le contenu de ce document n'a pas encore été extrait par l'administration. Le texte sera bientôt disponible pour la lecture.
           </AlertDescription>
         </Alert>
         
         <div className="mt-4 w-full h-full min-h-[500px] bg-muted rounded-lg flex items-center justify-center">
           <div className="text-center p-6">
             <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">
-              Contenu en cours de traitement par l'administration
+            <p className="text-muted-foreground mb-2">
+              Contenu en cours de traitement
+            </p>
+            <p className="text-sm text-muted-foreground">
+              L'administration prépare ce contenu pour une meilleure expérience de lecture
             </p>
           </div>
         </div>
