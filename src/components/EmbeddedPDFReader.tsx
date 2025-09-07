@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCw, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface EmbeddedPDFReaderProps {
@@ -19,113 +19,36 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [scale, setScale] = useState(100);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [scale, setScale] = useState(1);
+  const [rotation, setRotation] = useState(0);
 
-  // Créer l'URL du viewer PDF.js sécurisé
-  const createSecurePDFUrl = () => {
-    const pdfJsUrl = 'https://mozilla.github.io/pdf.js/web/viewer.html';
-    const params = new URLSearchParams({
-      file: encodeURIComponent(pdfUrl),
-    });
-    
-    // Paramètres pour désactiver les contrôles de téléchargement
-    return `${pdfJsUrl}?${params.toString()}#toolbar=0&navpanes=0&scrollbar=1&zoom=${scale}`;
-  };
-
-  const handleIframeLoad = () => {
+  const handleObjectLoad = () => {
     setIsLoading(false);
     setError(null);
-    
-    try {
-      const iframe = iframeRef.current;
-      if (iframe && iframe.contentWindow) {
-        // Écouter les messages de l'iframe pour la navigation
-        const handleMessage = (event: MessageEvent) => {
-          if (event.origin !== 'https://mozilla.github.io') return;
-          
-          if (event.data.type === 'documentLoaded') {
-            setTotalPages(event.data.pages);
-          } else if (event.data.type === 'pageChanged') {
-            setCurrentPage(event.data.page);
-            
-            // Déclencher onScrollToEnd si on atteint la dernière page
-            if (event.data.page === totalPages && onScrollToEnd) {
-              setTimeout(onScrollToEnd, 2000);
-            }
-          }
-        };
-        
-        window.addEventListener('message', handleMessage);
-        
-        // Injecter du CSS pour masquer les boutons de téléchargement
-        setTimeout(() => {
-          try {
-            const iframeDoc = iframe.contentDocument;
-            if (iframeDoc) {
-              const style = iframeDoc.createElement('style');
-              style.textContent = `
-                #download, #openFile, #print, .download, .print {
-                  display: none !important;
-                }
-                #toolbarViewerRight .splitToolbarButton > .toolbarButton {
-                  display: none !important;
-                }
-                #secondaryToolbarButton {
-                  display: none !important;
-                }
-                .toolbar {
-                  display: none !important;
-                }
-              `;
-              iframeDoc.head.appendChild(style);
-            }
-          } catch (e) {
-            // Cross-origin restriction, expected
-          }
-        }, 1000);
-
-        return () => window.removeEventListener('message', handleMessage);
-      }
-    } catch (e) {
-      console.warn('Cannot access iframe content due to CORS');
-    }
   };
 
-  const handleIframeError = () => {
+  const handleObjectError = () => {
     setIsLoading(false);
-    setError('Impossible de charger le PDF. Vérifiez votre connexion internet.');
+    setError('Impossible de charger le PDF. Vérifiez que le fichier est accessible.');
   };
 
   const zoomIn = () => {
-    setScale(prev => Math.min(prev + 25, 200));
-    refreshViewer();
+    setScale(prev => Math.min(prev + 0.25, 3));
   };
 
   const zoomOut = () => {
-    setScale(prev => Math.max(prev - 25, 50));
-    refreshViewer();
+    setScale(prev => Math.max(prev - 0.25, 0.5));
   };
 
-  const refreshViewer = () => {
-    if (iframeRef.current) {
-      iframeRef.current.src = createSecurePDFUrl();
-    }
+  const rotate = () => {
+    setRotation(prev => (prev + 90) % 360);
   };
 
-  const navigatePage = (direction: 'prev' | 'next') => {
-    try {
-      const iframe = iframeRef.current;
-      if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage({
-          type: direction === 'next' ? 'nextPage' : 'prevPage'
-        }, 'https://mozilla.github.io');
-      }
-    } catch (e) {
-      console.warn('Cannot communicate with iframe');
-    }
+  const refresh = () => {
+    setIsLoading(true);
+    setError(null);
+    // Force refresh by updating a key or reloading
+    window.location.reload();
   };
 
   // Empêcher le clic droit et les raccourcis de téléchargement
@@ -159,7 +82,7 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
       <div className="flex items-center justify-between mb-4 p-3 bg-muted/50 rounded-lg">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground">
-            Contrôles PDF (Page {currentPage}{totalPages > 0 ? ` / ${totalPages}` : ''})
+            Lecteur PDF - {title}
           </span>
         </div>
         
@@ -168,70 +91,56 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
             variant="outline"
             size="sm"
             onClick={zoomOut}
-            disabled={scale <= 50}
+            disabled={scale <= 0.5}
             className="flex items-center gap-1"
           >
             <ZoomOut className="h-3 w-3" />
           </Button>
           
           <span className="text-xs px-2 py-1 bg-background rounded">
-            {scale}%
+            {Math.round(scale * 100)}%
           </span>
           
           <Button
             variant="outline"
             size="sm"
             onClick={zoomIn}
-            disabled={scale >= 200}
+            disabled={scale >= 3}
             className="flex items-center gap-1"
           >
             <ZoomIn className="h-3 w-3" />
           </Button>
 
-          <div className="flex items-center gap-1 ml-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigatePage('prev')}
-              disabled={currentPage <= 1}
-              className="flex items-center gap-1"
-            >
-              <ChevronLeft className="h-3 w-3" />
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigatePage('next')}
-              disabled={totalPages > 0 && currentPage >= totalPages}
-              className="flex items-center gap-1"
-            >
-              <ChevronRight className="h-3 w-3" />
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={rotate}
+            className="flex items-center gap-1 ml-2"
+          >
+            <RotateCw className="h-3 w-3" />
+          </Button>
           
           <Button
             variant="outline"
             size="sm"
-            onClick={refreshViewer}
-            className="flex items-center gap-1 ml-2"
+            onClick={refresh}
+            className="flex items-center gap-1"
           >
             <RefreshCw className="h-3 w-3" />
-            Actualiser
           </Button>
         </div>
       </div>
 
       {/* PDF Viewer */}
       <div 
-        className="relative border rounded-lg overflow-hidden bg-gray-50 min-h-[600px]"
+        className="relative border rounded-lg overflow-hidden bg-muted/20 min-h-[600px]"
         onContextMenu={handleContextMenu}
       >
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
             <div className="text-center">
               <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
-              <p className="text-sm text-muted-foreground">Chargement du PDF sécurisé...</p>
+              <p className="text-sm text-muted-foreground">Chargement du PDF...</p>
             </div>
           </div>
         )}
@@ -239,8 +148,8 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
             <div className="text-center p-6">
-              <p className="text-red-600 mb-4">{error}</p>
-              <Button onClick={() => window.location.reload()} variant="outline">
+              <p className="text-destructive mb-4">{error}</p>
+              <Button onClick={refresh} variant="outline">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Réessayer
               </Button>
@@ -248,24 +157,37 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
           </div>
         )}
 
-        <iframe
-          ref={iframeRef}
-          src={createSecurePDFUrl()}
-          className="w-full h-[600px] border-0"
-          title={`Lecture PDF sécurisée: ${title}`}
-          onLoad={handleIframeLoad}
-          onError={handleIframeError}
-          sandbox="allow-scripts allow-same-origin allow-forms"
+        <object
+          data={pdfUrl}
+          type="application/pdf"
+          className="w-full h-[600px]"
+          onLoad={handleObjectLoad}
+          onError={handleObjectError}
           style={{
-            pointerEvents: 'auto'
+            transform: `scale(${scale}) rotate(${rotation}deg)`,
+            transformOrigin: 'center center',
+            transition: 'transform 0.2s ease'
           }}
-        />
+        >
+          <p className="p-4 text-center text-muted-foreground">
+            Votre navigateur ne supporte pas l'affichage PDF intégré.
+            <br />
+            <a 
+              href={pdfUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              Cliquez ici pour ouvrir le PDF
+            </a>
+          </p>
+        </object>
       </div>
 
       {/* Info */}
       <div className="mt-3 text-xs text-muted-foreground text-center">
         <p>
-          Lecteur PDF sécurisé - Téléchargement désactivé. Utilisez les contrôles ci-dessus pour naviguer.
+          Lecteur PDF sécurisé - Contrôles de téléchargement limités par le navigateur.
         </p>
       </div>
     </div>

@@ -218,7 +218,7 @@ export const getCSPDirectives = (): string => {
     "media-src 'self' data: blob:",
     "connect-src 'self' https://aotzivwzoxmnnawcxioo.supabase.co wss://aotzivwzoxmnnawcxioo.supabase.co",
     "font-src 'self'",
-    "object-src 'none'",
+    "object-src 'self' data:",
     "base-uri 'self'",
     "form-action 'self'"
   ].join('; ');
