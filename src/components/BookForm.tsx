@@ -9,10 +9,12 @@ import { Switch } from '@/components/ui/switch';
 import { TagInput } from '@/components/TagInput';
 import { FileImport } from '@/components/FileImport';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { sanitizeText, sanitizeImageUrl, sanitizeTextWithSpaces, sanitizeHtml, validateTextLength, validateImageUrl, validatePoints } from '@/utils/security';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, BookOpen } from 'lucide-react';
+import { Loader2, BookOpen, Zap, FileText } from 'lucide-react';
+import { PDFExtractionService } from '@/services/pdfExtractionService';
 
 interface BookFormProps {
   initialBook: Book;
@@ -22,6 +24,9 @@ interface BookFormProps {
 export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => {
   const [book, setBook] = React.useState<Book>(initialBook);
   const [isExtracting, setIsExtracting] = React.useState(false);
+  const [extractionProgress, setExtractionProgress] = React.useState(0);
+  const [extractionStatus, setExtractionStatus] = React.useState('');
+  const [pdfFile, setPdfFile] = React.useState<File | null>(null);
   const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

@@ -175,6 +175,10 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
               pdfUrl={book.content}
               title={book.title}
               className="mb-8"
+              showTextExtraction={true}
+              onTextExtracted={(text) => {
+                console.log('Text extracted from PDF:', text.length, 'characters');
+              }}
               onScrollToEnd={() => setPdfFinished(true)}
             />
           ) : (

@@ -1,26 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut, RotateCw, RefreshCw } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Card } from '@/components/ui/card';
+import { 
+  ZoomIn, 
+  ZoomOut, 
+  RotateCw, 
+  RefreshCw, 
+  FileText,
+  Zap,
+  Eye,
+  Download
+} from 'lucide-react';
+import { PDFTextExtractor } from './PDFTextExtractor';
+import { TextReader } from './TextReader';
 
 interface EmbeddedPDFReaderProps {
   pdfUrl: string;
   title: string;
   className?: string;
   onScrollToEnd?: () => void;
+  onTextExtracted?: (text: string) => void;
+  showTextExtraction?: boolean;
 }
 
 export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
   pdfUrl,
   title,
   className = "",
-  onScrollToEnd
+  onScrollToEnd,
+  onTextExtracted,
+  showTextExtraction = true
 }) => {
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(1.0);
   const [rotation, setRotation] = useState(0);
+  const [viewMode, setViewMode] = useState<'pdf' | 'extractor' | 'text'>('pdf');
+  const [extractedText, setExtractedText] = useState<string>('');
 
   const handleObjectLoad = () => {
     console.log('PDF embed loaded successfully');
@@ -39,7 +55,7 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
   };
 
   const zoomIn = () => {
-    setScale(prev => Math.min(prev + 0.25, 3));
+    setScale(prev => Math.min(prev + 0.25, 3.0));
   };
 
   const zoomOut = () => {
@@ -53,128 +69,161 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
   const refresh = () => {
     setIsLoading(true);
     setError(null);
-    // Force refresh by updating a key or reloading
-    window.location.reload();
-  };
-
-  // Empêcher le clic droit et les raccourcis de téléchargement
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    return false;
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Bloquer Ctrl+S, Ctrl+P, etc.
-    if (e.ctrlKey && (e.key === 's' || e.key === 'p')) {
-      e.preventDefault();
-      return false;
+    const fallback = document.getElementById('pdf-fallback');
+    if (fallback) {
+      fallback.style.display = 'none';
+    }
+    
+    // Force reload by changing src
+    const embed = document.querySelector('embed') as HTMLEmbedElement;
+    if (embed) {
+      const currentSrc = embed.src;
+      embed.src = '';
+      setTimeout(() => {
+        embed.src = currentSrc;
+      }, 100);
     }
   };
 
+  const handleTextExtraction = (text: string) => {
+    setExtractedText(text);
+    setViewMode('text');
+    if (onTextExtracted) {
+      onTextExtracted(text);
+    }
+  };
+
+  // Handle scroll detection for PDFs
   useEffect(() => {
-    console.log('EmbeddedPDFReader mounted with URL:', pdfUrl);
-    
-    // Timeout pour détecter si le PDF ne se charge jamais
-    const loadTimeout = setTimeout(() => {
-      if (isLoading) {
-        console.log('PDF load timeout - switching to fallback');
-        setIsLoading(false);
-        setError('Le chargement du PDF prend trop de temps. Essayez de rafraîchir.');
-      }
-    }, 10000); // 10 secondes
-    
-    // Simuler la détection de fin de lecture après 30 secondes
     if (onScrollToEnd) {
       const timer = setTimeout(() => {
         onScrollToEnd();
-      }, 30000);
+      }, 30000); // Simulate end of reading after 30 seconds
       
-      return () => {
-        clearTimeout(timer);
-        clearTimeout(loadTimeout);
-      };
+      return () => clearTimeout(timer);
     }
-    
-    return () => clearTimeout(loadTimeout);
-  }, [pdfUrl, onScrollToEnd, isLoading]);
+  }, [onScrollToEnd]);
 
+  // Text reader view
+  if (viewMode === 'text' && extractedText) {
+    return (
+      <TextReader
+        title={title}
+        content={extractedText}
+        onBack={() => setViewMode('pdf')}
+        showControls={true}
+      />
+    );
+  }
+
+  // Text extractor view
+  if (viewMode === 'extractor') {
+    return (
+      <PDFTextExtractor
+        pdfUrl={pdfUrl}
+        fileName={title}
+        onTextExtracted={handleTextExtraction}
+        onBack={() => setViewMode('pdf')}
+        autoExtract={true}
+      />
+    );
+  }
+
+  // PDF viewer (default)
   return (
-    <div className={`w-full ${className}`} onKeyDown={handleKeyDown} tabIndex={-1}>
-      {/* Controls */}
-      <div className="flex items-center justify-between mb-4 p-3 bg-muted/50 rounded-lg">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground">
-            Lecteur PDF - {title}
-          </span>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={zoomOut}
-            disabled={scale <= 0.5}
-            className="flex items-center gap-1"
-          >
-            <ZoomOut className="h-3 w-3" />
-          </Button>
-          
-          <span className="text-xs px-2 py-1 bg-background rounded">
-            {Math.round(scale * 100)}%
-          </span>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={zoomIn}
-            disabled={scale >= 3}
-            className="flex items-center gap-1"
-          >
-            <ZoomIn className="h-3 w-3" />
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={rotate}
-            className="flex items-center gap-1 ml-2"
-          >
-            <RotateCw className="h-3 w-3" />
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refresh}
-            className="flex items-center gap-1"
-          >
-            <RefreshCw className="h-3 w-3" />
-          </Button>
-        </div>
-      </div>
-
-      {/* PDF Viewer */}
-      <div 
-        className="relative border rounded-lg overflow-hidden bg-muted/20 min-h-[600px]"
-        onContextMenu={handleContextMenu}
-      >
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
-            <div className="text-center">
-              <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
-              <p className="text-sm text-muted-foreground">Chargement du PDF...</p>
-            </div>
+    <div className={`embedded-pdf-reader ${className}`}>
+      <Card className="overflow-hidden">
+        {/* Header with view mode controls */}
+        <div className="flex items-center justify-between p-4 bg-muted/50 border-b">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            <h3 className="font-semibold">{title}</h3>
           </div>
-        )}
-
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
-            <div className="text-center p-6">
-              <p className="text-destructive mb-4">{error}</p>
-              <Button onClick={refresh} variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Réessayer
+          
+          {showTextExtraction && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === 'pdf' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('pdf')}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Vue PDF
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setViewMode('extractor')}
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Extraire le texte
+              </Button>
+              {extractedText && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setViewMode('text')}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Lire le texte
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Control buttons */}
+        <div className="flex items-center justify-between p-3 bg-muted/30 border-b">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={zoomOut}
+              disabled={scale <= 0.5}
+              title="Zoom arrière"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <span className="text-sm font-mono min-w-[4ch] text-center">
+              {Math.round(scale * 100)}%
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={zoomIn}
+              disabled={scale >= 3.0}
+              title="Zoom avant"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={rotate}
+              title="Rotation"
+            >
+              <RotateCw className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refresh}
+              title="Actualiser"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Loading state */}
+        {isLoading && !error && (
+          <div className="flex items-center justify-center h-64 bg-muted/30">
+            <div className="text-center">
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Chargement du PDF...</p>
             </div>
           </div>
         )}
@@ -194,31 +243,33 @@ export const EmbeddedPDFReader: React.FC<EmbeddedPDFReaderProps> = ({
             }}
           />
           
-          {/* Fallback direct link */}
+          {/* Fallback with extraction option */}
           <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm" style={{ display: 'none' }} id="pdf-fallback">
-            <div className="text-center p-6">
+            <div className="text-center p-6 space-y-4">
               <p className="text-muted-foreground mb-4">
                 Impossible d'afficher le PDF directement.
               </p>
-              <a 
-                href={pdfUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-              >
-                Ouvrir le PDF dans un nouvel onglet
-              </a>
+              <div className="flex gap-2 justify-center">
+                <a 
+                  href={pdfUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                >
+                  <Download className="h-4 w-4" />
+                  Ouvrir dans un nouvel onglet
+                </a>
+                {showTextExtraction && (
+                  <Button onClick={() => setViewMode('extractor')}>
+                    <Zap className="h-4 w-4 mr-2" />
+                    Extraire le texte
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Info */}
-      <div className="mt-3 text-xs text-muted-foreground text-center">
-        <p>
-          Lecteur PDF sécurisé - Contrôles de téléchargement limités par le navigateur.
-        </p>
-      </div>
+      </Card>
     </div>
   );
 };
