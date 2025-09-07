@@ -66,9 +66,42 @@ serve(async (req) => {
 
     const { data: subscriber } = await supabaseAdmin
       .from('subscribers')
-      .select('stripe_customer_id')
+      .select('stripe_customer_id, subscribed, subscription_tier, subscription_end')
       .eq('user_id', user.id)
       .single();
+    
+    // Check for manual premium subscription first
+    if (subscriber?.subscribed && subscriber?.subscription_tier === 'Premium Manual') {
+      // Check if manual subscription is still valid
+      const subscriptionEnd = subscriber.subscription_end;
+      const isValidManualSub = !subscriptionEnd || new Date(subscriptionEnd) > new Date();
+      
+      if (isValidManualSub) {
+        return new Response(JSON.stringify({ 
+          subscribed: true, 
+          subscription_tier: subscriber.subscription_tier, 
+          subscription_end: subscriptionEnd 
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      } else {
+        // Manual subscription expired, update the record
+        await supabaseAdmin
+          .from('subscribers')
+          .update({
+            subscribed: false,
+            subscription_tier: null,
+            subscription_end: null,
+          })
+          .eq('user_id', user.id);
+        
+        return new Response(JSON.stringify({ subscribed: false, subscription_tier: null, subscription_end: null }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+    }
     
     if (!subscriber?.stripe_customer_id) {
        return new Response(JSON.stringify({ subscribed: false, subscription_tier: null, subscription_end: null }), {
