@@ -15,11 +15,11 @@ export const TagInput: React.FC<TagInputProps> = ({ tags, onTagsChange }) => {
   const [inputValue, setInputValue] = useState('');
 
   const addTag = () => {
-    const sanitizedTag = sanitizeTag(inputValue.trim());
+    const trimmedTag = inputValue.trim();
     
-    if (!sanitizedTag) return;
+    if (!trimmedTag) return;
     
-    if (!validateTextLength(sanitizedTag, 50)) {
+    if (!validateTextLength(trimmedTag, 50)) {
       console.warn('Tag too long, maximum 50 characters allowed');
       return;
     }
@@ -28,6 +28,9 @@ export const TagInput: React.FC<TagInputProps> = ({ tags, onTagsChange }) => {
       console.warn('Maximum 10 tags allowed');
       return;
     }
+    
+    // Sanitize only when adding, allow spaces in tags
+    const sanitizedTag = sanitizeTag(trimmedTag);
     
     if (!tags.includes(sanitizedTag)) {
       onTagsChange([...tags, sanitizedTag]);

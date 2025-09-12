@@ -213,8 +213,7 @@ export const sanitizeTag = (tag: string): string => {
     .replace(/javascript:/gi, '') // Remove javascript: protocol
     .replace(/on\w+=/gi, '') // Remove event handlers
     .replace(/data:/gi, '') // Remove data: URIs
-    .replace(/[<>"|*?\\\/\x00-\x1f\x7f]/g, '') // Remove dangerous characters
-    .trim()
+    .replace(/[<>"|*?\\\/\x00-\x1f\x7f]/g, '') // Remove dangerous characters but keep spaces
     .substring(0, 50);
 };
 

@@ -33,7 +33,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
-    // Validate input length
+    // Validate input length only
     let maxLength = 200; // default
     if (name === 'title') maxLength = 200;
     else if (name === 'author') maxLength = 100;
@@ -49,14 +49,10 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       return;
     }
 
-    const sanitizedValue = name === 'content' ? sanitizeHtml(value) : 
-                          name === 'summary' ? sanitizeTextWithSpaces(value) :
-                          (name === 'title' || name === 'author') ? sanitizeTextWithSpaces(value) :
-                          sanitizeText(value);
-    
+    // Store value without sanitization during input
     setBook(prev => ({ 
       ...prev, 
-      [name]: name === 'points' ? parseInt(value) || 0 : sanitizedValue 
+      [name]: name === 'points' ? parseInt(value) || 0 : value 
     }));
   };
 

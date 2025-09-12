@@ -49,8 +49,8 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
       }
     }
 
-    // Validate URLs
-    if ((field === 'cover_url' || field === 'audio_url') && typeof value === 'string' && value) {
+    // Validate URLs only if value is not empty
+    if ((field === 'cover_url' || field === 'audio_url') && typeof value === 'string' && value.trim()) {
       if (!validateUrl(value)) {
         toast({
           title: "Invalid URL",
@@ -61,13 +61,10 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
       }
     }
 
-    const sanitizedValue = typeof value === 'string' ? 
-      (field === 'name' || field === 'author' || field === 'description') ? sanitizeTextWithSpaces(value) : sanitizeText(value) 
-      : value;
-    
+    // Store value without sanitization during input
     setFormData(prev => ({
       ...prev,
-      [field]: sanitizedValue
+      [field]: value
     }));
   };
 
