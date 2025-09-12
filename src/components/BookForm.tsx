@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, BookOpen, Zap, FileText } from 'lucide-react';
 import { PDFExtractionService } from '@/services/pdfExtractionService';
+import { EPUBService } from '@/services/epubService';
 
 interface BookFormProps {
   initialBook: Book;
@@ -26,7 +27,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
   const [isExtracting, setIsExtracting] = React.useState(false);
   const [extractionProgress, setExtractionProgress] = React.useState(0);
   const [extractionStatus, setExtractionStatus] = React.useState('');
-  const [pdfFile, setPdfFile] = React.useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -105,56 +106,89 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     setBook(prev => ({ ...prev, coverUrl: coverData }));
   };
 
-  const handleExtractPDF = async () => {
-    if (!pdfFile) return;
-    
-    setIsExtracting(true);
-    setExtractionProgress(0);
-    setExtractionStatus('Initialisation...');
-    
-    try {
-      // Skip PDF.js and go directly to server extraction
-      setExtractionProgress(20);
-      setExtractionStatus('Extraction côté serveur...');
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
       
-      const result = await PDFExtractionService.extractWithServer(
-        pdfFile,
-        (progress, status) => {
-          setExtractionProgress(Math.max(20, progress));
-          setExtractionStatus(status);
+      const fileName = file.name.toLowerCase();
+      const isPDF = file.type === 'application/pdf' || fileName.endsWith('.pdf');
+      const isEPUB = file.type === 'application/epub+zip' || fileName.endsWith('.epub');
+      
+      // Auto-extract text for supported formats
+      if (isPDF || isEPUB) {
+        setIsExtracting(true);
+        setExtractionProgress(0);
+        
+        try {
+          let result;
+          
+          if (isPDF) {
+            result = await PDFExtractionService.extractWithServer(
+              file, 
+              (progress, status) => {
+                setExtractionProgress(progress);
+                setExtractionStatus(status);
+              }
+            );
+          } else if (isEPUB) {
+            result = await EPUBService.extractText(
+              file,
+              (progress, status) => {
+                setExtractionProgress(progress);
+                setExtractionStatus(status);
+              }
+            );
+          }
+          
+          if (result?.success && result.text.trim()) {
+            const cleanedText = isPDF 
+              ? PDFExtractionService.cleanExtractedText(result.text)
+              : EPUBService.cleanExtractedText(result.text);
+            
+            setBook(prev => ({ ...prev, content: cleanedText }));
+            
+            // Auto-fill metadata for EPUB
+            if (isEPUB && result.title) {
+              setBook(prev => ({ ...prev, title: result.title }));
+            }
+            if (isEPUB && result.author) {
+              setBook(prev => ({ ...prev, author: result.author }));
+            }
+            
+            toast({
+              title: "Extraction réussie",
+              description: isPDF 
+                ? `Texte extrait avec succès (${(result as any).pageCount} pages, méthode: ${(result as any).method})`
+                : `Texte extrait avec succès (${(result as any).chapterCount} chapitres)`
+            });
+          } else {
+            toast({
+              title: "Erreur d'extraction",
+              description: result?.error || `Impossible d'extraire le texte du ${isPDF ? 'PDF' : 'EPUB'}`,
+              variant: "destructive"
+            });
+          }
+        } catch (error) {
+          console.error('Extraction error:', error);
+          toast({
+            title: "Erreur d'extraction",
+            description: "Une erreur est survenue lors de l'extraction",
+            variant: "destructive"
+          });
+        } finally {
+          setIsExtracting(false);
+          setExtractionProgress(0);
+          setExtractionStatus('');
         }
-      );
-
-      if (result.success && result.text.trim()) {
-        const cleanedText = PDFExtractionService.cleanExtractedText(result.text);
-        setBook(prev => ({ ...prev, content: cleanedText }));
-        toast({
-          title: "PDF extrait avec succès",
-          description: `Texte extrait par ${result.method} (${result.pageCount} pages)`,
-        });
-      } else {
-        toast({
-          title: "Erreur d'extraction",
-          description: result.error || "Impossible d'extraire le texte du PDF",
-          variant: "destructive"
-        });
       }
-    } catch (error) {
-      console.error('Erreur lors de l\'extraction:', error);
-      toast({
-        title: "Erreur d'extraction",
-        description: "Une erreur inattendue s'est produite",
-        variant: "destructive"
-      });
-    } finally {
-      setIsExtracting(false);
-      setPdfFile(null);
     }
   };
 
   const handleContentImport = (content: string, file?: File) => {
-    if (file && file.type === 'application/pdf') {
-      setPdfFile(file);
+    if (file && (file.type === 'application/pdf' || file.type === 'application/epub+zip')) {
+      // Handle file selection with automatic extraction
+      handleFileChange({ target: { files: [file] } } as any);
       return;
     }
     const sanitizedContent = sanitizeHtml(content);
@@ -420,34 +454,22 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
             name="content"
             value={book.content}
             onChange={handleChange}
-            placeholder="Entrez le contenu du livre ou importez un PDF"
+            placeholder="Entrez le contenu du livre ou importez un fichier PDF/EPUB"
             className="min-h-[200px]"
             maxLength={500000}
             required
           />
           <div className="flex gap-2">
-            <FileImport type="pdf" onFileImport={handleContentImport} />
-            {pdfFile && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleExtractPDF}
+            <div className="grid gap-2 flex-1">
+              <Label htmlFor="file">Fichier PDF ou EPUB (optionnel)</Label>
+              <Input
+                id="file"
+                type="file"
+                accept=".pdf,.epub"
+                onChange={handleFileChange}
                 disabled={isExtracting}
-                className="flex-1"
-              >
-                {isExtracting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Extraction... ({Math.round(extractionProgress)}%)
-                  </>
-                ) : (
-                  <>
-                    <Zap className="mr-2 h-4 w-4" />
-                    Extraire le texte du PDF
-                  </>
-                )}
-              </Button>
-            )}
+              />
+            </div>
           </div>
           
           {isExtracting && (
@@ -475,7 +497,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
                   onClick={handleClearErrorContent}
                   className="w-full"
                 >
-                  Effacer le contenu d'erreur et réimporter le PDF
+                  Effacer le contenu d'erreur et réimporter le fichier
                 </Button>
               )}
               

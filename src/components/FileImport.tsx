@@ -20,7 +20,7 @@ interface FileImportProps {
 
 const FILE_LIMITS = {
   image: { maxSize: 10, types: ['image/png', 'image/jpeg', 'image/jpg'] },
-  pdf: { maxSize: 25, types: ['application/pdf'] },
+  pdf: { maxSize: 25, types: ['application/pdf', 'application/epub+zip'] },
   audio: { maxSize: 50, types: ['audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/mpeg'] }
 };
 

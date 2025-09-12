@@ -20,21 +20,48 @@ export interface ExtractionResult {
 
 export class PDFExtractionService {
   /**
-   * Clean extracted text from binary/invalid characters
+   * Clean extracted text from binary/invalid characters - More robust version
    */
   static cleanExtractedText(text: string): string {
     if (!text) return '';
     
-    return text
-      // Remove null bytes and control characters
-      .replace(/\x00/g, '')
-      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-      // Keep only printable ASCII and UTF-8 characters
-      .replace(/[^\x20-\x7E\u00A0-\uFFFF]/g, '')
-      // Normalize whitespace
-      .replace(/\s+/g, ' ')
-      .replace(/\n\s*\n/g, '\n\n')
-      .trim();
+    try {
+      // First, try to decode if it's base64 encoded
+      if (text.match(/^[A-Za-z0-9+/=]+$/)) {
+        try {
+          text = atob(text);
+        } catch (e) {
+          // Not base64, continue with original text
+        }
+      }
+      
+      // Remove binary data patterns
+      text = text.replace(/[\x00-\x1F\x7F-\x9F]/g, ' ');
+      
+      // Remove common PDF artifacts
+      text = text.replace(/\(cid:\d+\)/g, ' ');
+      text = text.replace(/[^\w\s\.\,\!\?\;\:\'\"\-\(\)\[\]\{\}]/g, ' ');
+      
+      // Clean up whitespace
+      text = text.replace(/\s+/g, ' ');
+      text = text.replace(/\n\s*\n/g, '\n\n');
+      
+      // Remove empty lines and normalize
+      const lines = text.split('\n');
+      const cleanLines = lines
+        .map(line => line.trim())
+        .filter(line => line.length > 0 && !line.match(/^[\s\.\-_]+$/));
+      
+      return cleanLines.join('\n\n').trim();
+      
+    } catch (error) {
+      console.error('Error cleaning text:', error);
+      // Fallback: basic cleaning
+      return text
+        .replace(/[^\x20-\x7E\u00A0-\uFFFF]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
   }
 
   /**
