@@ -1,12 +1,16 @@
 
-const CACHE_NAME = 'orydia-v1.0.0';
+// Version dynamique du cache basée sur l'URL du service worker
+const getVersionFromUrl = () => {
+  const urlParams = new URLSearchParams(self.location.search);
+  return urlParams.get('v') || 'default';
+};
+
+const CACHE_VERSION = getVersionFromUrl();
+const CACHE_NAME = `orydia-v${CACHE_VERSION}`;
+
 const STATIC_CACHE_URLS = [
-  '/',
-  '/index.html',
-  '/favicon.ico',
-  // Assets critiques
-  '/src/main.tsx',
-  '/src/index.css'
+  '/favicon.ico'
+  // Plus de cache pour les routes principales pour éviter les conflits
 ];
 
 // Installation du service worker
@@ -45,20 +49,19 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Stratégie de cache : Cache First pour les assets statiques, Network First pour les API
+// Stratégies de cache optimisées
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Cache First pour les assets statiques
-  if (request.destination === 'image' || 
-      request.destination === 'style' || 
-      request.destination === 'script' ||
-      url.pathname.endsWith('.js') ||
-      url.pathname.endsWith('.css') ||
-      url.pathname.endsWith('.png') ||
-      url.pathname.endsWith('.jpg') ||
-      url.pathname.endsWith('.svg')) {
+  // Ne pas intercepter les navigations pour éviter les conflits de cache
+  if (request.mode === 'navigate') {
+    return; // Laisse le navigateur gérer les navigations
+  }
+
+  // Cache First pour les assets avec hash (versionnés)
+  if ((request.destination === 'script' || request.destination === 'style') && 
+      url.pathname.includes('-') && /\.[a-f0-9]{8,}\.(js|css)/.test(url.pathname)) {
     
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
@@ -67,25 +70,48 @@ self.addEventListener('fetch', (event) => {
         }
         
         return fetch(request).then((response) => {
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseToCache);
+            });
           }
-          
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache);
-          });
-          
           return response;
         });
       })
     );
   }
   
-  // Network First pour les requêtes API
-  else if (url.pathname.includes('/api/') || url.hostname.includes('supabase')) {
+  // Cache First pour les images
+  else if (request.destination === 'image') {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        
+        return fetch(request).then((response) => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseToCache);
+            });
+          }
+          return response;
+        }).catch(() => {
+          // Fallback silencieux pour les images
+          return new Response('', { status: 404 });
+        });
+      })
+    );
+  }
+  
+  // Network First pour les API et requêtes dynamiques
+  else if (url.pathname.includes('/api/') || url.hostname.includes('supabase') || 
+           url.pathname.includes('functions/')) {
     event.respondWith(
       fetch(request).then((response) => {
+        // Ne pas cacher les erreurs API
         if (response.ok) {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -95,15 +121,6 @@ self.addEventListener('fetch', (event) => {
         return response;
       }).catch(() => {
         return caches.match(request);
-      })
-    );
-  }
-  
-  // Cache First pour tout le reste
-  else {
-    event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        return cachedResponse || fetch(request);
       })
     );
   }

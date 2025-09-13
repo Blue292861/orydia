@@ -93,5 +93,8 @@ export default defineConfig(({ mode }) => ({
   // Configuration pour éviter les erreurs CORS en développement
   define: {
     global: 'globalThis',
+    __BUILD_ID__: JSON.stringify(Date.now()),
   },
+  // Variables d'environnement pour le versioning
+  envPrefix: ['VITE_'],
 }));
