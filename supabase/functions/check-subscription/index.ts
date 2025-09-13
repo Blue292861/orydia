@@ -66,7 +66,7 @@ serve(async (req) => {
 
     const { data: subscriber } = await supabaseAdmin
       .from('subscribers')
-      .select('stripe_customer_id, subscribed, subscription_tier, subscription_end')
+      .select('stripe_customer_id, subscribed, subscription_tier, subscription_end, cancel_at_period_end, cancellation_date, cancelled_by_user')
       .eq('user_id', user.id)
       .single();
     
@@ -74,13 +74,39 @@ serve(async (req) => {
     if (subscriber?.subscribed && subscriber?.subscription_tier === 'Premium Manual') {
       // Check if manual subscription is still valid
       const subscriptionEnd = subscriber.subscription_end;
-      const isValidManualSub = !subscriptionEnd || new Date(subscriptionEnd) > new Date();
+      const now = new Date();
+      const endDate = subscriptionEnd ? new Date(subscriptionEnd) : null;
+      const isValidManualSub = !endDate || endDate > now;
+      
+      // Check if subscription was cancelled and is past expiration
+      if (subscriber.cancel_at_period_end && endDate && endDate <= now) {
+        await supabaseAdmin
+          .from('subscribers')
+          .update({
+            subscribed: false,
+            subscription_tier: null,
+            subscription_end: null,
+          })
+          .eq('user_id', user.id);
+        
+        return new Response(JSON.stringify({ 
+          subscribed: false, 
+          subscription_tier: null, 
+          subscription_end: null,
+          cancelled: true
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
       
       if (isValidManualSub) {
         return new Response(JSON.stringify({ 
           subscribed: true, 
           subscription_tier: subscriber.subscription_tier, 
-          subscription_end: subscriptionEnd 
+          subscription_end: subscriptionEnd,
+          cancel_at_period_end: subscriber.cancel_at_period_end || false,
+          cancellation_date: subscriber.cancellation_date
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
@@ -96,7 +122,11 @@ serve(async (req) => {
           })
           .eq('user_id', user.id);
         
-        return new Response(JSON.stringify({ subscribed: false, subscription_tier: null, subscription_end: null }), {
+        return new Response(JSON.stringify({ 
+          subscribed: false, 
+          subscription_tier: null, 
+          subscription_end: null 
+        }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
         });
@@ -114,14 +144,42 @@ serve(async (req) => {
 
     const subscriptions = await stripe.subscriptions.list({
       customer: subscriber.stripe_customer_id,
-      status: "active",
-      limit: 1,
+      status: "all",
+      limit: 10,
     });
 
-    const hasActiveSub = subscriptions.data.length > 0;
-    const subscription = hasActiveSub ? subscriptions.data[0] : null;
+    // Find active or cancelling subscription
+    const activeOrCancelledSub = subscriptions.data.find(sub => 
+      sub.status === "active" || (sub.status === "canceled" && sub.canceled_at && sub.canceled_at * 1000 > Date.now())
+    );
+
+    const hasActiveSub = activeOrCancelledSub?.status === "active";
+    const subscription = activeOrCancelledSub;
     const subscriptionEnd = subscription ? new Date(subscription.current_period_end * 1000).toISOString() : null;
     const subscriptionTier = hasActiveSub ? "Premium" : null;
+    const cancelAtPeriodEnd = subscription?.cancel_at_period_end || false;
+
+    // Check if cancelled subscription has expired
+    if (subscription?.cancel_at_period_end && subscriptionEnd && new Date(subscriptionEnd) <= new Date()) {
+      await supabaseAdmin
+        .from('subscribers')
+        .update({
+          subscribed: false,
+          subscription_tier: null,
+          subscription_end: null,
+        })
+        .eq('user_id', user.id);
+
+      return new Response(JSON.stringify({ 
+        subscribed: false,
+        subscription_tier: null,
+        subscription_end: null,
+        cancelled: true
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     await supabaseAdmin
       .from('subscribers')
@@ -129,6 +187,8 @@ serve(async (req) => {
         subscribed: hasActiveSub,
         subscription_tier: subscriptionTier,
         subscription_end: subscriptionEnd,
+        cancel_at_period_end: cancelAtPeriodEnd,
+        cancellation_date: cancelAtPeriodEnd ? subscriptionEnd : null,
       })
       .eq('user_id', user.id);
 
@@ -136,6 +196,8 @@ serve(async (req) => {
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,
       subscription_end: subscriptionEnd,
+      cancel_at_period_end: cancelAtPeriodEnd,
+      cancellation_date: cancelAtPeriodEnd ? subscriptionEnd : null,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

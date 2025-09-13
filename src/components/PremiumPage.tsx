@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Star, Check, Crown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { PremiumSelectionDialog } from '@/components/PremiumSelectionDialog';
+import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 
 export const PremiumPage: React.FC = () => {
-  const { subscription, manageSubscription } = useAuth();
+  const { subscription, checkSubscriptionStatus } = useAuth();
 
   const features = [
     'Accès illimité à tous les livres',
@@ -22,6 +23,12 @@ export const PremiumPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-20">
+      {subscription.isPremium && (
+        <SubscriptionManagement 
+          subscription={subscription}
+          onSubscriptionUpdate={checkSubscriptionStatus}
+        />
+      )}
       <div className="text-center">
         <div className="flex items-center justify-center gap-2 mb-4">
           <Crown className="h-8 w-8 text-yellow-500" />
@@ -59,12 +66,7 @@ export const PremiumPage: React.FC = () => {
             ))}
           </div>
           
-          {subscription.isPremium ? (
-            <Button className="w-full" size="lg" onClick={manageSubscription}>
-              <Crown className="h-4 w-4 mr-2" />
-              Gérer mon abonnement Premium
-            </Button>
-          ) : (
+          {!subscription.isPremium && (
             <PremiumSelectionDialog
               trigger={
                 <Button className="w-full" size="lg">

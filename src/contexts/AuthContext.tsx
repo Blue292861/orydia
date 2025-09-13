@@ -8,6 +8,8 @@ interface SubscriptionInfo {
   isPremium: boolean;
   subscriptionTier: string | null;
   subscriptionEnd: string | null;
+  cancel_at_period_end?: boolean;
+  cancellation_date?: string | null;
 }
 
 interface AuthContextType {
@@ -25,7 +27,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isAdmin: false,
   loading: true,
-  subscription: { isPremium: false, subscriptionTier: null, subscriptionEnd: null },
+  subscription: { isPremium: false, subscriptionTier: null, subscriptionEnd: null, cancel_at_period_end: false, cancellation_date: null },
   checkSubscriptionStatus: async () => {},
   manageSubscription: async () => {},
 });
@@ -35,7 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [subscription, setSubscription] = useState<SubscriptionInfo>({ isPremium: false, subscriptionTier: null, subscriptionEnd: null });
+  const [subscription, setSubscription] = useState<SubscriptionInfo>({ isPremium: false, subscriptionTier: null, subscriptionEnd: null, cancel_at_period_end: false, cancellation_date: null });
 
   const checkSubscriptionStatus = async () => {
     try {
@@ -45,11 +47,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isPremium: data.subscribed,
         subscriptionTier: data.subscription_tier,
         subscriptionEnd: data.subscription_end,
+        cancel_at_period_end: data.cancel_at_period_end,
+        cancellation_date: data.cancellation_date,
       });
     } catch (error) {
       console.error('Error checking subscription status:', error);
       // Reset subscription state on error to avoid false positives
-      setSubscription({ isPremium: false, subscriptionTier: null, subscriptionEnd: null });
+      setSubscription({ isPremium: false, subscriptionTier: null, subscriptionEnd: null, cancel_at_period_end: false, cancellation_date: null });
     }
   };
 
@@ -112,7 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       checkSubscriptionStatus();
     } else {
       // Clear subscription status on logout
-      setSubscription({ isPremium: false, subscriptionTier: null, subscriptionEnd: null });
+      setSubscription({ isPremium: false, subscriptionTier: null, subscriptionEnd: null, cancel_at_period_end: false, cancellation_date: null });
     }
   }, [session]);
 

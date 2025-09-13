@@ -74,6 +74,65 @@ export type Database = {
         }
         Relationships: []
       }
+      api_rate_limits: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          request_count: number | null
+          user_id: string | null
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          request_count?: number | null
+          user_id?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          request_count?: number | null
+          user_id?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
+      applied_discounts: {
+        Row: {
+          applied_at: string
+          bundle_deal_id: string | null
+          discount_amount: number
+          id: string
+          order_id: string
+        }
+        Insert: {
+          applied_at?: string
+          bundle_deal_id?: string | null
+          discount_amount: number
+          id?: string
+          order_id: string
+        }
+        Update: {
+          applied_at?: string
+          bundle_deal_id?: string | null
+          discount_amount?: number
+          id?: string
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applied_discounts_bundle_deal_id_fkey"
+            columns: ["bundle_deal_id"]
+            isOneToOne: false
+            referencedRelation: "bundle_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audiobook_chapters: {
         Row: {
           audio_url: string
@@ -338,6 +397,39 @@ export type Database = {
           summary?: string | null
           tags?: string[] | null
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bundle_deals: {
+        Row: {
+          created_at: string
+          description: string | null
+          discount_percentage: number
+          id: string
+          is_active: boolean
+          name: string
+          product_ids: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          discount_percentage: number
+          id?: string
+          is_active?: boolean
+          name: string
+          product_ids: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          discount_percentage?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          product_ids?: string[]
           updated_at?: string
         }
         Relationships: []
@@ -656,10 +748,44 @@ export type Database = {
         }
         Relationships: []
       }
+      security_events: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          severity: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       shop_items: {
         Row: {
           additional_images: string[] | null
           available_sizes: string[] | null
+          categories: string[] | null
           category: string
           content: string | null
           created_at: string
@@ -681,6 +807,7 @@ export type Database = {
         Insert: {
           additional_images?: string[] | null
           available_sizes?: string[] | null
+          categories?: string[] | null
           category: string
           content?: string | null
           created_at?: string
@@ -702,6 +829,7 @@ export type Database = {
         Update: {
           additional_images?: string[] | null
           available_sizes?: string[] | null
+          categories?: string[] | null
           category?: string
           content?: string | null
           created_at?: string
@@ -724,6 +852,9 @@ export type Database = {
       }
       subscribers: {
         Row: {
+          cancel_at_period_end: boolean | null
+          cancellation_date: string | null
+          cancelled_by_user: boolean | null
           created_at: string
           email: string
           id: string
@@ -735,6 +866,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cancel_at_period_end?: boolean | null
+          cancellation_date?: string | null
+          cancelled_by_user?: boolean | null
           created_at?: string
           email: string
           id?: string
@@ -746,6 +880,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cancel_at_period_end?: boolean | null
+          cancellation_date?: string | null
+          cancelled_by_user?: boolean | null
           created_at?: string
           email?: string
           id?: string
@@ -1215,6 +1352,10 @@ export type Database = {
       }
       log_security_event: {
         Args: { details?: Json; event_type: string; user_id?: string }
+        Returns: undefined
+      }
+      reset_revenue_and_orders: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       revoke_manual_premium: {
