@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
+import EmailConfirmationPage from "./pages/EmailConfirmationPage";
 import SplashScreen from "./components/SplashScreen";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserStatsProvider } from "./contexts/UserStatsContext";
@@ -36,11 +37,12 @@ const AppContent = () => {
     );
   }
 
-  // Si pas de session, aller à la page d'auth
+  // Si pas de session, aller à la page d'auth (sauf pour la confirmation d'email)
   if (!session) {
     return (
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
         <Route path="/*" element={<Navigate to="/auth" replace />} />
       </Routes>
     );
@@ -54,6 +56,7 @@ const AppContent = () => {
   return (
     <Routes>
       <Route path="/auth" element={<Navigate to="/" replace />} />
+      <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
       <Route path="/*" element={<Index />} />
     </Routes>
   );

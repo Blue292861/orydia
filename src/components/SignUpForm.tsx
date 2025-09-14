@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getEmailConfirmationUrl } from '@/utils/redirectUrls';
 
 interface SignUpFormProps {
   onBack: () => void;
@@ -39,7 +40,7 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: getEmailConfirmationUrl(),
           data: {
             username: formData.username,
             first_name: formData.firstName,

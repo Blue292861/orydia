@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getEmailConfirmationUrl } from '@/utils/redirectUrls';
 
 export const NewSignupForm: React.FC = () => {
   const [signupData, setSignupData] = useState({
@@ -52,7 +53,7 @@ export const NewSignupForm: React.FC = () => {
         email: signupData.email,
         password: signupData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: getEmailConfirmationUrl(),
           data: {
             username: signupData.username,
             first_name: signupData.firstName,
