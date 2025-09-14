@@ -70,7 +70,7 @@ export const ShopFilters: React.FC<ShopFiltersProps> = ({
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-slate-600 text-white">
               <SelectItem value="all">Toutes les catégories</SelectItem>
-              {categories.map(category => (
+              {categories.filter(category => category && category.trim() !== '').map(category => (
                 <SelectItem key={category} value={category}>{category}</SelectItem>
               ))}
             </SelectContent>

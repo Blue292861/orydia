@@ -1,16 +1,19 @@
 
 import React from 'react';
 import { useUserStats } from '@/contexts/UserStatsContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { EditProfileForm } from '@/components/EditProfileForm';
 import { PlayerCard } from '@/components/PlayerCard';
 import { PremiumStatusCard } from '@/components/PremiumStatusCard';
 import { AchievementInventory } from '@/components/AchievementInventory';
 import { StatsSummary } from '@/components/StatsSummary';
 import { LevelProgressBar } from '@/components/LevelProgressBar';
+import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 import { useResponsive } from '@/hooks/useResponsive';
 
 export const ProfilePage: React.FC = () => {
   const { userStats } = useUserStats();
+  const { subscription, checkSubscriptionStatus } = useAuth();
   const { isMobile, isTablet } = useResponsive();
 
   const unlockedAchievements = userStats.achievements.filter(a => a.unlocked);
@@ -65,6 +68,14 @@ export const ProfilePage: React.FC = () => {
         unlockedAchievementsCount={unlockedAchievements.length}
         playerLevel={userStats.levelInfo?.level || 1}
       />
+
+      {/* Subscription Management - Only for Premium Users */}
+      {subscription.isPremium && (
+        <SubscriptionManagement 
+          subscription={subscription}
+          onSubscriptionUpdate={checkSubscriptionStatus}
+        />
+      )}
     </div>
   );
 };
