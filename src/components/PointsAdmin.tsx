@@ -42,7 +42,7 @@ export const PointsAdmin: React.FC = () => {
       // Dans un vrai système, vous devriez avoir une table pour stocker les points des utilisateurs
       // et une fonction pour rechercher l'utilisateur par email
       
-      console.log(`Attribution de ${pointsNumber} points à ${email}`);
+      // Points attribution logged
       
       toast({
         title: 'Succès',
