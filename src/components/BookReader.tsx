@@ -247,18 +247,13 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
               content="" // Always empty since it's a PDF URL
             />
           ) : (
-            <div className="prose prose-lg max-w-none">
-              {book.content.split('\n\n').map((paragraph, index) => (
-                <p 
-                  key={index} 
-                  className={`mb-4 leading-relaxed ${
-                    highContrast ? 'text-white' : 'text-foreground'
-                  }`}
-                  style={{ fontSize: `${fontSize}px` }}
-                >
-                  {paragraph}
-                </p>
-              ))}
+            <div 
+              className={`whitespace-pre-wrap leading-relaxed ${
+                highContrast ? 'text-white' : 'text-foreground'
+              }`}
+              style={{ fontSize: `${fontSize}px` }}
+            >
+              {book.content}
             </div>
           )}
           

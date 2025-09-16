@@ -60,11 +60,16 @@ export class EPUBService {
           opfContent = await opfFile.async('text');
           
           // Extract metadata
+          const decode = (s: string) => {
+            const el = document.createElement('textarea');
+            el.innerHTML = s;
+            return el.value;
+          };
           const titleMatch = opfContent.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/i);
-          if (titleMatch) title = titleMatch[1].trim();
+          if (titleMatch) title = decode(titleMatch[1].trim());
           
           const authorMatch = opfContent.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/i);
-          if (authorMatch) author = authorMatch[1].trim();
+          if (authorMatch) author = decode(authorMatch[1].trim());
           
           // Extract chapter order from spine
           const spineMatch = opfContent.match(/<spine[^>]*>(.*?)<\/spine>/s);

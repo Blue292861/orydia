@@ -38,7 +38,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     if (name === 'title') maxLength = 200;
     else if (name === 'author') maxLength = 100;
     else if (name === 'summary') maxLength = 1000;
-    else if (name === 'content') maxLength = 500000;
+    else if (name === 'content') maxLength = 1200000;
     
     if (!validateTextLength(value, maxLength)) {
       toast({
@@ -452,7 +452,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
             onChange={handleChange}
             placeholder="Entrez le contenu du livre ou importez un fichier PDF/EPUB"
             className="min-h-[200px]"
-            maxLength={500000}
+            maxLength={1200000}
             required
           />
           <div className="flex gap-2">
