@@ -204,13 +204,13 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
   }, [fontSize, rendition]);
 
   const goToPrevious = () => {
-    if (rendition && currentPage > 1) {
+    if (rendition && !isAtStart) {
       rendition.prev();
     }
   };
 
   const goToNext = () => {
-    if (rendition && currentPage < totalPages) {
+    if (rendition && !isAtEnd) {
       rendition.next();
     }
   };
