@@ -46,6 +46,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   const [fallbackIndex, setFallbackIndex] = useState(0);
   const [fallbackProgress, setFallbackProgress] = useState(0);
   const [fallbackStatus, setFallbackStatus] = useState('Initialisation...');
+  const [isLastPage, setIsLastPage] = useState(false);
 
   const touchStartX = useRef<number>(0);
   const loadingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -130,12 +131,14 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
     }
   }, [bookLoaded, getStorageKey]);
 
-  // Persist fallback position
+  // Persist fallback position and check if last page
   useEffect(() => {
     if (useFallback) {
       localStorage.setItem(getFallbackKey(), String(fallbackIndex));
+      // Check if we're on the last page in fallback mode
+      setIsLastPage(fallbackPages.length > 0 && fallbackIndex >= fallbackPages.length - 1);
     }
-  }, [useFallback, fallbackIndex]);
+  }, [useFallback, fallbackIndex, fallbackPages.length]);
 
   // Update theme when highContrast changes
   useEffect(() => {
@@ -199,6 +202,9 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
         const page = Math.floor(currentLocation * renditionRef.locations.length / 100);
         setCurrentPage(Math.max(1, page + 1));
         setTotalPages(renditionRef.locations.length);
+        
+        // Check if we're on the last page (95% or more)
+        setIsLastPage(currentLocation >= 95);
       } catch (error) {
         // Fallback page calculation
         console.warn('Page calculation error:', error);
@@ -403,7 +409,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       <div className="flex-1 relative min-h-[60vh] sm:min-h-[70vh] max-h-[85vh] overflow-hidden z-0">
         {useFallback ? (
           <ScrollArea className="h-full w-full">
-            <div className="p-4">
+            <div className="p-4 min-h-full">
               {fallbackPages.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-center">
                   <div>
@@ -458,8 +464,8 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
           </Button>
         </div>
 
-        {/* Finish Reading Button */}
-        {!hasFinished && bookLoaded && (
+        {/* Finish Reading Button - Only show on last page */}
+        {!hasFinished && isLastPage && (bookLoaded || useFallback) && (
           <Button
             onClick={handleFinishReading}
             className="w-full"
