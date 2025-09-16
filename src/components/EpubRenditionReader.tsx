@@ -137,10 +137,11 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
 
           let updated = false;
 
-          // Use precise locations if ready
-          if (locationsReady && (bookInstance as any).locations && startCfi) {
+          // Use precise locations if ready (avoid stale closure by checking length directly)
+          const locationsLen = Number((bookInstance as any).locations?.length?.());
+          if (Number.isFinite(locationsLen) && locationsLen > 0 && startCfi) {
             const idx = (bookInstance as any).locations.locationFromCfi(startCfi);
-            const total = (bookInstance as any).locations.length();
+            const total = locationsLen;
             if (Number.isFinite(idx) && Number.isFinite(total) && total > 0) {
               setCurrentPage(idx + 1);
               setTotalPages(total);
@@ -181,8 +182,13 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         });
 
         // Display first page IMMEDIATELY
-        const firstHref = (bookInstance as any).spine?.get?.(0)?.href || undefined;
-        await renditionInstance.display(firstHref);
+        try {
+          await renditionInstance.display();
+        } catch (e) {
+          console.warn('rendition.display() failed, trying first spine href', e);
+          const firstHref = (bookInstance as any).spine?.get?.(0)?.href || undefined;
+          await renditionInstance.display(firstHref);
+        }
         if (!canceled) setIsLoading(false); // User can start reading now!
 
         // BACKGROUND TASK: Generate precise locations (non-blocking)
