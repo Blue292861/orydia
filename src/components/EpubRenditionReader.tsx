@@ -30,6 +30,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
   const [book, setBook] = useState<any>(null);
   const [rendition, setRendition] = useState<any>(null);
   const [isAtEnd, setIsAtEnd] = useState(false);
+  const [isAtStart, setIsAtStart] = useState(true);
   const [showTensensDialog, setShowTensensDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -51,6 +52,8 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
 
         // Ensure book is ready
         await (newBook as any).ready;
+        // Generate locations for global pagination
+        await (newBook as any).locations.generate(1000);
 
         // Compute viewer size
         const viewerHeight = Math.max(400, Math.round(window.innerHeight * 0.75));
@@ -75,9 +78,11 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           },
           'img': {
             'max-width': '100% !important',
+            'width': 'auto !important',
             'height': 'auto !important',
             'display': 'block !important',
-            'margin': '1em auto !important'
+            'margin': '1em auto !important',
+            'object-fit': 'contain !important'
           },
           'h1, h2, h3, h4, h5, h6': {
             'font-weight': 'bold !important',
@@ -93,6 +98,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           'body': { 'background': '#000000 !important', 'color': '#ffffff !important' }
         });
         newRendition.themes.select(darkMode ? 'dark' : 'light');
+        newRendition.themes.fontSize(`${fontSize}px`);
 
         // Display first page
         await newRendition.display();
@@ -100,10 +106,23 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         // Hook into rendition events
         newRendition.on('relocated', (location: any) => {
           const displayed = location?.start?.displayed;
-          if (displayed) {
+          const startCfi = location?.start?.cfi;
+
+          // Global pagination using generated locations
+          if ((newBook as any).locations && startCfi) {
+            const idx = (newBook as any).locations.locationFromCfi(startCfi);
+            const total = (newBook as any).locations.length();
+            if (typeof idx === 'number' && typeof total === 'number' && total > 0) {
+              setCurrentPage(idx + 1);
+              setTotalPages(total);
+            }
+          } else if (displayed) {
+            // Fallback to section-based pagination
             setCurrentPage(displayed.page);
             setTotalPages(displayed.total);
           }
+
+          setIsAtStart(Boolean((location as any).atStart));
           setIsAtEnd(Boolean((location as any).atEnd));
         });
 
@@ -137,7 +156,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         rendition.destroy();
       }
     };
-  }, [epubUrl, fontSize, darkMode]);
+  }, [epubUrl]);
 
   // Update theme when darkMode changes
   useEffect(() => {
@@ -233,7 +252,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
       {/* EPUB Viewer */}
       <div 
         ref={viewerRef}
-        className={`flex-1 min-h-[60vh] ${darkMode ? 'bg-black' : 'bg-white'}`}
+        className={`flex-1 min-h-[60vh] max-w-screen-md mx-auto ${darkMode ? 'bg-black' : 'bg-white'}`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         style={{ 
@@ -254,7 +273,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           variant="outline"
           size="sm"
           onClick={goToPrevious}
-          disabled={!rendition || currentPage <= 1}
+          disabled={!rendition || isAtStart}
         >
           <ChevronLeft className="w-4 h-4 mr-2" />
           Page précédente
@@ -282,7 +301,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           variant="outline"
           size="sm"
           onClick={goToNext}
-          disabled={!rendition || currentPage >= totalPages}
+          disabled={!rendition || isAtEnd}
         >
           Page suivante
           <ChevronRight className="w-4 h-4 ml-2" />
