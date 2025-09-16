@@ -36,19 +36,35 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [renditionRef, setRenditionRef] = useState<any>(null);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   const touchStartX = useRef<number>(0);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout>();
   const { userStats } = useUserStats();
 
   // Storage key for saving reading position
   const getStorageKey = () => `epub-location-${epubUrl.split('/').pop()}`;
 
-  // Load saved position
+  // Load saved position and set timeout
   useEffect(() => {
     const savedLocation = localStorage.getItem(getStorageKey());
     if (savedLocation && !location) {
       setLocation(savedLocation);
     }
-  }, [epubUrl]);
+
+    // Set a timeout for loading
+    loadingTimeoutRef.current = setTimeout(() => {
+      if (isLoading) {
+        setLoadingError("Le chargement prend trop de temps. Veuillez réessayer.");
+        setIsLoading(false);
+      }
+    }, 15000); // 15 seconds timeout
+
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+    };
+  }, [epubUrl, isLoading]);
 
   // Save reading position
   const savePosition = useCallback((cfi: string) => {
@@ -131,17 +147,27 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
     setRenditionRef(rendition);
     setIsLoading(false);
     setBookLoaded(true);
+    setLoadingError(null);
     
-    // Generate locations for pagination
+    // Clear loading timeout
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+    }
+    
+    // Generate locations for pagination (optional, async)
     if (rendition.book) {
-      rendition.book.locations.generate(1024).then(() => {
-        const total = rendition.book.locations.length();
-        setTotalPages(total);
-        console.log('EPUB locations generated:', total);
-      }).catch((error: any) => {
-        console.warn('Could not generate locations:', error);
-        setTotalPages(0);
-      });
+      // Don't block the UI for location generation
+      setTimeout(() => {
+        rendition.book.locations.generate(1024).then(() => {
+          const total = rendition.book.locations.length();
+          setTotalPages(total);
+          console.log('EPUB locations generated:', total);
+        }).catch((error: any) => {
+          console.warn('Could not generate locations:', error);
+          // Don't show error to user, locations are optional
+          setTotalPages(0);
+        });
+      }, 100); // Small delay to let UI render first
     }
 
     // Add touch event listeners for swipe navigation
@@ -165,8 +191,8 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       } catch {}
     };
 
-    // Try to add listeners after a short delay
-    setTimeout(addSwipeListeners, 500);
+    // Reduced delay for faster initialization
+    setTimeout(addSwipeListeners, 100);
   }, []);
 
   const handleTouchStart = (e: TouchEvent) => {
@@ -215,12 +241,25 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
     }
   };
 
-  if (isLoading) {
+  if (isLoading || loadingError) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          <p className="text-muted-foreground">Chargement de l'EPUB...</p>
+          {loadingError ? (
+            <>
+              <div className="text-red-500 mb-4">⚠️</div>
+              <p className="text-muted-foreground mb-4">{loadingError}</p>
+              <Button onClick={() => window.location.reload()} variant="outline">
+                Réessayer
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+              <p className="text-muted-foreground">Chargement de l'EPUB...</p>
+              <p className="text-xs text-muted-foreground mt-1">Cela peut prendre quelques secondes</p>
+            </>
+          )}
         </div>
       </div>
     );
