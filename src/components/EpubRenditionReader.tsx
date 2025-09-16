@@ -58,9 +58,34 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         const cacheKey = `epub_${epubUrl}`;
         const cachedData = localStorage.getItem(cacheKey);
 
-        const bookInstance = ePub(epubUrl);
+        // Try to fetch EPUB as ArrayBuffer to bypass CORS/iframe issues, fallback to URL
+        let bookInstance: any;
+        try {
+          const resp = await fetch(epubUrl, { mode: 'cors', credentials: 'omit', cache: 'no-store' });
+          if (resp.ok) {
+            const ab = await resp.arrayBuffer();
+            if (ab && ab.byteLength > 512) {
+              bookInstance = ePub(ab, { openAs: 'binary' });
+              console.log('[EPUB] Loaded via ArrayBuffer, size:', ab.byteLength);
+            }
+          }
+        } catch (fetchErr) {
+          console.warn('[EPUB] Fetch as ArrayBuffer failed, falling back to URL', fetchErr);
+        }
+
+        if (!bookInstance) {
+          bookInstance = ePub(epubUrl);
+          console.log('[EPUB] Loaded via direct URL');
+        }
+
         createdBook = bookInstance;
         setBook(bookInstance);
+
+        // Log low-level errors
+        try {
+          (bookInstance as any).on?.('openFailed', (e: any) => console.error('[EPUB] openFailed', e));
+          (bookInstance as any).on?.('book:exception', (e: any) => console.error('[EPUB] exception', e));
+        } catch {}
 
         // Ensure book is ready
         await (bookInstance as any).ready;
@@ -100,6 +125,12 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
 
         createdRendition = renditionInstance;
         setRendition(renditionInstance);
+
+        // Log rendition errors
+        try {
+          renditionInstance.on('displayError', (e: any) => console.error('[EPUB] displayError', e));
+          renditionInstance.on('contentError', (e: any) => console.error('[EPUB] contentError', e));
+        } catch {}
 
         // Apply styles immediately
         renditionInstance.themes.default({
