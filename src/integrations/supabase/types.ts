@@ -667,34 +667,43 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          app_rating: number | null
           avatar_url: string | null
           city: string | null
           country: string | null
           first_name: string | null
+          has_rated_app: boolean | null
           id: string
           last_name: string | null
+          rated_at: string | null
           updated_at: string | null
           username: string | null
         }
         Insert: {
           address?: string | null
+          app_rating?: number | null
           avatar_url?: string | null
           city?: string | null
           country?: string | null
           first_name?: string | null
+          has_rated_app?: boolean | null
           id: string
           last_name?: string | null
+          rated_at?: string | null
           updated_at?: string | null
           username?: string | null
         }
         Update: {
           address?: string | null
+          app_rating?: number | null
           avatar_url?: string | null
           city?: string | null
           country?: string | null
           first_name?: string | null
+          has_rated_app?: boolean | null
           id?: string
           last_name?: string | null
+          rated_at?: string | null
           updated_at?: string | null
           username?: string | null
         }

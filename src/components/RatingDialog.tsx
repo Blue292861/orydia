@@ -16,7 +16,7 @@ export const RatingDialog: React.FC<RatingDialogProps> = ({ open, onOpenChange }
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { awardPoints } = useUserStats();
+  const { addPointsForBook } = useUserStats();
   const { user } = useAuth();
 
   const handleRatingSubmit = async () => {
@@ -36,20 +36,20 @@ export const RatingDialog: React.FC<RatingDialogProps> = ({ open, onOpenChange }
       const { error: updateError } = await supabase
         .from('profiles')
         .upsert({
-          user_id: user?.id,
+          id: user?.id,
           has_rated_app: true,
           app_rating: rating,
           rated_at: new Date().toISOString()
         }, {
-          onConflict: 'user_id'
+          onConflict: 'id'
         });
 
       if (updateError) {
         throw updateError;
       }
 
-      // Attribuer les points de récompense
-      await awardPoints(150, 'app_rating', 'Récompense pour avoir noté l\'application');
+      // Attribuer les points de récompense (créer un livre fictif pour l'attribution)
+      await addPointsForBook('app-rating', 150);
 
       toast({
         title: '🎉 Merci pour votre évaluation !',

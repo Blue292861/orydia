@@ -1,18 +1,18 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, X, Star } from 'lucide-react';
-import { useUserStats } from '@/contexts/UserStatsContext';
-import { useToast } from '@/hooks/use-toast';
 import { TextSizeControls } from '@/components/TextSizeControls';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { BannerAd } from '@/components/BannerAd';
 import { RewardAd } from '@/components/RewardAd';
 import { InteractiveBookReader } from '@/components/InteractiveBookReader';
 import { EmbeddedPDFReader } from '@/components/EmbeddedPDFReader';
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
+import { RatingDialog } from './RatingDialog';
+import { useUserStats } from '@/contexts/UserStatsContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface BookReaderProps {
   book: Book;
@@ -20,29 +20,94 @@ interface BookReaderProps {
 }
 
 export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
-  // Si le livre a des chapitres, utiliser le lecteur interactif
-  if (book.hasChapters) {
-    return <InteractiveBookReader book={book} onClose={onBack} />;
-  }
-
+  // All hooks must be at the top level
   const { userStats, addPointsForBook } = useUserStats();
-  const { session, subscription } = useAuth();
+  const { session, subscription, user } = useAuth();
   const { toast } = useToast();
+  
+  // State management
+  const [showRatingDialog, setShowRatingDialog] = useState(false);
+  const [hasRatedApp, setHasRatedApp] = useState(false);
   const [hasFinished, setHasFinished] = useState(false);
   const [fontSize, setFontSize] = useState(16);
   const [highContrast, setHighContrast] = useState(false);
   const [showRewardAd, setShowRewardAd] = useState(false);
   const [showAgeVerification, setShowAgeVerification] = useState(book.isAdultContent);
   const [ageVerified, setAgeVerified] = useState(false);
-  
+  const readingStartTime = useRef<number>(Date.now());
+
+  // Computed values
   const isAlreadyRead = userStats.booksRead.includes(book.id);
   const isPremium = subscription.isPremium;
   const pointsToWin = isPremium ? book.points * 2 : book.points;
-  
-  // Check if the content is a PDF URL or actual extracted text
   const isPDFContent = book.content?.startsWith('http') && book.content.includes('.pdf');
   const hasExtractedContent = book.content && !isPDFContent;
-  
+
+  // Effect pour vérifier si l'utilisateur a déjà noté l'app
+  useEffect(() => {
+    const checkRatingStatus = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('has_rated_app')
+          .eq('id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error checking rating status:', error);
+          return;
+        }
+
+        setHasRatedApp(data?.has_rated_app || false);
+      } catch (error) {
+        console.error('Error checking rating status:', error);
+      }
+    };
+
+    checkRatingStatus();
+  }, [user]);
+
+  // Effect pour enregistrer le temps de lecture quand on quitte
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      recordReadingSession();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      recordReadingSession();
+    };
+  }, [hasRatedApp]); // Add hasRatedApp as dependency
+
+  // Enregistrer une session de lecture
+  const recordReadingSession = async () => {
+    if (!user) return;
+
+    const sessionDuration = Math.floor((Date.now() - readingStartTime.current) / 1000);
+    
+    // Ne pas enregistrer les sessions très courtes (moins de 30 secondes)
+    if (sessionDuration < 30) return;
+
+    try {
+      // Montrer le popup de notation si l'utilisateur n'a pas encore noté l'app
+      // et que la session de lecture était suffisamment longue (plus de 2 minutes)
+      if (!hasRatedApp && sessionDuration > 120) {
+        setShowRatingDialog(true);
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement de la lecture:", error);
+    }
+  };
+
+  const handleBackClick = async () => {
+    await recordReadingSession();
+    onBack();
+  };
+
   const handleFinishReading = async () => {
     if (!session) {
        toast({ title: "Erreur", description: "Vous devez être connecté.", variant: "destructive" });
@@ -101,8 +166,13 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
 
   const handleAgeVerificationCanceled = () => {
     setShowAgeVerification(false);
-    onBack();
+    handleBackClick();
   };
+
+  // Si le livre a des chapitres, utiliser le lecteur interactif
+  if (book.hasChapters) {
+    return <InteractiveBookReader book={book} onClose={handleBackClick} />;
+  }
 
   // If age verification is needed and not yet verified, show only the verification dialog
   if (book.isAdultContent && !ageVerified) {
@@ -128,7 +198,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
       
       <div className="max-w-4xl mx-auto pb-10">
         <div className="flex justify-between items-center mb-6">
-          <Button variant="ghost" onClick={onBack} className="flex items-center gap-1">
+          <Button variant="ghost" onClick={handleBackClick} className="flex items-center gap-1">
             <ChevronLeft className="h-4 w-4" />
             Retour à la Bibliothèque
           </Button>
@@ -148,7 +218,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
             </div>
           </div>
           
-          <Button variant="ghost" size="icon" onClick={onBack}>
+          <Button variant="ghost" size="icon" onClick={handleBackClick}>
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -226,6 +296,16 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           </div>
         </div>
 
+        {/* Dialog de notation */}
+        <RatingDialog 
+          open={showRatingDialog} 
+          onOpenChange={(open) => {
+            setShowRatingDialog(open);
+            if (!open) {
+              setHasRatedApp(true); // Marquer comme "vu" même si pas noté pour éviter spam
+            }
+          }} 
+        />
       </div>
     </>
   );
