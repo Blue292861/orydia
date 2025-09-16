@@ -7,6 +7,7 @@ import { BannerAd } from '@/components/BannerAd';
 import { RewardAd } from '@/components/RewardAd';
 import { InteractiveBookReader } from '@/components/InteractiveBookReader';
 import { EmbeddedPDFReader } from '@/components/EmbeddedPDFReader';
+import { EpubPageReader } from '@/components/EpubPageReader';
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { RatingDialog } from './RatingDialog';
 import { useUserStats } from '@/contexts/UserStatsContext';
@@ -42,6 +43,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const pointsToWin = isPremium ? book.points * 2 : book.points;
   const isPDFContent = book.content?.startsWith('http') && book.content.includes('.pdf');
   const hasExtractedContent = book.content && !isPDFContent;
+  const isEpubStructured = Boolean(hasExtractedContent && /=== Chapitre \d+ ===/.test(book.content || ''));
 
   // Effect pour vérifier si l'utilisateur a déjà noté l'app
   useEffect(() => {
@@ -247,14 +249,27 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
               content="" // Always empty since it's a PDF URL
             />
           ) : (
-            <div 
-              className={`whitespace-pre-wrap leading-relaxed ${
-                highContrast ? 'text-white' : 'text-foreground'
-              }`}
-              style={{ fontSize: `${fontSize}px` }}
-            >
-              {book.content}
-            </div>
+            isEpubStructured ? (
+              <EpubPageReader
+                content={book.content || ''}
+                fontSize={fontSize}
+                highContrast={highContrast}
+                isPremium={isPremium}
+                isAlreadyRead={isAlreadyRead}
+                hasFinished={hasFinished}
+                pointsToWin={pointsToWin}
+                onFinish={handleFinishReading}
+              />
+            ) : (
+              <div 
+                className={`whitespace-pre-wrap leading-relaxed ${
+                  highContrast ? 'text-white' : 'text-foreground'
+                }`}
+                style={{ fontSize: `${fontSize}px` }}
+              >
+                {book.content}
+              </div>
+            )
           )}
           
           {/* Publicité pour les non-premium */}
@@ -264,31 +279,33 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
             </div>
           )}
           
-          <div className="mt-8 pt-6 border-t flex justify-center">
-            {isAlreadyRead ? (
-              <div className={`text-center ${highContrast && !isPDFContent ? 'text-gray-300' : 'text-muted-foreground'}`}>
-                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-6 w-6 mx-auto mb-2" />
-                <p>Vous avez déjà gagné des Tensens pour ce livre</p>
-              </div>
-            ) : hasFinished ? (
-              <div className="text-center text-green-600">
-                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-6 w-6 mx-auto mb-2" />
-                <p>Tensens accordés ! Bien joué !</p>
-              </div>
-            ) : (
-              <Button 
-                onClick={handleFinishReading} 
-                className="flex items-center gap-2"
-                disabled={false}
-              >
-                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-4 w-4" />
-                {isPremium ? 
-                  `Terminer la lecture & Gagner ${pointsToWin} Tensens` :
-                  `Regarder une publicité & Gagner ${pointsToWin} Tensens`
-                }
-              </Button>
-            )}
-          </div>
+          {!isEpubStructured && (
+            <div className="mt-8 pt-6 border-t flex justify-center">
+              {isAlreadyRead ? (
+                <div className={`${highContrast && !isPDFContent ? 'text-gray-300' : 'text-muted-foreground'} text-center`}>
+                  <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-6 w-6 mx-auto mb-2" />
+                  <p>Vous avez déjà gagné des Tensens pour ce livre</p>
+                </div>
+              ) : hasFinished ? (
+                <div className="text-center text-green-600">
+                  <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-6 w-6 mx-auto mb-2" />
+                  <p>Tensens accordés ! Bien joué !</p>
+                </div>
+              ) : (
+                <Button 
+                  onClick={handleFinishReading} 
+                  className="flex items-center gap-2"
+                  disabled={false}
+                >
+                  <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-4 w-4" />
+                  {isPremium ? 
+                    `Terminer la lecture & Gagner ${pointsToWin} Tensens` :
+                    `Regarder une publicité & Gagner ${pointsToWin} Tensens`
+                  }
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Dialog de notation */}

@@ -144,12 +144,24 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
             
             setBook(prev => ({ ...prev, content: cleanedText }));
             
-            // Auto-fill metadata for EPUB
-            if (isEPUB && result.title) {
-              setBook(prev => ({ ...prev, title: result.title }));
+            // Auto-fill metadata for EPUB, but do NOT override user-entered values
+            if (isEPUB && (result as any).title) {
+              setBook(prev => {
+                const next = { ...prev };
+                if (!prev.title?.trim()) {
+                  next.title = (result as any).title;
+                }
+                return next;
+              });
             }
-            if (isEPUB && result.author) {
-              setBook(prev => ({ ...prev, author: result.author }));
+            if (isEPUB && (result as any).author) {
+              setBook(prev => {
+                const next = { ...prev };
+                if (!prev.author?.trim()) {
+                  next.author = (result as any).author;
+                }
+                return next;
+              });
             }
             
             toast({
