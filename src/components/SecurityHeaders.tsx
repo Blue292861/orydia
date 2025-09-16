@@ -13,7 +13,7 @@ export const SecurityHeaders: React.FC = () => {
     // Set other security headers via meta tags (limited effectiveness, but better than nothing)
     const securityMetas = [
       { httpEquiv: 'X-Content-Type-Options', content: 'nosniff' },
-      { httpEquiv: 'X-Frame-Options', content: 'DENY' },
+      // X-Frame-Options removed to allow in-app iframes (epub.js)
       { httpEquiv: 'X-XSS-Protection', content: '1; mode=block' },
       { httpEquiv: 'Referrer-Policy', content: 'strict-origin-when-cross-origin' }
     ];

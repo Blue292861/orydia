@@ -220,13 +220,13 @@ export const sanitizeTag = (tag: string): string => {
 // Content Security Policy helper
 export const getCSPDirectives = (): string => {
   return [
-    "default-src 'self'",
+    "default-src 'self' blob: data:",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
-    "media-src 'self' data: blob:",
-    "connect-src 'self' https://aotzivwzoxmnnawcxioo.supabase.co wss://aotzivwzoxmnnawcxioo.supabase.co",
-    "font-src 'self'",
+    "media-src 'self' data: blob: https:",
+    "connect-src 'self' blob: data: https: wss:",
+    "font-src 'self' data:",
     "object-src 'self' data:",
     "frame-src 'self' data: blob:",
     "child-src 'self' data: blob:",
