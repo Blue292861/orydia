@@ -48,26 +48,44 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
   useEffect(() => {
     if (!epubUrl || !viewerRef.current) return;
 
+    let createdRendition: any | null = null;
+    let createdBook: any | null = null;
+    let canceled = false;
+
     const initBook = async () => {
       setIsLoading(true);
       try {
-        // Check cache first
         const cacheKey = `epub_${epubUrl}`;
         const cachedData = localStorage.getItem(cacheKey);
-        
-        const newBook = ePub(epubUrl);
-        setBook(newBook);
+
+        const bookInstance = ePub(epubUrl);
+        createdBook = bookInstance;
+        setBook(bookInstance);
 
         // Ensure book is ready
-        await (newBook as any).ready;
-        
+        await (bookInstance as any).ready;
+
         // Get initial book info - conservative approach
-        setTotalSections(1); // Start with 1, will be updated
+        const spineLength = (bookInstance as any).spine?.items?.length || (bookInstance as any).spine?.length || 0;
+        setTotalSections(spineLength > 0 ? spineLength : 1);
         setTotalPages(1); // Initial placeholder
+
+        // Try to load cached precise locations immediately
+        if (cachedData) {
+          try {
+            const cached = JSON.parse(cachedData);
+            if (cached?.locations) {
+              (bookInstance as any).locations.load(cached.locations);
+              setLocationsReady(true);
+            }
+          } catch (e) {
+            console.warn('Failed to load cached locations from cache', e);
+          }
+        }
 
         // INSTANT DISPLAY - Show first page immediately
         const viewerHeight = Math.max(400, Math.round(window.innerHeight * 0.75));
-        const newRendition = newBook.renderTo(viewerRef.current!, {
+        const renditionInstance = bookInstance.renderTo(viewerRef.current!, {
           width: '100%',
           height: viewerHeight,
           flow: 'paginated',
@@ -76,10 +94,11 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           allowScriptedContent: false
         });
 
-        setRendition(newRendition);
+        createdRendition = renditionInstance;
+        setRendition(renditionInstance);
 
         // Apply styles immediately
-        newRendition.themes.default({
+        renditionInstance.themes.default({
           'p': {
             'margin': '1em 0 !important',
             'text-align': 'justify !important'
@@ -98,36 +117,39 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           }
         });
 
-        newRendition.themes.register('light', {
+        renditionInstance.themes.register('light', {
           'body': { 'background': '#ffffff !important', 'color': '#000000 !important' }
         });
-        newRendition.themes.register('dark', {
+        renditionInstance.themes.register('dark', {
           'body': { 'background': '#000000 !important', 'color': '#ffffff !important' }
         });
-        newRendition.themes.select(darkMode ? 'dark' : 'light');
-        newRendition.themes.fontSize(`${fontSize}px`);
-
-        // Display first page IMMEDIATELY
-        await newRendition.display();
-        setIsLoading(false); // User can start reading now!
+        renditionInstance.themes.select(darkMode ? 'dark' : 'light');
+        renditionInstance.themes.fontSize(`${fontSize}px`);
 
         // Setup navigation tracking
-        newRendition.on('relocated', (location: any) => {
+        renditionInstance.on('relocated', (location: any) => {
           const displayed = location?.start?.displayed;
           const startCfi = location?.start?.cfi;
-          
-          // Use precise locations if ready, otherwise use section-based
-          if (locationsReady && (newBook as any).locations && startCfi) {
-            const idx = (newBook as any).locations.locationFromCfi(startCfi);
-            const total = (newBook as any).locations.length();
-            if (typeof idx === 'number' && typeof total === 'number' && total > 0) {
+
+          let updated = false;
+
+          // Use precise locations if ready
+          if (locationsReady && (bookInstance as any).locations && startCfi) {
+            const idx = (bookInstance as any).locations.locationFromCfi(startCfi);
+            const total = (bookInstance as any).locations.length();
+            if (Number.isFinite(idx) && Number.isFinite(total) && total > 0) {
               setCurrentPage(idx + 1);
               setTotalPages(total);
+              updated = true;
             }
-          } else if (displayed) {
-            // Section-based pagination for immediate use
-            setCurrentPage(displayed.page);
-            setTotalPages(displayed.total);
+          }
+
+          // Fallback to section-based pagination
+          if (!updated && displayed) {
+            const dPage = Number(displayed.page);
+            const dTotal = Number(displayed.total);
+            if (Number.isFinite(dPage)) setCurrentPage(dPage);
+            if (Number.isFinite(dTotal) && dTotal > 0) setTotalPages(dTotal);
           }
 
           // Update section tracking
@@ -140,7 +162,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         });
 
         // Clean up HTML entities
-        newRendition.hooks.content.register((contents: any) => {
+        renditionInstance.hooks.content.register((contents: any) => {
           const body = contents.document.body;
           if (body) {
             body.innerHTML = body.innerHTML
@@ -150,19 +172,26 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           }
         });
 
+        // Display first page IMMEDIATELY
+        await renditionInstance.display();
+        if (!canceled) setIsLoading(false); // User can start reading now!
+
         // BACKGROUND TASK: Generate precise locations (non-blocking)
         setTimeout(async () => {
           try {
-            console.log('Starting background location generation...');
-            await (newBook as any).locations.generate(1000);
-            setLocationsReady(true);
-            console.log('Locations ready! Precise pagination available.');
-            
-            // Cache the locations for next time
-            localStorage.setItem(cacheKey, JSON.stringify({
-              locations: (newBook as any).locations.save(),
-              timestamp: Date.now()
-            }));
+            if (!(bookInstance as any).locations || (bookInstance as any).locations.length() === 0) {
+              console.log('Starting background location generation...');
+              await (bookInstance as any).locations.generate(1000);
+            }
+            if (!canceled) {
+              setLocationsReady(true);
+              console.log('Locations ready! Precise pagination available.');
+              // Cache the locations for next time
+              localStorage.setItem(cacheKey, JSON.stringify({
+                locations: (bookInstance as any).locations.save(),
+                timestamp: Date.now()
+              }));
+            }
           } catch (error) {
             console.warn('Background location generation failed:', error);
             // Fallback to section-based navigation
@@ -183,9 +212,9 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
     initBook();
 
     return () => {
-      if (rendition) {
-        rendition.destroy();
-      }
+      canceled = true;
+      try { createdRendition?.destroy(); } catch {}
+      try { createdBook?.destroy?.(); } catch {}
     };
   }, [epubUrl]);
 
@@ -265,13 +294,13 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
       <div className="flex items-center justify-between p-2 border-b bg-background/95 backdrop-blur">
         <div className="flex items-center space-x-2">
           <span className="text-sm text-muted-foreground">
-            {locationsReady ? (
+            {locationsReady && Number.isFinite(totalPages) && totalPages > 0 ? (
               `Page ${currentPage} sur ${totalPages}`
             ) : (
-              `Section ${currentSection + 1} sur ~${totalSections} • Calcul en cours...`
+              `Section ${Math.max(1, currentSection + 1)} sur ~${Math.max(1, totalSections)} • Calcul en cours...`
             )}
           </span>
-          {!locationsReady && (
+          {!(locationsReady && Number.isFinite(totalPages) && totalPages > 0) && (
             <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary opacity-50"></div>
           )}
         </div>
