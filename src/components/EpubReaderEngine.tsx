@@ -149,43 +149,28 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   useEffect(() => {
     if (renditionRef && bookLoaded) {
       try {
-        // Set font size
+        // Register themes and apply based on dark mode
+        renditionRef.themes.register('light', {
+          body: {
+            background: '#ffffff !important',
+            color: '#000000 !important',
+          },
+          p: { color: '#000000 !important' },
+          'h1, h2, h3, h4, h5, h6': { color: '#000000 !important' },
+          a: { color: '#2563eb !important' },
+        });
+        renditionRef.themes.register('dark', {
+          body: {
+            background: '#1a1a1a !important',
+            color: '#ffffff !important',
+          },
+          p: { color: '#ffffff !important' },
+          'h1, h2, h3, h4, h5, h6': { color: '#ffffff !important' },
+          a: { color: '#60a5fa !important' },
+        });
+
+        renditionRef.themes.select(darkMode ? 'dark' : 'light');
         renditionRef.themes.fontSize(`${fontSize}px`);
-        
-        // Apply theme based on dark mode
-        if (darkMode) {
-          renditionRef.themes.default({
-            'body': {
-              'background-color': '#1a1a1a !important',
-              'color': '#ffffff !important'
-            },
-            'p': {
-              'color': '#ffffff !important'
-            },
-            'h1, h2, h3, h4, h5, h6': {
-              'color': '#ffffff !important'
-            },
-            'a': {
-              'color': '#60a5fa !important'
-            }
-          });
-        } else {
-          renditionRef.themes.default({
-            'body': {
-              'background-color': '#ffffff !important',
-              'color': '#000000 !important'
-            },
-            'p': {
-              'color': '#000000 !important'
-            },
-            'h1, h2, h3, h4, h5, h6': {
-              'color': '#000000 !important'
-            },
-            'a': {
-              'color': '#2563eb !important'
-            }
-          });
-        }
       } catch (error) {
         console.warn('Error applying theme:', error);
       }
@@ -256,7 +241,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
         }
         if (viewer) {
           viewer.style.height = '100%';
-          viewer.style.overflow = 'hidden';
+          viewer.style.overflow = 'auto';
         }
       } catch {}
     };
@@ -407,7 +392,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       )}
 
       {/* EPUB Reader */}
-      <div className="flex-1 relative min-h-[60vh] sm:min-h-[70vh] max-h-[85vh] overflow-hidden z-0">
+      <div className="flex-1 relative min-h-[60vh] sm:min-h-[70vh] max-h-[85vh] overflow-auto z-0">
         {useFallback ? (
           <ScrollArea className="h-full w-full">
             <div className="p-4 min-h-full">
@@ -470,7 +455,10 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
         </div>
 
         {/* Finish Reading Button - Only show on last page */}
-        {!hasFinished && isLastPage && (bookLoaded || useFallback) && (
+        {!hasFinished && (
+          (useFallback && fallbackPages.length > 0 && fallbackIndex >= fallbackPages.length - 1) ||
+          (!useFallback && totalPages > 0 && currentPage >= totalPages)
+        ) && (
           <Button
             onClick={handleFinishReading}
             className="w-full"
