@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChevronLeft, ChevronRight, Palette, Trophy } from 'lucide-react';
 import { BuyTensensDialog } from './BuyTensensDialog';
 import { useUserStats } from '@/contexts/UserStatsContext';
@@ -401,23 +402,25 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       {/* EPUB Reader */}
       <div className="flex-1 relative min-h-[60vh] sm:min-h-[70vh] max-h-[85vh] overflow-hidden z-0">
         {useFallback ? (
-          <div className="h-full w-full overflow-auto p-4">
-            {fallbackPages.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-center">
-                <div>
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                  <p className="text-muted-foreground">Mode rapide: {fallbackStatus} ({Math.round(fallbackProgress)}%)</p>
+          <ScrollArea className="h-full w-full">
+            <div className="p-4">
+              {fallbackPages.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-center">
+                  <div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                    <p className="text-muted-foreground">Mode rapide: {fallbackStatus} ({Math.round(fallbackProgress)}%)</p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <article className="prose prose-sm sm:prose max-w-none">
-                <div
-                  className="whitespace-pre-wrap"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(fallbackPages[fallbackIndex] || '') }}
-                />
-              </article>
-            )}
-          </div>
+              ) : (
+                <article className="prose prose-sm sm:prose max-w-none">
+                  <div
+                    className="whitespace-pre-wrap"
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(fallbackPages[fallbackIndex] || '') }}
+                  />
+                </article>
+              )}
+            </div>
+          </ScrollArea>
         ) : (
           <ReactReader
             url={epubUrl}
