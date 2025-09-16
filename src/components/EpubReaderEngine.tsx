@@ -196,21 +196,22 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
     savePosition(epubcifi);
     
     // Update page counter if we have locations
-    if (renditionRef?.locations?.length) {
-      try {
-        const currentLocation = renditionRef.locations.percentageFromCfi(epubcifi);
-        const page = Math.floor(currentLocation * renditionRef.locations.length / 100);
-        setCurrentPage(Math.max(1, page + 1));
-        setTotalPages(renditionRef.locations.length);
-        
-        // Check if we're on the last page (95% or more)
-        setIsLastPage(currentLocation >= 95);
-      } catch (error) {
-        // Fallback page calculation
-        console.warn('Page calculation error:', error);
+    try {
+      const bookLocations = renditionRef?.book?.locations;
+      if (bookLocations) {
+        const percent = bookLocations.percentageFromCfi(epubcifi) || 0; // 0..1
+        const total = bookLocations.length?.() || totalPages || 0;
+        const page = total > 0 ? Math.max(1, Math.round(percent * total)) : currentPage;
+        setCurrentPage(page);
+        if (total > 0) setTotalPages(total);
+        // Consider last page when at >=99% or page >= total
+        setIsLastPage(percent >= 0.99 || (total > 0 && page >= total));
       }
+    } catch (error) {
+      // Fallback page calculation
+      console.warn('Page calculation error:', error);
     }
-  }, [renditionRef, savePosition]);
+  }, [renditionRef, savePosition, totalPages, currentPage]);
 
   const handleBookReady = useCallback((rendition: any) => {
     setRenditionRef(rendition);
@@ -428,17 +429,21 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
             </div>
           </ScrollArea>
         ) : (
-          <ReactReader
-            url={epubUrl}
-            location={location}
-            locationChanged={handleLocationChanged}
-            getRendition={handleBookReady}
-            loadingView={
-              <div className="flex items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            }
-          />
+          <ScrollArea className="h-full w-full">
+            <div className="h-full">
+              <ReactReader
+                url={epubUrl}
+                location={location}
+                locationChanged={handleLocationChanged}
+                getRendition={handleBookReady}
+                loadingView={
+                  <div className="flex items-center justify-center h-full">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                }
+              />
+            </div>
+          </ScrollArea>
         )}
       </div>
 
