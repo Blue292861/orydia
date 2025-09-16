@@ -227,8 +227,8 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           </Button>
         </div>
         
-        {/* Text size controls only for extracted content */}
-        {hasExtractedContent && (
+        {/* Contrôles de taille et contraste (EPUB et contenu extrait) */}
+        {(hasExtractedContent || isEpubUrl) && (
           <div className="mb-4">
             <TextSizeControls 
               fontSize={fontSize} 

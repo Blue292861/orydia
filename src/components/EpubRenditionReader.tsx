@@ -133,22 +133,14 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         } catch {}
 
         // Apply styles immediately
+        // N'altère pas les polices/feuilles de style d'origine, juste sécurise les images
         renditionInstance.themes.default({
-          'p': {
-            'margin': '1em 0 !important',
-            'text-align': 'justify !important'
-          },
           'img': {
             'max-width': '100% !important',
-            'width': 'auto !important',
             'height': 'auto !important',
             'display': 'block !important',
             'margin': '1em auto !important',
             'object-fit': 'contain !important'
-          },
-          'h1, h2, h3, h4, h5, h6': {
-            'font-weight': 'bold !important',
-            'margin': '1.5em 0 1em 0 !important'
           }
         });
 
@@ -229,8 +221,21 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           }
         };
 
-        renditionInstance.on('displayed', () => { if (!canceled) { setIsLoading(false); ensureVisible(); } });
-        renditionInstance.on('rendered', () => { if (!canceled) { setIsLoading(false); ensureVisible(); } });
+        const attachIframeSwipe = () => {
+          try {
+            const iframe = viewerRef.current?.querySelector('iframe') as HTMLIFrameElement | null;
+            const doc = iframe?.contentDocument;
+            if (!doc) return;
+            // Nettoyage puis ajout des listeners pour les gestes dans l'iframe
+            doc.removeEventListener('touchstart', iframeTouchStart as any);
+            doc.removeEventListener('touchend', iframeTouchEnd as any);
+            doc.addEventListener('touchstart', iframeTouchStart as any, { passive: true });
+            doc.addEventListener('touchend', iframeTouchEnd as any, { passive: true });
+          } catch {}
+        };
+
+        renditionInstance.on('displayed', () => { if (!canceled) { setIsLoading(false); ensureVisible(); attachIframeSwipe(); } });
+        renditionInstance.on('rendered', () => { if (!canceled) { setIsLoading(false); ensureVisible(); attachIframeSwipe(); } });
 
         // Clean up HTML entities
         renditionInstance.hooks.content.register((contents: any) => {
@@ -310,12 +315,16 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
     }
   }, [darkMode, rendition]);
 
-  // Update font size without reinitializing
   useEffect(() => {
     if (rendition) {
       rendition.themes.fontSize(`${fontSize}px`);
     }
   }, [fontSize, rendition]);
+
+  // Synchronise le contraste externe (UI) avec le thème du lecteur
+  useEffect(() => {
+    setDarkMode(highContrast);
+  }, [highContrast]);
 
   const goToPrevious = () => {
     if (rendition && !isAtStart) {
@@ -357,6 +366,28 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
     touchStart.current = 0;
   };
 
+  // Gestes à l'intérieur de l'iframe générée par epub.js
+  const iframeTouchStart = (e: TouchEvent) => {
+    try {
+      touchStart.current = e.touches[0]?.clientX || 0;
+    } catch {}
+  };
+
+  const iframeTouchEnd = (e: TouchEvent) => {
+    try {
+      if (!touchStart.current) return;
+      const touchEnd = e.changedTouches[0]?.clientX || 0;
+      const diff = touchStart.current - touchEnd;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+          goToNext();
+        } else {
+          goToPrevious();
+        }
+      }
+      touchStart.current = 0;
+    } catch {}
+  };
   const handleFinishReading = () => {
     if (!isPremium && userStats.totalPoints < pointsToWin) {
       setShowTensensDialog(true);
