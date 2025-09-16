@@ -140,7 +140,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
           if (result?.success && result.text.trim()) {
             const cleanedText = isPDF 
               ? PDFExtractionService.cleanExtractedText(result.text)
-              : EPUBService.cleanExtractedText(result.text);
+              : EPUBService.cleanExtractedHtml(result.text);
             
             setBook(prev => ({ ...prev, content: cleanedText }));
             

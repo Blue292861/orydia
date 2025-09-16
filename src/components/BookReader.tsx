@@ -43,7 +43,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const pointsToWin = isPremium ? book.points * 2 : book.points;
   const isPDFContent = book.content?.startsWith('http') && book.content.includes('.pdf');
   const hasExtractedContent = book.content && !isPDFContent;
-  const isEpubStructured = Boolean(hasExtractedContent && /=== Chapitre \d+ ===/.test(book.content || ''));
+  const isEpubStructured = Boolean(hasExtractedContent && (/=== Chapitre \d+ ===/.test(book.content || '') || /<hr class="chapter-sep"/.test(book.content || '')));
 
   // Effect pour vérifier si l'utilisateur a déjà noté l'app
   useEffect(() => {

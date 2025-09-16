@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 interface EpubPageReaderProps {
   content: string;
@@ -26,12 +27,23 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
 }) => {
   const pages = useMemo(() => {
     if (!content) return [''];
-    // Split on our chapter markers added during EPUB extraction
-    const rawPages = content
-      .split(/\n?\s*===\s*Chapitre\s+\d+\s*===\s*\n?/g)
-      .map(p => p.trim())
-      .filter(p => p.length > 0);
-    return rawPages.length > 0 ? rawPages : [content];
+    
+    // Check if content contains HTML chapter separators
+    if (content.includes('<hr class="chapter-sep"')) {
+      // Split on HTML chapter separators
+      const rawPages = content
+        .split(/<hr class="chapter-sep"[^>]*\/?>/)
+        .map(p => p.trim())
+        .filter(p => p.length > 0);
+      return rawPages.length > 0 ? rawPages : [content];
+    } else {
+      // Fallback to old text-based format
+      const rawPages = content
+        .split(/\n?\s*===\s*Chapitre\s+\d+\s*===\s*\n?/g)
+        .map(p => p.trim())
+        .filter(p => p.length > 0);
+      return rawPages.length > 0 ? rawPages : [content];
+    }
   }, [content]);
 
   const [current, setCurrent] = useState(0);
@@ -39,6 +51,8 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
   const atStart = current === 0;
   const atEnd = current === total - 1;
   const progress = total > 1 ? Math.round(((current + 1) / total) * 100) : 100;
+
+  const isHtmlContent = content.includes('<hr class="chapter-sep"') || content.includes('<p>') || content.includes('<div>');
 
   const goPrev = () => setCurrent(c => (c > 0 ? c - 1 : c));
   const goNext = () => setCurrent(c => (c < total - 1 ? c + 1 : c));
@@ -63,13 +77,28 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
       <Progress value={progress} />
 
       {/* Page content */}
-      <article
-        aria-label={`Contenu de la page ${current + 1}`}
-        className={`whitespace-pre-wrap leading-relaxed ${highContrast ? 'text-white' : 'text-foreground'}`}
-        style={{ fontSize: `${fontSize}px` }}
-      >
-        {pages[current]}
-      </article>
+      {isHtmlContent ? (
+        <article
+          aria-label={`Contenu de la page ${current + 1}`}
+          className={`prose prose-sm max-w-none ${highContrast ? 'prose-invert' : ''}`}
+          style={{ fontSize: `${fontSize}px` }}
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(pages[current], {
+              ALLOWED_TAGS: ['p', 'div', 'span', 'br', 'strong', 'b', 'em', 'i', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'ul', 'ol', 'li', 'blockquote', 'a'],
+              ALLOWED_ATTR: ['src', 'alt', 'href', 'class', 'id', 'loading', 'decoding'],
+              ALLOW_DATA_ATTR: false
+            })
+          }}
+        />
+      ) : (
+        <article
+          aria-label={`Contenu de la page ${current + 1}`}
+          className={`whitespace-pre-wrap leading-relaxed ${highContrast ? 'text-white' : 'text-foreground'}`}
+          style={{ fontSize: `${fontSize}px` }}
+        >
+          {pages[current]}
+        </article>
+      )}
 
       {/* Footer controls */}
       <div className="flex items-center justify-between mt-2">
