@@ -16,21 +16,27 @@ import { useUserStats } from '@/contexts/UserStatsContext';
 
 interface BuyTensensDialogProps {
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  showTrigger?: boolean;
 }
 
-export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger }) => {
+export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, open, onOpenChange, showTrigger = true }) => {
   const [loading, setLoading] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = typeof open === 'boolean';
+  const openState = isControlled ? (open as boolean) : internalOpen;
+  const setOpenState = isControlled ? (onOpenChange || (() => {})) : setInternalOpen;
   const [showAd, setShowAd] = useState(false);
   const [canWatchAd, setCanWatchAd] = useState(true);
   const [remainingAds, setRemainingAds] = useState(5);
   const { userStats, addPointsForBook, checkDailyAdLimit, recordAdView } = useUserStats();
 
   useEffect(() => {
-    if (open) {
+    if (openState) {
       checkAdLimit();
     }
-  }, [open]);
+  }, [openState]);
 
   const checkAdLimit = async () => {
     const canWatch = await checkDailyAdLimit();
@@ -114,7 +120,7 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger }) =
       // Add 10 Tensens to user's account
       addPointsForBook('ad-reward-' + Date.now(), 10);
       setShowAd(false);
-      setOpen(false);
+      setOpenState(false);
       // Refresh ad limit check
       await checkAdLimit();
     } else {
@@ -145,17 +151,19 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger }) =
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="outline" size="sm" className="ml-2">
-            <Coins className="h-4 w-4 mr-1" />
-            Acheter des Tensens
-          </Button>
-        )}
-      </DialogTrigger>
+    <Dialog open={openState} onOpenChange={setOpenState}>
+      {showTrigger && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button variant="outline" size="sm" className="ml-2">
+              <Coins className="h-4 w-4 mr-1" />
+              Acheter des Tensens
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-b from-wood-50 via-wood-100 to-wood-200 border-2 border-gold-400 shadow-2xl">
-        <TensensDialogHeader onClose={() => setOpen(false)} />
+        <TensensDialogHeader onClose={() => setOpenState(false)} />
         
         {/* Free Tensens section */}
         <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 rounded-lg">

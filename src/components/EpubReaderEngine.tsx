@@ -7,7 +7,7 @@ import { useUserStats } from '@/contexts/UserStatsContext';
 import { toast } from '@/hooks/use-toast';
 import { ReactReader } from 'react-reader';
 import { EPUBFallbackService } from '@/services/epubFallbackService';
-
+import DOMPurify from 'dompurify';
 interface EpubReaderEngineProps {
   epubUrl: string;
   fontSize: number;
@@ -343,7 +343,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
             variant="outline"
             size="sm"
             onClick={goToPrevious}
-            disabled={!bookLoaded}
+            disabled={!bookLoaded && !useFallback}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -352,7 +352,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
             variant="outline"
             size="sm"
             onClick={goToNext}
-            disabled={!bookLoaded}
+            disabled={!bookLoaded && !useFallback}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -411,7 +411,10 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
               </div>
             ) : (
               <article className="prose prose-sm sm:prose max-w-none">
-                <div className="whitespace-pre-wrap">{fallbackPages[fallbackIndex]}</div>
+                <div
+                  className="whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(fallbackPages[fallbackIndex] || '') }}
+                />
               </article>
             )}
           </div>
@@ -436,7 +439,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
           <Button
             variant="outline"
             onClick={goToPrevious}
-            disabled={!bookLoaded}
+            disabled={!bookLoaded && !useFallback}
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             Précédent
@@ -445,7 +448,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
           <Button
             variant="outline"
             onClick={goToNext}
-            disabled={!bookLoaded}
+            disabled={!bookLoaded && !useFallback}
           >
             Suivant
             <ChevronRight className="h-4 w-4 ml-2" />
@@ -473,7 +476,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       </div>
 
       {/* Tensens Dialog */}
-      <BuyTensensDialog />
+      <BuyTensensDialog open={showTensensDialog} onOpenChange={setShowTensensDialog} showTrigger={false} />
     </div>
   );
 };
