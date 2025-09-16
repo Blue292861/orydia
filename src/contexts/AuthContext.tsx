@@ -98,11 +98,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setAuthData(session);
-    });
+    const handleAuthError = (error: any) => {
+      if (error?.message?.includes('refresh_token_not_found') || 
+          error?.message?.includes('Invalid Refresh Token')) {
+        console.warn('Session expired, signing out user');
+        supabase.auth.signOut();
+        toast({
+          title: "Session expirée",
+          description: "Veuillez vous reconnecter",
+          variant: "destructive",
+        });
+      }
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        handleAuthError(error);
+        return;
+      }
+      setAuthData(session);
+    }).catch(handleAuthError);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        // Token refresh failed, user should be signed out
+        setSession(null);
+        setUser(null);
+        setIsAdmin(false);
+        setLoading(false);
+        toast({
+          title: "Session expirée",
+          description: "Veuillez vous reconnecter",
+          variant: "destructive",
+        });
+        return;
+      }
       setAuthData(session);
     });
 

@@ -49,11 +49,24 @@ export const useBooks = () => {
       });
       
       fetchBooks();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding book:', error);
+      
+      // Handle authentication errors specifically
+      if (error?.message?.includes('refresh_token_not_found') || 
+          error?.message?.includes('Invalid Refresh Token') ||
+          error?.message?.includes('JWT expired')) {
+        toast({
+          title: "Session expirée",
+          description: "Veuillez vous reconnecter pour ajouter un livre",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       toast({
         title: "Erreur",
-        description: "Impossible d'ajouter le livre",
+        description: "Impossible d'ajouter le livre. Vérifiez votre connexion.",
         variant: "destructive",
       });
     }
