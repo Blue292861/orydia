@@ -1,6 +1,6 @@
 
 import { Book } from '@/types/Book';
-import { sanitizeText, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
+import { sanitizeText, sanitizeTextWithSpaces, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
 
 export const validateBook = (book: Book): string[] => {
   const errors: string[] = [];
@@ -30,8 +30,8 @@ export const validateBook = (book: Book): string[] => {
 
 export const sanitizeBook = (book: Book): Book => ({
   ...book,
-  title: sanitizeText(book.title),
-  author: sanitizeText(book.author),
+  title: sanitizeTextWithSpaces(book.title),
+  author: sanitizeTextWithSpaces(book.author),
   content: sanitizeText(book.content),
   tags: book.tags.map(tag => sanitizeText(tag)).filter(tag => tag.length > 0),
 });

@@ -142,7 +142,7 @@ export class EPUBService {
   }
   
   /**
-   * Extract text content from HTML/XHTML
+   * Extract text content from HTML/XHTML while preserving formatting
    */
   private static extractTextFromHTML(htmlContent: string): string {
     // Create a temporary div to parse HTML
@@ -153,12 +153,72 @@ export class EPUBService {
     const scripts = doc.querySelectorAll('script, style');
     scripts.forEach(el => el.remove());
     
-    // Get text content and clean it up
-    let text = doc.body?.textContent || doc.documentElement.textContent || '';
+    // Convert HTML structure to formatted text
+    const body = doc.body || doc.documentElement;
+    return this.convertElementToText(body);
+  }
+  
+  /**
+   * Convert HTML element to formatted text with preserved structure
+   */
+  private static convertElementToText(element: Element): string {
+    let result = '';
     
-    return text
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .replace(/\n\s*\n/g, '\n\n') // Normalize line breaks
+    for (const node of element.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || '';
+        // Clean up but preserve meaningful whitespace
+        result += text.replace(/[ \t]+/g, ' ');
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as Element;
+        const tagName = el.tagName.toLowerCase();
+        
+        // Add appropriate formatting based on HTML tags
+        switch (tagName) {
+          case 'p':
+          case 'div':
+            result += '\n\n' + this.convertElementToText(el) + '\n\n';
+            break;
+          case 'br':
+            result += '\n';
+            break;
+          case 'h1':
+          case 'h2':
+          case 'h3':
+          case 'h4':
+          case 'h5':
+          case 'h6':
+            result += '\n\n## ' + this.convertElementToText(el) + ' ##\n\n';
+            break;
+          case 'strong':
+          case 'b':
+            result += '**' + this.convertElementToText(el) + '**';
+            break;
+          case 'em':
+          case 'i':
+            result += '*' + this.convertElementToText(el) + '*';
+            break;
+          case 'li':
+            result += '\n• ' + this.convertElementToText(el);
+            break;
+          case 'ul':
+          case 'ol':
+            result += '\n' + this.convertElementToText(el) + '\n';
+            break;
+          case 'blockquote':
+            result += '\n> ' + this.convertElementToText(el) + '\n';
+            break;
+          default:
+            result += this.convertElementToText(el);
+        }
+      }
+    }
+    
+    // Clean up excessive whitespace while preserving paragraph structure
+    return result
+      .replace(/[ \t]+/g, ' ') // Normalize spaces and tabs
+      .replace(/\n[ \t]+/g, '\n') // Remove trailing spaces from lines
+      .replace(/\n{3,}/g, '\n\n') // Limit consecutive line breaks to 2
       .trim();
   }
   

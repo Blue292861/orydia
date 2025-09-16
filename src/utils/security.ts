@@ -15,7 +15,7 @@ export const sanitizeText = (text: string): string => {
   return sanitized
     .replace(/javascript:/gi, '') // Remove javascript: protocol
     .replace(/on\w+=/gi, '') // Remove event handlers like onclick=
-    .replace(/data:/gi, '') // Remove data: URIs for safety
+    .replace(/data:(?!image\/[a-z]+;base64,)/gi, '') // Only remove data: if not a valid image data URL
     .trim();
 };
 
@@ -32,7 +32,7 @@ export const sanitizeTextWithSpaces = (text: string): string => {
   return sanitized
     .replace(/javascript:/gi, '') // Remove javascript: protocol
     .replace(/on\w+=/gi, '') // Remove event handlers like onclick=
-    .replace(/data:/gi, ''); // Remove data: URIs for safety
+    .replace(/data:(?!image\/[a-z]+;base64,)/gi, ''); // Only remove data: if not a valid image data URL
 };
 
 export const sanitizeImageUrl = (url: string): string => {
