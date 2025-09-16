@@ -245,38 +245,143 @@ export class EPUBService {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, 'text/html');
 
-    // Remove script and style for safety
-    doc.querySelectorAll('script, style').forEach(el => el.remove());
+    // Get the base directory for resolving relative paths
+    const baseDir = chapterPath.split('/').slice(0, -1).join('/');
 
-    const baseDir = chapterPath.includes('/') ? chapterPath.substring(0, chapterPath.lastIndexOf('/') + 1) : '';
+    // Process and inline CSS styles
+    const styleSheets = doc.querySelectorAll('link[rel="stylesheet"], style');
+    for (const styleElement of styleSheets) {
+      if (styleElement.tagName === 'LINK') {
+        const href = styleElement.getAttribute('href');
+        if (href && !href.startsWith('http')) {
+          try {
+            const cssPath = this.resolvePath(baseDir, href);
+            const cssFile = zip.file(cssPath);
+            if (cssFile) {
+              const cssContent = await cssFile.async('string');
+              // Process CSS to inline fonts and preserve formatting
+              const processedCSS = await this.processCSSContent(cssContent, zip, baseDir);
+              // Create a new style element with the processed CSS content
+              const newStyle = doc.createElement('style');
+              newStyle.textContent = processedCSS;
+              doc.head?.appendChild(newStyle);
+            }
+          } catch (error) {
+            console.warn(`Failed to load CSS ${href}:`, error);
+          }
+        }
+      } else if (styleElement.tagName === 'STYLE') {
+        // Process existing style tags
+        const cssContent = styleElement.textContent || '';
+        const processedCSS = await this.processCSSContent(cssContent, zip, baseDir);
+        styleElement.textContent = processedCSS;
+      }
+    }
 
-    // Inline images
-    const images = Array.from(doc.querySelectorAll('img')) as HTMLImageElement[];
+    // Process all images in the HTML
+    const images = doc.querySelectorAll('img');
     for (const img of images) {
       const src = img.getAttribute('src');
-      if (!src) continue;
-      if (/^data:|^https?:/i.test(src)) continue; // already absolute or data
-
-      const resolvedPath = this.resolvePath(baseDir, src);
-      const file = zip.file(resolvedPath);
-      if (file) {
+      if (src && !src.startsWith('data:') && !src.startsWith('http')) {
         try {
-          const base64 = await file.async('base64');
-          const mime = this.getMimeTypeByExt(resolvedPath);
-          img.setAttribute('src', `data:${mime};base64,${base64}`);
-          img.setAttribute('alt', img.getAttribute('alt') || 'Illustration EPUB');
-          img.setAttribute('loading', 'lazy');
-          img.setAttribute('decoding', 'async');
-        } catch (e) {
-          console.warn('Failed to inline image', resolvedPath, e);
+          // Resolve the relative path
+          const imagePath = this.resolvePath(baseDir, src);
+          
+          // Get the image file from the ZIP
+          const imageFile = zip.file(imagePath);
+          if (imageFile) {
+            const imageData = await imageFile.async('uint8array');
+            const mimeType = this.getMimeTypeByExt(imagePath);
+            
+            // Convert to base64 and create data URI
+            const base64 = btoa(String.fromCharCode(...imageData));
+            const dataUri = `data:${mimeType};base64,${base64}`;
+            
+            // Update the img src
+            img.setAttribute('src', dataUri);
+            img.setAttribute('loading', 'lazy');
+            img.setAttribute('style', 'max-width: 100%; height: auto; display: block; margin: 1em auto;');
+          }
+        } catch (error) {
+          console.warn(`Failed to process image ${src}:`, error);
+          // Remove broken image
+          img.remove();
         }
       }
     }
 
-    // Ensure block-level elements for paragraphs
-    // Many EPUBs use divs/spans; we keep the structure as is to preserve formatting
-    const body = doc.body || doc.documentElement;
-    return body.innerHTML.trim();
+    // Clean up HTML entities that cause display issues
+    let htmlResult = doc.documentElement.outerHTML;
+    htmlResult = htmlResult
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&#160;/g, ' ')
+      .replace(/\u00A0/g, ' ')
+      .replace(/&rsquo;/g, "'")
+      .replace(/&lsquo;/g, "'")
+      .replace(/&rdquo;/g, '"')
+      .replace(/&ldquo;/g, '"')
+      .replace(/&mdash;/g, '—')
+      .replace(/&ndash;/g, '–');
+
+    return htmlResult;
+  }
+
+  /**
+   * Process CSS content to inline fonts and preserve formatting
+   */
+  private static async processCSSContent(cssContent: string, zip: JSZip, baseDir: string): Promise<string> {
+    let processedCSS = cssContent;
+
+    // Handle @font-face rules
+    const fontFaceRegex = /@font-face\s*{[^}]*}/g;
+    const fontFaces = cssContent.match(fontFaceRegex) || [];
+    
+    for (const fontFace of fontFaces) {
+      const urlMatches = fontFace.match(/url\(['"]?([^'"]+)['"]?\)/g) || [];
+      
+      for (const urlMatch of urlMatches) {
+        const urlPath = urlMatch.match(/url\(['"]?([^'"]+)['"]?\)/)?.[1];
+        if (urlPath && !urlPath.startsWith('http') && !urlPath.startsWith('data:')) {
+          try {
+            const fontPath = this.resolvePath(baseDir, urlPath);
+            const fontFile = zip.file(fontPath);
+            if (fontFile) {
+              const fontData = await fontFile.async('uint8array');
+              const mimeType = this.getFontMimeType(fontPath);
+              const base64 = btoa(String.fromCharCode(...fontData));
+              const dataUri = `data:${mimeType};base64,${base64}`;
+              
+              processedCSS = processedCSS.replace(urlMatch, `url('${dataUri}')`);
+            }
+          } catch (error) {
+            console.warn(`Failed to inline font ${urlPath}:`, error);
+          }
+        }
+      }
+    }
+
+    return processedCSS;
+  }
+
+  /**
+   * Get MIME type for fonts
+   */
+  private static getFontMimeType(path: string): string {
+    const ext = (path.split('.').pop() || '').toLowerCase();
+    switch (ext) {
+      case 'woff':
+        return 'font/woff';
+      case 'woff2':
+        return 'font/woff2';
+      case 'ttf':
+        return 'font/truetype';
+      case 'otf':
+        return 'font/opentype';
+      case 'eot':
+        return 'application/vnd.ms-fontobject';
+      default:
+        return 'application/octet-stream';
+    }
   }
 
   private static resolvePath(baseDir: string, relative: string): string {

@@ -84,10 +84,11 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
           style={{ fontSize: `${fontSize}px` }}
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(pages[current], {
-              ALLOWED_TAGS: ['p', 'div', 'span', 'br', 'strong', 'b', 'em', 'i', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'ul', 'ol', 'li', 'blockquote', 'a', 'style', 'link'],
-              ALLOWED_ATTR: ['src', 'alt', 'href', 'class', 'id', 'loading', 'decoding', 'style', 'rel', 'type'],
+              ALLOWED_TAGS: ['html', 'head', 'body', 'p', 'div', 'span', 'br', 'strong', 'b', 'em', 'i', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'ul', 'ol', 'li', 'blockquote', 'a', 'style', 'link'],
+              ALLOWED_ATTR: ['src', 'alt', 'href', 'class', 'id', 'loading', 'decoding', 'style', 'rel', 'type', 'face', 'size'],
               ALLOW_DATA_ATTR: true,
-              ALLOW_UNKNOWN_PROTOCOLS: true
+              ALLOW_UNKNOWN_PROTOCOLS: true,
+              ADD_ATTR: ['target']
             })
           }}
         />
