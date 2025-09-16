@@ -54,6 +54,11 @@ export const sanitizeImageUrl = (url: string): string => {
 export const sanitizeHtml = (html: string): string => {
   if (!html) return '';
   
+  // Detect if it's an EPUB URL (don't sanitize URLs)
+  if (typeof html === 'string' && (html.startsWith('http') || html.startsWith('data:'))) {
+    return html;
+  }
+  
   // Allow safe HTML tags for rich content
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li'],
@@ -220,13 +225,13 @@ export const sanitizeTag = (tag: string): string => {
 // Content Security Policy helper
 export const getCSPDirectives = (): string => {
   return [
-    "default-src 'self' blob: data:",
+    "default-src 'self' blob: data: https:",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "style-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' blob:",
     "img-src 'self' data: blob: https:",
     "media-src 'self' data: blob: https:",
-    "connect-src 'self' blob: data: https: wss:",
-    "font-src 'self' data:",
+    "connect-src 'self' blob: data: https: wss: https://aotzivwzoxmnnawcxioo.supabase.co",
+    "font-src 'self' data: blob:",
     "object-src 'self' data:",
     "frame-src 'self' data: blob:",
     "child-src 'self' data: blob:",

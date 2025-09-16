@@ -124,4 +124,15 @@ self.addEventListener('fetch', (event) => {
       })
     );
   }
+  
+  // Network-first strict pour les fichiers EPUB (ne jamais cacher)
+  else if (request.url.includes('.epub') || url.pathname.includes('epubs/') || 
+           request.url.startsWith('blob:')) {
+    event.respondWith(
+      fetch(request).catch(() => {
+        // Pas de fallback cache pour les EPUBs
+        return new Response('EPUB file not available', { status: 404 });
+      })
+    );
+  }
 });

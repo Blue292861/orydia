@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import EmailConfirmationPage from "./pages/EmailConfirmationPage";
+import { DebugEpub } from "./pages/DebugEpub";
 import SplashScreen from "./components/SplashScreen";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserStatsProvider } from "./contexts/UserStatsContext";
@@ -57,6 +58,7 @@ const AppContent = () => {
     <Routes>
       <Route path="/auth" element={<Navigate to="/" replace />} />
       <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
+      <Route path="/debug/epub" element={<DebugEpub />} />
       <Route path="/*" element={<Index />} />
     </Routes>
   );

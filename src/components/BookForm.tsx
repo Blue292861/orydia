@@ -152,10 +152,11 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
               const filePath = `epubs/${fileName}`;
               
               const { error: uploadError } = await supabase.storage
-                .from('book-covers')
-                .upload(filePath, file, {
+                .from('epubs')
+                .upload(fileName, file, {
                   cacheControl: '3600',
-                  upsert: false
+                  upsert: false,
+                  contentType: 'application/epub+zip'
                 });
               
               if (uploadError) {
@@ -164,8 +165,8 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
               
               // Get the public URL
               const { data } = supabase.storage
-                .from('book-covers')
-                .getPublicUrl(filePath);
+                .from('epubs')
+                .getPublicUrl(fileName);
               
               setBook(prev => ({ ...prev, content: data.publicUrl }));
               
@@ -346,7 +347,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       title: sanitizeTextWithSpaces(book.title),
       author: sanitizeTextWithSpaces(book.author),
       summary: book.summary ? sanitizeTextWithSpaces(book.summary) : undefined,
-      content: sanitizeHtml(book.content),
+      content: book.content, // Keep URLs intact
       coverUrl: sanitizeImageUrl(book.coverUrl)
     });
   };

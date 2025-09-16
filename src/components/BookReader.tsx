@@ -8,7 +8,7 @@ import { RewardAd } from '@/components/RewardAd';
 import { InteractiveBookReader } from '@/components/InteractiveBookReader';
 import { EmbeddedPDFReader } from '@/components/EmbeddedPDFReader';
 import { EpubPageReader } from '@/components/EpubPageReader';
-import { EpubRenditionReader } from './EpubRenditionReader';
+import { EpubReaderEngine } from './EpubReaderEngine';
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { RatingDialog } from './RatingDialog';
 import { useUserStats } from '@/contexts/UserStatsContext';
@@ -251,7 +251,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
               content="" // Always empty since it's a PDF URL
             />
           ) : isEpubUrl ? (
-            <EpubRenditionReader
+            <EpubReaderEngine
               epubUrl={book.content}
               fontSize={fontSize}
               highContrast={highContrast}
