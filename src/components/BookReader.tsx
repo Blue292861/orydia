@@ -8,6 +8,7 @@ import { RewardAd } from '@/components/RewardAd';
 import { InteractiveBookReader } from '@/components/InteractiveBookReader';
 import { EmbeddedPDFReader } from '@/components/EmbeddedPDFReader';
 import { EpubPageReader } from '@/components/EpubPageReader';
+import { EpubRenditionReader } from './EpubRenditionReader';
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { RatingDialog } from './RatingDialog';
 import { useUserStats } from '@/contexts/UserStatsContext';
@@ -42,7 +43,8 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const isPremium = subscription.isPremium;
   const pointsToWin = isPremium ? book.points * 2 : book.points;
   const isPDFContent = book.content?.startsWith('http') && book.content.includes('.pdf');
-  const hasExtractedContent = book.content && !isPDFContent;
+  const isEpubUrl = book.content?.startsWith('http') && book.content.includes('.epub');
+  const hasExtractedContent = book.content && !isPDFContent && !isEpubUrl;
   const isEpubStructured = Boolean(hasExtractedContent && (/=== Chapitre \d+ ===/.test(book.content || '') || /<hr class="chapter-sep"/.test(book.content || '')));
 
   // Effect pour vérifier si l'utilisateur a déjà noté l'app
@@ -248,28 +250,37 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
               title={book.title}
               content="" // Always empty since it's a PDF URL
             />
+          ) : isEpubUrl ? (
+            <EpubRenditionReader
+              epubUrl={book.content}
+              fontSize={fontSize}
+              highContrast={highContrast}
+              isPremium={isPremium}
+              isAlreadyRead={isAlreadyRead}
+              hasFinished={hasFinished}
+              pointsToWin={pointsToWin}
+              onFinishReading={handleFinishReading}
+            />
+          ) : isEpubStructured ? (
+            <EpubPageReader
+              content={book.content || ''}
+              fontSize={fontSize}
+              highContrast={highContrast}
+              isPremium={isPremium}
+              isAlreadyRead={isAlreadyRead}
+              hasFinished={hasFinished}
+              pointsToWin={pointsToWin}
+              onFinish={handleFinishReading}
+            />
           ) : (
-            isEpubStructured ? (
-              <EpubPageReader
-                content={book.content || ''}
-                fontSize={fontSize}
-                highContrast={highContrast}
-                isPremium={isPremium}
-                isAlreadyRead={isAlreadyRead}
-                hasFinished={hasFinished}
-                pointsToWin={pointsToWin}
-                onFinish={handleFinishReading}
-              />
-            ) : (
-              <div 
-                className={`whitespace-pre-wrap leading-relaxed ${
-                  highContrast ? 'text-white' : 'text-foreground'
-                }`}
-                style={{ fontSize: `${fontSize}px` }}
-              >
-                {book.content}
-              </div>
-            )
+            <div 
+              className={`whitespace-pre-wrap leading-relaxed ${
+                highContrast ? 'text-white' : 'text-foreground'
+              }`}
+              style={{ fontSize: `${fontSize}px` }}
+            >
+              {book.content}
+            </div>
           )}
           
           {/* Publicité pour les non-premium */}

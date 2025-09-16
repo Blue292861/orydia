@@ -127,55 +127,74 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
                 setExtractionStatus(status);
               }
             );
+            
+            if (result?.success && result.text.trim()) {
+              const cleanedText = PDFExtractionService.cleanExtractedText(result.text);
+              setBook(prev => ({ ...prev, content: cleanedText }));
+              
+              toast({
+                title: "Extraction réussie",
+                description: `Texte extrait avec succès (${(result as any).pageCount} pages, méthode: ${(result as any).method})`
+              });
+            } else {
+              toast({
+                title: "Erreur d'extraction",
+                description: result?.error || "Impossible d'extraire le texte du PDF",
+                variant: "destructive"
+              });
+            }
           } else if (isEPUB) {
-            result = await EPUBService.extractText(
-              file,
-              (progress, status) => {
+            // For EPUB files, upload to storage and store URL for react-reader
+            try {
+              // Upload the EPUB file to Supabase Storage
+              const fileExt = file.name.split('.').pop()?.toLowerCase();
+              const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+              const filePath = `epubs/${fileName}`;
+              
+              const { error: uploadError } = await supabase.storage
+                .from('book-covers')
+                .upload(filePath, file, {
+                  cacheControl: '3600',
+                  upsert: false
+                });
+              
+              if (uploadError) {
+                throw uploadError;
+              }
+              
+              // Get the public URL
+              const { data } = supabase.storage
+                .from('book-covers')
+                .getPublicUrl(filePath);
+              
+              setBook(prev => ({ ...prev, content: data.publicUrl }));
+              
+              // Extract metadata for title/author if not already set
+              const result = await EPUBService.extractText(file, (progress, status) => {
                 setExtractionProgress(progress);
                 setExtractionStatus(status);
+              });
+              if (result?.success) {
+                if (result.title && !book.title.trim()) {
+                  setBook(prev => ({ ...prev, title: result.title }));
+                }
+                if (result.author && !book.author.trim()) {
+                  setBook(prev => ({ ...prev, author: result.author }));
+                }
               }
-            );
-          }
-          
-          if (result?.success && result.text.trim()) {
-            const cleanedText = isPDF 
-              ? PDFExtractionService.cleanExtractedText(result.text)
-              : EPUBService.cleanExtractedHtml(result.text);
-            
-            setBook(prev => ({ ...prev, content: cleanedText }));
-            
-            // Auto-fill metadata for EPUB, but do NOT override user-entered values
-            if (isEPUB && (result as any).title) {
-              setBook(prev => {
-                const next = { ...prev };
-                if (!prev.title?.trim()) {
-                  next.title = (result as any).title;
-                }
-                return next;
+              
+              toast({
+                title: "EPUB uploadé avec succès",
+                description: "Le fichier EPUB a été uploadé et sera rendu avec le lecteur intégré"
+              });
+            } catch (error) {
+              console.error('Erreur upload EPUB:', error);
+              toast({
+                title: "Erreur d'upload",
+                description: "Impossible d'uploader le fichier EPUB",
+                variant: "destructive"
               });
             }
-            if (isEPUB && (result as any).author) {
-              setBook(prev => {
-                const next = { ...prev };
-                if (!prev.author?.trim()) {
-                  next.author = (result as any).author;
-                }
-                return next;
-              });
-            }
-            
-            toast({
-              title: "Extraction réussie",
-              description: isPDF 
-                ? `Texte extrait avec succès (${(result as any).pageCount} pages, méthode: ${(result as any).method})`
-                : `Texte extrait avec succès (${(result as any).chapterCount} chapitres)`
-            });
-          } else {
-            toast({
-              title: "Erreur d'extraction",
-              description: result?.error || `Impossible d'extraire le texte du ${isPDF ? 'PDF' : 'EPUB'}`,
-              variant: "destructive"
-            });
           }
         } catch (error) {
           console.error('Extraction error:', error);
