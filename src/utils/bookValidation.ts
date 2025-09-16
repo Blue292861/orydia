@@ -17,8 +17,8 @@ export const validateBook = (book: Book): string[] => {
     errors.push('URL de couverture invalide');
   }
 
-  if (!book.content || !validateTextLength(book.content, 500000)) {
-    errors.push('Le contenu est requis et doit faire moins de 500 000 caractères');
+  if (!book.content || !validateTextLength(book.content, 1200000)) {
+    errors.push('Le contenu est requis et doit faire moins de 1 200 000 caractères');
   }
 
   if (!validatePoints(book.points)) {
