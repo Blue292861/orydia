@@ -49,26 +49,28 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         const newBook = ePub(epubUrl);
         setBook(newBook);
 
-        // Create rendition
+        // Ensure book is ready
+        await (newBook as any).ready;
+
+        // Compute viewer size
+        const viewerHeight = Math.max(400, Math.round(window.innerHeight * 0.75));
+
+        // Create rendition with paginated flow
         const newRendition = newBook.renderTo(viewerRef.current!, {
           width: '100%',
-          height: '500px',
-          spread: 'none'
+          height: viewerHeight,
+          flow: 'paginated',
+          spread: 'auto',
+          manager: 'default',
+          allowScriptedContent: false
         });
 
         setRendition(newRendition);
 
-        // Apply themes and styles
+        // Base styles that don't override original fonts
         newRendition.themes.default({
-          'body': {
-            'font-family': 'inherit !important',
-            'line-height': '1.6 !important',
-            'padding': '20px !important',
-            'background': darkMode ? '#000' : '#fff',
-            'color': darkMode ? '#fff' : '#000'
-          },
           'p': {
-            'margin-bottom': '1em !important',
+            'margin': '1em 0 !important',
             'text-align': 'justify !important'
           },
           'img': {
@@ -83,16 +85,26 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           }
         });
 
-        newRendition.themes.fontSize(`${fontSize}px`);
+        // Theme variants for light/dark
+        newRendition.themes.register('light', {
+          'body': { 'background': '#ffffff !important', 'color': '#000000 !important' }
+        });
+        newRendition.themes.register('dark', {
+          'body': { 'background': '#000000 !important', 'color': '#ffffff !important' }
+        });
+        newRendition.themes.select(darkMode ? 'dark' : 'light');
 
         // Display first page
         await newRendition.display();
 
         // Hook into rendition events
         newRendition.on('relocated', (location: any) => {
-          setCurrentPage(location.start.displayed.page);
-          setTotalPages(location.start.displayed.total);
-          setIsAtEnd(location.atEnd);
+          const displayed = location?.start?.displayed;
+          if (displayed) {
+            setCurrentPage(displayed.page);
+            setTotalPages(displayed.total);
+          }
+          setIsAtEnd(Boolean((location as any).atEnd));
         });
 
         // Clean up &nbsp; and other HTML entities
@@ -130,14 +142,16 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
   // Update theme when darkMode changes
   useEffect(() => {
     if (rendition) {
-      rendition.themes.default({
-        'body': {
-          'background': darkMode ? '#000' : '#fff',
-          'color': darkMode ? '#fff' : '#000'
-        }
-      });
+      rendition.themes.select(darkMode ? 'dark' : 'light');
     }
   }, [darkMode, rendition]);
+
+  // Update font size without reinitializing
+  useEffect(() => {
+    if (rendition) {
+      rendition.themes.fontSize(`${fontSize}px`);
+    }
+  }, [fontSize, rendition]);
 
   const goToPrevious = () => {
     if (rendition && currentPage > 1) {
@@ -219,7 +233,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
       {/* EPUB Viewer */}
       <div 
         ref={viewerRef}
-        className={`flex-1 min-h-0 ${darkMode ? 'bg-black' : 'bg-white'}`}
+        className={`flex-1 min-h-[60vh] ${darkMode ? 'bg-black' : 'bg-white'}`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         style={{ 
