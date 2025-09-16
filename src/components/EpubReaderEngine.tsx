@@ -146,11 +146,23 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
 
     // Add touch event listeners for swipe navigation
     const addSwipeListeners = () => {
-      const viewer = document.querySelector('[class*="epub-view"]');
+      const viewer = document.querySelector('[class*="epub-view"]') as HTMLElement | null;
       if (viewer) {
-        viewer.addEventListener('touchstart', handleTouchStart, { passive: true });
-        viewer.addEventListener('touchend', handleTouchEnd, { passive: true });
+        viewer.addEventListener('touchstart', handleTouchStart as any, { passive: true });
+        viewer.addEventListener('touchend', handleTouchEnd as any, { passive: true });
       }
+
+      // Stabilize layout to avoid ResizeObserver loops
+      try {
+        const container = document.querySelector('.epub-reader-container') as HTMLElement | null;
+        if (container) {
+          container.style.contain = 'layout paint size';
+        }
+        if (viewer) {
+          viewer.style.height = '100%';
+          viewer.style.overflow = 'hidden';
+        }
+      } catch {}
     };
 
     // Try to add listeners after a short delay
@@ -263,7 +275,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       )}
 
       {/* EPUB Reader */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative min-h-[60vh] sm:min-h-[70vh] max-h-[85vh] overflow-hidden z-0">
         <ReactReader
           url={epubUrl}
           location={location}
