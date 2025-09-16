@@ -102,7 +102,7 @@ export class EPUBService {
       
       onProgress?.(50, `Extraction du texte (${chapterFiles.length} chapitres)...`);
       
-      let fullText = '';
+      let fullHtml = '';
       let processedChapters = 0;
       
       for (const chapterPath of chapterFiles) {
@@ -110,10 +110,10 @@ export class EPUBService {
         if (chapterFile) {
           try {
             const chapterContent = await chapterFile.async('text');
-            const chapterText = this.extractTextFromHTML(chapterContent);
+            const chapterHtml = await this.extractHtmlFromHTML(chapterContent, zipContent, chapterPath);
             
-            if (chapterText.trim()) {
-              fullText += `\n\n=== Chapitre ${processedChapters + 1} ===\n\n${chapterText}`;
+            if (chapterHtml.trim()) {
+              fullHtml += `\n<hr class="chapter-sep" data-chapter="${processedChapters + 1}"/>\n${chapterHtml}`;
               processedChapters++;
             }
           } catch (error) {
@@ -128,7 +128,7 @@ export class EPUBService {
       onProgress?.(100, 'Extraction terminée!');
       
       return {
-        text: fullText.trim(),
+        text: fullHtml.trim(),
         chapterCount: processedChapters,
         title,
         author,
@@ -228,20 +228,86 @@ export class EPUBService {
   }
   
   /**
-   * Clean extracted text from invalid characters
+   * Clean extracted EPUB HTML while preserving tags and line breaks
    */
-  static cleanExtractedText(text: string): string {
-    if (!text) return '';
-    
-    return text
-      // Remove null bytes and control characters
+  static cleanExtractedHtml(html: string): string {
+    if (!html) return '';
+    return html
       .replace(/\x00/g, '')
       .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-      // Keep only printable ASCII and UTF-8 characters
-      .replace(/[^\x20-\x7E\u00A0-\uFFFF]/g, '')
-      // Normalize whitespace
-      .replace(/\s+/g, ' ')
-      .replace(/\n\s*\n/g, '\n\n')
       .trim();
   }
+
+  /**
+   * Convert a chapter HTML to sanitized HTML and inline EPUB image resources as data URIs
+   */
+  private static async extractHtmlFromHTML(htmlContent: string, zip: JSZip, chapterPath: string): Promise<string> {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+
+    // Remove script and style for safety
+    doc.querySelectorAll('script, style').forEach(el => el.remove());
+
+    const baseDir = chapterPath.includes('/') ? chapterPath.substring(0, chapterPath.lastIndexOf('/') + 1) : '';
+
+    // Inline images
+    const images = Array.from(doc.querySelectorAll('img')) as HTMLImageElement[];
+    for (const img of images) {
+      const src = img.getAttribute('src');
+      if (!src) continue;
+      if (/^data:|^https?:/i.test(src)) continue; // already absolute or data
+
+      const resolvedPath = this.resolvePath(baseDir, src);
+      const file = zip.file(resolvedPath);
+      if (file) {
+        try {
+          const base64 = await file.async('base64');
+          const mime = this.getMimeTypeByExt(resolvedPath);
+          img.setAttribute('src', `data:${mime};base64,${base64}`);
+          img.setAttribute('alt', img.getAttribute('alt') || 'Illustration EPUB');
+          img.setAttribute('loading', 'lazy');
+          img.setAttribute('decoding', 'async');
+        } catch (e) {
+          console.warn('Failed to inline image', resolvedPath, e);
+        }
+      }
+    }
+
+    // Ensure block-level elements for paragraphs
+    // Many EPUBs use divs/spans; we keep the structure as is to preserve formatting
+    const body = doc.body || doc.documentElement;
+    return body.innerHTML.trim();
+  }
+
+  private static resolvePath(baseDir: string, relative: string): string {
+    if (/^\//.test(relative)) return relative.replace(/^\//, '');
+    const stack = baseDir.split('/').filter(Boolean);
+    const parts = relative.split('/');
+    for (const part of parts) {
+      if (part === '.' || part === '') continue;
+      if (part === '..') stack.pop();
+      else stack.push(part);
+    }
+    return stack.join('/');
+  }
+
+  private static getMimeTypeByExt(path: string): string {
+    const ext = (path.split('.').pop() || '').toLowerCase();
+    switch (ext) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'svg':
+        return 'image/svg+xml';
+      case 'webp':
+        return 'image/webp';
+      default:
+        return 'application/octet-stream';
+    }
+  }
 }
+
