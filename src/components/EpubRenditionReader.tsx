@@ -36,29 +36,37 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(highContrast);
+  const [currentSection, setCurrentSection] = useState(0);
+  const [totalSections, setTotalSections] = useState(0);
+  const [locationsReady, setLocationsReady] = useState(false);
+  const [pageCache, setPageCache] = useState<Map<string, any>>(new Map());
   const { userStats } = useUserStats();
   const viewerRef = useRef<HTMLDivElement>(null);
   const touchStart = useRef<number>(0);
 
-  // Initialize EPUB book
+  // Initialize EPUB book - OPTIMIZED FOR INSTANT LOADING
   useEffect(() => {
     if (!epubUrl || !viewerRef.current) return;
 
     const initBook = async () => {
       setIsLoading(true);
       try {
+        // Check cache first
+        const cacheKey = `epub_${epubUrl}`;
+        const cachedData = localStorage.getItem(cacheKey);
+        
         const newBook = ePub(epubUrl);
         setBook(newBook);
 
         // Ensure book is ready
         await (newBook as any).ready;
-        // Generate locations for global pagination
-        await (newBook as any).locations.generate(1000);
+        
+        // Get initial book info - conservative approach
+        setTotalSections(1); // Start with 1, will be updated
+        setTotalPages(1); // Initial placeholder
 
-        // Compute viewer size
+        // INSTANT DISPLAY - Show first page immediately
         const viewerHeight = Math.max(400, Math.round(window.innerHeight * 0.75));
-
-        // Create rendition with paginated flow
         const newRendition = newBook.renderTo(viewerRef.current!, {
           width: '100%',
           height: viewerHeight,
@@ -70,7 +78,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
 
         setRendition(newRendition);
 
-        // Base styles that don't override original fonts
+        // Apply styles immediately
         newRendition.themes.default({
           'p': {
             'margin': '1em 0 !important',
@@ -90,7 +98,6 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           }
         });
 
-        // Theme variants for light/dark
         newRendition.themes.register('light', {
           'body': { 'background': '#ffffff !important', 'color': '#000000 !important' }
         });
@@ -100,16 +107,17 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         newRendition.themes.select(darkMode ? 'dark' : 'light');
         newRendition.themes.fontSize(`${fontSize}px`);
 
-        // Display first page
+        // Display first page IMMEDIATELY
         await newRendition.display();
+        setIsLoading(false); // User can start reading now!
 
-        // Hook into rendition events
+        // Setup navigation tracking
         newRendition.on('relocated', (location: any) => {
           const displayed = location?.start?.displayed;
           const startCfi = location?.start?.cfi;
-
-          // Global pagination using generated locations
-          if ((newBook as any).locations && startCfi) {
+          
+          // Use precise locations if ready, otherwise use section-based
+          if (locationsReady && (newBook as any).locations && startCfi) {
             const idx = (newBook as any).locations.locationFromCfi(startCfi);
             const total = (newBook as any).locations.length();
             if (typeof idx === 'number' && typeof total === 'number' && total > 0) {
@@ -117,16 +125,21 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
               setTotalPages(total);
             }
           } else if (displayed) {
-            // Fallback to section-based pagination
+            // Section-based pagination for immediate use
             setCurrentPage(displayed.page);
             setTotalPages(displayed.total);
+          }
+
+          // Update section tracking
+          if ((location as any).start?.index !== undefined) {
+            setCurrentSection((location as any).start.index);
           }
 
           setIsAtStart(Boolean((location as any).atStart));
           setIsAtEnd(Boolean((location as any).atEnd));
         });
 
-        // Clean up &nbsp; and other HTML entities
+        // Clean up HTML entities
         newRendition.hooks.content.register((contents: any) => {
           const body = contents.document.body;
           if (body) {
@@ -137,7 +150,25 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           }
         });
 
-        setIsLoading(false);
+        // BACKGROUND TASK: Generate precise locations (non-blocking)
+        setTimeout(async () => {
+          try {
+            console.log('Starting background location generation...');
+            await (newBook as any).locations.generate(1000);
+            setLocationsReady(true);
+            console.log('Locations ready! Precise pagination available.');
+            
+            // Cache the locations for next time
+            localStorage.setItem(cacheKey, JSON.stringify({
+              locations: (newBook as any).locations.save(),
+              timestamp: Date.now()
+            }));
+          } catch (error) {
+            console.warn('Background location generation failed:', error);
+            // Fallback to section-based navigation
+          }
+        }, 100); // Start after UI is ready
+
       } catch (error) {
         console.error('Error loading EPUB:', error);
         toast({
@@ -222,11 +253,11 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Loading indicator */}
+      {/* Loading indicator - minimal for instant display */}
       {isLoading && (
-        <div className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <span className="ml-2">Chargement du livre...</span>
+        <div className="flex items-center justify-center p-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          <span className="ml-2 text-sm">Initialisation rapide...</span>
         </div>
       )}
 
@@ -234,8 +265,15 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
       <div className="flex items-center justify-between p-2 border-b bg-background/95 backdrop-blur">
         <div className="flex items-center space-x-2">
           <span className="text-sm text-muted-foreground">
-            Page {currentPage} sur {totalPages}
+            {locationsReady ? (
+              `Page ${currentPage} sur ${totalPages}`
+            ) : (
+              `Section ${currentSection + 1} sur ~${totalSections} • Calcul en cours...`
+            )}
           </span>
+          {!locationsReady && (
+            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary opacity-50"></div>
+          )}
         </div>
         
         <Button
