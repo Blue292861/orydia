@@ -6,6 +6,7 @@ import { BuyTensensDialog } from './BuyTensensDialog';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { toast } from '@/hooks/use-toast';
 import { ReactReader } from 'react-reader';
+import { EPUBFallbackService } from '@/services/epubFallbackService';
 
 interface EpubReaderEngineProps {
   epubUrl: string;
@@ -37,8 +38,17 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   const [totalPages, setTotalPages] = useState(0);
   const [renditionRef, setRenditionRef] = useState<any>(null);
   const [loadingError, setLoadingError] = useState<string | null>(null);
+
+  // Fallback (fast) reader states
+  const [useFallback, setUseFallback] = useState(false);
+  const [fallbackPages, setFallbackPages] = useState<string[]>([]);
+  const [fallbackIndex, setFallbackIndex] = useState(0);
+  const [fallbackProgress, setFallbackProgress] = useState(0);
+  const [fallbackStatus, setFallbackStatus] = useState('Initialisation...');
+
   const touchStartX = useRef<number>(0);
   const loadingTimeoutRef = useRef<NodeJS.Timeout>();
+  const fallbackTimerRef = useRef<NodeJS.Timeout>();
   const { userStats } = useUserStats();
 
   // Storage key for saving reading position
@@ -59,12 +69,22 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       }
     }, 15000); // 15 seconds timeout
 
+    // Auto-switch to fast fallback after 5s if still not ready
+    fallbackTimerRef.current = setTimeout(() => {
+      if (isLoading && !bookLoaded && !useFallback) {
+        startFallback();
+      }
+    }, 5000);
+
     return () => {
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
       }
+      if (fallbackTimerRef.current) {
+        clearTimeout(fallbackTimerRef.current);
+      }
     };
-  }, [epubUrl, isLoading]);
+  }, [epubUrl, isLoading, bookLoaded, useFallback, startFallback]);
 
   // Save reading position
   const savePosition = useCallback((cfi: string) => {
@@ -73,6 +93,48 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       setLocation(cfi);
     }
   }, [bookLoaded, getStorageKey]);
+
+  // Fallback helpers
+  const getFallbackKey = () => `epub-fallback-page-${epubUrl.split('/').pop()}`;
+
+  const startFallback = useCallback(async () => {
+    try {
+      setUseFallback(true);
+      setLoadingError(null);
+      setIsLoading(true);
+
+      const savedIndexRaw = localStorage.getItem(getFallbackKey());
+      const savedIndex = savedIndexRaw ? parseInt(savedIndexRaw, 10) : 0;
+
+      const result = await EPUBFallbackService.extractFromUrl(
+        epubUrl,
+        (progress, status) => {
+          setFallbackProgress(progress);
+          setFallbackStatus(status);
+        }
+      );
+
+      if (result.success && Array.isArray(result.pages) && result.pages.length > 0) {
+        setFallbackPages(result.pages);
+        const idx = Math.min(result.pages.length - 1, Math.max(0, savedIndex));
+        setFallbackIndex(idx);
+        setIsLoading(false);
+      } else {
+        setLoadingError(result.error || "Échec du chargement en mode rapide.");
+        setIsLoading(false);
+      }
+    } catch (e) {
+      setLoadingError("Erreur de chargement en mode rapide.");
+      setIsLoading(false);
+    }
+  }, [epubUrl]);
+
+  // Persist fallback position
+  useEffect(() => {
+    if (useFallback) {
+      localStorage.setItem(getFallbackKey(), String(fallbackIndex));
+    }
+  }, [useFallback, fallbackIndex]);
 
   // Update theme when highContrast changes
   useEffect(() => {
@@ -218,13 +280,17 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   };
 
   const goToPrevious = () => {
-    if (renditionRef) {
+    if (useFallback) {
+      setFallbackIndex((i) => Math.max(0, i - 1));
+    } else if (renditionRef) {
       renditionRef.prev();
     }
   };
 
   const goToNext = () => {
-    if (renditionRef) {
+    if (useFallback) {
+      setFallbackIndex((i) => Math.min(fallbackPages.length - 1, i + 1));
+    } else if (renditionRef) {
       renditionRef.next();
     }
   };
@@ -241,7 +307,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
     }
   };
 
-  if (isLoading || loadingError) {
+  if ((isLoading && !useFallback) || loadingError) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -258,6 +324,9 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
               <p className="text-muted-foreground">Chargement de l'EPUB...</p>
               <p className="text-xs text-muted-foreground mt-1">Cela peut prendre quelques secondes</p>
+              <div className="mt-3">
+                <Button onClick={startFallback} variant="outline" size="sm">Mode rapide</Button>
+              </div>
             </>
           )}
         </div>
@@ -290,10 +359,18 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {totalPages > 0 && (
-            <span className="text-sm text-muted-foreground">
-              Page {currentPage} / {totalPages}
-            </span>
+          {useFallback ? (
+            fallbackPages.length > 0 && (
+              <span className="text-sm text-muted-foreground">
+                Page {fallbackIndex + 1} / {fallbackPages.length}
+              </span>
+            )
+          ) : (
+            totalPages > 0 && (
+              <span className="text-sm text-muted-foreground">
+                Page {currentPage} / {totalPages}
+              </span>
+            )
           )}
           
           <Button
@@ -307,25 +384,50 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       </div>
 
       {/* Progress Bar */}
-      {totalPages > 0 && (
-        <div className="px-4 py-2">
-          <Progress value={(currentPage / totalPages) * 100} className="h-2" />
-        </div>
+      {useFallback ? (
+        fallbackPages.length > 0 && (
+          <div className="px-4 py-2">
+            <Progress value={((fallbackIndex + 1) / fallbackPages.length) * 100} className="h-2" />
+          </div>
+        )
+      ) : (
+        totalPages > 0 && (
+          <div className="px-4 py-2">
+            <Progress value={(currentPage / totalPages) * 100} className="h-2" />
+          </div>
+        )
       )}
 
       {/* EPUB Reader */}
       <div className="flex-1 relative min-h-[60vh] sm:min-h-[70vh] max-h-[85vh] overflow-hidden z-0">
-        <ReactReader
-          url={epubUrl}
-          location={location}
-          locationChanged={handleLocationChanged}
-          getRendition={handleBookReady}
-          loadingView={
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          }
-        />
+        {useFallback ? (
+          <div className="h-full w-full overflow-auto p-4">
+            {fallbackPages.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-center">
+                <div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                  <p className="text-muted-foreground">Mode rapide: {fallbackStatus} ({Math.round(fallbackProgress)}%)</p>
+                </div>
+              </div>
+            ) : (
+              <article className="prose prose-sm sm:prose max-w-none">
+                <div className="whitespace-pre-wrap">{fallbackPages[fallbackIndex]}</div>
+              </article>
+            )}
+          </div>
+        ) : (
+          <ReactReader
+            url={epubUrl}
+            location={location}
+            locationChanged={handleLocationChanged}
+            getRendition={handleBookReady}
+            loadingView={
+              <div className="flex items-center justify-center h-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            }
+          />
+        )}
       </div>
 
       {/* Footer Controls */}
