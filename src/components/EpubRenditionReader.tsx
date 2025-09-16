@@ -76,6 +76,10 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
             const cached = JSON.parse(cachedData);
             if (cached?.locations) {
               (bookInstance as any).locations.load(cached.locations);
+              const len = Number((bookInstance as any).locations.length?.());
+              if (Number.isFinite(len) && len > 0) {
+                setTotalPages(len);
+              }
               setLocationsReady(true);
             }
           } catch (e) {
@@ -161,6 +165,10 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           setIsAtEnd(Boolean((location as any).atEnd));
         });
 
+        // Ensure loading indicator stops when something is drawn
+        renditionInstance.on('displayed', () => { if (!canceled) setIsLoading(false); });
+        renditionInstance.on('rendered', () => { if (!canceled) setIsLoading(false); });
+
         // Clean up HTML entities
         renditionInstance.hooks.content.register((contents: any) => {
           const body = contents.document.body;
@@ -173,7 +181,8 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         });
 
         // Display first page IMMEDIATELY
-        await renditionInstance.display();
+        const firstHref = (bookInstance as any).spine?.get?.(0)?.href || undefined;
+        await renditionInstance.display(firstHref);
         if (!canceled) setIsLoading(false); // User can start reading now!
 
         // BACKGROUND TASK: Generate precise locations (non-blocking)
@@ -186,6 +195,10 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
             if (!canceled) {
               setLocationsReady(true);
               console.log('Locations ready! Precise pagination available.');
+              const newLen = Number((bookInstance as any).locations.length?.());
+              if (Number.isFinite(newLen) && newLen > 0) {
+                setTotalPages(newLen);
+              }
               // Cache the locations for next time
               localStorage.setItem(cacheKey, JSON.stringify({
                 locations: (bookInstance as any).locations.save(),
