@@ -54,6 +54,41 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   // Storage key for saving reading position
   const getStorageKey = () => `epub-location-${epubUrl.split('/').pop()}`;
 
+  // Fallback helpers
+  const getFallbackKey = () => `epub-fallback-page-${epubUrl.split('/').pop()}`;
+
+  const startFallback = useCallback(async () => {
+    try {
+      setUseFallback(true);
+      setLoadingError(null);
+      setIsLoading(true);
+
+      const savedIndexRaw = localStorage.getItem(getFallbackKey());
+      const savedIndex = savedIndexRaw ? parseInt(savedIndexRaw, 10) : 0;
+
+      const result = await EPUBFallbackService.extractFromUrl(
+        epubUrl,
+        (progress, status) => {
+          setFallbackProgress(progress);
+          setFallbackStatus(status);
+        }
+      );
+
+      if (result.success && Array.isArray(result.pages) && result.pages.length > 0) {
+        setFallbackPages(result.pages);
+        const idx = Math.min(result.pages.length - 1, Math.max(0, savedIndex));
+        setFallbackIndex(idx);
+        setIsLoading(false);
+      } else {
+        setLoadingError(result.error || "Échec du chargement en mode rapide.");
+        setIsLoading(false);
+      }
+    } catch (e) {
+      setLoadingError("Erreur de chargement en mode rapide.");
+      setIsLoading(false);
+    }
+  }, [epubUrl]);
+
   // Load saved position and set timeout
   useEffect(() => {
     const savedLocation = localStorage.getItem(getStorageKey());
@@ -93,41 +128,6 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       setLocation(cfi);
     }
   }, [bookLoaded, getStorageKey]);
-
-  // Fallback helpers
-  const getFallbackKey = () => `epub-fallback-page-${epubUrl.split('/').pop()}`;
-
-  const startFallback = useCallback(async () => {
-    try {
-      setUseFallback(true);
-      setLoadingError(null);
-      setIsLoading(true);
-
-      const savedIndexRaw = localStorage.getItem(getFallbackKey());
-      const savedIndex = savedIndexRaw ? parseInt(savedIndexRaw, 10) : 0;
-
-      const result = await EPUBFallbackService.extractFromUrl(
-        epubUrl,
-        (progress, status) => {
-          setFallbackProgress(progress);
-          setFallbackStatus(status);
-        }
-      );
-
-      if (result.success && Array.isArray(result.pages) && result.pages.length > 0) {
-        setFallbackPages(result.pages);
-        const idx = Math.min(result.pages.length - 1, Math.max(0, savedIndex));
-        setFallbackIndex(idx);
-        setIsLoading(false);
-      } else {
-        setLoadingError(result.error || "Échec du chargement en mode rapide.");
-        setIsLoading(false);
-      }
-    } catch (e) {
-      setLoadingError("Erreur de chargement en mode rapide.");
-      setIsLoading(false);
-    }
-  }, [epubUrl]);
 
   // Persist fallback position
   useEffect(() => {
