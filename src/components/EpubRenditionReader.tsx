@@ -166,9 +166,40 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           setIsAtEnd(Boolean((location as any).atEnd));
         });
 
-        // Ensure loading indicator stops when something is drawn
-        renditionInstance.on('displayed', () => { if (!canceled) setIsLoading(false); });
-        renditionInstance.on('rendered', () => { if (!canceled) setIsLoading(false); });
+        // Ensure loading indicator stops when something is drawn and verify visibility
+        const ensureVisible = async () => {
+          try {
+            const iframe = viewerRef.current?.querySelector('iframe') as HTMLIFrameElement | null;
+            const doc = iframe?.contentDocument;
+            const hasText = !!doc?.body?.innerText?.trim();
+            const hasImages = (doc?.images?.length ?? 0) > 0;
+            if (!hasText && !hasImages) {
+              console.warn('EPUB appears empty, applying fallbacks...');
+              const firstHref = (bookInstance as any).spine?.get?.(0)?.href || (bookInstance as any).spine?.items?.[0]?.href;
+              if (firstHref) {
+                await renditionInstance.display(firstHref);
+              }
+              setTimeout(async () => {
+                const iframe2 = viewerRef.current?.querySelector('iframe') as HTMLIFrameElement | null;
+                const doc2 = iframe2?.contentDocument;
+                const stillEmpty = !(doc2 && (doc2.body?.innerText?.trim() || (doc2?.images?.length ?? 0) > 0));
+                if (stillEmpty) {
+                  try {
+                    renditionInstance.flow('scrolled-doc');
+                    if (firstHref) await renditionInstance.display(firstHref);
+                  } catch (err) {
+                    console.warn('Fallback to scrolled-doc failed', err);
+                  }
+                }
+              }, 200);
+            }
+          } catch (err) {
+            console.warn('ensureVisible failed', err);
+          }
+        };
+
+        renditionInstance.on('displayed', () => { if (!canceled) { setIsLoading(false); ensureVisible(); } });
+        renditionInstance.on('rendered', () => { if (!canceled) { setIsLoading(false); ensureVisible(); } });
 
         // Clean up HTML entities
         renditionInstance.hooks.content.register((contents: any) => {
@@ -186,10 +217,14 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           await renditionInstance.display();
         } catch (e) {
           console.warn('rendition.display() failed, trying first spine href', e);
-          const firstHref = (bookInstance as any).spine?.get?.(0)?.href || undefined;
+          const firstHref = (bookInstance as any).spine?.get?.(0)?.href || (bookInstance as any).spine?.items?.[0]?.href;
           await renditionInstance.display(firstHref);
         }
-        if (!canceled) setIsLoading(false); // User can start reading now!
+        if (!canceled) {
+          setIsLoading(false);
+          // Double-check visibility and apply fallbacks if needed
+          ensureVisible();
+        }
 
         // BACKGROUND TASK: Generate precise locations (non-blocking)
         setTimeout(async () => {
