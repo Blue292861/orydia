@@ -411,9 +411,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
                 </div>
               ) : (
                 <article 
-                  className={`prose prose-sm sm:prose max-w-none ${
-                    highContrast ? 'prose-invert' : ''
-                  }`}
+                  className="max-w-none"
                   style={{ 
                     fontSize: `${fontSize}px`,
                     lineHeight: 1.6,

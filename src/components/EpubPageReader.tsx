@@ -80,8 +80,20 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
       {isHtmlContent ? (
         <article
           aria-label={`Contenu de la page ${current + 1}`}
-          className={`prose prose-sm max-w-none ${highContrast ? 'prose-invert' : ''}`}
-          style={{ fontSize: `${fontSize}px` }}
+          className="max-w-none"
+          style={{
+            fontSize: `${fontSize}px`,
+            lineHeight: 1.6,
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+            hyphens: 'auto',
+            ...(highContrast && {
+              backgroundColor: '#1a1a1a',
+              color: '#ffffff',
+              padding: '1rem',
+              borderRadius: '0.5rem'
+            })
+          }}
           dangerouslySetInnerHTML={{
             __html: DOMPurify.sanitize(pages[current], {
               ALLOWED_TAGS: ['html', 'head', 'body', 'p', 'div', 'span', 'br', 'strong', 'b', 'em', 'i', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'ul', 'ol', 'li', 'blockquote', 'a', 'style', 'link'],

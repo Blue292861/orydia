@@ -249,6 +249,19 @@ export class EPUBService {
     // Get the base directory for resolving relative paths
     const baseDir = chapterPath.split('/').slice(0, -1).join('/');
 
+    // Helper to safely convert binary to data URI without stack overflows
+    const uint8ToDataUri = (data: Uint8Array, mime: string): Promise<string> => new Promise((resolve, reject) => {
+      try {
+        const blob = new Blob([data], { type: mime });
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      } catch (e) {
+        reject(e as any);
+      }
+    });
+
     // Process and inline CSS styles
     const styleSheets = doc.querySelectorAll('link[rel="stylesheet"], style');
     for (const styleElement of styleSheets) {
@@ -294,9 +307,8 @@ export class EPUBService {
             const imageData = await imageFile.async('uint8array');
             const mimeType = this.getMimeTypeByExt(imagePath);
             
-            // Convert to base64 and create data URI
-            const base64 = btoa(String.fromCharCode(...imageData));
-            const dataUri = `data:${mimeType};base64,${base64}`;
+            // Convert to data URI safely without spreading large arrays
+            const dataUri = await uint8ToDataUri(imageData, mimeType);
             
             // Update the img src
             img.setAttribute('src', dataUri);
@@ -333,6 +345,19 @@ export class EPUBService {
   private static async processCSSContent(cssContent: string, zip: JSZip, baseDir: string): Promise<string> {
     let processedCSS = cssContent;
 
+    // Helper to safely convert binary to data URI without stack overflows
+    const uint8ToDataUri = (data: Uint8Array, mime: string): Promise<string> => new Promise((resolve, reject) => {
+      try {
+        const blob = new Blob([data], { type: mime });
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      } catch (e) {
+        reject(e as any);
+      }
+    });
+
     // Handle @font-face rules
     const fontFaceRegex = /@font-face\s*{[^}]*}/g;
     const fontFaces = cssContent.match(fontFaceRegex) || [];
@@ -349,8 +374,7 @@ export class EPUBService {
             if (fontFile) {
               const fontData = await fontFile.async('uint8array');
               const mimeType = this.getFontMimeType(fontPath);
-              const base64 = btoa(String.fromCharCode(...fontData));
-              const dataUri = `data:${mimeType};base64,${base64}`;
+              const dataUri = await uint8ToDataUri(fontData, mimeType);
               
               processedCSS = processedCSS.replace(urlMatch, `url('${dataUri}')`);
             }
