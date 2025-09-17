@@ -275,6 +275,19 @@
   }
 }
 
-.float {
-  animation: float 3s ease-in-out infinite;
-}
+  .float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  /* EPUB content styling - minimal interference with original styles */
+  .epub-content {
+    /* Allow EPUB's own fonts and styling to take precedence */
+    font-family: inherit !important;
+  }
+  
+  .epub-content img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    margin: 1em auto !important;
+  }

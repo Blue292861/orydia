@@ -128,8 +128,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           // Error handlers removed for production
         } catch {}
 
-        // Apply styles immediately
-        // N'altère pas les polices/feuilles de style d'origine, juste sécurise les images
+        // Apply minimal styles - preserve original EPUB fonts and layout
         renditionInstance.themes.default({
           'img': {
             'max-width': '100% !important',

@@ -78,9 +78,8 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
 
       {/* Page content */}
       {isHtmlContent ? (
-        <article
-          aria-label={`Contenu de la page ${current + 1}`}
-          className="max-w-none"
+        <div
+          className="epub-content max-w-none"
           style={{
             fontSize: `${fontSize}px`,
             lineHeight: 1.6,
@@ -88,10 +87,9 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
             overflowWrap: 'break-word',
             hyphens: 'auto',
             ...(highContrast && {
-              backgroundColor: '#1a1a1a',
-              color: '#ffffff',
-              padding: '1rem',
-              borderRadius: '0.5rem'
+              filter: 'invert(1)',
+              backgroundColor: '#000000',
+              color: '#ffffff'
             })
           }}
           dangerouslySetInnerHTML={{

@@ -323,18 +323,43 @@ export class EPUBService {
       }
     }
 
-    // Clean up HTML entities that cause display issues
-    let htmlResult = doc.documentElement.outerHTML;
-    htmlResult = htmlResult
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&#160;/g, ' ')
-      .replace(/\u00A0/g, ' ')
-      .replace(/&rsquo;/g, "'")
-      .replace(/&lsquo;/g, "'")
-      .replace(/&rdquo;/g, '"')
-      .replace(/&ldquo;/g, '"')
-      .replace(/&mdash;/g, '—')
-      .replace(/&ndash;/g, '–');
+        // Clean up HTML entities and fix encoding issues
+        let htmlResult = doc.documentElement.outerHTML;
+        
+        // Try to fix encoding issues with TextDecoder
+        try {
+          const bytes = new TextEncoder().encode(htmlResult);
+          const decoder = new TextDecoder('utf-8', { fatal: false });
+          htmlResult = decoder.decode(bytes);
+        } catch (e) {
+          // Fallback to original if decoding fails
+        }
+        
+        htmlResult = htmlResult
+          // Fix common HTML entities
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&#160;/g, ' ')
+          .replace(/\u00A0/g, ' ')
+          .replace(/&rsquo;/g, "'")
+          .replace(/&lsquo;/g, "'")
+          .replace(/&rdquo;/g, '"')
+          .replace(/&ldquo;/g, '"')
+          .replace(/&mdash;/g, '—')
+          .replace(/&ndash;/g, '–')
+          // Fix encoding artifacts
+          .replace(/Ã¢â‚¬â„¢/g, "'")
+          .replace(/Ã¢â‚¬Â/g, "—")
+          .replace(/Ã¢â‚¬œ/g, '"')
+          .replace(/Ã¢â‚¬\u009d/g, '"')
+          .replace(/Ã©/g, "é")
+          .replace(/Ã¨/g, "è")
+          .replace(/Ã /g, "à")
+          .replace(/Ãª/g, "ê")
+          .replace(/Ã´/g, "ô")
+          .replace(/Ã§/g, "ç")
+          .replace(/Ã¹/g, "ù")
+          .replace(/Ã®/g, "î")
+          .replace(/Ã¯/g, "ï");
 
     return htmlResult;
   }

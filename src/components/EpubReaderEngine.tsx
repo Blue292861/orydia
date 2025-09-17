@@ -410,8 +410,8 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
                   </div>
                 </div>
               ) : (
-                <article 
-                  className="max-w-none"
+                <div 
+                  className="epub-content max-w-none"
                   style={{ 
                     fontSize: `${fontSize}px`,
                     lineHeight: 1.6,
@@ -419,10 +419,8 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
                     overflowWrap: 'break-word',
                     hyphens: 'auto',
                     ...(highContrast && {
-                      backgroundColor: '#1a1a1a',
-                      color: '#ffffff',
-                      padding: '1rem',
-                      borderRadius: '0.5rem'
+                      filter: 'invert(1)',
+                      backgroundColor: '#000000'
                     })
                   }}
                 >
@@ -431,7 +429,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
                     style={{ maxWidth: '100%', overflow: 'hidden' }}
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(fallbackPages[fallbackIndex] || '') }}
                   />
-                </article>
+                </div>
               )}
             </div>
           </ScrollArea>
