@@ -58,7 +58,7 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
   const goNext = () => setCurrent(c => (c < total - 1 ? c + 1 : c));
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 w-full max-w-none px-2 sm:px-4 lg:px-6">
       {/* Navigation header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={goPrev} disabled={atStart} className="flex items-center gap-1">
@@ -109,31 +109,10 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
           Précédent
         </Button>
         <div className="text-xs text-muted-foreground">{progress}% lu</div>
-        {!atEnd ? (
-          <Button onClick={goNext} disabled={atEnd} className="flex items-center gap-1">
-            Suivant
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        ) : (
-          <div className="text-center">
-            {isAlreadyRead ? (
-              <div className={`${highContrast ? 'text-gray-300' : 'text-muted-foreground'}`}>
-                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-6 w-6 mx-auto mb-2" />
-                <p>Vous avez déjà gagné des Tensens pour ce livre</p>
-              </div>
-            ) : hasFinished ? (
-              <div className="text-green-600">
-                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-6 w-6 mx-auto mb-2" />
-                <p>Tensens accordés ! Bien joué !</p>
-              </div>
-            ) : (
-              <Button onClick={onFinish} className="flex items-center gap-2">
-                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-4 w-4" />
-                {isPremium ? `Terminer la lecture & Gagner ${pointsToWin} Tensens` : `Regarder une publicité & Gagner ${pointsToWin} Tensens`}
-              </Button>
-            )}
-          </div>
-        )}
+        <Button onClick={goNext} disabled={atEnd} className="flex items-center gap-1">
+          Suivant
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

@@ -200,7 +200,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
         />
       )}
       
-      <div className="max-w-4xl mx-auto pb-10">
+      <div className="w-full max-w-none mx-auto pb-10">
         <div className="flex justify-between items-center mb-6">
           <Button variant="ghost" onClick={handleBackClick} className="flex items-center gap-1">
             <ChevronLeft className="h-4 w-4" />
@@ -239,7 +239,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           </div>
         )}
         
-        <div className={`rounded-lg p-8 shadow-md ${
+        <div className={`rounded-lg p-4 sm:p-6 lg:p-8 shadow-md w-full min-h-[80vh] ${
           highContrast && hasExtractedContent
             ? 'bg-black text-white border border-gray-600' 
             : 'bg-card text-card-foreground'
@@ -292,7 +292,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
             </div>
           )}
           
-          {!isEpubStructured && (
+          {!isEpubStructured && hasExtractedContent && (
             <div className="mt-8 pt-6 border-t flex justify-center">
               {isAlreadyRead ? (
                 <div className={`${highContrast && !isPDFContent ? 'text-gray-300' : 'text-muted-foreground'} text-center`}>

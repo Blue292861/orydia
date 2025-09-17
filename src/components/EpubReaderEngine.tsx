@@ -478,26 +478,6 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
           </Button>
         </div>
 
-        {/* Finish Reading Button - Only show on last page */}
-        {!hasFinished && (bookLoaded || (useFallback && fallbackPages.length > 0)) && (
-          <Button
-            onClick={handleFinishReading}
-            className="w-full"
-            variant="default"
-            disabled={!isLastPage}
-          >
-            <Trophy className="h-4 w-4 mr-2" />
-            Terminer la lecture (+{pointsToWin} Tensens)
-          </Button>
-        )}
-
-        {hasFinished && (
-          <div className="text-center py-2 text-muted-foreground">
-            <Trophy className="h-5 w-5 mx-auto mb-1 text-yellow-500" />
-            Livre terminé !
-          </div>
-        )}
-
         {/* Ad Banner - Only for non-premium users */}
         {!isPremium && (
           <div className="w-full bg-gradient-to-r from-primary/10 to-secondary/10 p-4 rounded-lg border border-border/50">
