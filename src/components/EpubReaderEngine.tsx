@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ChevronLeft, ChevronRight, Palette, Trophy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 import { BuyTensensDialog } from './BuyTensensDialog';
-import { TextSizeControls } from './TextSizeControls';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { toast } from '@/hooks/use-toast';
 import { ReactReader } from 'react-reader';
@@ -55,7 +54,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
 
   const touchStartX = useRef<number>(0);
   const loadingTimeoutRef = useRef<NodeJS.Timeout>();
-  const fallbackTimerRef = useRef<NodeJS.Timeout>();
+  
   const { userStats } = useUserStats();
 
   // Storage key for saving reading position
@@ -111,19 +110,10 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       }
     }, 15000); // 15 seconds timeout
 
-    // Auto-switch to fast fallback after 5s if still not ready
-    fallbackTimerRef.current = setTimeout(() => {
-      if (isLoading && !bookLoaded && !useFallback) {
-        startFallback();
-      }
-    }, 5000);
 
     return () => {
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
-      }
-      if (fallbackTimerRef.current) {
-        clearTimeout(fallbackTimerRef.current);
       }
     };
   }, [epubUrl, isLoading, bookLoaded, useFallback, startFallback]);
@@ -160,6 +150,12 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
             background: '#ffffff !important',
             color: '#000000 !important',
           },
+          img: {
+            maxWidth: '100% !important',
+            height: 'auto !important',
+            display: 'block',
+            margin: '1em auto'
+          },
           p: { color: '#000000 !important' },
           'h1, h2, h3, h4, h5, h6': { color: '#000000 !important' },
           a: { color: '#2563eb !important' },
@@ -168,6 +164,12 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
           body: {
             background: '#1a1a1a !important',
             color: '#ffffff !important',
+          },
+          img: {
+            maxWidth: '100% !important',
+            height: 'auto !important',
+            display: 'block',
+            margin: '1em auto'
           },
           p: { color: '#ffffff !important' },
           'h1, h2, h3, h4, h5, h6': { color: '#ffffff !important' },
@@ -293,9 +295,6 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
     }
   };
 
-  const toggleTheme = () => {
-    onHighContrastChange(!highContrast);
-  };
 
   const handleFinishReading = () => {
     if (!isPremium && userStats.totalPoints < pointsToWin) {
@@ -371,24 +370,9 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
                 </span>
               )
             )}
-            
-            <Button
-              variant={highContrast ? "default" : "outline"}
-              size="sm"
-              onClick={toggleTheme}
-            >
-              <Palette className="h-4 w-4" />
-            </Button>
           </div>
         </div>
 
-        {/* Text Size Controls */}
-        <TextSizeControls
-          fontSize={fontSize}
-          onFontSizeChange={onFontSizeChange}
-          highContrast={highContrast}
-          onHighContrastChange={onHighContrastChange}
-        />
       </div>
 
       {/* Progress Bar */}

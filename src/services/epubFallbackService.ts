@@ -64,34 +64,42 @@ export class EPUBFallbackService {
    * Split content into readable pages
    */
   private static paginateContent(content: string): string[] {
+    // If the content contains chapter separators, split by them to preserve HTML and images
+    if (content.includes('class="chapter-sep"')) {
+      const rawParts = content.split(/<hr[^>]*class=["']chapter-sep["'][^>]*>/i);
+      const pages: string[] = [];
+      for (const part of rawParts) {
+        const trimmed = (part || '').trim();
+        if (!trimmed) continue;
+        // Extract only the body content if a full HTML document is present
+        const bodyMatch = trimmed.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        const html = bodyMatch ? bodyMatch[1] : trimmed;
+        if (html.trim()) pages.push(html.trim());
+      }
+      return pages;
+    }
+
+    // Fallback: simple text-based pagination
     const pages: string[] = [];
     const wordsPerPage = 300; // Approximately 300 words per page
-    
-    // Split by paragraphs first to avoid breaking mid-sentence
     const paragraphs = content.split(/\n\s*\n/);
     let currentPage = '';
     let currentWordCount = 0;
     
     for (const paragraph of paragraphs) {
       const words = paragraph.trim().split(/\s+/);
-      
       if (currentWordCount + words.length > wordsPerPage && currentPage.trim()) {
-        // Start new page
         pages.push(currentPage.trim());
         currentPage = paragraph + '\n\n';
         currentWordCount = words.length;
       } else {
-        // Add to current page
         currentPage += paragraph + '\n\n';
         currentWordCount += words.length;
       }
     }
-    
-    // Add the last page
     if (currentPage.trim()) {
       pages.push(currentPage.trim());
     }
-    
     return pages;
   }
   
