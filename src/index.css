@@ -281,8 +281,7 @@
   
   /* EPUB content styling - minimal interference with original styles */
   .epub-content {
-    /* Allow EPUB's own fonts and styling to take precedence */
-    font-family: inherit !important;
+    /* Preserve EPUB's fonts; do not override font-family */
   }
   
   .epub-content img {

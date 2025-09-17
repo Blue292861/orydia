@@ -128,11 +128,8 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
           // Error handlers removed for production
         } catch {}
 
-        // Apply minimal styles - preserve original EPUB fonts and layout
+        // Apply minimal styles - preserve original EPUB layout and images (do not override fonts)
         renditionInstance.themes.default({
-          'body': {
-            'font-family': 'initial !important'
-          },
           'img': {
             'max-width': '100% !important',
             'height': 'auto !important',
@@ -143,10 +140,10 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         });
 
         renditionInstance.themes.register('light', {
-          'body': { 'background': '#ffffff !important', 'color': '#000000 !important', 'font-family': 'initial !important' }
+          'body': { 'background': '#ffffff !important', 'color': '#000000 !important' }
         });
         renditionInstance.themes.register('dark', {
-          'body': { 'background': '#000000 !important', 'color': '#ffffff !important', 'font-family': 'initial !important' }
+          'body': { 'background': '#000000 !important', 'color': '#ffffff !important' }
         });
         renditionInstance.themes.select(darkMode ? 'dark' : 'light');
         renditionInstance.themes.fontSize(`${fontSize}px`);
