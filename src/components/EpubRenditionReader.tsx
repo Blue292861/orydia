@@ -66,16 +66,14 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
             const ab = await resp.arrayBuffer();
             if (ab && ab.byteLength > 512) {
               bookInstance = ePub(ab, { openAs: 'binary' });
-              console.log('[EPUB] Loaded via ArrayBuffer, size:', ab.byteLength);
             }
           }
         } catch (fetchErr) {
-          console.warn('[EPUB] Fetch as ArrayBuffer failed, falling back to URL', fetchErr);
+          // Fallback to direct URL
         }
 
         if (!bookInstance) {
           bookInstance = ePub(epubUrl);
-          console.log('[EPUB] Loaded via direct URL');
         }
 
         createdBook = bookInstance;
@@ -83,8 +81,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
 
         // Log low-level errors
         try {
-          (bookInstance as any).on?.('openFailed', (e: any) => console.error('[EPUB] openFailed', e));
-          (bookInstance as any).on?.('book:exception', (e: any) => console.error('[EPUB] exception', e));
+          // Error handlers removed for production
         } catch {}
 
         // Ensure book is ready
@@ -108,7 +105,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
               setLocationsReady(true);
             }
           } catch (e) {
-            console.warn('Failed to load cached locations from cache', e);
+            // Failed to load cached locations, continue
           }
         }
 
@@ -128,8 +125,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
 
         // Log rendition errors
         try {
-          renditionInstance.on('displayError', (e: any) => console.error('[EPUB] displayError', e));
-          renditionInstance.on('contentError', (e: any) => console.error('[EPUB] contentError', e));
+          // Error handlers removed for production
         } catch {}
 
         // Apply styles immediately
@@ -197,7 +193,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
             const hasText = !!doc?.body?.innerText?.trim();
             const hasImages = (doc?.images?.length ?? 0) > 0;
             if (!hasText && !hasImages) {
-              console.warn('EPUB appears empty, applying fallbacks...');
+              // EPUB appears empty, applying fallbacks
               const firstHref = (bookInstance as any).spine?.get?.(0)?.href || (bookInstance as any).spine?.items?.[0]?.href;
               if (firstHref) {
                 await renditionInstance.display(firstHref);
@@ -211,13 +207,13 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
                     renditionInstance.flow('scrolled-doc');
                     if (firstHref) await renditionInstance.display(firstHref);
                   } catch (err) {
-                    console.warn('Fallback to scrolled-doc failed', err);
+                    // Fallback failed, continue
                   }
                 }
               }, 200);
             }
           } catch (err) {
-            console.warn('ensureVisible failed', err);
+            // ensureVisible failed, continue
           }
         };
 
@@ -252,7 +248,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         try {
           await renditionInstance.display();
         } catch (e) {
-          console.warn('rendition.display() failed, trying first spine href', e);
+          // rendition.display() failed, trying fallback
           const firstHref = (bookInstance as any).spine?.get?.(0)?.href || (bookInstance as any).spine?.items?.[0]?.href;
           await renditionInstance.display(firstHref);
         }
@@ -266,12 +262,12 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         setTimeout(async () => {
           try {
             if (!(bookInstance as any).locations || (bookInstance as any).locations.length() === 0) {
-              console.log('Starting background location generation...');
+              // Starting background location generation
               await (bookInstance as any).locations.generate(1000);
             }
             if (!canceled) {
               setLocationsReady(true);
-              console.log('Locations ready! Precise pagination available.');
+              // Locations ready! Precise pagination available
               const newLen = Number((bookInstance as any).locations.length?.());
               if (Number.isFinite(newLen) && newLen > 0) {
                 setTotalPages(newLen);
@@ -283,13 +279,12 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
               }));
             }
           } catch (error) {
-            console.warn('Background location generation failed:', error);
-            // Fallback to section-based navigation
+            // Background location generation failed, fallback to section-based navigation
           }
         }, 100); // Start after UI is ready
 
       } catch (error) {
-        console.error('Error loading EPUB:', error);
+        // Error loading EPUB
         toast({
           title: "Erreur de chargement",
           description: "Impossible de charger le livre EPUB",

@@ -185,8 +185,8 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
 
         renditionRef.themes.select(darkMode ? 'dark' : 'light');
         renditionRef.themes.fontSize(`${fontSize}px`);
-      } catch (error) {
-        console.warn('Error applying theme:', error);
+        } catch (error) {
+          // Erreur d'application du thème ignorée silencieusement
       }
     }
   }, [renditionRef, fontSize, darkMode, bookLoaded]);

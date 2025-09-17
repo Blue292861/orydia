@@ -15,37 +15,25 @@ const STATIC_CACHE_URLS = [
 
 // Installation du service worker
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Service Worker: Caching files');
-        return cache.addAll(STATIC_CACHE_URLS);
-      })
-      .then(() => {
-        console.log('Service Worker: Installed');
-        return self.skipWaiting();
-      })
+      .then((cache) => cache.addAll(STATIC_CACHE_URLS))
+      .then(() => self.skipWaiting())
   );
 });
 
 // Activation du service worker
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Service Worker: Deleting old cache', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => {
-      console.log('Service Worker: Activated');
-      return self.clients.claim();
-    })
+    }).then(() => self.clients.claim())
   );
 });
 

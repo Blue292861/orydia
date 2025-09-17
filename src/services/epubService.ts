@@ -110,7 +110,7 @@ export class EPUBService {
         if (chapterFile) {
           try {
             const chapterContent = await chapterFile.async('text');
-            const chapterHtml = await this.extractHtmlFromHTML(chapterContent, zipContent, chapterPath);
+            const chapterHtml = await this.processHtmlContent(chapterContent, zipContent, chapterPath);
             
             if (chapterHtml.trim()) {
               fullHtml += `\n<hr class="chapter-sep" data-chapter="${processedChapters + 1}"/>\n${chapterHtml}`;
@@ -240,8 +240,9 @@ export class EPUBService {
 
   /**
    * Convert a chapter HTML to sanitized HTML and inline EPUB image resources as data URIs
+   * Fixed recursion issue by using proper method name
    */
-  private static async extractHtmlFromHTML(htmlContent: string, zip: JSZip, chapterPath: string): Promise<string> {
+  private static async processHtmlContent(htmlContent: string, zip: JSZip, chapterPath: string): Promise<string> {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, 'text/html');
 
