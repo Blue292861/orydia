@@ -54,6 +54,47 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
 
   const isHtmlContent = content.includes('<hr class="chapter-sep"') || content.includes('<p>') || content.includes('<div>');
 
+  // Ensure embedded EPUB fonts are respected in fast mode by collecting inline <style> rules
+  // and placing them before the body content. This preserves @font-face with data URIs.
+  const sanitizedPages = useMemo(() => {
+    const allowedTags = ['html', 'head', 'body', 'p', 'div', 'span', 'br', 'strong', 'b', 'em', 'i', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'ul', 'ol', 'li', 'blockquote', 'a', 'style', 'link'];
+    const allowedAttrs = ['src', 'alt', 'href', 'class', 'id', 'loading', 'decoding', 'style', 'rel', 'type', 'face', 'size'];
+
+    return pages.map((raw) => {
+      if (!raw) return '';
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(raw, 'text/html');
+
+        // Collect CSS from <style> tags (already processed to inline fonts in epubService when possible)
+        const styleTags = Array.from(doc.querySelectorAll('style'));
+        const cssText = styleTags.map(s => s.textContent || '').join('\n');
+        // Remove link tags that won't resolve (fonts/CSS are typically inlined already)
+        const linkTags = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
+        linkTags.forEach(l => l.remove());
+
+        const bodyHtml = (doc.body ? doc.body.innerHTML : raw) || '';
+        const combined = `${cssText ? `<style>${cssText}</style>` : ''}${bodyHtml}`;
+
+        return DOMPurify.sanitize(combined, {
+          ALLOWED_TAGS: allowedTags,
+          ALLOWED_ATTR: allowedAttrs,
+          ALLOW_DATA_ATTR: true,
+          ALLOW_UNKNOWN_PROTOCOLS: true,
+          ADD_ATTR: ['target']
+        });
+      } catch {
+        return DOMPurify.sanitize(raw, {
+          ALLOWED_TAGS: allowedTags,
+          ALLOWED_ATTR: allowedAttrs,
+          ALLOW_DATA_ATTR: true,
+          ALLOW_UNKNOWN_PROTOCOLS: true,
+          ADD_ATTR: ['target']
+        });
+      }
+    });
+  }, [pages]);
+
   const goPrev = () => setCurrent(c => (c > 0 ? c - 1 : c));
   const goNext = () => setCurrent(c => (c < total - 1 ? c + 1 : c));
 
@@ -93,13 +134,7 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
             })
           }}
           dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(pages[current], {
-              ALLOWED_TAGS: ['html', 'head', 'body', 'p', 'div', 'span', 'br', 'strong', 'b', 'em', 'i', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'ul', 'ol', 'li', 'blockquote', 'a', 'style', 'link'],
-              ALLOWED_ATTR: ['src', 'alt', 'href', 'class', 'id', 'loading', 'decoding', 'style', 'rel', 'type', 'face', 'size'],
-              ALLOW_DATA_ATTR: true,
-              ALLOW_UNKNOWN_PROTOCOLS: true,
-              ADD_ATTR: ['target']
-            })
+            __html: sanitizedPages[current]
           }}
         />
       ) : (
