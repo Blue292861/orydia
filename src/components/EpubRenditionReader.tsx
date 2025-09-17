@@ -110,7 +110,7 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         }
 
         // INSTANT DISPLAY - Show first page immediately
-        const viewerHeight = Math.max(400, Math.round(window.innerHeight * 0.75));
+        const viewerHeight = Math.max(400, Math.round(window.innerHeight * 0.85));
         const renditionInstance = bookInstance.renderTo(viewerRef.current!, {
           width: '100%',
           height: viewerHeight,
@@ -130,6 +130,9 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
 
         // Apply minimal styles - preserve original EPUB fonts and layout
         renditionInstance.themes.default({
+          'body': {
+            'font-family': 'initial !important'
+          },
           'img': {
             'max-width': '100% !important',
             'height': 'auto !important',
@@ -140,10 +143,10 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         });
 
         renditionInstance.themes.register('light', {
-          'body': { 'background': '#ffffff !important', 'color': '#000000 !important' }
+          'body': { 'background': '#ffffff !important', 'color': '#000000 !important', 'font-family': 'initial !important' }
         });
         renditionInstance.themes.register('dark', {
-          'body': { 'background': '#000000 !important', 'color': '#ffffff !important' }
+          'body': { 'background': '#000000 !important', 'color': '#ffffff !important', 'font-family': 'initial !important' }
         });
         renditionInstance.themes.select(darkMode ? 'dark' : 'light');
         renditionInstance.themes.fontSize(`${fontSize}px`);
@@ -401,9 +404,9 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
       )}
 
       {/* Page info and controls */}
-      <div className="flex items-center justify-between p-2 border-b bg-background/95 backdrop-blur">
+      <div className="flex items-center justify-between p-1 border-b bg-background/95 backdrop-blur">
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {locationsReady && Number.isFinite(totalPages) && totalPages > 0 ? (
               `Page ${currentPage} sur ${totalPages}`
             ) : (
