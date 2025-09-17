@@ -10,7 +10,7 @@ import { ShopItem } from '@/types/ShopItem';
 import { useResponsive } from '@/hooks/useResponsive';
 
 export const ShopAdmin: React.FC = () => {
-  const { shopItems, loading, addShopItem, updateShopItem, deleteShopItem } = useShopItems();
+  const { shopItems, loading, addShopItem, updateShopItem, deleteShopItem } = useShopItems('internal'); // Only manage internal Orydia shop items
   const [showDialog, setShowDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<ShopItem | null>(null);
   const { isMobile, isTablet } = useResponsive();
@@ -142,7 +142,8 @@ export const ShopAdmin: React.FC = () => {
               price: 0,
               imageUrl: '',
               category: '',
-              seller: ''
+              seller: '',
+              shopType: 'internal' as const
             }}
             onSubmit={handleSubmit}
           />

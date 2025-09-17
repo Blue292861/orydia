@@ -40,16 +40,17 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
       return;
     }
 
-    // Final sanitization before submission
-    const sanitizedData: ShopItem = {
-      ...formData,
-      name: sanitizeTextWithSpaces(formData.name),
-      seller: sanitizeTextWithSpaces(formData.seller),
-      category: sanitizeTextWithSpaces(formData.category),
-      description: sanitizeTextWithSpaces(formData.description),
-      content: formData.content ? sanitizeTextWithSpaces(formData.content) : undefined,
-      imageUrl: sanitizeText(formData.imageUrl)
-    };
+      // Final sanitization before submission
+      const sanitizedData: ShopItem = {
+        ...formData,
+        name: sanitizeTextWithSpaces(formData.name),
+        seller: sanitizeTextWithSpaces(formData.seller),
+        category: sanitizeTextWithSpaces(formData.category),
+        description: sanitizeTextWithSpaces(formData.description),
+        content: formData.content ? sanitizeTextWithSpaces(formData.content) : undefined,
+        imageUrl: sanitizeText(formData.imageUrl),
+        shopType: formData.shopType
+      };
 
     onSubmit(sanitizedData);
   };

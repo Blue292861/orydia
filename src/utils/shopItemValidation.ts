@@ -33,6 +33,10 @@ export const validateShopItem = (item: ShopItem): string[] => {
     errors.push('Le niveau requis doit être entre 1 et 50');
   }
 
+  if (!item.shopType || !['internal', 'external'].includes(item.shopType)) {
+    errors.push('Le type de boutique doit être spécifié (internal ou external)');
+  }
+
   return errors;
 };
 
@@ -42,4 +46,5 @@ export const sanitizeShopItem = (item: ShopItem): ShopItem => ({
   description: sanitizeText(item.description),
   category: sanitizeText(item.category),
   seller: sanitizeText(item.seller),
+  shopType: item.shopType, // No sanitization needed for enum
 });

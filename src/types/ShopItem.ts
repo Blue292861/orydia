@@ -1,4 +1,6 @@
 
+export type ShopType = 'internal' | 'external';
+
 export interface ShopItem {
   id: string;
   name: string;
@@ -9,4 +11,5 @@ export interface ShopItem {
   category: string;
   seller: string;
   requiredLevel?: number; // Niveau minimum requis pour acheter l'article
+  shopType: ShopType; // Type de boutique : 'internal' (Orydia) ou 'external' (Oryshop)
 }

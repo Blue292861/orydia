@@ -810,6 +810,7 @@ export type Database = {
           required_level: number | null
           sale_price: number | null
           seller: string
+          shop_type: Database["public"]["Enums"]["shop_type"]
           tags: string[] | null
           updated_at: string
         }
@@ -832,6 +833,7 @@ export type Database = {
           required_level?: number | null
           sale_price?: number | null
           seller: string
+          shop_type?: Database["public"]["Enums"]["shop_type"]
           tags?: string[] | null
           updated_at?: string
         }
@@ -854,6 +856,7 @@ export type Database = {
           required_level?: number | null
           sale_price?: number | null
           seller?: string
+          shop_type?: Database["public"]["Enums"]["shop_type"]
           tags?: string[] | null
           updated_at?: string
         }
@@ -1401,6 +1404,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin"
+      shop_type: "internal" | "external"
       ui_theme:
         | "medieval_fantasy"
         | "science_fiction"
@@ -1536,6 +1540,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin"],
+      shop_type: ["internal", "external"],
       ui_theme: [
         "medieval_fantasy",
         "science_fiction",

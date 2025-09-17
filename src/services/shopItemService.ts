@@ -2,11 +2,18 @@
 import { supabase } from '@/integrations/supabase/client';
 import { ShopItem } from '@/types/ShopItem';
 
-export const fetchShopItemsFromDB = async (): Promise<ShopItem[]> => {
-  const { data, error } = await supabase
+export const fetchShopItemsFromDB = async (shopType?: 'internal' | 'external'): Promise<ShopItem[]> => {
+  let query = supabase
     .from('shop_items')
     .select('*')
     .order('created_at', { ascending: false });
+
+  // Filter by shop type if specified
+  if (shopType) {
+    query = query.eq('shop_type', shopType);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Database error:', error.code);
@@ -23,6 +30,7 @@ export const fetchShopItemsFromDB = async (): Promise<ShopItem[]> => {
     category: item.category,
     seller: item.seller,
     requiredLevel: item.required_level,
+    shopType: item.shop_type,
   }));
 
   return mappedItems;
@@ -40,6 +48,7 @@ export const addShopItemToDB = async (item: ShopItem): Promise<void> => {
       category: item.category,
       seller: item.seller,
       required_level: item.requiredLevel,
+      shop_type: item.shopType,
     });
 
   if (error) {
@@ -60,6 +69,7 @@ export const updateShopItemInDB = async (item: ShopItem): Promise<void> => {
       category: item.category,
       seller: item.seller,
       required_level: item.requiredLevel,
+      shop_type: item.shopType,
     })
     .eq('id', item.id);
 

@@ -44,7 +44,7 @@ const AppContent = () => {
   const [bookForAd, setBookForAd] = useState<Book | null>(null);
   
   const { books } = useBooks();
-  const { shopItems } = useShopItems();
+  const { shopItems } = useShopItems('internal'); // Only load internal Orydia shop items
   const { userStats, addAchievement, updateAchievement, deleteAchievement } = useUserStats();
   const { subscription } = useAuth();
   const { isMobile, isTablet } = useResponsive();

@@ -5,7 +5,7 @@ import { ShopItem } from '@/types/ShopItem';
 import { validateShopItem, sanitizeShopItem } from '@/utils/shopItemValidation';
 import { fetchShopItemsFromDB, addShopItemToDB, updateShopItemInDB, deleteShopItemFromDB } from '@/services/shopItemService';
 
-export const useShopItems = () => {
+export const useShopItems = (shopType?: 'internal' | 'external') => {
   const [shopItems, setShopItems] = useState<ShopItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -13,7 +13,7 @@ export const useShopItems = () => {
   const fetchShopItems = async () => {
     try {
       setLoading(true);
-      const mappedItems = await fetchShopItemsFromDB();
+      const mappedItems = await fetchShopItemsFromDB(shopType);
       setShopItems(mappedItems);
     } catch (error) {
       console.error('Error fetching shop items:', error);
