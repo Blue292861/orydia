@@ -260,6 +260,8 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
               hasFinished={hasFinished}
               pointsToWin={pointsToWin}
               onFinishReading={handleFinishReading}
+              onFontSizeChange={setFontSize}
+              onHighContrastChange={setHighContrast}
             />
           ) : isEpubStructured ? (
             <EpubPageReader

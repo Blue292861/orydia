@@ -4,6 +4,7 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChevronLeft, ChevronRight, Palette, Trophy } from 'lucide-react';
 import { BuyTensensDialog } from './BuyTensensDialog';
+import { TextSizeControls } from './TextSizeControls';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { toast } from '@/hooks/use-toast';
 import { ReactReader } from 'react-reader';
@@ -18,6 +19,8 @@ interface EpubReaderEngineProps {
   hasFinished: boolean;
   pointsToWin: number;
   onFinishReading: () => void;
+  onFontSizeChange: (size: number) => void;
+  onHighContrastChange: (enabled: boolean) => void;
 }
 
 export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
@@ -28,7 +31,9 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   isAlreadyRead,
   hasFinished,
   pointsToWin,
-  onFinishReading
+  onFinishReading,
+  onFontSizeChange,
+  onHighContrastChange
 }) => {
   const [location, setLocation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -289,7 +294,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   };
 
   const toggleTheme = () => {
-    setDarkMode(!darkMode);
+    onHighContrastChange(!highContrast);
   };
 
   const handleFinishReading = () => {
@@ -330,50 +335,60 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   return (
     <div className="epub-reader-container h-full flex flex-col">
       {/* Header Controls */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={goToPrevious}
-            disabled={!bookLoaded && !useFallback}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={goToNext}
-            disabled={!bookLoaded && !useFallback}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+      <div className="space-y-4 p-4 border-b">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToPrevious}
+              disabled={!bookLoaded && !useFallback}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToNext}
+              disabled={!bookLoaded && !useFallback}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {useFallback ? (
+              fallbackPages.length > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  Page {fallbackIndex + 1} / {fallbackPages.length}
+                </span>
+              )
+            ) : (
+              totalPages > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  Page {currentPage} / {totalPages}
+                </span>
+              )
+            )}
+            
+            <Button
+              variant={highContrast ? "default" : "outline"}
+              size="sm"
+              onClick={toggleTheme}
+            >
+              <Palette className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {useFallback ? (
-            fallbackPages.length > 0 && (
-              <span className="text-sm text-muted-foreground">
-                Page {fallbackIndex + 1} / {fallbackPages.length}
-              </span>
-            )
-          ) : (
-            totalPages > 0 && (
-              <span className="text-sm text-muted-foreground">
-                Page {currentPage} / {totalPages}
-              </span>
-            )
-          )}
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleTheme}
-          >
-            <Palette className="h-4 w-4" />
-          </Button>
-        </div>
+        {/* Text Size Controls */}
+        <TextSizeControls
+          fontSize={fontSize}
+          onFontSizeChange={onFontSizeChange}
+          highContrast={highContrast}
+          onHighContrastChange={onHighContrastChange}
+        />
       </div>
 
       {/* Progress Bar */}
@@ -392,9 +407,9 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       )}
 
       {/* EPUB Reader */}
-      <div className="flex-1 relative min-h-[60vh] sm:min-h-[70vh] max-h-[85vh] overflow-auto z-0">
+      <div className="flex-1 relative min-h-[60vh] sm:min-h-[70vh] max-h-[85vh] z-0">
         {useFallback ? (
-          <ScrollArea className="h-full w-full">
+          <ScrollArea className="h-full w-full epub-scroll-area">
             <div className="p-4 min-h-full">
               {fallbackPages.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-center">
@@ -404,7 +419,21 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
                   </div>
                 </div>
               ) : (
-                <article className="prose prose-sm sm:prose max-w-none">
+                <article 
+                  className={`prose prose-sm sm:prose max-w-none ${
+                    highContrast ? 'prose-invert' : ''
+                  }`}
+                  style={{ 
+                    fontSize: `${fontSize}px`,
+                    lineHeight: 1.6,
+                    ...(highContrast && {
+                      backgroundColor: '#1a1a1a',
+                      color: '#ffffff',
+                      padding: '1rem',
+                      borderRadius: '0.5rem'
+                    })
+                  }}
+                >
                   <div
                     className="whitespace-pre-wrap"
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(fallbackPages[fallbackIndex] || '') }}
@@ -414,8 +443,8 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
             </div>
           </ScrollArea>
         ) : (
-          <ScrollArea className="h-full w-full">
-            <div className="h-full">
+          <ScrollArea className="h-full w-full epub-scroll-area">
+            <div className="h-full overflow-auto">
               <ReactReader
                 url={epubUrl}
                 location={location}
@@ -455,10 +484,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
         </div>
 
         {/* Finish Reading Button - Only show on last page */}
-        {!hasFinished && (
-          (useFallback && fallbackPages.length > 0 && fallbackIndex >= fallbackPages.length - 1) ||
-          (!useFallback && totalPages > 0 && currentPage >= totalPages)
-        ) && (
+        {!hasFinished && isLastPage && (bookLoaded || (useFallback && fallbackPages.length > 0)) && (
           <Button
             onClick={handleFinishReading}
             className="w-full"

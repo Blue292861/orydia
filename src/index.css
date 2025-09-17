@@ -104,6 +104,26 @@
   .platform-web ::-webkit-scrollbar-thumb:hover {
     @apply bg-accent-foreground;
   }
+
+  /* Enhanced scrollbar for EPUB reader */
+  .epub-scroll-area ::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  .epub-scroll-area ::-webkit-scrollbar-track {
+    @apply bg-muted/50;
+    border-radius: 6px;
+  }
+  
+  .epub-scroll-area ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/80 rounded-md;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  
+  .epub-scroll-area ::-webkit-scrollbar-thumb:hover {
+    @apply bg-accent-foreground;
+  }
 }
 
 /* Utilitaires pour les animations 3D du splash screen */

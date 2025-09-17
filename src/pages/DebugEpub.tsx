@@ -146,6 +146,8 @@ export const DebugEpub = () => {
                 hasFinished={false}
                 pointsToWin={50}
                 onFinishReading={() => addLog('Lecture terminée !')}
+                onFontSizeChange={() => {}}
+                onHighContrastChange={() => {}}
               />
             </div>
           </div>
