@@ -95,26 +95,33 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
     }
   }, [epubUrl]);
 
-  // Load saved position and set timeout
+  // Load saved position and set timeouts (auto-fallback)
   useEffect(() => {
     const savedLocation = localStorage.getItem(getStorageKey());
     if (savedLocation && !location) {
       setLocation(savedLocation);
     }
 
-    // Set a timeout for loading
+    // Auto-switch to fast mode if initial load is slow
+    const autoFallbackTimeout = setTimeout(() => {
+      if (isLoading && !useFallback) {
+        startFallback();
+      }
+    }, 6000);
+
+    // Final timeout to stop spinner if nothing worked
     loadingTimeoutRef.current = setTimeout(() => {
-      if (isLoading) {
+      if (isLoading && !useFallback) {
         setLoadingError("Le chargement prend trop de temps. Veuillez réessayer.");
         setIsLoading(false);
       }
     }, 15000); // 15 seconds timeout
 
-
     return () => {
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
       }
+      clearTimeout(autoFallbackTimeout);
     };
   }, [epubUrl, isLoading, bookLoaded, useFallback, startFallback]);
 
@@ -468,11 +475,12 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
         </div>
 
         {/* Finish Reading Button - Only show on last page */}
-        {!hasFinished && isLastPage && (bookLoaded || (useFallback && fallbackPages.length > 0)) && (
+        {!hasFinished && (bookLoaded || (useFallback && fallbackPages.length > 0)) && (
           <Button
             onClick={handleFinishReading}
             className="w-full"
             variant="default"
+            disabled={!isLastPage}
           >
             <Trophy className="h-4 w-4 mr-2" />
             Terminer la lecture (+{pointsToWin} Tensens)
