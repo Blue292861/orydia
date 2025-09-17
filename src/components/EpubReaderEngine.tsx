@@ -398,7 +398,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       )}
 
       {/* EPUB Reader */}
-      <div className="flex-1 relative min-h-[60vh] sm:min-h-[70vh] max-h-[85vh] overflow-hidden">
+      <div className="flex-1 relative min-h-[70vh] sm:min-h-[80vh] max-h-[90vh] overflow-hidden">
         {useFallback ? (
           <ScrollArea className="h-full w-full">
             <div className="p-4 min-h-full">
@@ -478,6 +478,19 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
           </Button>
         </div>
 
+        {/* Finish Reading Button - Only show on last page */}
+        {!hasFinished && (bookLoaded || (useFallback && fallbackPages.length > 0)) && (
+          <Button
+            onClick={handleFinishReading}
+            className="w-full"
+            variant="default"
+            disabled={!isLastPage}
+          >
+            <Trophy className="h-4 w-4 mr-2" />
+            Terminer la lecture (+{pointsToWin} Tensens)
+          </Button>
+        )}
+
         {hasFinished && (
           <div className="text-center py-2 text-muted-foreground">
             <Trophy className="h-5 w-5 mx-auto mb-1 text-yellow-500" />
@@ -485,16 +498,21 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
           </div>
         )}
 
-        {/* Ad Banner */}
-        <div className="w-full bg-gradient-to-r from-primary/10 to-secondary/10 p-4 rounded-lg border border-border/50">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">Publicité</p>
-            <div className="bg-background/80 backdrop-blur-sm p-6 rounded-md border">
-              <p className="text-lg font-semibold mb-2">Découvrez nos livres premium</p>
-              <p className="text-sm text-muted-foreground">Accédez à une bibliothèque exclusive avec votre abonnement</p>
+        {/* Ad Banner - Only for non-premium users */}
+        {!isPremium && (
+          <div className="w-full bg-gradient-to-r from-primary/10 to-secondary/10 p-4 rounded-lg border border-border/50">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">Publicité</p>
+              <div className="bg-background/80 backdrop-blur-sm p-6 rounded-md border">
+                {/* Google AdSense placeholder */}
+                <div id="adsense-banner" className="min-h-[100px] flex items-center justify-center">
+                  <p className="text-lg font-semibold mb-2">Espace publicitaire</p>
+                  <p className="text-sm text-muted-foreground">Google AdSense sera intégré ici</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Tensens Dialog */}
