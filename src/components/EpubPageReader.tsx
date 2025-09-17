@@ -95,6 +95,21 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
     });
   }, [pages]);
 
+  // Remove any global font-family overrides while reading (to respect EPUB fonts)
+  React.useEffect(() => {
+    const clear = () => {
+      try { document.body.style.removeProperty('font-family'); } catch {}
+    };
+    const observer = new MutationObserver(() => clear());
+    try {
+      observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+    } catch {}
+    clear();
+    return () => {
+      try { observer.disconnect(); } catch {}
+    };
+  }, []);
+
   const goPrev = () => setCurrent(c => (c > 0 ? c - 1 : c));
   const goNext = () => setCurrent(c => (c < total - 1 ? c + 1 : c));
 

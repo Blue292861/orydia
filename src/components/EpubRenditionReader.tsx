@@ -320,6 +320,21 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
     setDarkMode(highContrast);
   }, [highContrast]);
 
+  // Remove any global font-family override while reading (respect EPUB embedded fonts)
+  React.useEffect(() => {
+    const clear = () => {
+      try { document.body.style.removeProperty('font-family'); } catch {}
+    };
+    const observer = new MutationObserver(() => clear());
+    try {
+      observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+    } catch {}
+    clear();
+    return () => {
+      try { observer.disconnect(); } catch {}
+    };
+  }, []);
+
   const goToPrevious = () => {
     if (rendition && !isAtStart) {
       rendition.prev();
