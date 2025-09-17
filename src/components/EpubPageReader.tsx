@@ -109,9 +109,13 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
           Précédent
         </Button>
         <div className="text-xs text-muted-foreground">{progress}% lu</div>
-        <Button onClick={goNext} disabled={atEnd} className="flex items-center gap-1">
-          Suivant
-          <ChevronRight className="h-4 w-4" />
+        <Button 
+          onClick={onFinish} 
+          className="flex items-center gap-2"
+          disabled={!atEnd || hasFinished || isAlreadyRead}
+        >
+          <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-4 w-4" />
+          {isPremium ? `Terminer la lecture & Gagner ${pointsToWin} Tensens` : `Regarder une publicité & Gagner ${pointsToWin} Tensens`}
         </Button>
       </div>
     </div>

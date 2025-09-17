@@ -339,7 +339,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   }
 
   return (
-    <div className="epub-reader-container h-full flex flex-col">
+    <div className="epub-reader-container flex flex-col">
       {/* Header Controls */}
       <div className="space-y-4 p-4 border-b">
         <div className="flex items-center justify-between">
@@ -398,7 +398,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       )}
 
       {/* EPUB Reader */}
-      <div className="flex-1 relative min-h-[70vh] sm:min-h-[80vh] max-h-[90vh] overflow-hidden">
+      <div className="relative max-h-[85vh] overflow-auto">
         {useFallback ? (
           <ScrollArea className="h-full w-full">
             <div className="p-4 min-h-full">
@@ -477,6 +477,26 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
             <ChevronRight className="h-4 w-4 ml-2" />
           </Button>
         </div>
+
+        {/* Finish Reading Button - visible but activable seulement à la dernière page */}
+        {!hasFinished && (
+          <Button
+            onClick={handleFinishReading}
+            className="w-full"
+            variant="default"
+            disabled={!isLastPage}
+          >
+            <Trophy className="h-4 w-4 mr-2" />
+            Terminer la lecture (+{pointsToWin} Tensens)
+          </Button>
+        )}
+
+        {hasFinished && (
+          <div className="text-center py-2 text-muted-foreground">
+            <Trophy className="h-5 w-5 mx-auto mb-1 text-yellow-500" />
+            Livre terminé !
+          </div>
+        )}
 
         {/* Ad Banner - Only for non-premium users */}
         {!isPremium && (

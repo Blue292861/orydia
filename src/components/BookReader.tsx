@@ -239,7 +239,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           </div>
         )}
         
-        <div className={`rounded-lg p-4 sm:p-6 lg:p-8 shadow-md w-full min-h-[80vh] ${
+        <div className={`rounded-lg p-4 sm:p-6 lg:p-8 shadow-md w-full ${
           highContrast && hasExtractedContent
             ? 'bg-black text-white border border-gray-600' 
             : 'bg-card text-card-foreground'
