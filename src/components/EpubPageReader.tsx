@@ -68,7 +68,35 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
 
         // Collect CSS from <style> tags (already processed to inline fonts in epubService when possible)
         const styleTags = Array.from(doc.querySelectorAll('style'));
-        const cssText = styleTags.map(s => s.textContent || '').join('\n');
+        const rawCssText = styleTags.map(s => s.textContent || '').join('\n');
+
+        // Scope EPUB CSS to .epub-content so rules like body{}/html{} apply inside our container
+        const scopeCss = (css: string) => {
+          try {
+            return css
+              .split('}')
+              .map(block => {
+                const [selectors, rules] = block.split('{');
+                if (!rules || !selectors) return '';
+                const sel = selectors.trim();
+                const body = rules.trim();
+                // Keep at-rules unmodified (e.g., @font-face, @keyframes)
+                if (/^@/i.test(sel)) return `${sel}{${body}}`;
+                const scopedSelectors = sel.split(',').map(s => {
+                  let x = s.trim();
+                  x = x.replace(/\bhtml\b/g, '.epub-content');
+                  x = x.replace(/\bbody\b/g, '.epub-content');
+                  if (!/^\.epub-content\b/.test(x)) x = `.epub-content ${x}`;
+                  return x;
+                }).join(', ');
+                return `${scopedSelectors}{${body}}`;
+              })
+              .filter(Boolean)
+              .join('}\n');
+          } catch { return css; }
+        };
+        const cssText = scopeCss(rawCssText);
+        
         // Remove link tags that won't resolve (fonts/CSS are typically inlined already)
         const linkTags = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
         linkTags.forEach(l => l.remove());
