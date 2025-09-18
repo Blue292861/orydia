@@ -123,6 +123,7 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/`,
       cancel_url: `${req.headers.get("origin")}/premium`,
+      allow_promotion_codes: true,
       metadata: {
         user_id: user.id,
         plan_type: planType
