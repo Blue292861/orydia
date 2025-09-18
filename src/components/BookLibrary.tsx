@@ -10,6 +10,7 @@ import { GameCard } from './GameCard';
 import { gameService } from '@/services/gameService';
 import { audiobookService } from '@/services/audiobookService';
 import { useResponsive } from '@/hooks/useResponsive';
+import { RecentReads } from './RecentReads';
 
 interface BookLibraryProps {
   books: Book[];
@@ -70,6 +71,15 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
 
   return (
     <div className={`max-w-full overflow-hidden ${getSpacing()}`}>
+      {/* Reprise de lecture */}
+      <RecentReads 
+        onSelectBook={handleReadBook}
+        onSelectAudiobook={(audiobook, chapter) => {
+          // Pour l'instant, on peut juste logger ou gérer différemment
+          console.log('Audiobook selected:', audiobook, chapter);
+        }}
+      />
+
       <BookCarousel
         title="Succès du mois"
         books={successBooks}

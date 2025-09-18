@@ -53,11 +53,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onPasswordReset }) => {
         }
         throw error;
       }
-
-      toast({
-        title: 'Connexion réussie !',
-        description: 'Bienvenue en Orydia, aventurier !',
-      });
     } catch (error: any) {
       toast({
         title: 'Erreur de connexion',
