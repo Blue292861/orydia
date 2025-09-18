@@ -32,10 +32,10 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Inter', 'sans-serif'],
-				serif: ['Playfair Display', 'serif'],
+				sans: ['Source Sans Pro', 'sans-serif'],
+				serif: ['EB Garamond', 'serif'],
         cursive: ['Dancing Script', 'cursive'],
-        medieval: ['Cinzel', 'serif'],
+        medieval: ['Cormorant Garamond', 'serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

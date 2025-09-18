@@ -37,7 +37,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     let maxLength = 200; // default
     if (name === 'title') maxLength = 200;
     else if (name === 'author') maxLength = 100;
-    else if (name === 'summary') maxLength = 1000;
+    else if (name === 'summary') maxLength = 2000;
     else if (name === 'content') maxLength = 1200000;
     
     if (!validateTextLength(value, maxLength)) {
