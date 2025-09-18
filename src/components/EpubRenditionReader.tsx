@@ -61,12 +61,19 @@ export const EpubRenditionReader: React.FC<EpubRenditionReaderProps> = ({
         // Try to fetch EPUB as ArrayBuffer to bypass CORS/iframe issues, fallback to URL
         let bookInstance: any;
         try {
+          console.log('[EPUB Rendition] Fetching EPUB:', epubUrl);
           const resp = await fetch(epubUrl, { mode: 'cors', credentials: 'omit', cache: 'no-store' });
+          console.log('[EPUB Rendition] Fetch response:', resp.status, resp.statusText);
           if (resp.ok) {
+            console.log('[EPUB Rendition] Converting to ArrayBuffer...');
             const ab = await resp.arrayBuffer();
+            console.log('[EPUB Rendition] ArrayBuffer size:', ab.byteLength);
             if (ab && ab.byteLength > 512) {
+              console.log('[EPUB Rendition] Creating ePub instance from ArrayBuffer...');
               bookInstance = ePub(ab, { openAs: 'binary' });
             }
+          } else {
+            console.error('[EPUB Rendition] Fetch failed:', resp.status, resp.statusText);
           }
         } catch (fetchErr) {
           // Fallback to direct URL

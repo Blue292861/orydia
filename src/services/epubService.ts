@@ -18,10 +18,13 @@ export class EPUBService {
     onProgress?: (progress: number, status: string) => void
   ): Promise<EPUBExtractionResult> {
     try {
+      console.log('[EPUB] Starting extraction for file:', epubFile.name, epubFile.size, 'bytes');
       onProgress?.(10, 'Lecture du fichier EPUB...');
       
       const zip = new JSZip();
+      console.log('[EPUB] Loading EPUB with JSZip...');
       const zipContent = await zip.loadAsync(epubFile);
+      console.log('[EPUB] EPUB loaded successfully, files count:', Object.keys(zipContent.files).length);
       
       onProgress?.(30, 'Analyse de la structure EPUB...');
       

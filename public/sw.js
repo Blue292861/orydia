@@ -116,8 +116,13 @@ self.addEventListener('fetch', (event) => {
   // Network-first strict pour les fichiers EPUB (ne jamais cacher)
   else if (request.url.includes('.epub') || url.pathname.includes('epubs/') || 
            request.url.startsWith('blob:')) {
+    console.log('[SW] EPUB request intercepted:', request.url);
     event.respondWith(
-      fetch(request).catch(() => {
+      fetch(request).then(response => {
+        console.log('[SW] EPUB fetch success:', request.url, response.status);
+        return response;
+      }).catch(error => {
+        console.error('[SW] EPUB fetch failed:', request.url, error);
         // Pas de fallback cache pour les EPUBs
         return new Response('EPUB file not available', { status: 404 });
       })

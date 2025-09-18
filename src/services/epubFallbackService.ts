@@ -14,11 +14,15 @@ export class EPUBFallbackService {
    */
   static async extractFromUrl(url: string, onProgress?: (progress: number, status: string) => void): Promise<EPUBFallbackResult> {
     try {
+      console.log('[EPUB Fallback] Starting extraction from URL:', url);
       onProgress?.(10, 'Téléchargement du fichier EPUB...');
       
       // Download EPUB file
+      console.log('[EPUB Fallback] Fetching EPUB file...');
       const response = await fetch(url);
+      console.log('[EPUB Fallback] Fetch response:', response.status, response.statusText);
       if (!response.ok) {
+        console.error('[EPUB Fallback] Fetch failed:', response.status, response.statusText);
         throw new Error(`Failed to fetch EPUB: ${response.statusText}`);
       }
       
