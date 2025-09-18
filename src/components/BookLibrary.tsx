@@ -71,14 +71,6 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
 
   return (
     <div className={`max-w-full overflow-hidden ${getSpacing()}`}>
-      {/* Reprise de lecture */}
-      <RecentReads 
-        onSelectBook={handleReadBook}
-        onSelectAudiobook={(audiobook, chapter) => {
-          // Pour l'instant, on peut juste logger ou gérer différemment
-          console.log('Audiobook selected:', audiobook, chapter);
-        }}
-      />
 
       <BookCarousel
         title="Succès du mois"
@@ -204,31 +196,14 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
           )}
         </div>
       </div>
-      
-      <div className={getSpacing()}>
-        <h2 className={`font-cursive text-wood-300 px-2 ${
-          isMobile ? 'text-lg' : isTablet ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'
-        }`}>
-          En cours de lecture
-        </h2>
-        <div className={`bg-wood-800/60 border border-wood-700 rounded-lg flex items-center justify-center text-center text-wood-200 mx-2 ${getInfoPadding()}`}>
-          <Info className={`mr-2 text-primary shrink-0 ${
-            isMobile ? 'h-4 w-4' : isTablet ? 'h-5 w-5' : 'h-5 w-5 sm:h-6 sm:w-6'
-          }`} />
-          <div>
-            <p className={`font-semibold ${
-              isMobile ? 'text-sm' : isTablet ? 'text-base' : 'text-base'
-            }`}>
-              Bientôt disponible !
-            </p>
-            <p className={`text-wood-400 ${
-              isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-sm'
-            }`}>
-              La fonctionnalité de suivi des lectures en cours est en préparation.
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Reprise de lecture */}
+      <RecentReads 
+        onSelectBook={handleReadBook}
+        onSelectAudiobook={(audiobook, chapter) => {
+          // Pour l'instant, on peut juste logger ou gérer différemment
+          console.log('Audiobook selected:', audiobook, chapter);
+        }}
+      />
 
       {books.length === 0 && (
         <div className={`text-center py-12 px-4`}>
