@@ -87,43 +87,15 @@
   }
 }
 
-/* Scrollbar styles for web */
-@media (min-width: 768px) {
-  .platform-web ::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  .platform-web ::-webkit-scrollbar-track {
-    @apply bg-muted;
-  }
-  
-  .platform-web ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground rounded-md;
-  }
-  
-  .platform-web ::-webkit-scrollbar-thumb:hover {
-    @apply bg-accent-foreground;
-  }
+/* Hidden scrollbars for cleaner design */
+* {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+}
 
-  /* Enhanced scrollbar for EPUB reader */
-  .epub-scroll-area ::-webkit-scrollbar {
-    width: 12px;
-  }
-  
-  .epub-scroll-area ::-webkit-scrollbar-track {
-    @apply bg-muted/50;
-    border-radius: 6px;
-  }
-  
-  .epub-scroll-area ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/80 rounded-md;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-  }
-  
-  .epub-scroll-area ::-webkit-scrollbar-thumb:hover {
-    @apply bg-accent-foreground;
-  }
+*::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for webkit browsers */
 }
 
 /* Utilitaires pour les animations 3D du splash screen */
