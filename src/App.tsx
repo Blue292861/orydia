@@ -5,9 +5,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { HelmetProvider } from 'react-helmet-async';
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import EmailConfirmationPage from "./pages/EmailConfirmationPage";
+import WorkPage from "./pages/WorkPage";
 
 import SplashScreen from "./components/SplashScreen";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -58,7 +60,7 @@ const AppContent = () => {
     <Routes>
       <Route path="/auth" element={<Navigate to="/" replace />} />
       <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
-      
+      <Route path="/:authorSlug/:titleSlug" element={<WorkPage />} />
       <Route path="/*" element={<Index />} />
     </Routes>
   );
@@ -66,21 +68,23 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <ThemeProvider>
-            <UserStatsProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <AppContent />
-              </TooltipProvider>
-            </UserStatsProvider>
-          </ThemeProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <ThemeProvider>
+              <UserStatsProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <AppContent />
+                </TooltipProvider>
+              </UserStatsProvider>
+            </ThemeProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 };
 

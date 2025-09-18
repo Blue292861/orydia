@@ -3,6 +3,7 @@ import { Audiobook } from '@/types/Audiobook';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Crown, Star, Zap, Play } from 'lucide-react';
+import { ShareButton } from '@/components/ShareButton';
 
 interface AudiobookCardProps {
   audiobook: Audiobook;
@@ -32,6 +33,15 @@ export const AudiobookCard: React.FC<AudiobookCardProps> = ({ audiobook, onClick
         <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
           <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-3 w-3" />
           <span className="font-medium text-white text-xs">{audiobook.points}</span>
+        </div>
+        <div className="absolute bottom-2 right-2">
+          <ShareButton 
+            author={audiobook.author} 
+            title={audiobook.name}
+            variant="ghost"
+            size="sm"
+            className="bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white h-6 w-6 p-0"
+          />
         </div>
       </div>
       

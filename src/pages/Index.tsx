@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Book } from '@/types/Book';
+import { Audiobook } from '@/types/Audiobook';
 import { BookLibrary } from '@/components/BookLibrary';
 import { BookReader } from '@/components/BookReader';
 import { AdminDashboard } from '@/components/AdminDashboard';
@@ -38,6 +40,7 @@ type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' |
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'game-reader' | AdminPage;
 
 const AppContent = () => {
+  const location = useLocation();
   const [currentPage, setCurrentPage] = useState<Page>('library');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [selectedGame, setSelectedGame] = useState<any>(null);
@@ -50,6 +53,18 @@ const AppContent = () => {
   const { isMobile, isTablet } = useResponsive();
 
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
+
+  // Handle shared work from WorkPage
+  useEffect(() => {
+    const state = location.state as { selectedWork?: Book | Audiobook; workType?: 'book' | 'audiobook' };
+    if (state?.selectedWork && state?.workType) {
+      if (state.workType === 'book') {
+        handleBookSelect(state.selectedWork as Book);
+      }
+      // Clear the state to prevent repeated navigation
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleBookSelect = async (book: Book) => {
     // Si le livre est premium et l'utilisateur n'est pas premium, ouvrir le panel de sélection

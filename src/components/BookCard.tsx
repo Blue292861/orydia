@@ -6,6 +6,7 @@ import { useUserStats } from '@/contexts/UserStatsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { CheckCircle, Crown } from 'lucide-react';
 import { useResponsive } from '@/hooks/useResponsive';
+import { ShareButton } from '@/components/ShareButton';
 
 interface BookCardProps {
   book: Book;
@@ -76,6 +77,15 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = 
           <span className={`font-medium text-white ${
             isMobile ? 'text-[6px]' : isTablet ? 'text-[7px]' : 'text-[8px] sm:text-[10px]'
           }`}>{book.points}</span>
+        </div>
+        <div className="absolute bottom-1 right-1">
+          <ShareButton 
+            author={book.author} 
+            title={book.title}
+            variant="ghost"
+            size="sm"
+            className="bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white h-6 w-6 p-0"
+          />
         </div>
       </div>
       <CardContent className={`text-wood-100 ${
