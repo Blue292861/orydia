@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Crown, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { EmailAutocomplete } from './EmailAutocomplete';
 
 export const PremiumAdmin: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -132,11 +133,9 @@ export const PremiumAdmin: React.FC = () => {
           <form onSubmit={handleGrantPremium} className="space-y-4">
             <div>
               <Label htmlFor="email">Adresse email de l'utilisateur</Label>
-              <Input
-                id="email"
-                type="email"
+              <EmailAutocomplete
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={setEmail}
                 placeholder="utilisateur@example.com"
                 required
               />

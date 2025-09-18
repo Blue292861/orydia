@@ -23,8 +23,7 @@ export const AdaptiveText: React.FC<AdaptiveTextProps> = ({
   
   return (
     <Component 
-      className={cn('font-[var(--theme-font-family)]', className)}
-      style={{ fontFamily: 'var(--theme-font-family)' }}
+      className={cn(className)}
     >
       {text}
       {children}

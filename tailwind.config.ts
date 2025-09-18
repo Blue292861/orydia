@@ -32,7 +32,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Source Sans Pro', 'sans-serif'],
+				sans: ['Inter', 'system-ui', 'sans-serif'],
 				serif: ['EB Garamond', 'serif'],
         cursive: ['Dancing Script', 'cursive'],
         medieval: ['Cormorant Garamond', 'serif'],

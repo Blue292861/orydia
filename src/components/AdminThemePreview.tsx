@@ -85,10 +85,7 @@ export const AdminThemePreview: React.FC = () => {
                 {/* Font Preview */}
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Police: {theme.font_family}</p>
-                  <p 
-                    className="text-sm"
-                    style={{ fontFamily: theme.font_family }}
-                  >
+                  <p className="text-sm">
                     Aperçu du texte
                   </p>
                 </div>
