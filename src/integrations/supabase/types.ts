@@ -1382,6 +1382,12 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      search_user_emails: {
+        Args: { p_query: string }
+        Returns: {
+          email: string
+        }[]
+      }
       sync_user_level_info: {
         Args: Record<PropertyKey, never>
         Returns: undefined

@@ -33,22 +33,12 @@ export const EmailAutocomplete: React.FC<EmailAutocompleteProps> = ({
 
     setLoading(true);
     try {
-      // Get limited user profiles to suggest emails
-      // This is a simplified approach - in production you might want a dedicated RPC function
-      const { data, error } = await supabase
-        .rpc('user_has_role', { p_user_id: (await supabase.auth.getUser()).data.user?.id, p_role: 'admin' });
-
+      const { data, error } = await supabase.rpc('search_user_emails', { p_query: query });
+      
       if (!error && data) {
-        // For demo purposes, we'll use some mock suggestions based on the query
-        // In a real implementation, you'd have an admin-only RPC function to search users
-        const mockSuggestions = [
-          'user@example.com',
-          'admin@example.com',
-          'test@example.com',
-          'demo@example.com'
-        ].filter(email => email.toLowerCase().includes(query.toLowerCase()));
-        
-        setSuggestions(mockSuggestions);
+        setSuggestions(data.map(item => item.email));
+      } else {
+        setSuggestions([]);
       }
     } catch (error) {
       console.error('Error fetching email suggestions:', error);
