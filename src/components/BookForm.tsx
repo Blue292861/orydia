@@ -391,7 +391,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
           onChange={handleChange}
           placeholder="Entrez un résumé du livre"
           className="min-h-[100px]"
-          maxLength={1000}
+          maxLength={2000}
         />
       </div>
 
