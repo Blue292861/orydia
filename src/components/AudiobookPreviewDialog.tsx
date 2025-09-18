@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Crown, Star, Zap, Play } from 'lucide-react';
+import { ShareButton } from '@/components/ShareButton';
 
 interface AudiobookPreviewDialogProps {
   audiobook: Audiobook | null;
@@ -116,6 +117,13 @@ export const AudiobookPreviewDialog: React.FC<AudiobookPreviewDialogProps> = ({
               <Play className="h-5 w-5 mr-2" />
               Démarrer l'écoute
             </Button>
+            <ShareButton 
+              author={audiobook.author} 
+              title={audiobook.name}
+              variant="outline"
+              size="lg"
+              showText={true}
+            />
           </div>
         </div>
       </DialogContent>

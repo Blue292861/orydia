@@ -3,6 +3,7 @@ import { Book } from '@/types/Book';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Crown } from 'lucide-react';
+import { ShareButton } from '@/components/ShareButton';
 
 interface BookPreviewDialogProps {
   book: Book | null;
@@ -98,13 +99,20 @@ export const BookPreviewDialog: React.FC<BookPreviewDialogProps> = ({
               </div>
             )}
 
-            <div className="pt-4">
+            <div className="pt-4 space-y-3">
               <button
                 onClick={handleReadClick}
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-2 px-4 rounded-md transition-colors font-medium"
               >
                 Commencer la lecture
               </button>
+              <ShareButton 
+                author={book.author} 
+                title={book.title}
+                variant="outline"
+                showText={true}
+                className="w-full"
+              />
             </div>
           </div>
         </div>

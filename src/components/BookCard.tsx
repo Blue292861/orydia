@@ -78,15 +78,6 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = 
             isMobile ? 'text-[6px]' : isTablet ? 'text-[7px]' : 'text-[8px] sm:text-[10px]'
           }`}>{book.points}</span>
         </div>
-        <div className="absolute bottom-1 right-1">
-          <ShareButton 
-            author={book.author} 
-            title={book.title}
-            variant="ghost"
-            size="sm"
-            className="bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white h-6 w-6 p-0"
-          />
-        </div>
       </div>
       <CardContent className={`text-wood-100 ${
         isMobile ? 'p-1.5' : isTablet ? 'p-2' : 'p-3'

@@ -34,15 +34,6 @@ export const AudiobookCard: React.FC<AudiobookCardProps> = ({ audiobook, onClick
           <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-3 w-3" />
           <span className="font-medium text-white text-xs">{audiobook.points}</span>
         </div>
-        <div className="absolute bottom-2 right-2">
-          <ShareButton 
-            author={audiobook.author} 
-            title={audiobook.name}
-            variant="ghost"
-            size="sm"
-            className="bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white h-6 w-6 p-0"
-          />
-        </div>
       </div>
       
       <CardContent className="p-3 space-y-2">
