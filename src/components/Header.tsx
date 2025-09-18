@@ -3,8 +3,9 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useResponsive } from '@/hooks/useResponsive';
+import { useContrast } from '@/contexts/ContrastContext';
 import { PointsDisplay } from '@/components/PointsDisplay';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, Contrast } from 'lucide-react';
 
 type Page = 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'game-reader';
 
@@ -16,6 +17,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const { user, subscription, isAdmin } = useAuth();
   const { isMobile, isTablet } = useResponsive();
+  const { isHighContrast, toggleContrast } = useContrast();
   const isReader = currentPage === 'reader' || currentPage === 'game-reader';
 
   const handleLogout = async () => {
@@ -102,6 +104,24 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             
             {/* Tensens Counter */}
             <PointsDisplay />
+            
+            {/* Contrast Toggle Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleContrast}
+              className={`${isHighContrast ? 'bg-gold-400/20 text-gold-200' : 'text-wood-100'} hover:text-gold-300 hover:bg-gold-400/20 backdrop-blur-sm border border-transparent hover:border-gold-400/30 transition-all duration-300 ${
+                isMobile ? 'px-2 py-1' : 'px-3 py-2'
+              }`}
+              title={isHighContrast ? "Désactiver le contraste élevé" : "Activer le contraste élevé"}
+            >
+              <Contrast className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} ${isHighContrast ? 'text-gold-300' : ''}`} />
+              {!isMobile && (
+                <span className="ml-1 font-medium text-xs">
+                  {isHighContrast ? 'Contraste' : 'Contraste'}
+                </span>
+              )}
+            </Button>
           </div>
 
           {/* Center - Logo with luxury frame (hidden in reader mode) */}

@@ -329,6 +329,88 @@
   }
 }
 
+/* High Contrast Mode */
+body.high-contrast {
+  /* Inverse nature colors for high contrast */
+  --forest-50: 150 85% 8%;
+  --forest-100: 150 80% 12%;
+  --forest-200: 150 75% 18%;
+  --forest-300: 150 70% 25%;
+  --forest-400: 150 65% 35%;
+  --forest-500: 150 60% 45%;
+  --forest-600: 150 55% 60%;
+  --forest-700: 150 50% 75%;
+  --forest-800: 150 45% 88%;
+  --forest-900: 150 40% 95%;
+  
+  --wood-50: 30 22% 12%;
+  --wood-100: 30 25% 18%;
+  --wood-200: 30 28% 25%;
+  --wood-300: 30 30% 35%;
+  --wood-400: 30 35% 45%;
+  --wood-500: 30 40% 58%;
+  --wood-600: 30 45% 70%;
+  --wood-700: 30 50% 80%;
+  --wood-800: 30 55% 88%;
+  --wood-900: 30 60% 95%;
+  
+  --gold-50: 45 45% 15%;
+  --gold-100: 45 50% 20%;
+  --gold-200: 45 55% 28%;
+  --gold-300: 45 60% 38%;
+  --gold-400: 45 65% 48%;
+  --gold-500: 45 70% 58%;
+  --gold-600: 45 75% 68%;
+  --gold-700: 45 80% 78%;
+  --gold-800: 45 85% 88%;
+  --gold-900: 45 90% 95%;
+  
+  --stone-50: 25 3% 12%;
+  --stone-100: 25 4% 18%;
+  --stone-200: 25 5% 25%;
+  --stone-300: 25 6% 35%;
+  --stone-400: 25 8% 45%;
+  --stone-500: 25 10% 58%;
+  --stone-600: 25 12% 70%;
+  --stone-700: 25 15% 80%;
+  --stone-800: 25 18% 88%;
+  --stone-900: 25 20% 95%;
+  
+  /* Inverse main theme colors */
+  --background: 120 25% 8%;
+  --foreground: 45 15% 95%;
+  --card: 120 25% 12%;
+  --card-foreground: 45 20% 98%;
+  --popover: 120 25% 10%;
+  --popover-foreground: 45 25% 97%;
+  
+  --primary: 150 60% 75%;
+  --primary-foreground: 120 25% 8%;
+  
+  --secondary: 30 35% 25%;
+  --secondary-foreground: 45 30% 95%;
+  
+  --muted: 120 15% 18%;
+  --muted-foreground: 45 20% 75%;
+  
+  --accent: 45 85% 40%;
+  --accent-foreground: 45 15% 95%;
+  
+  background: hsl(var(--background)) !important;
+}
+
+body.high-contrast .nature-gradient {
+  background: linear-gradient(135deg, hsl(150 85% 8%), hsl(30 22% 12%));
+}
+
+body.high-contrast .luxury-gradient {
+  background: linear-gradient(135deg, hsl(150 60% 75%), hsl(45 85% 40%));
+}
+
+body.high-contrast .parchment-texture {
+  background-color: hsl(120 15% 18%);
+}
+
 /* Animation classes */
 .gentle-float {
   animation: gentle-float 4s ease-in-out infinite;
@@ -355,6 +437,12 @@
 
 .vine-grow {
   animation: vine-grow 1s ease-out forwards;
+}
+
+/* High contrast transition */
+body.high-contrast,
+body.high-contrast * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
 }
   
   /* EPUB content styling - minimal interference with original styles */

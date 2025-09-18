@@ -14,6 +14,7 @@ import WorkPage from "./pages/WorkPage";
 import SplashScreen from "./components/SplashScreen";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserStatsProvider } from "./contexts/UserStatsContext";
+import { ContrastProvider } from "./contexts/ContrastContext";
 
 const queryClient = new QueryClient();
 
@@ -70,15 +71,17 @@ const App = () => {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <AuthProvider>
-            <UserStatsProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <AppContent />
-              </TooltipProvider>
-            </UserStatsProvider>
-          </AuthProvider>
+          <ContrastProvider>
+            <AuthProvider>
+              <UserStatsProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <AppContent />
+                </TooltipProvider>
+              </UserStatsProvider>
+            </AuthProvider>
+          </ContrastProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </HelmetProvider>
