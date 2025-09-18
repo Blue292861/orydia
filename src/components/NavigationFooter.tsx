@@ -36,29 +36,50 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-wood-300 border-t border-wood-400 shadow-lg z-40 pb-safe-bottom">
-      <div className="w-full max-w-full overflow-hidden">
-        <div className={`flex justify-around items-center ${getPadding()}`}>
-          {navItems.map((item) => {
-            return (
-              <Button
-                key={item.id}
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate(item.id)}
-                className="flex flex-col items-center justify-center gap-0.5 h-auto py-1 px-0.5 text-wood-800 hover:text-primary hover:bg-wood-400/50 min-w-0 flex-1 max-w-none"
-              >
-                <img 
-                  src={item.icon} 
-                  alt={item.label} 
-                  className={`object-contain ${getIconSize()}`}
-                />
-                <span className={`font-medium leading-none text-center truncate max-w-full ${getTextSize()}`}>
-                  {isMobile && item.label.length > 8 ? item.label.substring(0, 8) + '...' : item.label}
-                </span>
-              </Button>
-            );
-          })}
+    <footer className="fixed bottom-0 left-0 right-0 z-40 pb-safe-bottom">
+      {/* Nature background with organic elements */}
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-t from-forest-700 via-forest-600 to-forest-500"></div>
+        <div className="absolute inset-0 wood-texture opacity-20"></div>
+        
+        {/* Decorative natural border */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold-400 to-transparent"></div>
+        
+        <div className="relative z-10 w-full max-w-full overflow-hidden">
+          <div className={`flex justify-around items-center backdrop-blur-sm ${getPadding()}`}>
+            {navItems.map((item, index) => {
+              return (
+                <Button
+                  key={item.id}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onNavigate(item.id)}
+                  className="group flex flex-col items-center justify-center gap-0.5 h-auto py-2 px-1 text-wood-100 hover:text-gold-300 hover:bg-forest-800/50 min-w-0 flex-1 max-w-none transition-all duration-300 rounded-lg relative overflow-hidden"
+                >
+                  {/* Hover effect background */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-gold-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  
+                  <div className="relative z-10 flex flex-col items-center gap-0.5">
+                    <div className={`relative rounded-lg p-1 group-hover:bg-gold-400/20 transition-colors duration-300 ${
+                      index % 2 === 0 ? 'gentle-float' : 'leaf-dance'
+                    }`}>
+                      <img 
+                        src={item.icon} 
+                        alt={item.label} 
+                        className={`object-contain filter brightness-90 group-hover:brightness-110 transition-all duration-300 ${getIconSize()}`}
+                      />
+                    </div>
+                    <span className={`font-nature font-medium leading-none text-center truncate max-w-full transition-colors duration-300 group-hover:text-gold-200 ${getTextSize()}`}>
+                      {isMobile && item.label.length > 8 ? item.label.substring(0, 8) + '...' : item.label}
+                    </span>
+                  </div>
+                  
+                  {/* Decorative elements */}
+                  <div className="absolute top-1 right-1 w-1 h-1 bg-gold-400 rounded-full opacity-0 group-hover:opacity-60 transition-opacity duration-300"></div>
+                </Button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </footer>

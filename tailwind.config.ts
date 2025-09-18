@@ -33,9 +33,12 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['Inter', 'system-ui', 'sans-serif'],
-				serif: ['EB Garamond', 'serif'],
+				serif: ['Crimson Pro', 'EB Garamond', 'serif'],
+        display: ['Playfair Display', 'serif'],
         cursive: ['Dancing Script', 'cursive'],
         medieval: ['Cormorant Garamond', 'serif'],
+        luxury: ['Playfair Display', 'serif'],
+        nature: ['Crimson Pro', 'serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -82,34 +85,52 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				forest: {
-					50: '#f0f9f0',
-					100: '#dcf2dc',
-					200: '#bae5ba',
-					300: '#8dd38d',
-					400: '#5cb85c',
-					500: '#3d8b3d',
-					600: '#2e6b2e',
-					700: '#245424',
-					800: '#1f431f',
-					900: '#1a381a',
+					50: 'hsl(150, 40%, 95%)',
+					100: 'hsl(150, 45%, 88%)',
+					200: 'hsl(150, 50%, 75%)',
+					300: 'hsl(150, 55%, 60%)',
+					400: 'hsl(150, 60%, 45%)',
+					500: 'hsl(150, 65%, 35%)',
+					600: 'hsl(150, 70%, 25%)',
+					700: 'hsl(150, 75%, 18%)',
+					800: 'hsl(150, 80%, 12%)',
+					900: 'hsl(150, 85%, 8%)',
 				},
 				wood: {
-					50: '#faf8f5',
-					100: '#f5f0e8',
-					200: '#ebe0d0',
-					300: '#ddc9b0',
-					400: '#cdad8a',
-					500: '#b8906a',
-					600: '#a67c5a',
-					700: '#8a654b',
-					800: '#715342',
-					900: '#5c4439',
+					50: 'hsl(30, 60%, 95%)',
+					100: 'hsl(30, 55%, 88%)',
+					200: 'hsl(30, 50%, 80%)',
+					300: 'hsl(30, 45%, 70%)',
+					400: 'hsl(30, 40%, 58%)',
+					500: 'hsl(30, 35%, 45%)',
+					600: 'hsl(30, 30%, 35%)',
+					700: 'hsl(30, 28%, 25%)',
+					800: 'hsl(30, 25%, 18%)',
+					900: 'hsl(30, 22%, 12%)',
 				},
-        'title-blue': '#4A90E2',
+        stone: {
+					50: 'hsl(25, 20%, 95%)',
+					100: 'hsl(25, 18%, 88%)',
+					200: 'hsl(25, 15%, 80%)',
+					300: 'hsl(25, 12%, 70%)',
+					400: 'hsl(25, 10%, 58%)',
+					500: 'hsl(25, 8%, 45%)',
+					600: 'hsl(25, 6%, 35%)',
+					700: 'hsl(25, 5%, 25%)',
+					800: 'hsl(25, 4%, 18%)',
+					900: 'hsl(25, 3%, 12%)',
+				},
         gold: {
-          400: '#DAA520',
-          500: '#B8860B',
-          600: '#996F00',
+          50: 'hsl(45, 90%, 95%)',
+          100: 'hsl(45, 85%, 88%)',
+          200: 'hsl(45, 80%, 78%)',
+          300: 'hsl(45, 75%, 68%)',
+          400: 'hsl(45, 70%, 58%)',
+          500: 'hsl(45, 65%, 48%)',
+          600: 'hsl(45, 60%, 38%)',
+          700: 'hsl(45, 55%, 28%)',
+          800: 'hsl(45, 50%, 20%)',
+          900: 'hsl(45, 45%, 15%)',
         }
 			},
 			spacing: {
@@ -162,16 +183,51 @@ export default {
           '0%, 100%': { transform: 'rotate(-2deg) translateX(-4%)' },
           '50%': { transform: 'rotate(2deg) translateX(4%)' },
         },
-        'mystical-pulse': {
-          '0%, 100%': { 
-            opacity: '0.6',
-            transform: 'scale(1)' 
+        'gentle-float': {
+          '0%, 100%': {
+            transform: 'translateY(0px) rotate(0deg)'
           },
-          '50%': { 
-            opacity: '1',
-            transform: 'scale(1.05)' 
+          '50%': {
+            transform: 'translateY(-10px) rotate(1deg)'
           },
-        }
+        },
+        'leaf-dance': {
+          '0%, 100%': {
+            transform: 'translateY(0px) rotate(0deg)'
+          },
+          '33%': {
+            transform: 'translateY(-8px) rotate(2deg)'
+          },
+          '66%': {
+            transform: 'translateY(-4px) rotate(-1deg)'
+          },
+        },
+        'golden-shimmer': {
+          '0%': {
+            transform: 'translateX(-100%)'
+          },
+          '100%': {
+            transform: 'translateX(100%)'
+          },
+        },
+        'nature-breathe': {
+          '0%, 100%': {
+            transform: 'scale(1)'
+          },
+          '50%': {
+            transform: 'scale(1.02)'
+          },
+        },
+        'vine-grow': {
+          '0%': {
+            transform: 'scaleY(0)',
+            transformOrigin: 'bottom'
+          },
+          '100%': {
+            transform: 'scaleY(1)',
+            transformOrigin: 'bottom'
+          },
+        },
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -180,6 +236,11 @@ export default {
         'fade-in': 'fade-in 1s ease-out',
         'sway': 'sway 18s ease-in-out infinite alternate',
         'mystical-pulse': 'mystical-pulse 2s ease-in-out infinite',
+        'gentle-float': 'gentle-float 4s ease-in-out infinite',
+        'leaf-dance': 'leaf-dance 6s ease-in-out infinite',
+        'golden-shimmer': 'golden-shimmer 3s ease-in-out infinite',
+        'nature-breathe': 'nature-breathe 5s ease-in-out infinite',
+        'vine-grow': 'vine-grow 1s ease-out forwards',
 			},
 			perspective: {
 				'1000': '1000px',

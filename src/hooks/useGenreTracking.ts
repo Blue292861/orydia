@@ -1,11 +1,9 @@
 import { useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { genreAnalyticsService } from '@/services/genreAnalyticsService';
-import { useTheme } from '@/contexts/ThemeContext';
 
 export const useGenreTracking = () => {
   const { session } = useAuth();
-  const { refreshUserTheme } = useTheme();
 
   const trackBookRead = useCallback(async (bookTags: string[], readingTimeMinutes: number = 30) => {
     if (!session?.user) return;
@@ -23,12 +21,11 @@ export const useGenreTracking = () => {
         );
       }
 
-      // Refresh user theme to potentially update to new preferred genre theme
-      await refreshUserTheme();
+      console.log('Genre preferences updated successfully');
     } catch (error) {
       console.error('Error tracking genre preferences:', error);
     }
-  }, [session?.user, refreshUserTheme]);
+  }, [session?.user]);
 
   return { trackBookRead };
 };

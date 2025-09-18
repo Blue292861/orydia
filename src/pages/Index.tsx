@@ -25,7 +25,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AdminNav } from '@/components/AdminNav';
 import { TensensCodeAdmin } from '@/components/TensensCodeAdmin';
 import { PremiumAdmin } from '@/components/PremiumAdmin';
-import { AdminThemePreview } from '@/components/AdminThemePreview';
 import { OrdersAdmin } from '@/components/OrdersAdmin';
 import { ReadingStatsAdmin } from '@/components/ReadingStatsAdmin';
 import { ReadingStatsExport } from '@/components/ReadingStatsExport';
@@ -36,7 +35,7 @@ import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin' | 'theme-preview' | 'tensens-codes' | 'premium-admin';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin' | 'tensens-codes' | 'premium-admin';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'game-reader' | AdminPage;
 
 const AppContent = () => {
@@ -145,8 +144,6 @@ const AppContent = () => {
         return <TensensCodeAdmin />;
       case 'api-keys-admin':
         return <ApiKeysAdmin />;
-      case 'theme-preview':
-        return <AdminThemePreview />;
       case 'shop':
         return <Shop shopItems={shopItems} />;
       case 'search':
@@ -162,7 +159,7 @@ const AppContent = () => {
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
   
-  const isAdminPage = (['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'reading-stats-export', 'audiobook-admin', 'game-admin', 'points-admin', 'premium-admin', 'tensens-codes', 'api-keys-admin', 'theme-preview'] as const).includes(currentPage as any);
+  const isAdminPage = (['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'reading-stats-export', 'audiobook-admin', 'game-admin', 'points-admin', 'premium-admin', 'tensens-codes', 'api-keys-admin'] as const).includes(currentPage as any);
 
   const getMainPadding = () => {
     if (isMobile) {

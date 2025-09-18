@@ -196,14 +196,22 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
           )}
         </div>
       </div>
-      {/* Reprise de lecture */}
-      <RecentReads 
-        onSelectBook={handleReadBook}
-        onSelectAudiobook={(audiobook, chapter) => {
-          // Pour l'instant, on peut juste logger ou gérer différemment
-          console.log('Audiobook selected:', audiobook, chapter);
-        }}
-      />
+      {/* Reprise de lecture with nature styling */}
+      <div className={getSpacing()}>
+        <h2 className={`font-display text-forest-700 px-2 mb-4 ${
+          isMobile ? 'text-lg' : isTablet ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'
+        }`}>
+          En cours de lecture
+        </h2>
+        <div className="bg-gradient-to-br from-wood-100 via-stone-50 to-wood-50 border-2 border-wood-300 rounded-lg parchment-texture mx-2">
+          <RecentReads 
+            onSelectBook={handleReadBook}
+            onSelectAudiobook={(audiobook, chapter) => {
+              console.log('Audiobook selected:', audiobook, chapter);
+            }}
+          />
+        </div>
+      </div>
 
       {books.length === 0 && (
         <div className={`text-center py-12 px-4`}>

@@ -65,8 +65,24 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   };
 
   return (
-    <header className="bg-wood-300 border-b border-wood-400 shadow-lg sticky top-0 z-50 relative">
-      <div className={`w-full max-w-full ${getHeaderPadding()}`}>
+    <header className="relative overflow-hidden">
+      {/* Background with nature gradient and organic elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-forest-600 via-forest-700 to-forest-800"></div>
+      <div className="absolute inset-0 wood-texture opacity-30"></div>
+      
+      {/* Decorative vine elements - hidden on mobile for cleaner look */}
+      {!isMobile && (
+        <>
+          <div className="absolute top-0 left-0 w-16 h-full opacity-20">
+            <div className="w-2 h-full bg-gradient-to-b from-forest-400 to-forest-600 rounded-full transform -rotate-12 vine-grow"></div>
+          </div>
+          <div className="absolute top-0 right-0 w-16 h-full opacity-20">
+            <div className="w-2 h-full bg-gradient-to-b from-forest-400 to-forest-600 rounded-full transform rotate-12 vine-grow"></div>
+          </div>
+        </>
+      )}
+      
+      <div className={`relative z-10 w-full max-w-full ${getHeaderPadding()}`}>
         <div className="flex items-center justify-between">
           {/* Left side - Admin and Tensens counter */}
           <div className="flex items-center space-x-2 flex-1">
@@ -75,7 +91,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                 variant="outline"
                 size="sm"
                 onClick={() => onNavigate('admin')}
-                className={`bg-wood-100 hover:bg-wood-200 text-wood-800 border-wood-400 ${
+                className={`bg-wood-100/90 hover:bg-wood-200/90 text-forest-800 border-gold-400 hover:border-gold-300 backdrop-blur-sm golden-border shadow-md ${
                   isMobile ? 'text-xs px-2 py-1' : 'text-sm'
                 }`}
               >
@@ -88,17 +104,28 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             <PointsDisplay />
           </div>
 
-          {/* Center - Instagram image hidden in reader for compact header */}
+          {/* Center - Logo with luxury frame (hidden in reader mode) */}
           {!isReader && (
-            <div className="absolute left-1/2 transform -translate-x-1/2 -top-2 z-10">
-              <div className="bg-gradient-to-r from-wood-200 via-wood-100 to-wood-200 rounded-full p-2 border-2 border-wood-400 shadow-xl">
-                <div className={`${getInstagramContainerSize()} rounded-full overflow-hidden bg-wood-100 shadow-lg flex items-center justify-center`}>
-                  <img 
-                    src="/lovable-uploads/f08448a1-fba4-4f9f-926d-515ddd185b17.png" 
-                    alt="Instagram La Toison d'Or" 
-                    className={`${getInstagramImageSize()} object-cover rounded-full`}
-                  />
+            <div className="absolute left-1/2 transform -translate-x-1/2 -top-3 z-20">
+              <div className="relative">
+                {/* Golden luxury frame */}
+                <div className="bg-gradient-to-br from-gold-300 via-gold-400 to-gold-500 rounded-full p-1 shadow-lg">
+                  <div className="bg-gradient-to-br from-wood-100 via-wood-50 to-gold-50 rounded-full p-2 border border-gold-300">
+                    <div className={`${getInstagramContainerSize()} rounded-full overflow-hidden bg-wood-100 organic-shadow flex items-center justify-center relative`}>
+                      <img 
+                        src="/lovable-uploads/f08448a1-fba4-4f9f-926d-515ddd185b17.png" 
+                        alt="La Toison d'Or" 
+                        className={`${getInstagramImageSize()} object-cover rounded-full`}
+                      />
+                      {/* Subtle golden shimmer effect */}
+                      <div className="absolute inset-0 rounded-full golden-shimmer pointer-events-none"></div>
+                    </div>
+                  </div>
                 </div>
+                
+                {/* Decorative elements around logo */}
+                <div className="absolute -top-1 -left-1 w-3 h-3 bg-gold-400 rounded-full opacity-60 gentle-float"></div>
+                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-gold-300 rounded-full opacity-70 leaf-dance"></div>
               </div>
             </div>
           )}
@@ -106,7 +133,9 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
           {/* Right side - Premium status and Logout */}
           <div className="flex items-center space-x-2 flex-1 justify-end">
             {subscription?.isPremium && (
-              <div className="text-sm text-green-500 font-semibold">Premium</div>
+              <div className="bg-gradient-to-r from-gold-400 to-gold-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-md">
+                Premium
+              </div>
             )}
             
             {/* Logout Button */}
@@ -114,13 +143,13 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className={`text-wood-700 hover:text-red-600 hover:bg-red-50 ${
+              className={`text-wood-100 hover:text-red-400 hover:bg-red-900/20 backdrop-blur-sm border border-transparent hover:border-red-400/30 ${
                 isMobile ? 'px-2' : 'px-3'
               }`}
               title="Se déconnecter"
             >
               <LogOut className={`${isMobile ? 'h-4 w-4' : 'h-4 w-4'}`} />
-              {!isMobile && <span className="ml-1">Déconnexion</span>}
+              {!isMobile && <span className="ml-1 font-medium">Déconnexion</span>}
             </Button>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { UserGenrePreference, GenreAnalytics } from '@/types/Theme';
+import { UserGenrePreference, GenreAnalytics } from '@/types/GenreAnalytics';
 
 export const genreAnalyticsService = {
   async getUserGenrePreferences(userId: string): Promise<UserGenrePreference[]> {

@@ -5,25 +5,36 @@
 
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    /* Nature & Luxe Color Palette - Light Mode */
+    --background: 45 15% 95%;
+    --foreground: 120 25% 8%;
+    --card: 45 20% 98%;
+    --card-foreground: 120 25% 12%;
+    --popover: 45 25% 97%;
+    --popover-foreground: 120 25% 10%;
+    
+    /* Primary - Deep Forest Green */
+    --primary: 150 60% 25%;
+    --primary-foreground: 45 30% 95%;
+    
+    /* Secondary - Rich Earth Tones */
+    --secondary: 30 35% 75%;
+    --secondary-foreground: 120 25% 15%;
+    
+    /* Muted - Soft Natural Tones */
+    --muted: 45 20% 92%;
+    --muted-foreground: 120 15% 35%;
+    
+    /* Accent - Golden Luxury */
+    --accent: 45 85% 60%;
+    --accent-foreground: 120 30% 15%;
+    
+    /* Default System Colors */
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    --border: 150 25% 85%;
+    --input: 150 20% 90%;
+    --ring: 150 60% 25%;
     --radius: 0.75rem;
   }
 }
@@ -34,8 +45,10 @@
   }
   
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gradient-to-br from-forest-50 via-wood-50 to-stone-50 text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Crimson Pro', serif;
+    background-attachment: fixed;
   }
   
   /* Platform-specific styles */
@@ -98,22 +111,50 @@
   display: none; /* Hide scrollbar for webkit browsers */
 }
 
-/* Utilitaires pour les animations 3D du splash screen */
+/* Nature & Luxe Design Elements */
 @layer utilities {
-  .perspective-1000 {
-    perspective: 1000px;
+  .nature-gradient {
+    background: linear-gradient(135deg, hsl(150 40% 95%), hsl(30 40% 95%));
   }
-
-  .page-turn-0 {
-    transform: rotateY(0deg);
+  
+  .luxury-gradient {
+    background: linear-gradient(135deg, hsl(150 60% 25%), hsl(45 85% 60%));
   }
-
-  .preserve-3d {
-    transform-style: preserve-3d;
+  
+  .wood-texture::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.05) 0%, transparent 50%);
+    opacity: 0.3;
+    pointer-events: none;
   }
-
-  .backface-hidden {
-    backface-visibility: hidden;
+  
+  .organic-shadow {
+    box-shadow: 0 10px 30px -10px hsl(150 60% 25% / 0.2), 0 4px 12px -4px hsl(45 85% 60% / 0.1);
+  }
+  
+  .golden-border {
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box, 
+                linear-gradient(135deg, hsl(45 85% 60%), hsl(45 65% 45%)) border-box;
+  }
+  
+  .forest-glow {
+    box-shadow: 0 0 20px hsl(150 60% 25% / 0.3);
+  }
+  
+  .parchment-texture {
+    background-color: hsl(45 20% 96%);
+    background-image: 
+      radial-gradient(circle at 1px 1px, rgba(120, 119, 198, 0.05) 1px, transparent 0);
+    background-size: 20px 20px;
   }
 }
 
@@ -237,19 +278,84 @@
   animation: page-turn-left 1.5s ease-in-out forwards;
 }
 
-/* Particules flottantes */
-@keyframes float {
+/* Nature & Luxe Animations */
+@keyframes gentle-float {
   0%, 100% {
-    transform: translateY(0px);
+    transform: translateY(0px) rotate(0deg);
   }
   50% {
-    transform: translateY(-20px);
+    transform: translateY(-10px) rotate(1deg);
   }
 }
 
-  .float {
-    animation: float 3s ease-in-out infinite;
+@keyframes leaf-dance {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
   }
+  33% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+  66% {
+    transform: translateY(-4px) rotate(-1deg);
+  }
+}
+
+@keyframes golden-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes nature-breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes vine-grow {
+  0% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+}
+
+/* Animation classes */
+.gentle-float {
+  animation: gentle-float 4s ease-in-out infinite;
+}
+
+.leaf-dance {
+  animation: leaf-dance 6s ease-in-out infinite;
+}
+
+.golden-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.4), transparent);
+  animation: golden-shimmer 3s ease-in-out infinite;
+}
+
+.nature-breathe {
+  animation: nature-breathe 5s ease-in-out infinite;
+}
+
+.vine-grow {
+  animation: vine-grow 1s ease-out forwards;
+}
   
   /* EPUB content styling - minimal interference with original styles */
   .epub-content {
