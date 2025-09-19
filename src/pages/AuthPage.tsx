@@ -78,7 +78,7 @@ const AuthPage: React.FC = () => {
       >
         {/* En-tête Bienvenue en Orydia */}
         <div className="text-center mb-8">
-          <h1 className="font-cursive text-6xl md:text-7xl text-title-blue drop-shadow-2xl mb-4 animate-fade-in-down">
+          <h1 className="font-cursive text-6xl md:text-7xl text-blue-300 drop-shadow-2xl mb-4 animate-fade-in-down">
             Bienvenue en Orydia
           </h1>
           <div className="flex justify-center items-center gap-4 mb-6">

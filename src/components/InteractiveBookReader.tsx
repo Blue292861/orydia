@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, BookOpen, Zap } from 'lucide-react';
 import { TextSizeControls } from './TextSizeControls';
+import { CopyrightWarning } from '@/components/CopyrightWarning';
 import { fetchChaptersByBookId, markChapterCompleted, saveUserChoice, getUserChoicesForBook } from '@/services/chapterService';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -137,6 +138,7 @@ export const InteractiveBookReader: React.FC<InteractiveBookReaderProps> = ({ bo
 
   return (
     <div className="min-h-screen bg-background">
+      <CopyrightWarning />
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         {/* En-tête avec contrôles */}
         <div className="flex items-center justify-between mb-6">

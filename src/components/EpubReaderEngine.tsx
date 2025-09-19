@@ -4,6 +4,7 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 import { BuyTensensDialog } from './BuyTensensDialog';
+import { CopyrightWarning } from '@/components/CopyrightWarning';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { toast } from '@/hooks/use-toast';
 import { ReactReader } from 'react-reader';
@@ -340,6 +341,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
 
   return (
     <div className="epub-reader-container flex flex-col">
+      <CopyrightWarning />
       {/* Header Controls */}
       <div className="space-y-4 p-4 border-b">
         <div className="flex items-center justify-between">

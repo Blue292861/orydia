@@ -11,6 +11,7 @@ import { EpubPageReader } from '@/components/EpubPageReader';
 import { EpubReaderEngine } from './EpubReaderEngine';
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { RatingDialog } from './RatingDialog';
+import { CopyrightWarning } from '@/components/CopyrightWarning';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -191,6 +192,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   
   return (
     <>
+      <CopyrightWarning />
       {showRewardAd && (
         <RewardAd 
           book={book}

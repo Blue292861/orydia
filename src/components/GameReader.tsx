@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, Trophy } from "lucide-react";
+import { CopyrightWarning } from "@/components/CopyrightWarning";
 import { Game, GameChapter, GameChoice } from "@/types/Game";
 import { gameService } from "@/services/gameService";
 import { supabase } from "@/integrations/supabase/client";
@@ -138,6 +139,7 @@ export function GameReader({ game, onBack }: GameReaderProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      <CopyrightWarning />
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 py-4">

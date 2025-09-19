@@ -8,6 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { BannerAd } from '@/components/BannerAd';
+import { CopyrightWarning } from '@/components/CopyrightWarning';
 import { 
   ArrowLeft, 
   Play, 
@@ -215,6 +216,7 @@ export const AudiobookPlayerWithAutoPlay: React.FC<AudiobookPlayerWithAutoPlayPr
 
   return (
     <div className="min-h-screen bg-background">
+      <CopyrightWarning />
       {/* Header */}
       <div className="flex items-center p-4 border-b">
         <Button variant="ghost" size="sm" onClick={onBack} className="mr-3">

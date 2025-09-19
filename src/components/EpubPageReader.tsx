@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { CopyrightWarning } from '@/components/CopyrightWarning';
 import DOMPurify from 'dompurify';
 
 interface EpubPageReaderProps {
@@ -143,6 +144,7 @@ export const EpubPageReader: React.FC<EpubPageReaderProps> = ({
 
   return (
     <div className="flex flex-col gap-4 w-full max-w-none px-2 sm:px-4 lg:px-6">
+      <CopyrightWarning />
       {/* Navigation header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={goPrev} disabled={atStart} className="flex items-center gap-1">

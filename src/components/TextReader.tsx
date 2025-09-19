@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { TextSizeControls } from './TextSizeControls';
+import { CopyrightWarning } from '@/components/CopyrightWarning';
 import { 
   BookOpen, 
   ChevronLeft, 
@@ -127,6 +128,7 @@ export const TextReader: React.FC<TextReaderProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-4">
+      <CopyrightWarning />
       {/* Header with controls */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
