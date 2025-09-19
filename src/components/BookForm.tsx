@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { TagInput } from '@/components/TagInput';
+import { GenreSelector } from '@/components/GenreSelector';
+import { LiteraryGenre } from '@/constants/genres';
 import { FileImport } from '@/components/FileImport';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -24,6 +26,7 @@ interface BookFormProps {
 
 export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => {
   const [book, setBook] = React.useState<Book>(initialBook);
+  const [selectedGenres, setSelectedGenres] = React.useState<LiteraryGenre[]>([]);
   const [isExtracting, setIsExtracting] = React.useState(false);
   const [extractionProgress, setExtractionProgress] = React.useState(0);
   const [extractionStatus, setExtractionStatus] = React.useState('');
@@ -467,6 +470,13 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
         <Label htmlFor="isAdultContent" className="cursor-pointer">
           Contenu +16 ans
         </Label>
+      </div>
+
+      <div className="grid gap-2">
+        <GenreSelector
+          selectedGenres={selectedGenres}
+          onGenresChange={setSelectedGenres}
+        />
       </div>
 
       <div className="grid gap-2">

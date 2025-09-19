@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { FileImport } from "@/components/FileImport";
 import { PDFUpload } from "@/components/PDFUpload";
+import { GenreSelector } from "@/components/GenreSelector";
+import { LiteraryGenre } from "@/constants/genres";
 import { Trash2, Edit, Plus, FileText, ArrowRight } from "lucide-react";
 import { gameService } from "@/services/gameService";
 import { Game, GameChapter, GameChoice } from "@/types/Game";
@@ -34,6 +36,8 @@ export function GameAdmin() {
     is_featured: false,
     points_reward: 0
   });
+
+  const [selectedGenres, setSelectedGenres] = useState<LiteraryGenre[]>([]);
 
   const [chapterForm, setChapterForm] = useState({
     title: '',
@@ -239,6 +243,12 @@ export function GameAdmin() {
                 {gameForm.cover_url && (
                   <img src={gameForm.cover_url} alt="Aperçu" className="mt-2 h-20 w-20 object-cover rounded-md" />
                 )}
+              </div>
+              <div>
+                <GenreSelector
+                  selectedGenres={selectedGenres}
+                  onGenresChange={setSelectedGenres}
+                />
               </div>
               <div>
                 <Label htmlFor="points_reward">Points de récompense</Label>

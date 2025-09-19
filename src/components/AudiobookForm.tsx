@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TagInput } from '@/components/TagInput';
+import { GenreSelector } from '@/components/GenreSelector';
+import { LiteraryGenre } from '@/constants/genres';
 import { FileImport } from '@/components/FileImport';
 import { sanitizeText, sanitizeTextWithSpaces, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +20,7 @@ interface AudiobookFormProps {
 
 export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, onSubmit }) => {
   const [formData, setFormData] = useState<Audiobook>(initialAudiobook);
+  const [selectedGenres, setSelectedGenres] = useState<LiteraryGenre[]>([]);
   const { toast } = useToast();
 
   const handleChange = (field: keyof Audiobook, value: any) => {
@@ -201,6 +204,13 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
             Votre navigateur ne supporte pas l'élément audio.
           </audio>
         )}
+      </div>
+
+      <div>
+        <GenreSelector
+          selectedGenres={selectedGenres}
+          onGenresChange={setSelectedGenres}
+        />
       </div>
 
       <div>
