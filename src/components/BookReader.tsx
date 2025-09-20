@@ -17,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { TutorialPopup } from '@/components/TutorialPopup';
+import { EpubViewer } from '@/components/EpubViewer'; // Import du nouveau composant
 
 interface BookReaderProps {
   book: Book;
@@ -254,18 +255,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
               content="" // Always empty since it's a PDF URL
             />
           ) : isEpubUrl ? (
-            <EpubReaderEngine
-              epubUrl={book.content}
-              fontSize={fontSize}
-              highContrast={highContrast}
-              isPremium={isPremium}
-              isAlreadyRead={isAlreadyRead}
-              hasFinished={hasFinished}
-              pointsToWin={pointsToWin}
-              onFinishReading={handleFinishReading}
-              onFontSizeChange={setFontSize}
-              onHighContrastChange={setHighContrast}
-            />
+            <EpubViewer bookUrl={book.content!} />
           ) : isEpubStructured ? (
             <EpubPageReader
               content={book.content || ''}
