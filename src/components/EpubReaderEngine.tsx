@@ -52,6 +52,9 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
     }
 
     const loadBook = async () => {
+      setIsLoading(true);
+      setError(null);
+      
       try {
         const book = ePub(epubUrl);
         const newRendition = book.renderTo(viewerRef.current, {
@@ -91,7 +94,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
         rendition.destroy();
       }
     };
-  }, [epubUrl]);
+  }, [epubUrl]); // Correction: La dépendance `rendition` est retirée.
 
   useEffect(() => {
     if (rendition) {
