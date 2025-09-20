@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Loader } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader, AlertTriangle } from 'lucide-react';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -37,35 +37,50 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!viewerRef.current) return;
-
-    // Crée une nouvelle instance de l'eBook et rendition
-    const book = ePub(epubUrl);
-    const newRendition = book.renderTo(viewerRef.current, {
-      width: '100%',
-      height: '100%',
-      flow: 'paginated', // or 'scrolled' for continuous flow
-    });
-
-    // Événements et logique
-    newRendition.on("relocated", (location: any) => {
-      setAtStart(location.atStart);
-      setAtEnd(location.atEnd);
-    });
-
-    newRendition.on("rendered", () => {
+    if (!epubUrl) {
+      setError("Le lien vers l'eBook est manquant.");
       setIsLoading(false);
-    });
+      return;
+    }
 
-    newRendition.display();
+    const loadBook = async () => {
+      try {
+        const book = ePub(epubUrl);
+        const newRendition = book.renderTo(viewerRef.current, {
+          width: '100%',
+          height: '100%',
+          flow: 'paginated',
+        });
 
-    setRendition(newRendition);
+        newRendition.on("relocated", (location: any) => {
+          setAtStart(location.atStart);
+          setAtEnd(location.atEnd);
+        });
 
-    // Nettoyage
+        newRendition.on("displayed", () => {
+          setIsLoading(false);
+        });
+
+        newRendition.display();
+
+        setRendition(newRendition);
+      } catch (err) {
+        console.error("Erreur lors du chargement de l'EPUB:", err);
+        setError("Impossible de charger le fichier EPUB. Veuillez vérifier le lien.");
+        setIsLoading(false);
+      }
+    };
+
+    loadBook();
+
     return () => {
-      newRendition?.destroy();
+      if (rendition) {
+        rendition.destroy();
+      }
     };
   }, [epubUrl]);
 
@@ -100,6 +115,15 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       rendition.prev();
     }
   };
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-red-500">
+        <AlertTriangle className="h-12 w-12 mb-4" />
+        <p className="text-lg text-center">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
