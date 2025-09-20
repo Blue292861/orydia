@@ -16,6 +16,7 @@ import { useUserStats } from '@/contexts/UserStatsContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { TutorialPopup } from '@/components/TutorialPopup';
 
 interface BookReaderProps {
   book: Book;
@@ -334,6 +335,22 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           }} 
         />
       </div>
+
+      {/* Pop-up du tutoriel de lecture */}
+      <TutorialPopup
+        tutorialId="reader"
+        title="Conseils de lecture"
+        description="Pour faciliter ta lecture, tu peux changer la taille de la police de caractère à ta guise ! Tu peux aussi inverser les couleurs avec le bouton tout en haut !"
+      />
+      
+      {/* Pop-up du tutoriel des Tensens */}
+      {!isAlreadyRead && !hasFinished && !isPremium && (
+        <TutorialPopup
+          tutorialId="tensens"
+          title="Félicitations, lecteur !"
+          description="Tu as bien mérité une belle récompense pour les efforts que tu as fournis !"
+        />
+      )}
     </>
   );
 };
