@@ -33,7 +33,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({ url }) => {
   };
 
   return (
-    <div style={{ height: '80vh', position: 'relative' }}>
+    <div style={{ position: 'relative', height: '80vh', width: '100%' }}>
       {!isReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -45,6 +45,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({ url }) => {
         locationChanged={handleLocationChanged}
         onReady={handleLoad}
         onError={handleError}
+        // Il est crucial que le conteneur parent ait des dimensions
+        // et que le lecteur utilise ces dimensions.
+        // Les styles inline ici garantissent que le composant s'affiche correctement.
+        // Assurez-vous également que les politiques de sécurité (CORS)
+        // de votre bucket Supabase sont configurées pour permettre l'accès.
       />
     </div>
   );
