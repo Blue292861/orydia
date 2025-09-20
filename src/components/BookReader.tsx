@@ -51,15 +51,15 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
 
   const getBookUrl = () => {
     if (!book.content) return null;
+    
+    // Correction : Vérifier si l'URL est une URL complète de Supabase.
     if (book.content.startsWith('http')) {
       return book.content;
     }
-    // Correction : Extraire la partie du chemin après '/public/'
-    const publicIndex = book.content.indexOf('/public/');
-    if (publicIndex !== -1) {
-      return book.content.substring(publicIndex + '/public/'.length);
-    }
-    return `/${book.content}`;
+    
+    // Si ce n'est pas une URL complète, construire un chemin local.
+    // Cette logique est pour les fichiers locaux, qui sont dans `public/ebooks/`.
+    return `/ebooks/${book.content}`;
   };
   const bookUrl = getBookUrl();
 
