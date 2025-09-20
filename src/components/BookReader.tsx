@@ -21,12 +21,10 @@ interface BookReaderProps {
 }
 
 export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
-  // All hooks must be at the top level
   const { userStats, addPointsForBook } = useUserStats();
   const { session, subscription, user } = useAuth();
   const { toast } = useToast();
   
-  // State management
   const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [hasRatedApp, setHasRatedApp] = useState(false);
   const [hasFinished, setHasFinished] = useState(false);
@@ -37,17 +35,15 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const [ageVerified, setAgeVerified] = useState(false);
   const readingStartTime = useRef<number>(Date.now());
 
-  // Computed values
   const isAlreadyRead = userStats.booksRead.includes(book.id);
   const isPremium = subscription.isPremium;
   const pointsToWin = isPremium ? book.points * 2 : book.points;
   
   // Déterminer le type de contenu et l'URL
-  // Étant donné que les fichiers viennent de Supabase, l'URL est toujours valide.
+  // Nous traitons uniquement les EPUB avec une URL de Supabase ou les contenus textuels
   const isEpubContent = book.content?.includes('.epub');
   const bookUrl = book.content;
 
-  // Effect pour vérifier si l'utilisateur a déjà noté l'app
   useEffect(() => {
     const checkRatingStatus = async () => {
       if (!user) return;
@@ -73,7 +69,6 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
     checkRatingStatus();
   }, [user]);
 
-  // Effect pour enregistrer le temps de lecture quand on quitte
   useEffect(() => {
     const handleBeforeUnload = () => {
       recordReadingSession();
@@ -87,7 +82,6 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
     };
   }, [hasRatedApp]);
 
-  // Enregistrer une session de lecture
   const recordReadingSession = async () => {
     if (!user) return;
 
