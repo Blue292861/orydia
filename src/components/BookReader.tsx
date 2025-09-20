@@ -6,8 +6,6 @@ import { TextSizeControls } from '@/components/TextSizeControls';
 import { BannerAd } from '@/components/BannerAd';
 import { RewardAd } from '@/components/RewardAd';
 import { InteractiveBookReader } from '@/components/InteractiveBookReader';
-import { EmbeddedPDFReader } from '@/components/EmbeddedPDFReader';
-import { EpubPageReader } from '@/components/EpubPageReader';
 import { EpubReaderEngine } from './EpubReaderEngine';
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { RatingDialog } from './RatingDialog';
@@ -23,12 +21,10 @@ interface BookReaderProps {
 }
 
 export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
-  // All hooks must be at the top level
   const { userStats, addPointsForBook } = useUserStats();
   const { session, subscription, user } = useAuth();
   const { toast } = useToast();
   
-  // State management
   const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [hasRatedApp, setHasRatedApp] = useState(false);
   const [hasFinished, setHasFinished] = useState(false);
@@ -39,31 +35,14 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const [ageVerified, setAgeVerified] = useState(false);
   const readingStartTime = useRef<number>(Date.now());
 
-  // Computed values
   const isAlreadyRead = userStats.booksRead.includes(book.id);
   const isPremium = subscription.isPremium;
   const pointsToWin = isPremium ? book.points * 2 : book.points;
   
-  // Déterminer le type de contenu et l'URL
-  const isPDFContent = book.content?.includes('.pdf');
+  // Déterminer le type de contenu et l'URL.
+  // Étant donné que les fichiers viennent de Supabase, l'URL est toujours valide.
   const isEpubContent = book.content?.includes('.epub');
-  const isHtmlContent = !isPDFContent && !isEpubContent;
-
-  const getBookUrl = () => {
-    if (!book.content) {
-      return null;
-    }
-    // Si l'URL commence par 'http', elle est complète (Supabase ou autre).
-    if (book.content.startsWith('http')) {
-      return book.content;
-    }
-    // Sinon, c'est un chemin local. On retire le préfixe 'public/' s'il existe.
-    // Votre configuration Vite sert les fichiers de 'public/' à la racine.
-    const path = book.content.startsWith('public/') ? book.content.substring('public/'.length) : book.content;
-    return `/${path}`;
-  };
-  
-  const bookUrl = getBookUrl();
+  const bookUrl = book.content;
 
   // Effect pour vérifier si l'utilisateur a déjà noté l'app
   useEffect(() => {
@@ -103,7 +82,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       recordReadingSession();
     };
-  }, [hasRatedApp]); // Add hasRatedApp as dependency
+  }, [hasRatedApp]);
 
   // Enregistrer une session de lecture
   const recordReadingSession = async () => {
@@ -111,12 +90,9 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
 
     const sessionDuration = Math.floor((Date.now() - readingStartTime.current) / 1000);
     
-    // Ne pas enregistrer les sessions très courtes (moins de 30 secondes)
     if (sessionDuration < 30) return;
 
     try {
-      // Montrer le popup de notation si l'utilisateur n'a pas encore noté l'app
-      // et que la session de lecture était suffisamment longue (plus de 2 minutes)
       if (!hasRatedApp && sessionDuration > 120) {
         setShowRatingDialog(true);
       }
@@ -137,13 +113,11 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
     }
     
     if (!isAlreadyRead && !hasFinished) {
-      // Si l'utilisateur n'est pas premium, afficher la publicité de récompense
       if (!isPremium) {
         setShowRewardAd(true);
         return;
       }
       
-      // Pour les utilisateurs premium, accorder directement les points
       await grantReward();
     }
   };
@@ -191,12 +165,10 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
     handleBackClick();
   };
 
-  // Si le livre a des chapitres, utiliser le lecteur interactif
   if (book.hasChapters) {
     return <InteractiveBookReader book={book} onClose={handleBackClick} />;
   }
 
-  // If age verification is needed and not yet verified, show only the verification dialog
   if (book.isAdultContent && !ageVerified) {
     return (
       <AgeVerificationDialog
@@ -246,8 +218,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           </Button>
         </div>
         
-        {/* Contrôles de taille et contraste (EPUB et contenu extrait) */}
-        {(isEpubContent || isHtmlContent) && (
+        {isEpubContent && (
           <div className="mb-4">
             <TextSizeControls 
               fontSize={fontSize} 
@@ -259,19 +230,13 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
         )}
         
         <div className={`rounded-lg p-4 sm:p-6 lg:p-8 shadow-md w-full ${
-          highContrast && isHtmlContent
+          highContrast && !isEpubContent
             ? 'bg-black text-white border border-gray-600' 
             : 'bg-card text-card-foreground'
         }`}>
-          {isPDFContent ? (
-            <EmbeddedPDFReader 
-              pdfUrl={bookUrl}
-              title={book.title}
-              content=""
-            />
-          ) : isEpubContent ? (
+          {isEpubContent ? (
             <EpubReaderEngine
-              epubUrl={bookUrl}
+              epubUrl={bookUrl!}
               fontSize={fontSize}
               highContrast={highContrast}
               isPremium={isPremium}
@@ -293,17 +258,16 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
             </div>
           )}
           
-          {/* Publicité pour les non-premium */}
           {!isPremium && (
             <div className="mt-8 mb-6">
               <BannerAd />
             </div>
           )}
           
-          {isHtmlContent && (
+          {!isEpubContent && (
             <div className="mt-8 pt-6 border-t flex justify-center">
               {isAlreadyRead ? (
-                <div className={`${highContrast && !isPDFContent ? 'text-gray-300' : 'text-muted-foreground'} text-center`}>
+                <div className={`${highContrast ? 'text-gray-300' : 'text-muted-foreground'} text-center`}>
                   <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-6 w-6 mx-auto mb-2" />
                   <p>Vous avez déjà gagné des Tensens pour ce livre</p>
                 </div>
@@ -329,13 +293,12 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           )}
         </div>
 
-        {/* Dialog de notation */}
         <RatingDialog 
           open={showRatingDialog} 
           onOpenChange={(open) => {
             setShowRatingDialog(open);
             if (!open) {
-              setHasRatedApp(true); // Marquer comme "vu" même si pas noté pour éviter spam
+              setHasRatedApp(true);
             }
           }} 
         />
