@@ -34,6 +34,7 @@ import { useBooks } from '@/hooks/useBooks';
 import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
+import { TutorialPopup } from '@/components/TutorialPopup';
 
 type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin' | 'tensens-codes' | 'premium-admin';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'game-reader' | AdminPage;
@@ -230,6 +231,15 @@ const AppContent = () => {
           }
         />
       </div>
+      
+      {/* Pop-up du tutoriel d'accueil */}
+      {currentPage === 'library' && (
+        <TutorialPopup 
+          tutorialId="welcome"
+          title="Bienvenue en Orydia !"
+          description="Tu trouveras, en cette bibliothèque, de merveilleuses aventures !"
+        />
+      )}
     </>
   );
 };
