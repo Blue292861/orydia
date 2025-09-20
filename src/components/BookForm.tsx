@@ -15,8 +15,7 @@ import { sanitizeText, sanitizeImageUrl, sanitizeTextWithSpaces, sanitizeHtml, v
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, BookOpen, Zap, FileText } from 'lucide-react';
-import { PDFExtractionService } from '@/services/pdfExtractionService';
-// L'import de EPUBService a été supprimé car le fichier est obsolète.
+// PDFExtractionService a été supprimé
 
 interface BookFormProps {
   initialBook: Book;
@@ -110,80 +109,51 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       setSelectedFile(file);
       
       const fileName = file.name.toLowerCase();
-      const isPDF = file.type === 'application/pdf' || fileName.endsWith('.pdf');
       const isEPUB = file.type === 'application/epub+zip' || fileName.endsWith('.epub');
       
       // Auto-extract text for supported formats
-      if (isPDF || isEPUB) {
+      if (isEPUB) {
         setIsExtracting(true);
         setExtractionProgress(0);
         
         try {
-          let result;
-          
-          if (isPDF) {
-            result = await PDFExtractionService.extractWithServer(
-              file, 
-              (progress, status) => {
-                setExtractionProgress(progress);
-                setExtractionStatus(status);
-              }
-            );
+          // For EPUB files, upload to storage and store URL for react-reader
+          try {
+            // Upload the EPUB file to Supabase Storage
+            const fileExt = file.name.split('.').pop()?.toLowerCase();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+            const filePath = `epubs/${fileName}`;
             
-            if (result?.success && result.text.trim()) {
-              const cleanedText = PDFExtractionService.cleanExtractedText(result.text);
-              setBook(prev => ({ ...prev, content: cleanedText }));
-              
-              toast({
-                title: "Extraction réussie",
-                description: `Texte extrait avec succès (${(result as any).pageCount} pages, méthode: ${(result as any).method})`
+            const { error: uploadError } = await supabase.storage
+              .from('epubs')
+              .upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: false,
+                contentType: 'application/epub+zip'
               });
-            } else {
-              toast({
-                title: "Erreur d'extraction",
-                description: result?.error || "Impossible d'extraire le texte du PDF",
-                variant: "destructive"
-              });
+            
+            if (uploadError) {
+              throw uploadError;
             }
-          } else if (isEPUB) {
-            // For EPUB files, upload to storage and store URL for react-reader
-            try {
-              // Upload the EPUB file to Supabase Storage
-              const fileExt = file.name.split('.').pop()?.toLowerCase();
-              const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-              const filePath = `epubs/${fileName}`;
-              
-              const { error: uploadError } = await supabase.storage
-                .from('epubs')
-                .upload(fileName, file, {
-                  cacheControl: '3600',
-                  upsert: false,
-                  contentType: 'application/epub+zip'
-                });
-              
-              if (uploadError) {
-                throw uploadError;
-              }
-              
-              // Get the public URL
-              const { data } = supabase.storage
-                .from('epubs')
-                .getPublicUrl(fileName);
-              
-              setBook(prev => ({ ...prev, content: data.publicUrl }));
-              
-              toast({
-                title: "EPUB uploadé avec succès",
-                description: "Le fichier EPUB a été uploadé et sera rendu avec le lecteur intégré"
-              });
-            } catch (error) {
-              console.error('Erreur upload EPUB:', error);
-              toast({
-                title: "Erreur d'upload",
-                description: "Impossible d'uploader le fichier EPUB",
-                variant: "destructive"
-              });
-            }
+            
+            // Get the public URL
+            const { data } = supabase.storage
+              .from('epubs')
+              .getPublicUrl(fileName);
+            
+            setBook(prev => ({ ...prev, content: data.publicUrl }));
+            
+            toast({
+              title: "EPUB uploadé avec succès",
+              description: "Le fichier EPUB a été uploadé et sera rendu avec le lecteur intégré"
+            });
+          } catch (error) {
+            console.error('Erreur upload EPUB:', error);
+            toast({
+              title: "Erreur d'upload",
+              description: "Impossible d'uploader le fichier EPUB",
+              variant: "destructive"
+            });
           }
         } catch (error) {
           console.error('Extraction error:', error);
@@ -211,16 +181,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     setBook(prev => ({ ...prev, content: sanitizedContent }));
   };
 
-  const handleClearErrorContent = () => {
-    const isErrorContent = book.content?.includes('[Le contenu du PDF n\'a pas pu être extrait automatiquement');
-    if (isErrorContent) {
-      setBook(prev => ({ ...prev, content: '' }));
-      toast({
-        title: "Contenu effacé",
-        description: "Le contenu d'erreur a été supprimé. Vous pouvez maintenant importer votre PDF.",
-      });
-    }
-  };
+  // Suppression de handleClearErrorContent
 
   const handleExtractChapters = async () => {
     if (!book.content?.trim()) {
@@ -477,18 +438,18 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
             name="content"
             value={book.content}
             onChange={handleChange}
-            placeholder="Entrez le contenu du livre ou importez un fichier PDF/EPUB"
+            placeholder="Entrez le contenu du livre ou importez un fichier EPUB"
             className="min-h-[200px]"
             maxLength={1200000}
             required
           />
           <div className="flex gap-2">
             <div className="grid gap-2 flex-1">
-              <Label htmlFor="file">Fichier PDF ou EPUB (optionnel)</Label>
+              <Label htmlFor="file">Fichier EPUB (optionnel)</Label>
               <Input
                 id="file"
                 type="file"
-                accept=".pdf,.epub"
+                accept=".epub"
                 onChange={handleFileChange}
                 disabled={isExtracting}
               />
@@ -513,17 +474,6 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
           
           {book.content && (
             <div className="flex flex-col gap-2">
-              {book.content.includes('[Le contenu du PDF n\'a pas pu être extrait automatiquement') && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={handleClearErrorContent}
-                  className="w-full"
-                >
-                  Effacer le contenu d'erreur et réimporter le fichier
-                </Button>
-              )}
-              
               <Button
                 type="button"
                 variant="outline"
