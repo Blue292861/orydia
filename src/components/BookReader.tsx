@@ -16,8 +16,6 @@ import { useUserStats } from '@/contexts/UserStatsContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { TutorialPopup } from '@/components/TutorialPopup';
-import { EpubViewer } from '@/components/EpubViewer'; // Import du nouveau composant
 
 interface BookReaderProps {
   book: Book;
@@ -45,10 +43,21 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const isAlreadyRead = userStats.booksRead.includes(book.id);
   const isPremium = subscription.isPremium;
   const pointsToWin = isPremium ? book.points * 2 : book.points;
-  const isPDFContent = book.content?.startsWith('http') && book.content.includes('.pdf');
-  const isEpubUrl = book.content?.startsWith('http') && book.content.includes('.epub');
-  const hasExtractedContent = book.content && !isPDFContent && !isEpubUrl;
-  const isEpubStructured = Boolean(hasExtractedContent && (/=== Chapitre \d+ ===/.test(book.content || '') || /<hr class="chapter-sep"/.test(book.content || '')));
+  
+  // Déterminer le type de contenu et l'URL
+  const isPDFContent = book.content?.includes('.pdf');
+  const isEpubContent = book.content?.includes('.epub');
+  const isHtmlContent = !isPDFContent && !isEpubContent;
+
+  const getBookUrl = () => {
+    if (!book.content) return null;
+    if (book.content.startsWith('http')) {
+      return book.content;
+    }
+    // Assumer que le chemin est un chemin local sous le dossier public
+    return `/public/${book.content}`;
+  };
+  const bookUrl = getBookUrl();
 
   // Effect pour vérifier si l'utilisateur a déjà noté l'app
   useEffect(() => {
@@ -232,7 +241,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
         </div>
         
         {/* Contrôles de taille et contraste (EPUB et contenu extrait) */}
-        {(hasExtractedContent || isEpubUrl) && (
+        {(isEpubContent || isHtmlContent) && (
           <div className="mb-4">
             <TextSizeControls 
               fontSize={fontSize} 
@@ -244,28 +253,28 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
         )}
         
         <div className={`rounded-lg p-4 sm:p-6 lg:p-8 shadow-md w-full ${
-          highContrast && hasExtractedContent
+          highContrast && isHtmlContent
             ? 'bg-black text-white border border-gray-600' 
             : 'bg-card text-card-foreground'
         }`}>
           {isPDFContent ? (
             <EmbeddedPDFReader 
-              pdfUrl={book.content}
+              pdfUrl={bookUrl}
               title={book.title}
-              content="" // Always empty since it's a PDF URL
+              content=""
             />
-          ) : isEpubUrl ? (
-            <EpubViewer bookUrl={book.content!} />
-          ) : isEpubStructured ? (
-            <EpubPageReader
-              content={book.content || ''}
+          ) : isEpubContent ? (
+            <EpubReaderEngine
+              epubUrl={bookUrl}
               fontSize={fontSize}
               highContrast={highContrast}
               isPremium={isPremium}
               isAlreadyRead={isAlreadyRead}
               hasFinished={hasFinished}
               pointsToWin={pointsToWin}
-              onFinish={handleFinishReading}
+              onFinishReading={handleFinishReading}
+              onFontSizeChange={setFontSize}
+              onHighContrastChange={onHighContrastChange}
             />
           ) : (
             <div 
@@ -285,7 +294,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
             </div>
           )}
           
-          {!isEpubStructured && hasExtractedContent && (
+          {isHtmlContent && (
             <div className="mt-8 pt-6 border-t flex justify-center">
               {isAlreadyRead ? (
                 <div className={`${highContrast && !isPDFContent ? 'text-gray-300' : 'text-muted-foreground'} text-center`}>
@@ -325,22 +334,6 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           }} 
         />
       </div>
-
-      {/* Pop-up du tutoriel de lecture */}
-      <TutorialPopup
-        tutorialId="reader"
-        title="Conseils de lecture"
-        description="Pour faciliter ta lecture, tu peux changer la taille de la police de caractère à ta guise ! Tu peux aussi inverser les couleurs avec le bouton tout en haut !"
-      />
-      
-      {/* Pop-up du tutoriel des Tensens */}
-      {!isAlreadyRead && !hasFinished && !isPremium && (
-        <TutorialPopup
-          tutorialId="tensens"
-          title="Félicitations, lecteur !"
-          description="Tu as bien mérité une belle récompense pour les efforts que tu as fournis !"
-        />
-      )}
     </>
   );
 };
