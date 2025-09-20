@@ -27,4 +27,5 @@ export interface UserStats {
   experiencePoints: number;
   levelInfo?: LevelInfo;
   pendingPremiumMonths?: number; // Months of premium pending to be applied
+  tutorialsSeen: string[]; // Ajout de la nouvelle propriété
 }
