@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader, AlertTriangle } from 'lucide-react';
+import { useUserStats } from '@/contexts/UserStatsContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface EpubReaderEngineProps {
   epubUrl: string;
