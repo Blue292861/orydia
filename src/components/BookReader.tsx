@@ -52,21 +52,15 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const getBookUrl = () => {
     if (!book.content) return null;
     
-    // Si l'URL est complète (Supabase ou autre)
+    // Si l'URL est déjà une URL complète (Supabase ou autre)
     if (book.content.startsWith('http')) {
       return book.content;
     }
     
     // Si l'URL est un chemin de fichier local
-    // Assumer que le chemin est stocké comme 'public/ebooks/...'
-    // et que le serveur le sert depuis la racine
-    const publicIndex = book.content.indexOf('public/');
-    if (publicIndex !== -1) {
-      return book.content.substring(publicIndex + 'public/'.length - 1);
-    }
-
-    // Fallback pour tout autre cas
-    return `/${book.content}`;
+    // Assumer que les fichiers sont dans public/ebooks/ et que Vite les sert à la racine
+    const publicEpubPath = book.content.includes('public/ebooks/') ? book.content.split('public/')[1] : book.content;
+    return `/${publicEpubPath}`;
   };
   const bookUrl = getBookUrl();
 
