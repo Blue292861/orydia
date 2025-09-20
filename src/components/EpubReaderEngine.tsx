@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
-import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader, AlertTriangle } from 'lucide-react';
 import { useUserStats } from '@/contexts/UserStatsContext';
@@ -62,14 +61,10 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
           flow: 'paginated',
         });
 
-        // Génération des emplacements pour la pagination
-        await book.locations.generate(600);
-
         newRendition.on("relocated", (location: any) => {
           setAtStart(location.atStart);
           setAtEnd(location.atEnd);
           
-          // Calcul de la progression en pourcentage
           if (book.locations) {
             const currentProgress = book.locations.percentageFromCfi(location.start.cfi);
             setProgress(Math.floor(currentProgress * 100));
