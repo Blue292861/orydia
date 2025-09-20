@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, X, Star } from 'lucide-react';
@@ -68,21 +68,8 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
 
     checkRatingStatus();
   }, [user]);
-
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      recordReadingSession();
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      recordReadingSession();
-    };
-  }, [hasRatedApp]);
-
-  const recordReadingSession = async () => {
+  
+  const recordReadingSession = useCallback(async () => {
     if (!user) return;
 
     const sessionDuration = Math.floor((Date.now() - readingStartTime.current) / 1000);
@@ -96,7 +83,20 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
     } catch (error) {
       console.error("Erreur lors de l'enregistrement de la lecture:", error);
     }
-  };
+  }, [user, hasRatedApp]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      recordReadingSession();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      recordReadingSession();
+    };
+  }, [recordReadingSession]);
 
   const handleBackClick = async () => {
     await recordReadingSession();
