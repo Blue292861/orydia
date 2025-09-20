@@ -54,12 +54,16 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
       return null;
     }
     // Si le chemin contient "public/", le supprimer pour obtenir le chemin relatif à la racine.
-    if (book.content.includes('public/')) {
-      const parts = book.content.split('public/');
-      return `/${parts[parts.length - 1]}`;
+    const publicIndex = book.content.indexOf('public/');
+    if (publicIndex !== -1) {
+      return `/${book.content.substring(publicIndex + 'public/'.length)}`;
     }
-    // Sinon, l'URL est déjà correcte (Supabase ou autre)
-    return book.content;
+    // Si c'est une URL de Supabase, la renvoyer directement.
+    if (book.content.startsWith('http')) {
+      return book.content;
+    }
+    // Fallback pour tout autre cas
+    return `/${book.content}`;
   };
   
   const bookUrl = getBookUrl();
