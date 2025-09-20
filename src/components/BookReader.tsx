@@ -57,8 +57,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
     if (book.content.startsWith('http')) {
       return book.content;
     }
-    // Sinon, c'est un chemin local. On retire le préfixe 'public/' s'il existe.
-    // Votre configuration Vite sert les fichiers de 'public/' à la racine.
+    // Sinon, c'est un chemin local. Votre configuration Vite sert les fichiers de 'public/' à la racine.
     const path = book.content.startsWith('public/') ? book.content.substring('public/'.length) : book.content;
     return `/${path}`;
   };
