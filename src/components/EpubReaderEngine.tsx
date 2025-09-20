@@ -94,7 +94,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
         rendition.destroy();
       }
     };
-  }, [epubUrl]); // Correction: La dépendance `rendition` est retirée.
+  }, [epubUrl]); 
 
   useEffect(() => {
     if (rendition) {
