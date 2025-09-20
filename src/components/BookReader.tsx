@@ -55,7 +55,6 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
       return book.content;
     }
     // Assumer que le chemin est un chemin local sous le dossier public
-    // Remplacer `/public/` par `/`
     return `/${book.content}`;
   };
   const bookUrl = getBookUrl();
@@ -248,7 +247,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
               fontSize={fontSize} 
               onFontSizeChange={setFontSize}
               highContrast={highContrast}
-              onHighContrastChange={onHighContrastChange}
+              onHighContrastChange={setHighContrast}
             />
           </div>
         )}
@@ -275,7 +274,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
               pointsToWin={pointsToWin}
               onFinishReading={handleFinishReading}
               onFontSizeChange={setFontSize}
-              onHighContrastChange={onHighContrastChange}
+              onHighContrastChange={setHighContrast}
             />
           ) : (
             <div 
