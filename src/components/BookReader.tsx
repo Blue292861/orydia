@@ -6,7 +6,7 @@ import { TextSizeControls } from '@/components/TextSizeControls';
 import { BannerAd } from '@/components/BannerAd';
 import { RewardAd } from '@/components/RewardAd';
 import { InteractiveBookReader } from '@/components/InteractiveBookReader';
-import { EpubReaderEngine } from './EpubReaderEngine';
+// Import de EpubReaderEngine supprimé
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { RatingDialog } from './RatingDialog';
 import { CopyrightWarning } from '@/components/CopyrightWarning';
@@ -39,9 +39,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const isPremium = subscription.isPremium;
   const pointsToWin = isPremium ? book.points * 2 : book.points;
   
-  // Déterminer le type de contenu et l'URL
-  // Nous traitons uniquement les EPUB avec une URL de Supabase ou les contenus textuels
-  const isEpubContent = book.content?.includes('.epub');
+  // Suppression de la vérification isEpubContent
   const bookUrl = book.content;
 
   useEffect(() => {
@@ -68,7 +66,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
 
     checkRatingStatus();
   }, [user]);
-  
+
   const recordReadingSession = useCallback(async () => {
     if (!user) return;
 
@@ -215,45 +213,28 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           </Button>
         </div>
         
-        {isEpubContent && (
-          <div className="mb-4">
-            <TextSizeControls 
-              fontSize={fontSize} 
-              onFontSizeChange={setFontSize}
-              highContrast={highContrast}
-              onHighContrastChange={setHighContrast}
-            />
-          </div>
-        )}
+        <div className="mb-4">
+          <TextSizeControls 
+            fontSize={fontSize} 
+            onFontSizeChange={setFontSize}
+            highContrast={highContrast}
+            onHighContrastChange={setHighContrast}
+          />
+        </div>
         
         <div className={`rounded-lg p-4 sm:p-6 lg:p-8 shadow-md w-full ${
-          highContrast && !isEpubContent
+          highContrast
             ? 'bg-black text-white border border-gray-600' 
             : 'bg-card text-card-foreground'
         }`}>
-          {isEpubContent ? (
-            <EpubReaderEngine
-              epubUrl={bookUrl!}
-              fontSize={fontSize}
-              highContrast={highContrast}
-              isPremium={isPremium}
-              isAlreadyRead={isAlreadyRead}
-              hasFinished={hasFinished}
-              pointsToWin={pointsToWin}
-              onFinishReading={handleFinishReading}
-              onFontSizeChange={setFontSize}
-              onHighContrastChange={setHighContrast}
-            />
-          ) : (
-            <div 
-              className={`whitespace-pre-wrap leading-relaxed ${
-                highContrast ? 'text-white' : 'text-foreground'
-              }`}
-              style={{ fontSize: `${fontSize}px` }}
-            >
-              {book.content}
-            </div>
-          )}
+          <div 
+            className={`whitespace-pre-wrap leading-relaxed ${
+              highContrast ? 'text-white' : 'text-foreground'
+            }`}
+            style={{ fontSize: `${fontSize}px` }}
+          >
+            {book.content}
+          </div>
           
           {!isPremium && (
             <div className="mt-8 mb-6">
@@ -261,33 +242,31 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
             </div>
           )}
           
-          {!isEpubContent && (
-            <div className="mt-8 pt-6 border-t flex justify-center">
-              {isAlreadyRead ? (
-                <div className={`${highContrast ? 'text-gray-300' : 'text-muted-foreground'} text-center`}>
-                  <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-6 w-6 mx-auto mb-2" />
-                  <p>Vous avez déjà gagné des Tensens pour ce livre</p>
-                </div>
-              ) : hasFinished ? (
-                <div className="text-center text-green-600">
-                  <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-6 w-6 mx-auto mb-2" />
-                  <p>Tensens accordés ! Bien joué !</p>
-                </div>
-              ) : (
-                <Button 
-                  onClick={handleFinishReading} 
-                  className="flex items-center gap-2"
-                  disabled={false}
-                >
-                  <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-4 w-4" />
-                  {isPremium ? 
-                    `Terminer la lecture & Gagner ${pointsToWin} Tensens` :
-                    `Regarder une publicité & Gagner ${pointsToWin} Tensens`
-                  }
-                </Button>
-              )}
-            </div>
-          )}
+          <div className="mt-8 pt-6 border-t flex justify-center">
+            {isAlreadyRead ? (
+              <div className={`${highContrast ? 'text-gray-300' : 'text-muted-foreground'} text-center`}>
+                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-6 w-6 mx-auto mb-2" />
+                <p>Vous avez déjà gagné des Tensens pour ce livre</p>
+              </div>
+            ) : hasFinished ? (
+              <div className="text-center text-green-600">
+                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-6 w-6 mx-auto mb-2" />
+                <p>Tensens accordés ! Bien joué !</p>
+              </div>
+            ) : (
+              <Button 
+                onClick={handleFinishReading} 
+                className="flex items-center gap-2"
+                disabled={false}
+              >
+                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-4 w-4" />
+                {isPremium ? 
+                  `Terminer la lecture & Gagner ${pointsToWin} Tensens` :
+                  `Regarder une publicité & Gagner ${pointsToWin} Tensens`
+                }
+              </Button>
+            )}
+          </div>
         </div>
 
         <RatingDialog 
