@@ -1,0 +1,78 @@
+// src/components/EpubReaderWithBlob.tsx
+import React, { useState, useEffect } from 'react';
+import { ReactReader } from 'react-reader';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+interface EpubReaderProps {
+  url: string;
+}
+
+export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
+  const [location, setLocation] = useState<string | number>(0);
+  const [isReady, setIsReady] = useState(false);
+  const [epubUrl, setEpubUrl] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchEpub = async () => {
+      if (!url) return;
+      setIsReady(false);
+      try {
+        const { data, error } = await supabase.storage.from('epubs').download(url.split('/').pop() || '');
+        if (error) throw error;
+        
+        if (data) {
+          const blobUrl = URL.createObjectURL(data);
+          setEpubUrl(blobUrl);
+          toast({
+            title: "EPUB récupéré",
+            description: "Le contenu est prêt à être lu."
+          });
+          setIsReady(true);
+        }
+      } catch (error) {
+        console.error('Download error:', error);
+        toast({
+          title: "Erreur de téléchargement",
+          description: "Impossible de récupérer le fichier.",
+          variant: "destructive",
+        });
+      }
+    };
+    fetchEpub();
+  }, [url]);
+
+  const handleLocationChanged = (cfi: string) => {
+    setLocation(cfi);
+  };
+
+  return (
+    <div style={{ position: 'relative', height: '80vh', width: '100%' }}>
+      {!isReady && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+      {epubUrl && (
+        <ReactReader
+          url={epubUrl}
+          location={location}
+          locationChanged={handleLocationChanged}
+          onReady={() => { setIsReady(true); }}
+          styles={{
+            readerArea: {
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              right: 0,
+              height: '100%',
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+};
