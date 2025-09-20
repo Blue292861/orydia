@@ -40,12 +40,17 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!viewerRef.current) return;
+    if (!viewerRef.current) {
+      console.error("Le conteneur du lecteur n'existe pas.");
+      return;
+    }
     if (!epubUrl) {
       setError("Le lien vers l'eBook est manquant.");
       setIsLoading(false);
+      console.error("L'URL de l'EPUB est manquante.");
       return;
     }
+    console.log("Tentative de chargement de l'EPUB depuis:", epubUrl);
 
     const loadBook = async () => {
       try {
@@ -59,10 +64,12 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
         newRendition.on("relocated", (location: any) => {
           setAtStart(location.atStart);
           setAtEnd(location.atEnd);
+          console.log("Nouvelle position:", location.start.cfi);
         });
 
-        newRendition.on("displayed", () => {
+        newRendition.on("rendered", () => {
           setIsLoading(false);
+          console.log("EPUB rendu avec succès.");
         });
 
         newRendition.display();
