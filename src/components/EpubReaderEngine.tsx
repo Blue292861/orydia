@@ -38,7 +38,6 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentLocation, setCurrentLocation] = useState<string>('0');
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -69,11 +68,11 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
         newRendition.on("relocated", (location: any) => {
           setAtStart(location.atStart);
           setAtEnd(location.atEnd);
-          setCurrentLocation(location.start.cfi);
           
+          // Calcul de la progression en pourcentage
           if (book.locations) {
             const currentProgress = book.locations.percentageFromCfi(location.start.cfi);
-            setProgress(currentProgress * 100);
+            setProgress(Math.floor(currentProgress * 100));
           }
         });
 
