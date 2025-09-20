@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
-import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader, AlertTriangle } from 'lucide-react';
 import { useUserStats } from '@/contexts/UserStatsContext';
@@ -38,6 +37,9 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (!viewerRef.current) {
@@ -61,10 +63,24 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
           flow: 'paginated',
         });
 
+        book.ready.then(() => {
+          setTotalPages(book.navigation.toc.length);
+        });
+
         newRendition.on("relocated", (location: any) => {
           setAtStart(location.atStart);
           setAtEnd(location.atEnd);
-          console.log("Nouvelle position:", location.start.cfi);
+          
+          if (location.atEnd) {
+            setProgress(100);
+          } else {
+            const pageInfo = location.start;
+            const current = pageInfo.index + 1;
+            const total = book.navigation.toc.length; // Utilise la table des matières pour les pages
+            setCurrentPage(current);
+            setTotalPages(total);
+            setProgress(Math.floor((current / total) * 100));
+          }
         });
 
         newRendition.on("rendered", () => {
@@ -146,17 +162,27 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
         style={{ visibility: isLoading ? 'hidden' : 'visible' }}
       ></div>
 
-      <div className="mt-4 flex justify-between">
+      <div className="mt-4 flex justify-between items-center w-full">
         <Button onClick={handlePrevPage} disabled={atStart || isLoading}>
           <ChevronLeft className="h-4 w-4 mr-2" />
           Précédent
         </Button>
+        <div className="text-sm text-gray-500">
+          <span>Page {currentPage} sur {totalPages}</span>
+        </div>
         <Button onClick={handleNextPage} disabled={atEnd || isLoading}>
           Suivant
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
       </div>
 
+      <div className="w-full mt-4 bg-gray-200 rounded-full h-2.5">
+        <div 
+          className="bg-purple-600 h-2.5 rounded-full transition-all duration-500" 
+          style={{ width: `${progress}%` }}
+        ></div>
+      </div>
+      
       {atEnd && !isAlreadyRead && !hasFinished && (
         <div className="mt-8 pt-6 border-t flex justify-center">
           <Button onClick={onFinishReading} className="flex items-center gap-2">
