@@ -2,9 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader, AlertTriangle } from 'lucide-react';
-import { useUserStats } from '@/contexts/UserStatsContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 
 interface EpubReaderEngineProps {
   epubUrl: string;
@@ -50,7 +47,6 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
       console.error("L'URL de l'EPUB est manquante.");
       return;
     }
-    console.log("Tentative de chargement de l'EPUB depuis:", epubUrl);
 
     const loadBook = async () => {
       try {
@@ -73,7 +69,6 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
 
         newRendition.on("rendered", () => {
           setIsLoading(false);
-          console.log("EPUB rendu avec succès.");
         });
 
         newRendition.display();
