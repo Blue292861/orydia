@@ -172,9 +172,6 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
               
               setBook(prev => ({ ...prev, content: data.publicUrl }));
               
-              // Extraction des métadonnées du titre et de l'auteur n'est plus nécessaire ici.
-              // Le composant de lecture gèrera cela.
-              
               toast({
                 title: "EPUB uploadé avec succès",
                 description: "Le fichier EPUB a été uploadé et sera rendu avec le lecteur intégré"
