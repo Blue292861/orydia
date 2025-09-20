@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ePub from 'epubjs';
+import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader, AlertTriangle } from 'lucide-react';
 import { useUserStats } from '@/contexts/UserStatsContext';
@@ -37,8 +38,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [currentLocation, setCurrentLocation] = useState<string>('0');
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -63,23 +63,17 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
           flow: 'paginated',
         });
 
-        book.ready.then(() => {
-          setTotalPages(book.navigation.toc.length);
-        });
+        // Génération des emplacements pour la pagination
+        await book.locations.generate(600);
 
         newRendition.on("relocated", (location: any) => {
           setAtStart(location.atStart);
           setAtEnd(location.atEnd);
+          setCurrentLocation(location.start.cfi);
           
-          if (location.atEnd) {
-            setProgress(100);
-          } else {
-            const pageInfo = location.start;
-            const current = pageInfo.index + 1;
-            const total = book.navigation.toc.length; // Utilise la table des matières pour les pages
-            setCurrentPage(current);
-            setTotalPages(total);
-            setProgress(Math.floor((current / total) * 100));
+          if (book.locations) {
+            const currentProgress = book.locations.percentageFromCfi(location.start.cfi);
+            setProgress(currentProgress * 100);
           }
         });
 
@@ -168,7 +162,7 @@ export const EpubReaderEngine: React.FC<EpubReaderEngineProps> = ({
           Précédent
         </Button>
         <div className="text-sm text-gray-500">
-          <span>Page {currentPage} sur {totalPages}</span>
+          <span>{Math.round(progress)}% de lecture</span>
         </div>
         <Button onClick={handleNextPage} disabled={atEnd || isLoading}>
           Suivant
