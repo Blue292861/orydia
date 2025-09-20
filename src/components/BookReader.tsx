@@ -53,17 +53,14 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
     if (!book.content) {
       return null;
     }
-    // Si le chemin contient "public/", le supprimer pour obtenir le chemin relatif à la racine.
-    const publicIndex = book.content.indexOf('public/');
-    if (publicIndex !== -1) {
-      return `/${book.content.substring(publicIndex + 'public/'.length)}`;
-    }
-    // Si c'est une URL de Supabase, la renvoyer directement.
+    // Si l'URL commence par 'http', elle est complète (Supabase ou autre).
     if (book.content.startsWith('http')) {
       return book.content;
     }
-    // Fallback pour tout autre cas
-    return `/${book.content}`;
+    // Sinon, c'est un chemin local. On retire le préfixe 'public/' s'il existe.
+    // Votre configuration Vite sert les fichiers de 'public/' à la racine.
+    const path = book.content.startsWith('public/') ? book.content.substring('public/'.length) : book.content;
+    return `/${path}`;
   };
   
   const bookUrl = getBookUrl();
