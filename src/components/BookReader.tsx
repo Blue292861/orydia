@@ -50,18 +50,18 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const isHtmlContent = !isPDFContent && !isEpubContent;
 
   const getBookUrl = () => {
-    if (!book.content) return null;
-    
-    // Si l'URL est déjà une URL complète (Supabase ou autre)
-    if (book.content.startsWith('http')) {
-      return book.content;
+    if (!book.content) {
+      return null;
     }
-    
-    // Si l'URL est un chemin de fichier local
-    // Assumer que les fichiers sont dans public/ebooks/ et que Vite les sert à la racine
-    const publicEpubPath = book.content.includes('public/ebooks/') ? book.content.split('public/')[1] : book.content;
-    return `/${publicEpubPath}`;
+    // Si le chemin contient "public/", le supprimer pour obtenir le chemin relatif à la racine.
+    if (book.content.includes('public/')) {
+      const parts = book.content.split('public/');
+      return `/${parts[parts.length - 1]}`;
+    }
+    // Sinon, l'URL est déjà correcte (Supabase ou autre)
+    return book.content;
   };
+  
   const bookUrl = getBookUrl();
 
   // Effect pour vérifier si l'utilisateur a déjà noté l'app
