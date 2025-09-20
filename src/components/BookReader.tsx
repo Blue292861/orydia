@@ -52,14 +52,21 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const getBookUrl = () => {
     if (!book.content) return null;
     
-    // Correction : Vérifier si l'URL est une URL complète de Supabase.
+    // Si l'URL est complète (Supabase ou autre)
     if (book.content.startsWith('http')) {
       return book.content;
     }
     
-    // Si ce n'est pas une URL complète, construire un chemin local.
-    // Cette logique est pour les fichiers locaux, qui sont dans `public/ebooks/`.
-    return `/ebooks/${book.content}`;
+    // Si l'URL est un chemin de fichier local
+    // Assumer que le chemin est stocké comme 'public/ebooks/...'
+    // et que le serveur le sert depuis la racine
+    const publicIndex = book.content.indexOf('public/');
+    if (publicIndex !== -1) {
+      return book.content.substring(publicIndex + 'public/'.length - 1);
+    }
+
+    // Fallback pour tout autre cas
+    return `/${book.content}`;
   };
   const bookUrl = getBookUrl();
 
