@@ -54,9 +54,12 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
     if (book.content.startsWith('http')) {
       return book.content;
     }
-    // Extrait le nom du fichier du chemin complet
-    const fileName = book.content.split('/').pop();
-    return `/ebooks/${fileName}`;
+    // Correction : Extraire la partie du chemin après '/public/'
+    const publicIndex = book.content.indexOf('/public/');
+    if (publicIndex !== -1) {
+      return book.content.substring(publicIndex + '/public/'.length);
+    }
+    return `/${book.content}`;
   };
   const bookUrl = getBookUrl();
 
