@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, BookOpen, Zap, FileText } from 'lucide-react';
 import { PDFExtractionService } from '@/services/pdfExtractionService';
-import { EPUBService } from '@/services/epubService';
+// L'import de EPUBService a été supprimé car le fichier est obsolète.
 
 interface BookFormProps {
   initialBook: Book;
@@ -173,19 +172,8 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
               
               setBook(prev => ({ ...prev, content: data.publicUrl }));
               
-              // Extract metadata for title/author if not already set
-              const result = await EPUBService.extractText(file, (progress, status) => {
-                setExtractionProgress(progress);
-                setExtractionStatus(status);
-              });
-              if (result?.success) {
-                if (result.title && !book.title.trim()) {
-                  setBook(prev => ({ ...prev, title: result.title }));
-                }
-                if (result.author && !book.author.trim()) {
-                  setBook(prev => ({ ...prev, author: result.author }));
-                }
-              }
+              // Extraction des métadonnées du titre et de l'auteur n'est plus nécessaire ici.
+              // Le composant de lecture gèrera cela.
               
               toast({
                 title: "EPUB uploadé avec succès",
