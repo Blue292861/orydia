@@ -4,6 +4,7 @@ export interface Game {
   author: string;
   description?: string;
   cover_url: string;
+  genres: string[];
   is_featured: boolean;
   points_reward: number;
   created_at: string;

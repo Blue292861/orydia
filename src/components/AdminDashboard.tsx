@@ -164,12 +164,13 @@ export const AdminDashboard: React.FC = () => {
               content: '',
               points: 0,
               tags: [],
+              genres: [],
               isPremium: false,
               isMonthSuccess: false,
-        isPacoFavourite: false,
-        hasChapters: false,
-        isInteractive: false,
-        isAdultContent: false,
+              isPacoFavourite: false,
+              hasChapters: false,
+              isInteractive: false,
+              isAdultContent: false,
             }}
             onSubmit={handleSubmit}
           />

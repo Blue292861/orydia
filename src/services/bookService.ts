@@ -22,12 +22,13 @@ export const fetchBooksFromDB = async (): Promise<Book[]> => {
     summary: book.summary,
     points: book.points,
     tags: book.tags || [],
+    genres: (book as any).genres || [],
     isPremium: book.is_premium,
     isMonthSuccess: book.is_month_success,
     isPacoFavourite: book.is_paco_favourite,
     hasChapters: book.has_chapters || false,
     isInteractive: book.is_interactive || false,
-    isAdultContent: false, // Default value for existing books
+    isAdultContent: book.is_adult_content || false,
   }));
 
   return mappedBooks;
@@ -44,6 +45,7 @@ export const addBookToDB = async (book: Book): Promise<void> => {
       summary: book.summary,
       points: book.points,
       tags: book.tags,
+      genres: book.genres,
       is_premium: book.isPremium,
       is_month_success: book.isMonthSuccess,
       is_paco_favourite: book.isPacoFavourite,
@@ -69,6 +71,7 @@ export const updateBookInDB = async (book: Book): Promise<void> => {
       summary: book.summary,
       points: book.points,
       tags: book.tags,
+      genres: book.genres,
       is_premium: book.isPremium,
       is_month_success: book.isMonthSuccess,
       is_paco_favourite: book.isPacoFavourite,

@@ -33,6 +33,7 @@ export function GameAdmin() {
     author: '',
     description: '',
     cover_url: '',
+    genres: [] as string[],
     is_featured: false,
     points_reward: 0
   });
@@ -101,7 +102,10 @@ export function GameAdmin() {
 
   const handleCreateGame = async () => {
     try {
-      await gameService.createGame(gameForm);
+      await gameService.createGame({
+        ...gameForm,
+        genres: selectedGenres
+      });
       toast.success("Jeu créé avec succès");
       setIsCreateGameOpen(false);
       setGameForm({
@@ -109,9 +113,11 @@ export function GameAdmin() {
         author: '',
         description: '',
         cover_url: '',
+        genres: [],
         is_featured: false,
         points_reward: 0
       });
+      setSelectedGenres([]);
       loadGames();
     } catch (error) {
       toast.error("Erreur lors de la création du jeu");

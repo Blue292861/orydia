@@ -8,6 +8,7 @@ export interface Audiobook {
   audio_url: string; // Maintenant utilisé seulement pour la rétrocompatibilité
   genre?: string;
   tags: string[];
+  genres: string[];
   points: number;
   is_premium: boolean;
   is_month_success: boolean;

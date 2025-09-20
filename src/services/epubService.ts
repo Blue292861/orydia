@@ -326,18 +326,21 @@ export class EPUBService {
       }
     }
 
-        // Clean up HTML entities and fix encoding issues
+        // Fix encoding issues with TextDecoder and preserve UTF-8
         let htmlResult = doc.documentElement.outerHTML;
         
-        // Try to fix encoding issues with TextDecoder
+        // Preserve UTF-8 encoding by ensuring proper text handling
         try {
+          // Use TextDecoder with UTF-8 to preserve character encoding
           const bytes = new TextEncoder().encode(htmlResult);
-          const decoder = new TextDecoder('utf-8', { fatal: false });
+          const decoder = new TextDecoder('utf-8', { fatal: false, ignoreBOM: false });
           htmlResult = decoder.decode(bytes);
         } catch (e) {
+          console.warn('UTF-8 decoding fallback used:', e);
           // Fallback to original if decoding fails
         }
         
+        // Clean up HTML entities while preserving UTF-8 characters
         htmlResult = htmlResult
           // Fix common HTML entities
           .replace(/&nbsp;/g, ' ')
@@ -349,20 +352,21 @@ export class EPUBService {
           .replace(/&ldquo;/g, '"')
           .replace(/&mdash;/g, '—')
           .replace(/&ndash;/g, '–')
-          // Fix encoding artifacts
+          // Fix common encoding artifacts while preserving actual UTF-8
           .replace(/Ã¢â‚¬â„¢/g, "'")
           .replace(/Ã¢â‚¬Â/g, "—")
           .replace(/Ã¢â‚¬œ/g, '"')
           .replace(/Ã¢â‚¬\u009d/g, '"')
-          .replace(/Ã©/g, "é")
-          .replace(/Ã¨/g, "è")
-          .replace(/Ã /g, "à")
-          .replace(/Ãª/g, "ê")
-          .replace(/Ã´/g, "ô")
-          .replace(/Ã§/g, "ç")
-          .replace(/Ã¹/g, "ù")
-          .replace(/Ã®/g, "î")
-          .replace(/Ã¯/g, "ï");
+          // Only fix broken UTF-8, not actual UTF-8 characters
+          .replace(/Ã©(?![àèéêëìíîïòóôõöùúûü])/g, "é")
+          .replace(/Ã¨(?![àèéêëìíîïòóôõöùúûü])/g, "è")
+          .replace(/Ã (?![àèéêëìíîïòóôõöùúûü])/g, "à")
+          .replace(/Ãª(?![àèéêëìíîïòóôõöùúûü])/g, "ê")
+          .replace(/Ã´(?![àèéêëìíîïòóôõöùúûü])/g, "ô")
+          .replace(/Ã§(?![àèéêëìíîïòóôõöùúûü])/g, "ç")
+          .replace(/Ã¹(?![àèéêëìíîïòóôõöùúûü])/g, "ù")
+          .replace(/Ã®(?![àèéêëìíîïòóôõöùúûü])/g, "î")
+          .replace(/Ã¯(?![àèéêëìíîïòóôõöùúûü])/g, "ï");
 
     return htmlResult;
   }

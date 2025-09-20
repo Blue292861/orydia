@@ -25,7 +25,10 @@ export const AudiobookAdmin: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAudiobooks(data || []);
+      setAudiobooks((data || []).map(audiobook => ({
+        ...audiobook,
+        genres: (audiobook as any).genres || []
+      })));
     } catch (error) {
       console.error('Error fetching audiobooks:', error);
       toast({
@@ -265,6 +268,7 @@ export const AudiobookAdmin: React.FC = () => {
               audio_url: '',
               genre: '',
               tags: [],
+              genres: [],
               points: 0,
               is_premium: false,
               is_month_success: false,

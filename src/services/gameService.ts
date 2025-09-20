@@ -10,7 +10,14 @@ export const gameService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    // Map data to include genres field
+    const mappedGames = (data || []).map(game => ({
+      ...game,
+      genres: (game as any).genres || []
+    }));
+    
+    return mappedGames;
   },
 
   async getFeaturedGames(): Promise<Game[]> {
@@ -21,7 +28,13 @@ export const gameService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    const mappedGames = (data || []).map(game => ({
+      ...game,
+      genres: (game as any).genres || []
+    }));
+    
+    return mappedGames;
   },
 
   async getGameById(id: string): Promise<Game | null> {
@@ -32,18 +45,21 @@ export const gameService = {
       .maybeSingle();
     
     if (error) throw error;
-    return data;
+    return data ? { ...data, genres: (data as any).genres || [] } : null;
   },
 
   async createGame(game: Omit<Game, 'id' | 'created_at' | 'updated_at'>): Promise<Game> {
     const { data, error } = await supabase
       .from('games')
-      .insert(game)
+      .insert({
+        ...game,
+        genres: game.genres || []
+      })
       .select()
       .single();
     
     if (error) throw error;
-    return data;
+    return { ...data, genres: (data as any).genres || [] };
   },
 
   async updateGame(id: string, updates: Partial<Game>): Promise<Game> {
@@ -55,7 +71,7 @@ export const gameService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return { ...data, genres: (data as any).genres || [] };
   },
 
   async deleteGame(id: string): Promise<void> {

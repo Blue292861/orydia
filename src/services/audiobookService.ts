@@ -9,7 +9,14 @@ export const audiobookService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    // Map data to include genres field
+    const mappedAudiobooks = (data || []).map(audiobook => ({
+      ...audiobook,
+      genres: (audiobook as any).genres || []
+    }));
+    
+    return mappedAudiobooks;
   },
 
   async getFeaturedAudiobooks(): Promise<Audiobook[]> {
@@ -20,7 +27,13 @@ export const audiobookService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    const mappedAudiobooks = (data || []).map(audiobook => ({
+      ...audiobook,
+      genres: (audiobook as any).genres || []
+    }));
+    
+    return mappedAudiobooks;
   },
 
   async getPacoChronicleAudiobooks(): Promise<Audiobook[]> {
@@ -31,7 +44,13 @@ export const audiobookService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    const mappedAudiobooks = (data || []).map(audiobook => ({
+      ...audiobook,
+      genres: (audiobook as any).genres || []
+    }));
+    
+    return mappedAudiobooks;
   },
 
   async getPremiumAudiobooks(): Promise<Audiobook[]> {
@@ -42,7 +61,13 @@ export const audiobookService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    const mappedAudiobooks = (data || []).map(audiobook => ({
+      ...audiobook,
+      genres: (audiobook as any).genres || []
+    }));
+    
+    return mappedAudiobooks;
   },
 
   async getFreeAudiobooks(): Promise<Audiobook[]> {
@@ -53,7 +78,13 @@ export const audiobookService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    const mappedAudiobooks = (data || []).map(audiobook => ({
+      ...audiobook,
+      genres: (audiobook as any).genres || []
+    }));
+    
+    return mappedAudiobooks;
   },
 
   async getAudiobooksByGenre(genre: string): Promise<Audiobook[]> {
@@ -64,7 +95,13 @@ export const audiobookService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    const mappedAudiobooks = (data || []).map(audiobook => ({
+      ...audiobook,
+      genres: (audiobook as any).genres || []
+    }));
+    
+    return mappedAudiobooks;
   },
 
   async searchAudiobooks(query: string): Promise<Audiobook[]> {
@@ -75,6 +112,12 @@ export const audiobookService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    const mappedAudiobooks = (data || []).map(audiobook => ({
+      ...audiobook,
+      genres: (audiobook as any).genres || []
+    }));
+    
+    return mappedAudiobooks;
   }
 };
