@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { UserStats, Achievement } from '@/types/UserStats';
 import { UserStatsContextType } from '@/types/UserStatsContext';
@@ -33,7 +32,8 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     isPremium: false,
     level: 1,
     experiencePoints: 0,
-    pendingPremiumMonths: 0
+    pendingPremiumMonths: 0,
+    tutorialsSeen: [] // Initialisation de la nouvelle propriété
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -87,13 +87,36 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
           level: dbStats.level || 1,
           experiencePoints: dbStats.experience_points || 0,
           levelInfo,
-          pendingPremiumMonths: dbStats.pending_premium_months || 0
+          pendingPremiumMonths: dbStats.pending_premium_months || 0,
+          tutorialsSeen: dbStats.tutorials_seen || [] // Chargement des pop-ups vus
         });
       }
     } catch (error) {
       console.error('Erreur lors du chargement des stats:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const markTutorialAsSeen = async (tutorialId: string) => {
+    if (!session?.user?.id || userStats.tutorialsSeen.includes(tutorialId)) return;
+
+    setUserStats(prev => ({
+      ...prev,
+      tutorialsSeen: [...prev.tutorialsSeen, tutorialId]
+    }));
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ tutorials_seen: [...userStats.tutorialsSeen, tutorialId] })
+        .eq('id', session.user.id);
+
+      if (error) {
+        console.error('Error updating tutorials seen:', error);
+      }
+    } catch (error) {
+      console.error('Error updating tutorials seen:', error);
     }
   };
 
@@ -261,7 +284,8 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
       deleteAchievement,
       applyPendingPremiumMonths,
       checkDailyAdLimit,
-      recordAdView
+      recordAdView,
+      markTutorialAsSeen // Ajout de la nouvelle fonction
     }}>
       {children}
     </UserStatsContext.Provider>
