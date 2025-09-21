@@ -5,30 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Site en cours de rénovation</title>
     <style>
+        :root {
+            --forest-green: #228B22;
+            --gold: #FFD700;
+            --light-gold: #FFECB3;
+            --dark-green: #006400;
+        }
+
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            color: #333;
+            font-family: 'Georgia', serif;
+            background-color: var(--forest-green);
+            color: var(--light-gold);
             text-align: center;
+            letter-spacing: 1px;
         }
         .container {
-            padding: 2rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #fff;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 3rem;
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            background-color: var(--dark-green);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
         }
         h1 {
-            font-size: 2.5rem;
-            color: #555;
+            font-size: 3rem;
+            color: var(--gold);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 0.5rem;
         }
         p {
-            font-size: 1.2rem;
+            font-size: 1.5rem;
+            margin-top: 0;
         }
     </style>
 </head>
