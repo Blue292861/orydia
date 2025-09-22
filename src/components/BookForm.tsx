@@ -275,7 +275,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     // Fusionner les genres sélectionnés dans l'objet final
     const finalBook = {
       ...book,
-      genres: selectedGenres,
+      genres: selectedGenres as any,
       title: sanitizeTextWithSpaces(book.title),
       author: sanitizeTextWithSpaces(book.author),
       summary: book.summary ? sanitizeTextWithSpaces(book.summary) : undefined,

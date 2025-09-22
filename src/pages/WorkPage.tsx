@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { TextReader } from '@/components/TextReader';
-import { EpubReaderWithBlob } from '@/components/EpubReaderWithBlob';
+import { EpubReaderSimple } from '@/components/EpubReaderSimple';
 import { isUrl } from '@/utils/urlUtils';
 import { fetchBooksFromDB } from '@/services/bookService';
 
@@ -233,7 +233,7 @@ const WorkPage: React.FC = () => {
           
           <div className="mt-6">
             {isEpub ? (
-              <EpubReaderWithBlob url={(foundWork as Book).content} />
+              <EpubReaderSimple url={(foundWork as Book).content} bookId={(foundWork as Book).id} />
             ) : workType === 'book' ? (
               <TextReader content={(foundWork as Book).content} />
             ) : null}

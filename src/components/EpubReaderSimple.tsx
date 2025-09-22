@@ -1,164 +1,157 @@
-// src/components/EpubReaderAdvanced.tsx
+// src/components/EpubReaderSimple.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ReactReader } from 'react-reader';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
-import { Loader2, BookOpen, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Loader2, BookOpen, ChevronLeft, ChevronRight, Settings, Sun, Moon, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface EpubReaderAdvancedProps {
+interface EpubReaderSimpleProps {
   url: string;
   bookId?: string;
 }
 
-interface ReadingProgress {
-  location: string;
-  progress: number;
-  totalLocations: number;
-  currentPage: number;
-  totalPages: number;
-}
-
-export const EpubReaderAdvanced: React.FC<EpubReaderAdvancedProps> = ({ url, bookId }) => {
+export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId }) => {
   const [location, setLocation] = useState<string | number>(0);
   const [isReady, setIsReady] = useState(false);
   const [rendition, setRendition] = useState<any>(null);
-  const [readingProgress, setReadingProgress] = useState<ReadingProgress>({
-    location: '',
-    progress: 0,
-    totalLocations: 0,
-    currentPage: 1,
-    totalPages: 1
-  });
-  const [fontSize, setFontSize] = useState(16);
+  const [readingProgress, setReadingProgress] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [fontSize, setFontSize] = useState(18);
   const [theme, setTheme] = useState<'light' | 'dark' | 'sepia'>('light');
   const [showControls, setShowControls] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
-  const progressSaveTimeout = useRef<NodeJS.Timeout>();
+  const progressKey = `epub_progress_${bookId || 'default'}`;
 
-  // Chargement de la progression sauvegardée
+  // Chargement de la progression depuis localStorage
   useEffect(() => {
-    const loadProgress = async () => {
-      if (!user || !bookId) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('epub_reading_progress')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('book_id', bookId)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error loading reading progress:', error);
-          return;
+    if (bookId) {
+      const savedProgress = localStorage.getItem(progressKey);
+      if (savedProgress) {
+        try {
+          const progress = JSON.parse(savedProgress);
+          setLocation(progress.location || 0);
+          setReadingProgress(progress.progress || 0);
+          setCurrentPage(progress.currentPage || 1);
+          setTotalPages(progress.totalPages || 1);
+        } catch (error) {
+          console.error('Error loading saved progress:', error);
         }
-
-        if (data) {
-          setLocation(data.location || 0);
-          setReadingProgress(prev => ({
-            ...prev,
-            progress: data.progress || 0
-          }));
-        }
-      } catch (error) {
-        console.error('Error loading reading progress:', error);
       }
-    };
-
-    loadProgress();
-  }, [user, bookId]);
+    }
+  }, [bookId, progressKey]);
 
   // Sauvegarde de la progression avec debounce
-  const saveProgress = useCallback(async (progressData: ReadingProgress) => {
-    if (!user || !bookId) return;
+  const saveProgress = useCallback((progressData: any) => {
+    if (!bookId) return;
 
-    // Clear existing timeout
-    if (progressSaveTimeout.current) {
-      clearTimeout(progressSaveTimeout.current);
-    }
+    const progressToSave = {
+      location: progressData.location,
+      progress: progressData.progress,
+      currentPage: progressData.currentPage,
+      totalPages: progressData.totalPages,
+      lastRead: new Date().toISOString()
+    };
 
-    // Set new timeout
-    progressSaveTimeout.current = setTimeout(async () => {
-      try {
-        const { error } = await supabase
-          .from('epub_reading_progress')
-          .upsert({
-            user_id: user.id,
-            book_id: bookId,
-            location: progressData.location,
-            progress: progressData.progress,
-            current_page: progressData.currentPage,
-            total_pages: progressData.totalPages,
-            updated_at: new Date().toISOString()
-          });
-
-        if (error) {
-          console.error('Error saving reading progress:', error);
-        }
-      } catch (error) {
-        console.error('Error saving reading progress:', error);
-      }
-    }, 2000); // Sauvegarde après 2 secondes d'inactivité
-  }, [user, bookId]);
+    localStorage.setItem(progressKey, JSON.stringify(progressToSave));
+  }, [bookId, progressKey]);
 
   const handleLocationChanged = (cfi: string) => {
     setLocation(cfi);
     
-    if (rendition && rendition.book) {
-      const book = rendition.book;
-      const currentLocation = book.locations.locationFromCfi(cfi);
-      const totalLocations = book.locations.total;
-      const progress = Math.round((currentLocation / totalLocations) * 100);
-      
-      const newProgress: ReadingProgress = {
-        location: cfi,
-        progress,
-        totalLocations,
-        currentPage: currentLocation,
-        totalPages: totalLocations
-      };
-      
-      setReadingProgress(newProgress);
-      saveProgress(newProgress);
+    if (rendition && rendition.book && rendition.book.locations) {
+      try {
+        const book = rendition.book;
+        const currentLocation = book.locations.locationFromCfi(cfi);
+        const totalLocations = book.locations.total;
+        
+        if (currentLocation && totalLocations) {
+          const progress = Math.round((currentLocation / totalLocations) * 100);
+          const newCurrentPage = currentLocation;
+          const newTotalPages = totalLocations;
+          
+          setReadingProgress(progress);
+          setCurrentPage(newCurrentPage);
+          setTotalPages(newTotalPages);
+          
+          // Sauvegarder la progression
+          saveProgress({
+            location: cfi,
+            progress,
+            currentPage: newCurrentPage,
+            totalPages: newTotalPages
+          });
+        }
+      } catch (error) {
+        console.error('Error calculating progress:', error);
+      }
     }
   };
 
   const handleRenditionReady = (rendition: any) => {
     setRendition(rendition);
-    setIsReady(true);
     
-    // Configurer le thème
-    rendition.themes.default({
-      body: {
-        'font-family': 'Georgia, serif !important',
-        'line-height': '1.6 !important',
-      }
-    });
+    // Configuration des styles de base
+    if (rendition.themes) {
+      rendition.themes.default({
+        body: {
+          'font-family': 'Georgia, serif !important',
+          'line-height': '1.6 !important',
+          'text-align': 'justify',
+          'hyphens': 'auto',
+          'word-wrap': 'break-word'
+        },
+        'p': {
+          'margin': '0 0 1em 0 !important',
+          'text-indent': '1.5em !important'
+        },
+        'h1, h2, h3, h4, h5, h6': {
+          'margin': '1.5em 0 0.5em 0 !important',
+          'text-indent': '0 !important'
+        },
+        'img': {
+          'max-width': '100% !important',
+          'height': 'auto !important',
+          'display': 'block !important',
+          'margin': '1em auto !important'
+        }
+      });
 
-    // Appliquer les styles selon le thème
-    applyTheme(rendition, theme);
-    
-    // Configurer la taille de police
-    rendition.themes.fontSize(`${fontSize}px`);
+      // Appliquer le thème initial
+      applyTheme(rendition, theme);
+      
+      // Configurer la taille de police
+      rendition.themes.fontSize(`${fontSize}px`);
+    }
     
     // Générer les locations pour le calcul de progression
-    rendition.book.ready.then(() => {
-      return rendition.book.locations.generate(1024);
-    }).then(() => {
-      // Les locations sont prêtes
-      toast({
-        title: "EPUB chargé",
-        description: "Le contenu est prêt à être lu avec suivi de progression."
+    if (rendition.book) {
+      rendition.book.ready.then(() => {
+        return rendition.book.locations.generate(1600); // Plus de précision
+      }).then(() => {
+        setIsReady(true);
+        toast({
+          title: "EPUB chargé",
+          description: "Le contenu est prêt à être lu avec suivi de progression."
+        });
+      }).catch((error: any) => {
+        console.error('Error generating locations:', error);
+        setIsReady(true); // Permettre la lecture même si les locations échouent
+        toast({
+          title: "EPUB chargé",
+          description: "Le contenu est prêt (progression approximative)."
+        });
       });
-    });
+    }
   };
 
   const applyTheme = (rendition: any, selectedTheme: string) => {
+    if (!rendition.themes) return;
+
     const themes = {
       light: {
         body: {
@@ -185,7 +178,7 @@ export const EpubReaderAdvanced: React.FC<EpubReaderAdvancedProps> = ({ url, boo
 
   const changeFontSize = (newSize: number) => {
     setFontSize(newSize);
-    if (rendition) {
+    if (rendition && rendition.themes) {
       rendition.themes.fontSize(`${newSize}px`);
     }
   };
@@ -227,35 +220,30 @@ export const EpubReaderAdvanced: React.FC<EpubReaderAdvancedProps> = ({ url, boo
     <div className="relative w-full h-full min-h-[80vh]">
       {/* Contrôles supérieurs */}
       {showControls && (
-        <Card className="absolute top-4 left-4 right-4 z-20 p-4 bg-background/95 backdrop-blur">
-          <div className="flex items-center justify-between gap-4">
+        <Card className="absolute top-4 left-4 right-4 z-20 p-4 bg-background/95 backdrop-blur border">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
               <span className="text-sm font-medium">
-                Page {readingProgress.currentPage} sur {readingProgress.totalPages}
+                {readingProgress > 0 && `${readingProgress}% lu`}
               </span>
             </div>
             
-            <div className="flex-1 max-w-md">
-              <Progress value={readingProgress.progress} className="h-2" />
-              <div className="text-xs text-center mt-1">
-                {readingProgress.progress}% lu
-              </div>
+            <div className="flex-1 max-w-md min-w-32">
+              <Progress value={readingProgress} className="h-2" />
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowControls(false)}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowControls(false)}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
           </div>
 
           {/* Contrôles de lecture */}
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-between mt-4 gap-2 flex-wrap">
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -264,11 +252,11 @@ export const EpubReaderAdvanced: React.FC<EpubReaderAdvancedProps> = ({ url, boo
               >
                 A-
               </Button>
-              <span className="text-xs">{fontSize}px</span>
+              <span className="text-xs px-2">{fontSize}px</span>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => changeFontSize(Math.min(24, fontSize + 2))}
+                onClick={() => changeFontSize(Math.min(28, fontSize + 2))}
               >
                 A+
               </Button>
@@ -280,21 +268,21 @@ export const EpubReaderAdvanced: React.FC<EpubReaderAdvancedProps> = ({ url, boo
                 size="sm"
                 onClick={() => changeTheme('light')}
               >
-                ☀️
+                <Sun className="h-4 w-4" />
               </Button>
               <Button
                 variant={theme === 'sepia' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => changeTheme('sepia')}
               >
-                📜
+                <FileText className="h-4 w-4" />
               </Button>
               <Button
                 variant={theme === 'dark' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => changeTheme('dark')}
               >
-                🌙
+                <Moon className="h-4 w-4" />
               </Button>
             </div>
 
@@ -305,12 +293,14 @@ export const EpubReaderAdvanced: React.FC<EpubReaderAdvancedProps> = ({ url, boo
                 onClick={prevPage}
               >
                 <ChevronLeft className="h-4 w-4" />
+                Précédent
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={nextPage}
               >
+                Suivant
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -340,20 +330,12 @@ export const EpubReaderAdvanced: React.FC<EpubReaderAdvancedProps> = ({ url, boo
         </div>
       )}
 
-      {/* Lecteur EPUB */}
-      <div className={`w-full h-full ${showControls ? 'pt-32' : 'pt-16'}`}>
+      <div className={`w-full h-full ${showControls ? 'pt-32' : 'pt-16'} epub-reader-container`}>
         <ReactReader
           url={url}
           location={location}
           locationChanged={handleLocationChanged}
           getRendition={handleRenditionReady}
-          readerStyles={{
-            ...ReactReader.defaultProps.readerStyles,
-            arrow: {
-              ...ReactReader.defaultProps.readerStyles.arrow,
-              color: 'hsl(var(--primary))'
-            }
-          }}
         />
       </div>
     </div>

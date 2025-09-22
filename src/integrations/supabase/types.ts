@@ -434,6 +434,42 @@ export type Database = {
         }
         Relationships: []
       }
+      epub_reading_progress: {
+        Row: {
+          book_id: string
+          created_at: string
+          current_page: number | null
+          id: string
+          location: string | null
+          progress: number | null
+          total_pages: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          created_at?: string
+          current_page?: number | null
+          id?: string
+          location?: string | null
+          progress?: number | null
+          total_pages?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          created_at?: string
+          current_page?: number | null
+          id?: string
+          location?: string | null
+          progress?: number | null
+          total_pages?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       game_chapters: {
         Row: {
           chapter_number: number
@@ -676,6 +712,7 @@ export type Database = {
           id: string
           last_name: string | null
           rated_at: string | null
+          tutorials_seen: string | null
           updated_at: string | null
           username: string | null
         }
@@ -690,6 +727,7 @@ export type Database = {
           id: string
           last_name?: string | null
           rated_at?: string | null
+          tutorials_seen?: string | null
           updated_at?: string | null
           username?: string | null
         }
@@ -704,6 +742,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           rated_at?: string | null
+          tutorials_seen?: string | null
           updated_at?: string | null
           username?: string | null
         }

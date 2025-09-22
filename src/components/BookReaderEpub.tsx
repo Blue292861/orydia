@@ -8,7 +8,7 @@ import { RewardAd } from '@/components/RewardAd';
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { RatingDialog } from './RatingDialog';
 import { CopyrightWarning } from '@/components/CopyrightWarning';
-import { EpubReaderAdvanced } from './EpubReaderAdvanced';
+import { EpubReaderSimple } from './EpubReaderSimple';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -64,27 +64,19 @@ export const BookReaderEpub: React.FC<BookReaderEpubProps> = ({ book, onBack }) 
 
   // Surveiller la progression de lecture
   useEffect(() => {
-    const checkProgress = async () => {
+    const checkProgress = () => {
       if (!user || !book.id) return;
       
       try {
-        const { data, error } = await supabase
-          .from('epub_reading_progress')
-          .select('progress')
-          .eq('user_id', user.id)
-          .eq('book_id', book.id)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error checking progress:', error);
-          return;
-        }
-
-        if (data) {
-          setReadingProgress(data.progress || 0);
+        const progressKey = `epub_progress_${book.id}`;
+        const savedProgress = localStorage.getItem(progressKey);
+        
+        if (savedProgress) {
+          const progress = JSON.parse(savedProgress);
+          setReadingProgress(progress.progress || 0);
           
-          // Si le livre est lu à plus de 90%, considérer comme terminé
-          if (data.progress >= 90 && !isAlreadyRead && !hasFinished) {
+          // Si le livre est lu à plus de 90%, considérer comme terminé  
+          if (progress.progress >= 90 && !isAlreadyRead && !hasFinished) {
             handleAutoFinish();
           }
         }
@@ -257,7 +249,7 @@ export const BookReaderEpub: React.FC<BookReaderEpubProps> = ({ book, onBack }) 
         
         {/* Lecteur EPUB avec suivi de progression */}
         <div className="w-full min-h-[80vh] relative">
-          <EpubReaderAdvanced 
+          <EpubReaderSimple 
             url={book.content} 
             bookId={book.id}
           />
