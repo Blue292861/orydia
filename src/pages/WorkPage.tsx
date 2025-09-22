@@ -234,9 +234,9 @@ const WorkPage: React.FC = () => {
           <div className="mt-6">
             {isEpub ? (
               <EpubReaderWithBlob url={(foundWork as Book).content} />
-            ) : (
-              <TextReader content={foundWork.content as string} />
-            )}
+            ) : workType === 'book' ? (
+              <TextReader content={(foundWork as Book).content} />
+            ) : null}
           </div>
         </main>
 

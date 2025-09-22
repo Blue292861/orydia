@@ -24,7 +24,7 @@ interface BookFormProps {
 
 export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => {
   const [book, setBook] = React.useState<Book>(initialBook);
-  const [selectedGenres, setSelectedGenres] = React.useState<LiteraryGenre[]>(initialBook.genres || []);
+  const [selectedGenres, setSelectedGenres] = React.useState<string[]>(initialBook.genres || []);
   const [isExtracting, setIsExtracting] = React.useState(false);
   const [extractionProgress, setExtractionProgress] = React.useState(0);
   const [extractionStatus, setExtractionStatus] = React.useState('');

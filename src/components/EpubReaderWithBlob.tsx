@@ -60,17 +60,6 @@ export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
           url={epubUrl}
           location={location}
           locationChanged={handleLocationChanged}
-          onReady={() => { setIsReady(true); }}
-          styles={{
-            readerArea: {
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              bottom: 0,
-              right: 0,
-              height: '100%',
-            }
-          }}
         />
       )}
     </div>

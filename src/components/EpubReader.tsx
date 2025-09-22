@@ -23,20 +23,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({ url }) => {
     setLocation(cfi);
   };
   
-  const handleLoad = () => {
+  const handleReady = () => {
     setIsReady(true);
     toast({
       title: "EPUB chargé",
       description: "Le contenu est prêt à être lu."
-    });
-  };
-  
-  const handleError = (error: any) => {
-    console.error("EPUB loading error:", error);
-    toast({
-      title: "Erreur de chargement",
-      description: "Impossible de charger le fichier EPUB. Vérifiez l'URL et les permissions.",
-      variant: "destructive",
     });
   };
 
@@ -55,18 +46,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({ url }) => {
         url={url}
         location={location}
         locationChanged={handleLocationChanged}
-        onReady={handleLoad}
-        onError={handleError}
-        styles={{
-          readerArea: {
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            right: 0,
-            height: '100%',
-          }
-        }}
       />
     </div>
   );
