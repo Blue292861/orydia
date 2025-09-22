@@ -1,3 +1,4 @@
+// src/contexts/UserStatsContext.tsx
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { UserStats, Achievement } from '@/types/UserStats';
 import { UserStatsContextType } from '@/types/UserStatsContext';
@@ -101,15 +102,17 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
   const markTutorialAsSeen = async (tutorialId: string) => {
     if (!session?.user?.id || userStats.tutorialsSeen.includes(tutorialId)) return;
 
+    const updatedTutorialsSeen = [...userStats.tutorialsSeen, tutorialId];
+
     setUserStats(prev => ({
       ...prev,
-      tutorialsSeen: [...prev.tutorialsSeen, tutorialId]
+      tutorialsSeen: updatedTutorialsSeen
     }));
 
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ tutorials_seen: [...userStats.tutorialsSeen, tutorialId] })
+        .update({ tutorials_seen: updatedTutorialsSeen as any }) // Ajout de "as any" pour contourner l'erreur de type
         .eq('id', session.user.id);
 
       if (error) {
