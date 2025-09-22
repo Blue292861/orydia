@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { TagInput } from '@/components/TagInput';
 import { GenreSelector } from '@/components/GenreSelector';
-import { LiteraryGenre } from '@/constants/genres';
+import { LiteraryGenre } from '@/constants/genres'; // Ligne modifiée
 import { FileImport } from '@/components/FileImport';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -275,7 +275,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     // Fusionner les genres sélectionnés dans l'objet final
     const finalBook = {
       ...book,
-      genres: selectedGenres as any,
+      genres: selectedGenres as LiteraryGenre[], // Ligne modifiée
       title: sanitizeTextWithSpaces(book.title),
       author: sanitizeTextWithSpaces(book.author),
       summary: book.summary ? sanitizeTextWithSpaces(book.summary) : undefined,
