@@ -331,15 +331,15 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       )}
 
       {/* Zone de lecture EPUB */}
-      <div className="w-full epub-reader-container" style={{ height: "70vh", minHeight: "600px" }}>
+      <div className="w-full epub-reader-container" style={{ height: "70vh", minHeight: "600px", overflow: "auto" }}>
         <ReactReader
           url={url}
           location={location}
           locationChanged={handleLocationChanged}
           getRendition={handleRenditionReady}
           epubOptions={{
-            flow: "paginated",
-            manager: "default"
+            flow: "scrolled-continuous",
+            manager: "continuous"
           }}
         />
       </div>

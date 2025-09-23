@@ -205,7 +205,6 @@ export const BookReaderEpub: React.FC<BookReaderEpubProps> = ({ book, onBack }) 
   
   return (
     <>
-      <CopyrightWarning />
       {showRewardAd && (
         <RewardAd 
           book={book}
@@ -245,6 +244,11 @@ export const BookReaderEpub: React.FC<BookReaderEpubProps> = ({ book, onBack }) 
           <Button variant="ghost" size="icon" onClick={handleBackClick}>
             <X className="h-4 w-4" />
           </Button>
+        </div>
+        
+        {/* Disclaimer de propriété intellectuelle */}
+        <div className="px-4 mb-4">
+          <CopyrightWarning />
         </div>
         
         {/* Lecteur EPUB avec suivi de progression */}

@@ -457,11 +457,13 @@ body.high-contrast * {
     margin: 1em auto !important;
   }
 
-/* EPUB Reader Container - Simple and reliable sizing */
+/* EPUB Reader Container - Simple and reliable sizing with scroll */
 .epub-reader-container {
   position: relative !important;
   width: 100% !important;
-  overflow: hidden !important;
+  overflow: auto !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 8px !important;
 }
 
 .react-reader-wrapper {
@@ -475,7 +477,7 @@ div[id*="epubjs-container"] {
   height: 100% !important;
   min-height: 600px !important;
   position: relative !important;
-  overflow: hidden !important;
+  overflow: auto !important;
 }
 
 div[id*="epubjs-view"] {
@@ -485,7 +487,7 @@ div[id*="epubjs-view"] {
   visibility: visible !important;
   position: relative !important;
   display: block !important;
-  overflow: hidden !important;
+  overflow: auto !important;
 }
 
 /* EPUBjs iframe */
@@ -505,11 +507,32 @@ div[id*="epubjs-view"] iframe {
   position: relative !important;
 }
 
-/* Improve text readability in EPUB */
+/* Improve text readability in EPUB with scroll */
 div[id*="epubjs-view"] iframe body {
   margin: 20px !important;
   padding: 20px !important;
   line-height: 1.6 !important;
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
+  overflow-y: auto !important;
+  max-height: none !important;
+}
+
+/* Custom scrollbar for EPUB content */
+.epub-reader-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.epub-reader-container::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+.epub-reader-container::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 4px;
+}
+
+.epub-reader-container::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
 }
