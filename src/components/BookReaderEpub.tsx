@@ -215,7 +215,7 @@ export const BookReaderEpub: React.FC<BookReaderEpubProps> = ({ book, onBack }) 
         />
       )}
       
-      <div className="w-full max-w-none mx-auto flex flex-col min-h-screen pb-10">
+      <div className="w-full max-w-none mx-auto pb-10">
         <div className="flex justify-between items-center mb-6 px-4">
           <Button variant="ghost" onClick={handleBackClick} className="flex items-center gap-1">
             <ChevronLeft className="h-4 w-4" />
@@ -248,7 +248,7 @@ export const BookReaderEpub: React.FC<BookReaderEpubProps> = ({ book, onBack }) 
         </div>
         
         {/* Lecteur EPUB avec suivi de progression */}
-        <div className="w-full flex-1" style={{ minHeight: "600px" }}>
+        <div className="w-full" style={{ minHeight: "600px" }}>
           <EpubReaderSimple 
             url={book.content} 
             bookId={book.id}

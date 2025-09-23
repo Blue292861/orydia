@@ -217,10 +217,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   }
 
   return (
-    <div className="relative w-full flex flex-col react-reader-wrapper" style={{ minHeight: "calc(100vh - 100px)" }}>
+    <div className="relative w-full min-h-[80vh] react-reader-wrapper">
       {/* Contrôles supérieurs */}
       {showControls && (
-        <Card className="relative mb-4 p-4 bg-background/95 backdrop-blur border z-20">
+        <Card className="sticky top-0 z-20 mb-4 p-4 bg-background/95 backdrop-blur border">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
@@ -310,20 +310,19 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
       {/* Bouton pour réafficher les contrôles */}
       {!showControls && (
-        <div className="relative mb-4 flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowControls(true)}
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
-        </div>
+        <Button
+          className="sticky top-4 right-4 z-20 mb-4 ml-auto block"
+          variant="outline"
+          size="sm"
+          onClick={() => setShowControls(true)}
+        >
+          <Settings className="h-4 w-4" />
+        </Button>
       )}
 
       {/* Indicateur de chargement */}
       {!isReady && (
-        <div className="flex items-center justify-center bg-background/80 z-10 rounded-lg p-8 mb-4">
+        <div className="flex items-center justify-center bg-background/80 rounded-lg p-8 mb-4">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">Chargement de l'EPUB...</p>
@@ -331,8 +330,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         </div>
       )}
 
-      {/* Zone de lecture EPUB - Flexible */}
-      <div className="flex-1 react-reader epub-reader-container" style={{ minHeight: "600px" }}>
+      {/* Zone de lecture EPUB */}
+      <div className="w-full epub-reader-container" style={{ height: "70vh", minHeight: "600px" }}>
         <ReactReader
           url={url}
           location={location}
@@ -340,9 +339,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           getRendition={handleRenditionReady}
           epubOptions={{
             flow: "paginated",
-            manager: "default",
-            width: "100%",
-            height: "100%"
+            manager: "default"
           }}
         />
       </div>

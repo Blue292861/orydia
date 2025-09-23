@@ -457,69 +457,52 @@ body.high-contrast * {
     margin: 1em auto !important;
   }
 
-/* EPUB Reader Container - Responsive and adaptive sizing */
+/* EPUB Reader Container - Simple and reliable sizing */
 .epub-reader-container {
   position: relative !important;
   width: 100% !important;
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
+  overflow: hidden !important;
 }
 
 .react-reader-wrapper {
   position: relative !important;
   width: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  min-height: calc(100vh - 100px) !important;
 }
 
 /* EPUBjs specific fixes - Target dynamically generated elements */
 div[id*="epubjs-container"] {
   width: 100% !important;
-  flex: 1 !important;
+  height: 100% !important;
   min-height: 600px !important;
   position: relative !important;
   overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
 }
 
 div[id*="epubjs-view"] {
   width: 100% !important;
-  flex: 1 !important;
+  height: 100% !important;
   min-height: 600px !important;
   visibility: visible !important;
   position: relative !important;
-  display: flex !important;
+  display: block !important;
   overflow: hidden !important;
 }
 
-/* EPUBjs iframe - Adapt to content */
-.epub-reader-container iframe,
+/* EPUBjs iframe */
 div[id*="epubjs-view"] iframe {
   width: 100% !important;
-  flex: 1 !important;
-  min-height: 600px !important;
   height: 100% !important;
+  min-height: 600px !important;
   border: none !important;
   display: block !important;
-  overflow: auto !important;
 }
 
 /* Ensure ReactReader has proper sizing */
 .react-reader {
   width: 100% !important;
-  flex: 1 !important;
+  height: 100% !important;
   min-height: 600px !important;
   position: relative !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
-
-/* Prevent content overflow and ensure proper text display */
-.epub-reader-container * {
-  box-sizing: border-box !important;
 }
 
 /* Improve text readability in EPUB */
