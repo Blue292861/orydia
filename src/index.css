@@ -456,3 +456,53 @@ body.high-contrast * {
     display: block !important;
     margin: 1em auto !important;
   }
+
+/* EPUB Reader Container - Force proper sizing */
+.epub-reader-container {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.react-reader-wrapper {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* EPUBjs specific fixes - Target dynamically generated elements */
+div[id*="epubjs-container"] {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 600px !important;
+  position: relative !important;
+  overflow: visible !important;
+}
+
+div[id*="epubjs-view"] {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 600px !important;
+  visibility: visible !important;
+  position: relative !important;
+  display: block !important;
+  overflow: visible !important;
+}
+
+/* EPUBjs iframe */
+.epub-reader-container iframe,
+div[id*="epubjs-view"] iframe {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 600px !important;
+  border: none !important;
+  display: block !important;
+}
+
+/* Ensure ReactReader has proper sizing */
+.react-reader {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 600px !important;
+  position: relative !important;
+}

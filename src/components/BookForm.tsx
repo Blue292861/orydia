@@ -24,7 +24,11 @@ interface BookFormProps {
 
 export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => {
   const [book, setBook] = React.useState<Book>(initialBook);
-  const [selectedGenres, setSelectedGenres] = React.useState<string[]>(initialBook.genres || []);
+  const [selectedGenres, setSelectedGenres] = React.useState<LiteraryGenre[]>(
+    (initialBook.genres || []).filter((genre): genre is LiteraryGenre => 
+      typeof genre === 'string' && genre.length > 0
+    )
+  );
   const [isExtracting, setIsExtracting] = React.useState(false);
   const [extractionProgress, setExtractionProgress] = React.useState(0);
   const [extractionStatus, setExtractionStatus] = React.useState('');
@@ -275,7 +279,9 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     // Fusionner les genres sélectionnés dans l'objet final
     const finalBook = {
       ...book,
-      genres: selectedGenres as LiteraryGenre[], // Ligne modifiée
+      genres: selectedGenres.filter((genre): genre is LiteraryGenre => 
+        typeof genre === 'string' && genre.length > 0
+      ),
       title: sanitizeTextWithSpaces(book.title),
       author: sanitizeTextWithSpaces(book.author),
       summary: book.summary ? sanitizeTextWithSpaces(book.summary) : undefined,

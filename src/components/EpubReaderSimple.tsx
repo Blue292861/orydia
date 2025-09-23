@@ -217,7 +217,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   }
 
   return (
-    <div className="relative w-full h-full min-h-[80vh]">
+    <div className="relative w-full h-full min-h-[80vh] react-reader-wrapper">
       {/* Contrôles supérieurs */}
       {showControls && (
         <Card className="absolute top-4 left-4 right-4 z-20 p-4 bg-background/95 backdrop-blur border">
@@ -330,12 +330,18 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         </div>
       )}
 
-      <div className={`w-full h-full ${showControls ? 'pt-32' : 'pt-16'} epub-reader-container`}>
+      <div className={`react-reader epub-reader-container ${showControls ? 'pt-32' : 'pt-16'}`} style={{ height: 'calc(100vh - 200px)', minHeight: '600px', width: '100%' }}>
         <ReactReader
           url={url}
           location={location}
           locationChanged={handleLocationChanged}
           getRendition={handleRenditionReady}
+          epubOptions={{
+            flow: "paginated",
+            manager: "default",
+            width: "100%",
+            height: "100%"
+          }}
         />
       </div>
     </div>

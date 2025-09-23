@@ -248,7 +248,7 @@ export const BookReaderEpub: React.FC<BookReaderEpubProps> = ({ book, onBack }) 
         </div>
         
         {/* Lecteur EPUB avec suivi de progression */}
-        <div className="w-full min-h-[80vh] relative">
+        <div className="w-full relative" style={{ height: 'calc(100vh - 300px)', minHeight: '600px' }}>
           <EpubReaderSimple 
             url={book.content} 
             bookId={book.id}
