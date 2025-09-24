@@ -60,6 +60,8 @@ export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
           url={epubUrl}
           location={location}
           locationChanged={handleLocationChanged}
+          epubOptions={{ flow: 'scrolled-continuous', manager: 'continuous' }}
+          showToc={false}
         />
       )}
     </div>

@@ -61,7 +61,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   }, [bookId, progressKey]);
 
   const handleLocationChanged = (cfi: string) => {
-    setLocation(cfi);
+    // Ne pas mettre à jour 'location' pour éviter les remontées de scroll
     
     if (rendition && rendition.book && rendition.book.locations) {
       try {
@@ -312,6 +312,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
             flow: "scrolled-continuous",
             manager: "continuous"
           }}
+          showToc={false}
         />
       </div>
     </div>

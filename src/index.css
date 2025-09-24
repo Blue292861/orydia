@@ -464,6 +464,7 @@ body.high-contrast * {
   overflow: auto !important;
   border: 1px solid hsl(var(--border)) !important;
   border-radius: 8px !important;
+  -webkit-overflow-scrolling: touch;
 }
 
 .react-reader-wrapper {
@@ -487,7 +488,7 @@ div[id*="epubjs-view"] {
   visibility: visible !important;
   position: relative !important;
   display: block !important;
-  overflow: auto !important;
+  overflow: visible !important;
 }
 
 /* EPUBjs iframe */
@@ -499,22 +500,22 @@ div[id*="epubjs-view"] iframe {
   display: block !important;
 }
 
-/* Ensure ReactReader has proper sizing */
 .react-reader {
   width: 100% !important;
   height: 100% !important;
   min-height: 600px !important;
   position: relative !important;
+  contain: content;
 }
 
-/* Improve text readability in EPUB with scroll */
+/* Improve text readability in EPUB with outer container scroll */
 div[id*="epubjs-view"] iframe body {
   margin: 20px !important;
   padding: 20px !important;
   line-height: 1.6 !important;
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
-  overflow-y: auto !important;
+  overflow-y: visible !important;
   max-height: none !important;
 }
 
@@ -535,4 +536,14 @@ div[id*="epubjs-view"] iframe body {
 
 .epub-reader-container::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary));
+}
+
+/* Hide ReactReader built-in page navigation arrows and controls */
+.react-reader .arrow,
+.react-reader .previous,
+.react-reader .next,
+.react-reader .prev,
+.react-reader .nav,
+.react-reader .controls button {
+  display: none !important;
 }
