@@ -126,6 +126,26 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       
       // Configurer la taille de police
       rendition.themes.fontSize(`${fontSize}px`);
+
+      // Bloquer la navigation clavier (flèches) à l'intérieur des iframes EPUB
+      try {
+        rendition.on('rendered', () => {
+          const contents = rendition.getContents?.() || [];
+          contents.forEach((c: any) => {
+            const doc = c.document;
+            if (!doc) return;
+            const handler = (e: KeyboardEvent) => {
+              if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            };
+            doc.addEventListener('keydown', handler, true);
+          });
+        });
+      } catch (e) {
+        // no-op
+      }
     }
     
     // Générer les locations pour le calcul de progression
@@ -213,6 +233,15 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     }
   };
 
+
+  // Styles pour masquer totalement la navigation interne
+  const readerStyles: any = {
+    arrow: { display: 'none' },
+    prev: { display: 'none', pointerEvents: 'none', width: 0 },
+    next: { display: 'none', pointerEvents: 'none', width: 0 },
+    tocArea: { display: 'none' },
+    tocButton: { display: 'none' }
+  };
 
   if (!url) {
     return <div className="p-4 text-center text-red-500">URL du fichier EPUB manquante.</div>;
@@ -326,6 +355,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
             manager: "continuous"
           }}
           showToc={false}
+          readerStyles={readerStyles}
+          swipeable={false}
         />
       </div>
     </div>
