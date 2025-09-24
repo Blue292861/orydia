@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
-import { Loader2, BookOpen, ChevronLeft, ChevronRight, Settings, Sun, Moon, FileText } from 'lucide-react';
+import { Loader2, BookOpen, Settings, Sun, Moon, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface EpubReaderSimpleProps {
@@ -200,17 +200,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     }
   };
 
-  const nextPage = () => {
-    if (rendition) {
-      rendition.next();
-    }
-  };
-
-  const prevPage = () => {
-    if (rendition) {
-      rendition.prev();
-    }
-  };
 
   if (!url) {
     return <div className="p-4 text-center text-red-500">URL du fichier EPUB manquante.</div>;
@@ -286,24 +275,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
               </Button>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={prevPage}
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Précédent
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={nextPage}
-              >
-                Suivant
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </Card>
       )}
