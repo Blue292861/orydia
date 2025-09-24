@@ -190,6 +190,19 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     }
   };
 
+  // Désactive la navigation par flèches clavier (scroll-only)
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => document.removeEventListener('keydown', onKeyDown, true);
+  }, []);
+
+
   const navigateToProgress = (progressPercent: number) => {
     if (rendition && rendition.book && rendition.book.locations) {
       const targetLocation = Math.floor((progressPercent / 100) * rendition.book.locations.total);

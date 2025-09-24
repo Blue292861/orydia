@@ -538,12 +538,23 @@ div[id*="epubjs-view"] iframe body {
   background: hsl(var(--primary));
 }
 
-/* Hide ReactReader built-in page navigation arrows and controls */
+/* Hide ReactReader built-in page navigation arrows and controls (force) */
 .react-reader .arrow,
 .react-reader .previous,
 .react-reader .next,
 .react-reader .prev,
 .react-reader .nav,
-.react-reader .controls button {
+.react-reader .controls button,
+.react-reader [class*="arrow"],
+.react-reader [class*="prev"],
+.react-reader [class*="next"],
+.react-reader [class*="navigation"],
+.react-reader .tocArea,
+.react-reader .tocButton,
+.react-reader [class*="toc"],
+.react-reader button {
   display: none !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
 }
+
