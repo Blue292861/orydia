@@ -234,15 +234,26 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   };
 
 
-  // Styles pour masquer totalement la navigation interne
+  // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
   const readerStyles: any = {
+    container: { width: '100%', height: '100%', padding: 0, margin: 0, overflow: 'hidden' },
+    containerExpanded: { width: '100%', height: '100%', padding: 0, margin: 0, overflow: 'hidden' },
+    readerArea: { left: 0, right: 0, padding: 0, margin: 0, width: '100%' },
+    titleArea: { display: 'none' },
+    title: { display: 'none' },
+    tocArea: { display: 'none' },
+    tocButton: { display: 'none' },
     arrow: { display: 'none' },
     prev: { display: 'none', pointerEvents: 'none', width: 0 },
     next: { display: 'none', pointerEvents: 'none', width: 0 },
-    tocArea: { display: 'none' },
-    tocButton: { display: 'none' }
   };
 
+  // Styles internes d'EpubView pour éviter tout découpage
+  const epubViewStyles: any = {
+    viewHolder: { width: '100%', margin: 0, padding: 0 },
+    view: { width: '100%' },
+    iframe: { width: '100%' }
+  };
   if (!url) {
     return <div className="p-4 text-center text-red-500">URL du fichier EPUB manquante.</div>;
   }
@@ -357,6 +368,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           showToc={false}
           readerStyles={readerStyles}
           swipeable={false}
+          epubViewStyles={epubViewStyles}
         />
       </div>
     </div>
