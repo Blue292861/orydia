@@ -12,7 +12,7 @@ export const AuthPanel: React.FC = () => {
         <CardHeader className="bg-gradient-to-r from-forest-700 via-forest-600 to-forest-700 text-white rounded-t-lg relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-gold-400/10 via-transparent to-gold-400/10" />
           <CardTitle className="text-center text-xl sm:text-2xl font-medieval relative z-10">
-            Portail des Aventuriers
+            Espace Personnel
           </CardTitle>
           <div className="absolute -top-2 -right-2 w-6 sm:w-8 h-6 sm:h-8 bg-gold-400/20 rounded-full animate-mystical-pulse" />
           <div className="absolute -bottom-1 -left-1 w-4 sm:w-6 h-4 sm:h-6 bg-gold-400/20 rounded-full animate-mystical-pulse" style={{ animationDelay: '1s' }} />
@@ -30,7 +30,7 @@ export const AuthPanel: React.FC = () => {
                 value="signup"
                 className="data-[state=active]:bg-forest-500 data-[state=active]:text-white font-medieval text-xs sm:text-sm"
               >
-                Rejoindre la guilde
+                S'inscrire
               </TabsTrigger>
             </TabsList>
             
