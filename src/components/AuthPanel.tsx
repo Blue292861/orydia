@@ -1,11 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoginForm } from '@/components/LoginForm';
 import { NewSignupForm } from '@/components/NewSignupForm';
 
-export const AuthPanel: React.FC = () => {
+interface AuthPanelProps {
+  onTabChange?: (tab: string) => void;
+}
+
+export const AuthPanel: React.FC<AuthPanelProps> = ({ onTabChange }) => {
+  const [activeTab, setActiveTab] = useState('login');
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    onTabChange?.(tab);
+  };
   return (
     <div className="relative">
       <Card className="w-full max-w-2xl mx-auto bg-wood-50/95 backdrop-blur-sm border-2 border-gold-400/30 shadow-2xl mystical-glow">
@@ -18,7 +28,7 @@ export const AuthPanel: React.FC = () => {
           <div className="absolute -bottom-1 -left-1 w-4 sm:w-6 h-4 sm:h-6 bg-gold-400/20 rounded-full animate-mystical-pulse" style={{ animationDelay: '1s' }} />
         </CardHeader>
         <CardContent className="p-4 sm:p-6 parchment-texture">
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue="login" className="w-full" onValueChange={handleTabChange}>
             <TabsList className="grid w-full grid-cols-2 bg-wood-200/80 backdrop-blur-sm">
               <TabsTrigger 
                 value="login" 

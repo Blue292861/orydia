@@ -4,6 +4,7 @@ import { AuthPanel } from '@/components/AuthPanel';
 
 const AuthPage: React.FC = () => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [activeTab, setActiveTab] = useState('login');
 
   useEffect(() => {
     const handleResize = () => {
@@ -87,11 +88,14 @@ const AuthPage: React.FC = () => {
             <div className="h-px bg-gradient-to-r from-transparent via-title-blue/50 to-transparent flex-1 max-w-32" />
           </div>
           <p className="font-serif text-forest-200 text-lg md:text-xl opacity-90 animate-fade-in">
-            Votre bibliothèque numérique premium
+            {activeTab === 'signup' 
+              ? "Rejoignez nous vite dans l'aventure Orydia !" 
+              : "Votre bibliothèque numérique personnelle"
+            }
           </p>
         </div>
 
-        <AuthPanel />
+        <AuthPanel onTabChange={setActiveTab} />
       </div>
     </div>
   );
