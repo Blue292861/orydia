@@ -135,8 +135,36 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       rendition.themes.fontSize(`${fontSize}px`);
 
       // Gestion des événements de chargement pour le scroll continu
-      rendition.on('relocated', () => {
+      rendition.on('relocated', (location: any) => {
         setIsLoadingContent(false);
+        try {
+          if (!location || !rendition?.book?.locations) return;
+          const book = rendition.book;
+          const startCfi = location.start?.cfi || location?.cfi;
+          if (!startCfi) return;
+
+          const currentLocation = book.locations.locationFromCfi(startCfi);
+          const totalLocations = book.locations.total;
+
+          if (currentLocation && totalLocations && currentLocation !== lastProgressUpdateRef.current) {
+            const progress = Math.round((currentLocation / totalLocations) * 100);
+
+            setLocation(startCfi);
+            setReadingProgress(progress);
+            setCurrentPage(currentLocation);
+            setTotalPages(totalLocations);
+            lastProgressUpdateRef.current = currentLocation;
+
+            saveProgress({
+              location: startCfi,
+              progress,
+              currentPage: currentLocation,
+              totalPages: totalLocations
+            });
+          }
+        } catch (error) {
+          console.error('Error updating progress on relocation:', error);
+        }
       });
       
       rendition.on('rendered', () => {
