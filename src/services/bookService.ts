@@ -75,6 +75,8 @@ export const updateBookInDB = async (book: Book): Promise<void> => {
       is_premium: book.isPremium,
       is_month_success: book.isMonthSuccess,
       is_paco_favourite: book.isPacoFavourite,
+      has_chapters: book.hasChapters,
+      is_interactive: book.isInteractive,
       is_adult_content: book.isAdultContent,
     })
     .eq('id', book.id);
