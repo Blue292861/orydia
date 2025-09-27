@@ -233,6 +233,7 @@ export type Database = {
           created_at: string
           description: string | null
           genre: string | null
+          genres: string[]
           id: string
           is_featured: boolean
           is_month_success: boolean
@@ -251,6 +252,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           genre?: string | null
+          genres?: string[]
           id?: string
           is_featured?: boolean
           is_month_success?: boolean
@@ -269,6 +271,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           genre?: string | null
+          genres?: string[]
           id?: string
           is_featured?: boolean
           is_month_success?: boolean
