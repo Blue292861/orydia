@@ -350,6 +350,7 @@ export type Database = {
           content: string
           cover_url: string
           created_at: string
+          genres: string[]
           has_chapters: boolean
           id: string
           is_adult_content: boolean
@@ -368,6 +369,7 @@ export type Database = {
           content: string
           cover_url: string
           created_at?: string
+          genres?: string[]
           has_chapters?: boolean
           id?: string
           is_adult_content?: boolean
@@ -386,6 +388,7 @@ export type Database = {
           content?: string
           cover_url?: string
           created_at?: string
+          genres?: string[]
           has_chapters?: boolean
           id?: string
           is_adult_content?: boolean
