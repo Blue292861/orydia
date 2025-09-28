@@ -74,7 +74,7 @@ export const gameService = {
     return { ...data, genres: (data as any).genres || [] };
   },
 
-  async deleteGame(id: string): Promise<void> => {
+  async deleteGame(id: string): Promise<void> {
     // Récupérer les données du jeu avant suppression pour nettoyer les fichiers
     const { data: game, error: fetchError } = await supabase
       .from('games')

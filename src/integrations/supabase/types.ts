@@ -1387,6 +1387,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_orphaned_storage_files: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_recommended_theme: {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["ui_theme"]
