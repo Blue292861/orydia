@@ -1,6 +1,9 @@
 
 project_id = "aotzivwzoxmnnawcxioo"
 
+[functions.send-unsubscribe-request]
+verify_jwt = false
+
 [functions.award-points]
 [functions.cancel-subscription]
 [functions.check-subscription]
