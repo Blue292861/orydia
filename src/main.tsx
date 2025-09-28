@@ -23,6 +23,6 @@ const RootComponent: React.FC = () => {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <RootComponent /> // <-- Utilisation du composant wrapper
+    <RootComponent />
   </React.StrictMode>
 );

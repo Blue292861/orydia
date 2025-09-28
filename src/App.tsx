@@ -12,6 +12,7 @@ import EmailConfirmationPage from "./pages/EmailConfirmationPage";
 import WorkPage from "./pages/WorkPage";
 import { GenrePage } from "./pages/GenrePage";
 import { AdminStatsPage } from "./pages/AdminStatsPage";
+import UnsubscribePage from "./pages/UnsubscribePage";
 
 import SplashScreen from "./components/SplashScreen";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -64,6 +65,7 @@ const AppContent = () => {
       <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
       <Route path="/admin/stats" element={<AdminStatsPage />} />
       <Route path="/genre/:genre" element={<GenrePage />} />
+      <Route path="/désinscription" element={<UnsubscribePage />} />
       <Route path="/:authorSlug/:titleSlug" element={<WorkPage />} />
       <Route path="/*" element={<Index />} />
     </Routes>
