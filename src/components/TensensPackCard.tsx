@@ -21,7 +21,7 @@ export const TensensPackCard: React.FC<TensensPackCardProps> = ({
     <Card className={`relative bg-gradient-to-b from-wood-100 to-wood-200 border-2 ${pack.popular ? 'border-gold-400 ring-2 ring-gold-300 scale-105' : 'border-wood-400'} hover:border-gold-500 transition-all duration-300 hover:shadow-xl hover:shadow-gold-400/20 group`}>
       {pack.popular && (
         <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-gold-500 to-gold-600 text-white font-medieval border border-gold-400 shadow-lg">
-          ⭐ Choix du Royaume
+          ⭐ Recommandé
         </Badge>
       )}
       
@@ -71,12 +71,12 @@ export const TensensPackCard: React.FC<TensensPackCardProps> = ({
           {loading ? (
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Invocation...
+              Chargement...
             </div>
           ) : (
             <div className="flex items-center gap-2">
               <Coins className="h-4 w-4" />
-              Acquérir
+              Acheter
             </div>
           )}
         </Button>
