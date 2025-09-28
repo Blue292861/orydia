@@ -1,34 +1,58 @@
+// src/components/BannerAd.tsx (Version Corrigée)
 
 import React, { useEffect } from 'react';
+import { PlatformUtils } from '@/utils/platformDetection';
+import { bannerAdService } from '@/utils/adMob'; // <-- Import de notre service AdMob
 
 interface BannerAdProps {
     className?: string;
 }
 
 export const BannerAd: React.FC<BannerAdProps> = ({ className }) => {
-  useEffect(() => {
-    // Simule le chargement du script AdSense pour cette unité publicitaire
-    // Google AdSense s'occupe de la rotation régulière des annonces.
-    try {
-      (window as any).adsbygoogle = (window as any).adsbygoogle || [];
-      (window as any).adsbygoogle.push({});
-    } catch (e) {
-      // AdSense error silently handled
-    }
-  }, []);
+  const isNative = PlatformUtils.isNative();
 
+  useEffect(() => {
+    // Si c'est une application native (via Capacitor)
+    if (isNative) {
+        // Affiche la bannière AdMob via le SDK natif
+        bannerAdService.show('BOTTOM'); 
+
+        // S'assurer de cacher la bannière quand le composant est démonté
+        return () => {
+            bannerAdService.hide();
+        };
+    } else {
+        // Si c'est le Web (navigateur)
+        // Simule le chargement du script AdSense pour cette unité publicitaire
+        try {
+            (window as any).adsbygoogle = (window as any).adsbygoogle || [];
+            (window as any).adsbygoogle.push({});
+        } catch (e) {
+            // AdSense error silently handled
+        }
+    }
+  }, [isNative]);
+
+  if (isNative) {
+    // Sur l'application native, le SDK AdMob affiche l'annonce sur la WebView
+    // On peut renvoyer un espace vide ou un placeholder pour le composant
+    // React lui-même, car l'annonce est nativement superposée.
+    return (
+        <div className={`w-full h-[0px] ${className}`}>
+            {/* AdMob gère l'affichage natif */}
+        </div>
+    );
+  }
+
+  // Rendu pour le Web (AdSense)
   return (
     <div className={`w-full h-[100px] bg-gray-200/50 dark:bg-gray-800/50 rounded-lg flex items-center justify-center text-gray-500 border border-dashed ${className}`}>
-        {/* 
-        C'est ici que la bannière publicitaire Google AdSense serait rendue.
-        Vous devrez remplacer les identifiants par les vôtres.
-        */}
       <div className="text-center">
-        <p className="text-sm">Emplacement publicitaire</p>
+        <p className="text-sm">Emplacement publicitaire (Web AdSense)</p>
         <ins className="adsbygoogle"
             style={{ display: 'block' }}
             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" // Remplacez par votre ID d'éditeur AdSense
-            data-ad-slot="ZZZZZZZZZZ"               // Remplacez par votre ID de bloc d'annonces
+            data-ad-slot="ZZZZZZZZZZ"               // Remplacez par votre ID de bloc d'annonces (Web)
             data-ad-format="auto"
             data-full-width-responsive="true"></ins>
       </div>
