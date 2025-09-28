@@ -11,6 +11,10 @@
         android:theme="@style/AppTheme"
         android:networkSecurityConfig="@xml/network_security_config"
         android:usesCleartextTraffic="false">
+        
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-7828832970015207~APP_ANDROID_ID"/>
 
         <activity
             android:exported="true"
