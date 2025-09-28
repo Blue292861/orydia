@@ -52,7 +52,7 @@ export const BannerAd: React.FC<BannerAdProps> = ({ className }) => {
         <ins className="adsbygoogle"
             style={{ display: 'block' }}
             data-ad-client="ca-pub-7828832970015207" // Remplacez par votre ID d'éditeur AdSense
-            data-ad-slot="989-688-4132"               // Remplacez par votre ID de bloc d'annonces (Web)
+            data-ad-slot="9896884132"               // Remplacez par votre ID de bloc d'annonces (Web)
             data-ad-format="auto"
             data-full-width-responsive="true"></ins>
       </div>
