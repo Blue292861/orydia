@@ -133,10 +133,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         }
       });
       
-      // Suppression de tous les listeners "rendered" qui ajoutaient des événements de scroll et keydown
-      // pour éviter les interférences et les problèmes de performance.
+      // Le listener 'rendered' ne doit pas ajouter d'écouteurs d'événements scroll/keydown.
       rendition.on('rendered', () => {
         setIsLoadingContent(false);
+        // La logique d'ajout des event listeners aux iframes a été retirée pour éviter les conflits de scroll.
       });
     }
     
@@ -144,7 +144,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     if (rendition.book) {
       rendition.book.ready
         .then(() => {
-          return rendition.book.locations.generate(1600); // Plus de précision
+          return rendition.book.locations.generate(1600); 
         })
         .then(() => {
           setIsReady(true);
@@ -163,8 +163,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         })
         .catch((error: any) => {
           console.error('Error generating locations:', error);
-          setIsReady(true); // Permettre la lecture même si les locations échouent
-          // Tenter quand même d'afficher la position sauvegardée
+          setIsReady(true); 
           if (initialLocationRef.current) {
             try {
               rendition.display(initialLocationRef.current);
@@ -221,7 +220,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     }
   };
 
-  // ❌ SUPPRESSION : L'écouteur d'événements keydown global (l. 209-219 de l'original) a été retiré.
+  // ❌ SUPPRESSION : L'écouteur d'événements keydown global (l. 209-219 de l'original) a été retiré pour éviter
+  // toute interférence avec le gestionnaire d'événements de la librairie.
 
 
   const navigateToProgress = (progressPercent: number) => {
@@ -236,7 +236,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
 
   // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
-  // ⚠️ Le reste de la configuration du style est correct pour le mode scroll-continuous.
   const readerStyles: any = {
     container: { width: '100%', height: '100%' },
     containerExpanded: { width: '100%', height: '100%' },
@@ -255,7 +254,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     viewHolder: {
       width: '100%',
       height: '100%',
-      overflow: 'auto' // ✅ TRÈS IMPORTANT : Assure que le défilement se fait sur ce conteneur.
+      overflow: 'auto'
     },
     view: { 
       width: '100%',
@@ -381,7 +380,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         <ReactReader
           url={url}
           location={location}
-          locationChanged={(cfi: string) => setLocation(cfi)}
+          // ❌ SUPPRESSION DE LA MISE À JOUR D'ÉTAT REDONDANTE
+          // locationChanged={(cfi: string) => setLocation(cfi)} 
+          locationChanged={() => { /* No-op, managed by rendition.on('relocated') */ }}
           getRendition={handleRenditionReady}
           epubOptions={{
             flow: "scrolled-continuous",
