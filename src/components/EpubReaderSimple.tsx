@@ -23,7 +23,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   const [fontSize, setFontSize] = useState(18);
   const [theme, setTheme] = useState<'light' | 'dark' | 'sepia'>('light');
   const [showControls, setShowControls] = useState(true);
-  const [isLoadingContent, setIsLoadingContent] = useState(false);
+  // Supprimé: const [isLoadingContent, setIsLoadingContent] = useState(false);
   const lastProgressUpdateRef = useRef<number>(0);
   const initialLocationRef = useRef<string | number>(0);
   const { toast } = useToast();
@@ -103,7 +103,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
       // Gestion des événements de chargement pour le scroll continu
       rendition.on('relocated', (location: any) => {
-        setIsLoadingContent(false);
+        // Supprimé: setIsLoadingContent(false);
         try {
           if (!location || !rendition?.book?.locations) return;
           const book = rendition.book;
@@ -135,7 +135,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       });
       
       rendition.on('rendered', () => {
-        setIsLoadingContent(false);
+        // Supprimé: setIsLoadingContent(false);
         const contents = rendition.getContents?.() || [];
         contents.forEach((c: any) => {
           const doc = c.document;
@@ -150,9 +150,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           };
           doc.addEventListener('keydown', keyHandler, true);
           
-          // CORRECTION CRITIQUE: Suppression de l'écouteur de scroll interne (scrollHandler)
-          // Dans le mode scrolled-continuous, le défilement se fait sur la page principale, pas l'iframe.
-          // L'écouteur interne pouvait créer un conflit de scroll.
+          // Suppression de la logique de détection de scroll interne pour le chargement
+          // qui était source de conflit avec le mode scrolled-continuous.
         });
       });
     }
@@ -250,21 +249,11 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     return () => document.removeEventListener('keydown', onKeyDown, true);
   }, []);
 
-
-  const navigateToProgress = (progressPercent: number) => {
-    if (rendition && rendition.book && rendition.book.locations) {
-      const targetLocation = Math.floor((progressPercent / 100) * rendition.book.locations.total);
-      const cfi = rendition.book.locations.cfiFromLocation(targetLocation);
-      if (cfi) {
-        rendition.display(cfi);
-      }
-    }
-  };
-
+  // Supprimé: const navigateToProgress = ...
 
   // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
   const readerStyles: any = {
-    // Correction précédente : assure que le composant ReactReader ne contraint pas sa hauteur
+    // Correction: assure que le composant ReactReader ne contraint pas sa hauteur
     container: { width: '100%', height: 'auto' }, 
     containerExpanded: { width: '100%', height: 'auto' }, 
     readerArea: { left: 0, right: 0, width: '100%' },
@@ -370,7 +359,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         </Button>
       )}
 
-      {/* Indicateur de chargement */}
+      {/* Indicateur de chargement initial */}
       {!isReady && (
         <div className="flex items-center justify-center bg-background/80 rounded-lg p-8 mb-4">
           <div className="text-center">
@@ -382,15 +371,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
       {/* Zone de lecture EPUB */}
       <div className="relative w-full epub-reader-container" style={{ minHeight: "600px" }}>
-        {/* Indicateur de chargement de contenu pendant le scroll */}
-        {isLoadingContent && (
-          <div className="absolute top-4 right-4 z-30 bg-background/90 backdrop-blur-sm rounded-lg p-2 border shadow-sm">
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <span className="text-xs text-muted-foreground">Chargement...</span>
-            </div>
-          </div>
-        )}
+        {/* Suppression de l'indicateur de chargement fragmenté */}
         
         <ReactReader
           url={url}
@@ -406,7 +387,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           showToc={false}
           readerStyles={readerStyles}
           swipeable={false}
-          epubViewStyles={epubViewStyles} // epubViewStyles est désormais un objet vide
+          epubViewStyles={epubViewStyles} 
         />
       </div>
     </div>
