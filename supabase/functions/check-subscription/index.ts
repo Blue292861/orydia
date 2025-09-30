@@ -149,7 +149,7 @@ serve(async (req) => {
     });
 
     // Find active or cancelling subscription
-    const activeOrCancelledSub = subscriptions.data.find(sub => 
+    const activeOrCancelledSub = subscriptions.data.find((sub: any) => 
       sub.status === "active" || (sub.status === "canceled" && sub.canceled_at && sub.canceled_at * 1000 > Date.now())
     );
 
@@ -203,9 +203,10 @@ serve(async (req) => {
       status: 200,
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
     });

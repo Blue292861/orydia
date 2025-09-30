@@ -23,6 +23,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   const [fontSize, setFontSize] = useState(18);
   const [theme, setTheme] = useState<'light' | 'dark' | 'sepia'>('light');
   const [showControls, setShowControls] = useState(true);
+  const [isLoadingContent, setIsLoadingContent] = useState(false);
+  const lastProgressUpdateRef = useRef<number>(0);
+  const initialLocationRef = useRef<string | number>(0);
   const { toast } = useToast();
   const { user } = useAuth();
   const progressKey = `epub_progress_${bookId || 'default'}`;
@@ -34,6 +37,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       if (savedProgress) {
         try {
           const progress = JSON.parse(savedProgress);
+          initialLocationRef.current = progress.location || 0;
           setLocation(progress.location || 0);
           setReadingProgress(progress.progress || 0);
           setCurrentPage(progress.currentPage || 1);
@@ -60,37 +64,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     localStorage.setItem(progressKey, JSON.stringify(progressToSave));
   }, [bookId, progressKey]);
 
-  const handleLocationChanged = (cfi: string) => {
-    // Ne pas mettre à jour 'location' pour éviter les remontées de scroll
-    
-    if (rendition && rendition.book && rendition.book.locations) {
-      try {
-        const book = rendition.book;
-        const currentLocation = book.locations.locationFromCfi(cfi);
-        const totalLocations = book.locations.total;
-        
-        if (currentLocation && totalLocations) {
-          const progress = Math.round((currentLocation / totalLocations) * 100);
-          const newCurrentPage = currentLocation;
-          const newTotalPages = totalLocations;
-          
-          setReadingProgress(progress);
-          setCurrentPage(newCurrentPage);
-          setTotalPages(newTotalPages);
-          
-          // Sauvegarder la progression
-          saveProgress({
-            location: cfi,
-            progress,
-            currentPage: newCurrentPage,
-            totalPages: newTotalPages
-          });
-        }
-      } catch (error) {
-        console.error('Error calculating progress:', error);
-      }
-    }
-  };
+  // Utilise uniquement l'événement 'relocated' pour suivre la progression en mode scroll continu
 
   const handleRenditionReady = (rendition: any) => {
     setRendition(rendition);
@@ -127,45 +101,109 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       // Configurer la taille de police
       rendition.themes.fontSize(`${fontSize}px`);
 
-      // Bloquer la navigation clavier (flèches) à l'intérieur des iframes EPUB
-      try {
-        rendition.on('rendered', () => {
-          const contents = rendition.getContents?.() || [];
-          contents.forEach((c: any) => {
-            const doc = c.document;
-            if (!doc) return;
-            const handler = (e: KeyboardEvent) => {
-              if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                e.preventDefault();
-                e.stopPropagation();
-              }
-            };
-            doc.addEventListener('keydown', handler, true);
-          });
+      // Gestion des événements de chargement pour le scroll continu
+      rendition.on('relocated', (location: any) => {
+        setIsLoadingContent(false);
+        try {
+          if (!location || !rendition?.book?.locations) return;
+          const book = rendition.book;
+          const startCfi = location.start?.cfi || location?.cfi;
+          if (!startCfi) return;
+
+          const currentLocation = book.locations.locationFromCfi(startCfi);
+          const totalLocations = book.locations.total;
+
+          if (currentLocation && totalLocations && currentLocation !== lastProgressUpdateRef.current) {
+            const progress = Math.round((currentLocation / totalLocations) * 100);
+
+            setLocation(startCfi);
+            setReadingProgress(progress);
+            setCurrentPage(currentLocation);
+            setTotalPages(totalLocations);
+            lastProgressUpdateRef.current = currentLocation;
+
+            saveProgress({
+              location: startCfi,
+              progress,
+              currentPage: currentLocation,
+              totalPages: totalLocations
+            });
+          }
+        } catch (error) {
+          console.error('Error updating progress on relocation:', error);
+        }
+      });
+      
+      rendition.on('rendered', () => {
+        setIsLoadingContent(false);
+        const contents = rendition.getContents?.() || [];
+        contents.forEach((c: any) => {
+          const doc = c.document;
+          if (!doc) return;
+          
+          // Bloquer la navigation clavier
+          const keyHandler = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          };
+          doc.addEventListener('keydown', keyHandler, true);
+          
+          // Détecter le scroll pour montrer l'indicateur de chargement
+          const scrollHandler = () => {
+            const scrollTop = doc.documentElement.scrollTop || doc.body.scrollTop;
+            const scrollHeight = doc.documentElement.scrollHeight || doc.body.scrollHeight;
+            const clientHeight = doc.documentElement.clientHeight || doc.body.clientHeight;
+            
+            // Si on approche de la fin, montrer l'indicateur de chargement
+            if (scrollHeight - scrollTop - clientHeight < 100) {
+              setIsLoadingContent(true);
+            }
+          };
+          
+          doc.addEventListener('scroll', scrollHandler, { passive: true });
         });
-      } catch (e) {
-        // no-op
-      }
+      });
     }
     
     // Générer les locations pour le calcul de progression
     if (rendition.book) {
-      rendition.book.ready.then(() => {
-        return rendition.book.locations.generate(1600); // Plus de précision
-      }).then(() => {
-        setIsReady(true);
-        toast({
-          title: "EPUB chargé",
-          description: "Le contenu est prêt à être lu avec suivi de progression."
+      rendition.book.ready
+        .then(() => {
+          return rendition.book.locations.generate(1600); // Plus de précision
+        })
+        .then(() => {
+          setIsReady(true);
+          // Aller à la position sauvegardée si disponible
+          if (initialLocationRef.current) {
+            try {
+              rendition.display(initialLocationRef.current);
+            } catch (e) {
+              console.warn('Erreur lors de l\'affichage de la position initiale:', e);
+            }
+          }
+          toast({
+            title: "EPUB chargé",
+            description: "Le contenu est prêt à être lu avec suivi de progression."
+          });
+        })
+        .catch((error: any) => {
+          console.error('Error generating locations:', error);
+          setIsReady(true); // Permettre la lecture même si les locations échouent
+          // Tenter quand même d'afficher la position sauvegardée
+          if (initialLocationRef.current) {
+            try {
+              rendition.display(initialLocationRef.current);
+            } catch (e) {
+              console.warn('Erreur lors de l\'affichage de la position initiale (fallback):', e);
+            }
+          }
+          toast({
+            title: "EPUB chargé",
+            description: "Le contenu est prêt (progression approximative)."
+          });
         });
-      }).catch((error: any) => {
-        console.error('Error generating locations:', error);
-        setIsReady(true); // Permettre la lecture même si les locations échouent
-        toast({
-          title: "EPUB chargé",
-          description: "Le contenu est prêt (progression approximative)."
-        });
-      });
     }
   };
 
@@ -236,10 +274,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
   // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
   const readerStyles: any = {
-    // CORRECTION: Remplacer 'height: 100%' par 'height: auto' pour permettre un défilement continu
-    container: { width: '100%', height: 'auto', padding: 0, margin: 0, overflow: 'visible' }, 
-    containerExpanded: { width: '100%', height: 'auto', padding: 0, margin: 0, overflow: 'visible' },
-    readerArea: { left: 0, right: 0, padding: 0, margin: 0, width: '100%' },
+    container: { width: '100%', height: '100%' },
+    containerExpanded: { width: '100%', height: '100%' },
+    readerArea: { left: 0, right: 0, width: '100%' },
     titleArea: { display: 'none' },
     title: { display: 'none' },
     tocArea: { display: 'none' },
@@ -249,12 +286,21 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none', pointerEvents: 'none', width: 0 },
   };
 
-  // Styles internes d'EpubView pour éviter tout découpage
+  // Styles internes d'EpubView pour le scroll continu (utilise un conteneur scroll dédié)
   const epubViewStyles: any = {
-    viewHolder: { width: '100%', margin: 0, padding: 0 },
-    // CORRECTION: Ajouter height: 'auto' à la vue et à l'iframe pour qu'ils prennent la hauteur totale du contenu
-    view: { width: '100%', height: 'auto' },
-    iframe: { width: '100%', height: 'auto' }
+    viewHolder: {
+      width: '100%',
+      height: '100%',
+      overflow: 'auto'
+    },
+    view: { 
+      width: '100%',
+      height: 'auto'
+    },
+    iframe: { 
+      width: '100%', 
+      border: 'none'
+    }
   };
   if (!url) {
     return <div className="p-4 text-center text-red-500">URL du fichier EPUB manquante.</div>;
@@ -357,20 +403,32 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       )}
 
       {/* Zone de lecture EPUB */}
-      <div className="w-full epub-reader-container" style={{ height: "auto", minHeight: "500px", overflowY: "visible" }}>
+      <div className="relative w-full epub-reader-container" style={{ height: "80vh", minHeight: "600px" }}>
+        {/* Indicateur de chargement de contenu pendant le scroll */}
+        {isLoadingContent && (
+          <div className="absolute top-4 right-4 z-30 bg-background/90 backdrop-blur-sm rounded-lg p-2 border shadow-sm">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span className="text-xs text-muted-foreground">Chargement...</span>
+            </div>
+          </div>
+        )}
+        
         <ReactReader
           url={url}
           location={location}
-          locationChanged={handleLocationChanged}
+          locationChanged={(cfi: string) => setLocation(cfi)}
           getRendition={handleRenditionReady}
           epubOptions={{
             flow: "scrolled-continuous",
-            manager: "continuous"
+            manager: "continuous",
+            allowScriptedContent: true,
+            spread: "none"
           }}
           showToc={false}
-          readerStyles={readerStyles} // Utilise les nouveaux styles sans contrainte de hauteur
+          readerStyles={readerStyles}
           swipeable={false}
-          epubViewStyles={epubViewStyles} // Utilise les nouveaux styles de vue sans contrainte de hauteur
+          epubViewStyles={epubViewStyles}
         />
       </div>
     </div>

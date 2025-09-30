@@ -156,7 +156,9 @@ export const AudiobookCatalog: React.FC = () => {
     const genres = allAudiobooks
       .map(audiobook => audiobook.genre)
       .filter((genre): genre is string => !!genre);
-    return [...new Set(genres)].sort();
+    return [...new Set(genres)].sort().filter(genre => 
+      allAudiobooks.some(audiobook => audiobook.genre === genre)
+    );
   };
 
   if (viewMode === 'player' && selectedAudiobook && selectedChapter) {

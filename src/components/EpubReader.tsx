@@ -13,12 +13,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({ url }) => {
   const [isReady, setIsReady] = useState(false);
   const { toast } = useToast();
   
-  // Styles pour forcer une hauteur auto à l'intérieur de ReactReader
-  const readerStyles = {
-    container: { width: '100%', height: 'auto' },
-    containerExpanded: { width: '100%', height: 'auto' },
-  };
-
   // Utiliser useEffect pour s'assurer que l'état est réinitialisé si l'URL change
   useEffect(() => {
     setIsReady(false);
@@ -42,10 +36,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({ url }) => {
   }
 
   return (
-    // Hauteur du conteneur parent à 'auto'
-    <div style={{ position: 'relative', height: 'auto', width: '100%' }}>
+    <div style={{ position: 'relative', height: '80vh', width: '100%' }}>
       {!isReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10" style={{ height: '80vh' }}>
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       )}
@@ -55,8 +48,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({ url }) => {
         locationChanged={handleLocationChanged}
         epubOptions={{ flow: 'scrolled-continuous', manager: 'continuous' }}
         showToc={false}
-        getRendition={handleReady}
-        readerStyles={readerStyles} // AJOUT des styles pour hauteur auto
       />
     </div>
   );

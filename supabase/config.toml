@@ -1,6 +1,14 @@
 
 project_id = "aotzivwzoxmnnawcxioo"
 
-[functions.create-checkout]
+[functions.send-unsubscribe-request]
+verify_jwt = false
+
+[functions.award-points]
+[functions.cancel-subscription]
 [functions.check-subscription]
+[functions.create-api-key]
+[functions.create-checkout]
+[functions.create-tensens-checkout]
 [functions.customer-portal]
+[functions.get-user-stats]

@@ -144,9 +144,82 @@ export const AudiobookAdmin: React.FC = () => {
     }
   };
 
+  const extractFilePathFromUrl = (url: string): string | null => {
+    if (!url) return null;
+    const match = url.match(/\/storage\/v1\/object\/public\/[^\/]+\/(.+)$/);
+    return match ? match[1] : null;
+  };
+
   const handleDelete = async (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cet audiobook ?')) {
       try {
+        // Récupérer les données de l'audiobook et ses chapitres avant suppression
+        const { data: audiobook, error: fetchError } = await supabase
+          .from('audiobooks')
+          .select('cover_url, audio_url')
+          .eq('id', id)
+          .single();
+
+        const { data: chapters, error: chaptersError } = await supabase
+          .from('audiobook_chapters')
+          .select('audio_url')
+          .eq('audiobook_id', id);
+
+        if (fetchError) throw fetchError;
+
+        // Supprimer les fichiers associés dans Storage
+        const filesToDelete: Array<{ bucket: string; path: string }> = [];
+
+        if (audiobook?.cover_url) {
+          const coverPath = extractFilePathFromUrl(audiobook.cover_url);
+          if (coverPath) {
+            filesToDelete.push({ bucket: 'book-covers', path: coverPath });
+          }
+        }
+
+        if (audiobook?.audio_url) {
+          const audioPath = extractFilePathFromUrl(audiobook.audio_url);
+          if (audioPath) {
+            filesToDelete.push({ bucket: 'book-covers', path: audioPath });
+          }
+        }
+
+        // Supprimer les fichiers audio des chapitres
+        if (chapters) {
+          chapters.forEach(chapter => {
+            if (chapter.audio_url) {
+              const audioPath = extractFilePathFromUrl(chapter.audio_url);
+              if (audioPath) {
+                filesToDelete.push({ bucket: 'book-covers', path: audioPath });
+              }
+            }
+          });
+        }
+
+        // Supprimer les fichiers de Storage
+        for (const file of filesToDelete) {
+          try {
+            const { error: storageError } = await supabase.storage
+              .from(file.bucket)
+              .remove([file.path]);
+            
+            if (storageError) {
+              console.warn(`Failed to delete file ${file.path}:`, storageError);
+            }
+          } catch (error) {
+            console.warn(`Error deleting file ${file.path}:`, error);
+          }
+        }
+
+        // Supprimer les chapitres
+        const { error: chaptersDeleteError } = await supabase
+          .from('audiobook_chapters')
+          .delete()
+          .eq('audiobook_id', id);
+
+        if (chaptersDeleteError) throw chaptersDeleteError;
+
+        // Supprimer l'audiobook
         const { error } = await supabase
           .from('audiobooks')
           .delete()
