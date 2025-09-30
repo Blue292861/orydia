@@ -102,7 +102,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       rendition.themes.fontSize(`${fontSize}px`);
 
       // Gestion des événements de progression (relocated)
+      // C'est l'événement correct pour mettre à jour la progression en mode scroll-continuous
       rendition.on('relocated', (location: any) => {
+        // En mode scroll-continuous, 'relocated' est déclenché par le défilement.
+        // Désactiver l'indicateur de chargement ici est la bonne approche
         setIsLoadingContent(false);
         try {
           if (!location || !rendition?.book?.locations) return;
@@ -113,6 +116,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           const currentLocation = book.locations.locationFromCfi(startCfi);
           const totalLocations = book.locations.total;
 
+          // Vérification pour s'assurer que nous n'écrivons pas sur le localStorage trop souvent
           if (currentLocation && totalLocations && currentLocation !== lastProgressUpdateRef.current) {
             const progress = Math.round((currentLocation / totalLocations) * 100);
 
@@ -134,10 +138,11 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         }
       });
       
-      // Simplification : le listener 'rendered' ne fait que masquer l'indicateur de chargement
-      // Les listeners de scroll/keydown internes problématiques ont été retirés.
+      // Le listener 'rendered' ne doit rien faire qui puisse interférer ou ralentir.
+      // Nous le laissons vide pour gérer l'état de chargement initial.
       rendition.on('rendered', () => {
         setIsLoadingContent(false);
+        // Suppression du code qui ajoutait des écouteurs de scroll et de keydown aux iframes internes.
       });
     }
     
@@ -145,7 +150,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     if (rendition.book) {
       rendition.book.ready
         .then(() => {
-          return rendition.book.locations.generate(1600); // Plus de précision
+          // Ceci peut prendre du temps et doit être terminé avant que l'utilisateur commence à lire.
+          // C'est nécessaire pour le calcul précis de la progression (progress / total).
+          return rendition.book.locations.generate(1600); 
         })
         .then(() => {
           setIsReady(true);
@@ -222,18 +229,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     }
   };
 
-  // Désactive la navigation par flèches clavier pour le document principal (afin d'éviter le changement de page)
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-        e.stopPropagation();
-        e.preventDefault();
-      }
-    };
-    document.addEventListener('keydown', onKeyDown, true);
-    return () => document.removeEventListener('keydown', onKeyDown, true);
-  }, []);
-
+  // Suppression de l'écouteur d'événements keydown global (L. 209-219 dans l'original)
 
   const navigateToProgress = (progressPercent: number) => {
     if (rendition && rendition.book && rendition.book.locations) {
