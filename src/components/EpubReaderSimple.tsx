@@ -403,7 +403,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       )}
 
       {/* Zone de lecture EPUB */}
-      <div className="relative w-full epub-reader-container" style={{ height: "80vh", minHeight: "600px" }}>
+      <div className="relative w-full epub-reader-container" style={{minHeight: "600px" }}>
         {/* Indicateur de chargement de contenu pendant le scroll */}
         {isLoadingContent && (
           <div className="absolute top-4 right-4 z-30 bg-background/90 backdrop-blur-sm rounded-lg p-2 border shadow-sm">
