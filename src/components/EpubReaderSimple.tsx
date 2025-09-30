@@ -236,9 +236,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
   // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
   const readerStyles: any = {
-    // CORRECTION: Remplacer 'overflow: hidden' (de l'étape précédente) par 'overflow: visible' pour laisser le contenu s'étendre
-    container: { width: '100%', height: '100%', padding: 0, margin: 0, overflow: 'visible' }, 
-    containerExpanded: { width: '100%', height: '100%', padding: 0, margin: 0, overflow: 'visible' },
+    // CORRECTION: Remplacer 'height: 100%' par 'height: auto' pour permettre un défilement continu
+    container: { width: '100%', height: 'auto', padding: 0, margin: 0, overflow: 'visible' }, 
+    containerExpanded: { width: '100%', height: 'auto', padding: 0, margin: 0, overflow: 'visible' },
     readerArea: { left: 0, right: 0, padding: 0, margin: 0, width: '100%' },
     titleArea: { display: 'none' },
     title: { display: 'none' },
@@ -252,8 +252,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   // Styles internes d'EpubView pour éviter tout découpage
   const epubViewStyles: any = {
     viewHolder: { width: '100%', margin: 0, padding: 0 },
-    view: { width: '100%' },
-    iframe: { width: '100%' }
+    // CORRECTION: Ajouter height: 'auto' à la vue et à l'iframe pour qu'ils prennent la hauteur totale du contenu
+    view: { width: '100%', height: 'auto' },
+    iframe: { width: '100%', height: 'auto' }
   };
   if (!url) {
     return <div className="p-4 text-center text-red-500">URL du fichier EPUB manquante.</div>;
@@ -356,7 +357,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       )}
 
       {/* Zone de lecture EPUB */}
-      {/* CORRECTION: Remplacer la hauteur fixe et l'overflow auto par une hauteur dynamique. L'overflow: visible permettra au contenu de déborder de manière illimitée. */}
       <div className="w-full epub-reader-container" style={{ height: "auto", minHeight: "500px", overflowY: "visible" }}>
         <ReactReader
           url={url}
@@ -368,9 +368,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
             manager: "continuous"
           }}
           showToc={false}
-          readerStyles={readerStyles}
+          readerStyles={readerStyles} // Utilise les nouveaux styles sans contrainte de hauteur
           swipeable={false}
-          epubViewStyles={epubViewStyles}
+          epubViewStyles={epubViewStyles} // Utilise les nouveaux styles de vue sans contrainte de hauteur
         />
       </div>
     </div>
