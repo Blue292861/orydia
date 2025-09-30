@@ -36,9 +36,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({ url }) => {
   }
 
   return (
-    <div style={{ position: 'relative', height: '80vh', width: '100%' }}>
+    // CORRECTION: Remplacé height: '80vh' par height: 'auto' pour le défilement continu
+    <div style={{ position: 'relative', height: 'auto', width: '100%' }}>
       {!isReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+        // La div de chargement conserve une hauteur fixe pour être visible
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10" style={{ height: '80vh' }}>
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       )}
@@ -48,6 +50,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({ url }) => {
         locationChanged={handleLocationChanged}
         epubOptions={{ flow: 'scrolled-continuous', manager: 'continuous' }}
         showToc={false}
+        getRendition={handleReady} // Ajouté le handleReady manquant
       />
     </div>
   );
