@@ -21,11 +21,11 @@ export const TensensDialogHeader: React.FC<TensensDialogHeaderProps> = ({ onClos
       </Button>
       <DialogTitle className="flex items-center justify-center gap-2 text-xl font-medieval text-forest-800 px-2">
         <Coins className="h-5 w-5 text-gold-500" />
-        <span className="text-center leading-tight">Acheter des Tensens</span>
+        <span className="text-center leading-tight">Comptoir du Changeur</span>
         <Coins className="h-5 w-5 text-gold-500" />
       </DialogTitle>
       <p className="text-forest-600 font-serif mt-1 text-sm">
-        Obtenez des Tensens pour débloquer du contenu premium
+        Échangez vos pièces d'or contre la monnaie sacrée d'Orydia
       </p>
     </DialogHeader>
   );

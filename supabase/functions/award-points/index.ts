@@ -131,11 +131,10 @@ serve(async (req) => {
       status: 200,
     });
 
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error in award-points function:", error);
-    const errorMessage = error instanceof Error ? error.message : "Internal server error";
     return new Response(JSON.stringify({ 
-      error: errorMessage 
+      error: error.message || "Internal server error" 
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

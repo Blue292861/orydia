@@ -76,26 +76,8 @@ serve(async (req) => {
 
     if (transactionsError) throw transactionsError;
 
-    // Récupérer les tutoriels vus depuis le profil
-    const { data: profile, error: profileError } = await supabaseClient
-      .from("profiles")
-      .select("tutorials_seen")
-      .eq("id", userId)
-      .single();
-
-    // Parser tutorials_seen (c'est un champ text en DB, on doit le parser en JSON)
-    let tutorialsSeen = [];
-    if (profile?.tutorials_seen) {
-      try {
-        tutorialsSeen = JSON.parse(profile.tutorials_seen);
-      } catch (e) {
-        console.error("Error parsing tutorials_seen:", e);
-        tutorialsSeen = [];
-      }
-    }
-
     return new Response(JSON.stringify({
-      user_stats: { ...userStats, tutorials_seen: tutorialsSeen },
+      user_stats: userStats,
       achievements: achievements || [],
       recent_transactions: recentTransactions || []
     }), {
@@ -103,11 +85,10 @@ serve(async (req) => {
       status: 200,
     });
 
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Error in get-user-stats function:", error);
-    const errorMessage = error instanceof Error ? error.message : "Internal server error";
     return new Response(JSON.stringify({ 
-      error: errorMessage 
+      error: error.message || "Internal server error" 
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

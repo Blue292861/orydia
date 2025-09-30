@@ -79,61 +79,9 @@ export const updateShopItemInDB = async (item: ShopItem): Promise<void> => {
   }
 };
 
-const extractFilePathFromUrl = (url: string): string | null => {
-  if (!url) return null;
-  const match = url.match(/\/storage\/v1\/object\/public\/[^\/]+\/(.+)$/);
-  return match ? match[1] : null;
-};
-
 export const deleteShopItemFromDB = async (id: string): Promise<void> => {
   if (!id || typeof id !== 'string') {
     throw new Error('ID invalide');
-  }
-
-  // Récupérer les données de l'item avant suppression pour nettoyer les fichiers
-  const { data: item, error: fetchError } = await supabase
-    .from('shop_items')
-    .select('image_url, additional_images')
-    .eq('id', id)
-    .single();
-
-  if (fetchError) {
-    console.error('Error fetching shop item:', fetchError.code);
-    throw new Error('Erreur lors de la récupération de l\'item');
-  }
-
-  // Supprimer les fichiers associés dans Storage
-  const filesToDelete: string[] = [];
-
-  if (item?.image_url) {
-    const imagePath = extractFilePathFromUrl(item.image_url);
-    if (imagePath) {
-      filesToDelete.push(imagePath);
-    }
-  }
-
-  if (item?.additional_images && Array.isArray(item.additional_images)) {
-    item.additional_images.forEach((imageUrl: string) => {
-      const imagePath = extractFilePathFromUrl(imageUrl);
-      if (imagePath) {
-        filesToDelete.push(imagePath);
-      }
-    });
-  }
-
-  // Supprimer les fichiers de Storage
-  if (filesToDelete.length > 0) {
-    try {
-      const { error: storageError } = await supabase.storage
-        .from('book-covers')
-        .remove(filesToDelete);
-      
-      if (storageError) {
-        console.warn('Failed to delete some files:', storageError);
-      }
-    } catch (error) {
-      console.warn('Error deleting files:', error);
-    }
   }
 
   const { error } = await supabase

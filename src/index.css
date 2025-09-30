@@ -1,3 +1,4 @@
+
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
@@ -72,11 +73,8 @@
     margin: 0;
     padding: 0;
     width: 100vw;
-    /* CORRECTION CRITIQUE: Supprime la hauteur fixe 100vh */
-    /* height: 100vh; */ 
-    /* CORRECTION CRITIQUE: Permet le défilement vertical */
-    overflow-y: auto;
-    overflow-x: hidden;
+    height: 100vh;
+    overflow: hidden;
   }
   
   /* iOS specific safe area classes */
@@ -477,14 +475,16 @@ body.high-contrast * {
 /* EPUBjs specific fixes - Target dynamically generated elements */
 div[id*="epubjs-container"] {
   width: 100% !important;
-  /* Suppression de height/min-height */
+  height: 100% !important;
+  min-height: 600px !important;
   position: relative !important;
-  /* Suppression de l'override d'overflow: auto pour l'epubjs-container */
+  overflow: auto !important;
 }
 
 div[id*="epubjs-view"] {
   width: 100% !important;
-  /* Suppression de height/min-height */
+  height: 100% !important;
+  min-height: 600px !important;
   visibility: visible !important;
   position: relative !important;
   display: block !important;
@@ -494,14 +494,16 @@ div[id*="epubjs-view"] {
 /* EPUBjs iframe */
 div[id*="epubjs-view"] iframe {
   width: 100% !important;
-  /* Suppression de height/min-height */
+  height: 100% !important;
+  min-height: 600px !important;
   border: none !important;
   display: block !important;
 }
 
 .react-reader {
   width: 100% !important;
-  /* Suppression de height/min-height */
+  height: 100% !important;
+  min-height: 600px !important;
   position: relative !important;
   contain: content;
 }
@@ -555,3 +557,4 @@ div[id*="epubjs-view"] iframe body {
   pointer-events: none !important;
   opacity: 0 !important;
 }
+

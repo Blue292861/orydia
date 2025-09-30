@@ -40,7 +40,7 @@ export const NewSignupForm: React.FC = () => {
     if (emptyFields.length > 0) {
       toast({
         title: 'Inscription incomplète',
-        description: 'Tous les champs sont obligatoires pour créer votre compte.',
+        description: 'Tous les champs du parchemin doivent être remplis pour rejoindre la guilde.',
         variant: 'destructive',
       });
       return;
@@ -69,7 +69,7 @@ export const NewSignupForm: React.FC = () => {
 
       toast({
         title: 'Inscription réussie !',
-        description: 'Vérifiez votre email pour confirmer votre inscription.',
+        description: 'Vérifiez votre parchemin électronique pour confirmer votre entrée en Orydia.',
       });
     } catch (error: any) {
       toast({
@@ -87,7 +87,7 @@ export const NewSignupForm: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         <div>
           <Label htmlFor="signup-email" className="text-forest-800 font-medium font-medieval text-sm">
-            Adresse email *
+            Adresse de messagerie *
           </Label>
           <Input
             id="signup-email"
@@ -96,13 +96,13 @@ export const NewSignupForm: React.FC = () => {
             value={signupData.email}
             onChange={handleChange}
             required
-            placeholder="votre.email@exemple.com"
+            placeholder="votre.quete@orydia.com"
             className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
         <div>
           <Label htmlFor="signup-password" className="text-forest-800 font-medium font-medieval text-sm">
-            Mot de passe *
+            Mot de passe secret *
           </Label>
           <div className="relative">
             <Input
@@ -112,7 +112,7 @@ export const NewSignupForm: React.FC = () => {
               value={signupData.password}
               onChange={handleChange}
               required
-              placeholder="Au moins 6 caractères"
+              placeholder="Au moins 6 runes"
               minLength={6}
               className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm pr-10 text-forest-900"
             />
@@ -134,7 +134,7 @@ export const NewSignupForm: React.FC = () => {
         </div>
         <div>
           <Label htmlFor="signup-username" className="text-forest-800 font-medium font-medieval text-sm">
-            Nom d'utilisateur *
+            Nom d'aventurier *
           </Label>
           <Input
             id="signup-username"
@@ -142,7 +142,7 @@ export const NewSignupForm: React.FC = () => {
             value={signupData.username}
             onChange={handleChange}
             required
-            placeholder="VotreNom123"
+            placeholder="Héros_Légendaire"
             className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
@@ -156,7 +156,7 @@ export const NewSignupForm: React.FC = () => {
             value={signupData.firstName}
             onChange={handleChange}
             required
-            placeholder="Jean"
+            placeholder="Arion"
             className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
@@ -170,13 +170,13 @@ export const NewSignupForm: React.FC = () => {
             value={signupData.lastName}
             onChange={handleChange}
             required
-            placeholder="Dupont"
+            placeholder="Fortelame"
             className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
         <div className="md:col-span-2">
           <Label htmlFor="signup-address" className="text-forest-800 font-medium font-medieval text-sm">
-            Adresse *
+            Demeure et voie *
           </Label>
           <Input
             id="signup-address"
@@ -184,13 +184,13 @@ export const NewSignupForm: React.FC = () => {
             value={signupData.address}
             onChange={handleChange}
             required
-            placeholder="123 rue de la Paix"
+            placeholder="42 Rue des Chevaliers de la Table Ronde"
             className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
         <div>
           <Label htmlFor="signup-city" className="text-forest-800 font-medium font-medieval text-sm">
-            Ville *
+            Cité *
           </Label>
           <Input
             id="signup-city"
@@ -198,13 +198,13 @@ export const NewSignupForm: React.FC = () => {
             value={signupData.city}
             onChange={handleChange}
             required
-            placeholder="Paris"
+            placeholder="Valorhall"
             className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
         <div className="md:col-span-2">
           <Label htmlFor="signup-country" className="text-forest-800 font-medium font-medieval text-sm">
-            Pays *
+            Royaume *
           </Label>
           <Input
             id="signup-country"
@@ -212,7 +212,7 @@ export const NewSignupForm: React.FC = () => {
             value={signupData.country}
             onChange={handleChange}
             required
-            placeholder="France"
+            placeholder="Orydia"
             className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
@@ -222,7 +222,7 @@ export const NewSignupForm: React.FC = () => {
         disabled={loading} 
         className="w-full bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white font-medieval shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
       >
-        {loading ? 'Inscription en cours...' : 'Créer mon compte'}
+        {loading ? 'Inscription à la guilde...' : 'Rejoindre l\'aventure'}
       </Button>
     </form>
   );
