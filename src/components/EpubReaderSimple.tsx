@@ -110,8 +110,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           const startCfi = location.start?.cfi || location?.cfi;
           if (!startCfi) return;
 
-          const currentLocation = book.locations.locationFromCfi(startCfi);
-          const totalLocations = book.locations.total;
+          //const currentLocation = book.locations.locationFromCfi(startCfi);
+          //const totalLocations = book.locations.total;
 
           if (currentLocation && totalLocations && currentLocation !== lastProgressUpdateRef.current) {
             const progress = Math.round((currentLocation / totalLocations) * 100);
@@ -157,7 +157,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       rendition.book.ready
         .then(() => {
           // Tente de générer les locations pour une progression précise
-          return rendition.book.locations.generate(1600); 
+          //return rendition.book.locations.generate(1600); 
         })
         .then(() => {
           setIsReady(true);
