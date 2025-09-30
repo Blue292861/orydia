@@ -274,8 +274,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
   // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
   const readerStyles: any = {
-    container: { width: '100%', height: '100%' },
-    containerExpanded: { width: '100%', height: '100%' },
+    // CORRECTION MAJEURE: Passage de height: '100%' à height: 'auto'
+    container: { width: '100%', height: 'auto' }, // Changé de '100%'
+    containerExpanded: { width: '100%', height: 'auto' }, // Changé de '100%'
     readerArea: { left: 0, right: 0, width: '100%' },
     titleArea: { display: 'none' },
     title: { display: 'none' },
@@ -288,12 +289,11 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
   // Styles internes d'EpubView pour le scroll continu (utilise un conteneur scroll dédié)
   const epubViewStyles: any = {
-    // CORRECTION: Suppression des contraintes de hauteur (height: '100%') et d'overflow 
-    // pour permettre au contenu de l'EPUB de s'étendre verticalement.
+    // CORRECTION PRÉCÉDENTE: Suppression des contraintes de hauteur/défilement
     viewHolder: {
       width: '100%',
-      // height: '100%', // Supprimé pour ne pas tronquer le contenu en mode scroll continu
-      // overflow: 'auto' // Supprimé pour laisser l'iframe interne gérer le défilement
+      // height: '100%', // Supprimé
+      // overflow: 'auto' // Supprimé
     },
     view: { 
       width: '100%',
@@ -309,6 +309,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   }
 
   return (
+    // NOTE: 'min-h-[80vh]' sur le conteneur externe est ok
     <div className="relative w-full min-h-[80vh] react-reader-wrapper">
       {/* Contrôles supérieurs */}
       {showControls && (
@@ -405,7 +406,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       )}
 
       {/* Zone de lecture EPUB */}
-      {/* CORRECTION: Suppression de la hauteur fixe 'height: "80vh"' sur le conteneur parent */}
+      {/* CORRECTION PRÉCÉDENTE: Suppression de la hauteur fixe 'height: "80vh"' sur le conteneur parent */}
       <div className="relative w-full epub-reader-container" style={{ minHeight: "600px" }}>
         {/* Indicateur de chargement de contenu pendant le scroll */}
         {isLoadingContent && (
