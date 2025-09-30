@@ -6,7 +6,7 @@ import { TensensPack } from '@/types/TensensPack';
 export const TENSENS_PACKS: TensensPack[] = [
   { 
     id: 'pack-small', 
-    name: 'Bourse d\'Aventurier', 
+    name: 'Pack Starter', 
     tensens: 331, 
     price: 199, 
     description: '331 Tensens',
@@ -15,7 +15,7 @@ export const TENSENS_PACKS: TensensPack[] = [
   },
   { 
     id: 'pack-medium', 
-    name: 'Coffre du Marchand', 
+    name: 'Pack Standard', 
     tensens: 1494, 
     price: 899, 
     description: '1 494 Tensens', 
@@ -26,7 +26,7 @@ export const TENSENS_PACKS: TensensPack[] = [
   },
   { 
     id: 'pack-large', 
-    name: 'Trésor du Héros', 
+    name: 'Pack Premium', 
     tensens: 2656, 
     price: 1599, 
     description: '2 656 Tensens',
@@ -36,7 +36,7 @@ export const TENSENS_PACKS: TensensPack[] = [
   },
   { 
     id: 'pack-mega', 
-    name: 'Fortune Royale', 
+    name: 'Pack Ultimate', 
     tensens: 5810, 
     price: 3499, 
     description: '5 810 Tensens', 

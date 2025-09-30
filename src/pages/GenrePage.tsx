@@ -50,14 +50,20 @@ export const GenrePage: React.FC = () => {
         gameService.getAllGames()
       ]);
 
-      // Filter by genre using our service's extraction logic
+      // Filter by genre using the genres field directly or fallback to tags
       const filteredBooks = booksData.filter(book => {
-        const bookGenres = genreAnalyticsService.extractGenresFromTags(book.tags || []);
+        // Prioritize the genres field, fallback to extracting from tags
+        const bookGenres = (book.genres && book.genres.length > 0) 
+          ? book.genres 
+          : genreAnalyticsService.extractGenresFromTags(book.tags || []);
         return bookGenres.includes(currentGenre);
       });
 
       const filteredAudiobooks = audiobooksData.filter(audiobook => {
-        const audiobookGenres = genreAnalyticsService.extractGenresFromTags(audiobook.tags || []);
+        // Prioritize the genres field, fallback to extracting from tags
+        const audiobookGenres = (audiobook.genres && audiobook.genres.length > 0)
+          ? audiobook.genres
+          : genreAnalyticsService.extractGenresFromTags(audiobook.tags || []);
         return audiobookGenres.includes(currentGenre);
       });
 

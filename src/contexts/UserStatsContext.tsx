@@ -110,9 +110,10 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     }));
 
     try {
+      // Convertir en JSON string car le champ est de type text en DB
       const { error } = await supabase
         .from('profiles')
-        .update({ tutorials_seen: updatedTutorialsSeen as any }) // Ajout de "as any" pour contourner l'erreur de type
+        .update({ tutorials_seen: JSON.stringify(updatedTutorialsSeen) })
         .eq('id', session.user.id);
 
       if (error) {

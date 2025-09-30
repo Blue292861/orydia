@@ -233,6 +233,7 @@ export type Database = {
           created_at: string
           description: string | null
           genre: string | null
+          genres: string[]
           id: string
           is_featured: boolean
           is_month_success: boolean
@@ -251,6 +252,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           genre?: string | null
+          genres?: string[]
           id?: string
           is_featured?: boolean
           is_month_success?: boolean
@@ -269,6 +271,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           genre?: string | null
+          genres?: string[]
           id?: string
           is_featured?: boolean
           is_month_success?: boolean
@@ -350,6 +353,7 @@ export type Database = {
           content: string
           cover_url: string
           created_at: string
+          genres: string[]
           has_chapters: boolean
           id: string
           is_adult_content: boolean
@@ -368,6 +372,7 @@ export type Database = {
           content: string
           cover_url: string
           created_at?: string
+          genres?: string[]
           has_chapters?: boolean
           id?: string
           is_adult_content?: boolean
@@ -386,6 +391,7 @@ export type Database = {
           content?: string
           cover_url?: string
           created_at?: string
+          genres?: string[]
           has_chapters?: boolean
           id?: string
           is_adult_content?: boolean
@@ -1380,6 +1386,10 @@ export type Database = {
           p_window_minutes?: number
         }
         Returns: boolean
+      }
+      cleanup_orphaned_storage_files: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       get_recommended_theme: {
         Args: { p_user_id: string }
