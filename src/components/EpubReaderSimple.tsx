@@ -150,19 +150,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           };
           doc.addEventListener('keydown', keyHandler, true);
           
-          // Détecter le scroll pour montrer l'indicateur de chargement
-          const scrollHandler = () => {
-            const scrollTop = doc.documentElement.scrollTop || doc.body.scrollTop;
-            const scrollHeight = doc.documentElement.scrollHeight || doc.body.scrollHeight;
-            const clientHeight = doc.documentElement.clientHeight || doc.body.clientHeight;
-            
-            // Si on approche de la fin, montrer l'indicateur de chargement
-            if (scrollHeight - scrollTop - clientHeight < 100) {
-              setIsLoadingContent(true);
-            }
-          };
-          
-          doc.addEventListener('scroll', scrollHandler, { passive: true });
+          // CORRECTION CRITIQUE: Suppression de l'écouteur de scroll interne (scrollHandler)
+          // Dans le mode scrolled-continuous, le défilement se fait sur la page principale, pas l'iframe.
+          // L'écouteur interne pouvait créer un conflit de scroll.
         });
       });
     }
@@ -274,9 +264,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
   // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
   const readerStyles: any = {
-    // CORRECTION MAJEURE: Passage de height: '100%' à height: 'auto'
-    container: { width: '100%', height: 'auto' }, // Changé de '100%'
-    containerExpanded: { width: '100%', height: 'auto' }, // Changé de '100%'
+    // Correction précédente : assure que le composant ReactReader ne contraint pas sa hauteur
+    container: { width: '100%', height: 'auto' }, 
+    containerExpanded: { width: '100%', height: 'auto' }, 
     readerArea: { left: 0, right: 0, width: '100%' },
     titleArea: { display: 'none' },
     title: { display: 'none' },
@@ -287,29 +277,14 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none', pointerEvents: 'none', width: 0 },
   };
 
-  // Styles internes d'EpubView pour le scroll continu (utilise un conteneur scroll dédié)
-  const epubViewStyles: any = {
-    // CORRECTION PRÉCÉDENTE: Suppression des contraintes de hauteur/défilement
-    viewHolder: {
-      width: '100%',
-      // height: '100%', // Supprimé
-      // overflow: 'auto' // Supprimé
-    },
-    view: { 
-      width: '100%',
-      height: 'auto'
-    },
-    iframe: { 
-      width: '100%', 
-      border: 'none'
-    }
-  };
+  // Suppression de epubViewStyles, car il était potentiellement en conflit avec scrolled-continuous.
+  const epubViewStyles: any = {}; 
+
   if (!url) {
     return <div className="p-4 text-center text-red-500">URL du fichier EPUB manquante.</div>;
   }
 
   return (
-    // NOTE: 'min-h-[80vh]' sur le conteneur externe est ok
     <div className="relative w-full min-h-[80vh] react-reader-wrapper">
       {/* Contrôles supérieurs */}
       {showControls && (
@@ -406,7 +381,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       )}
 
       {/* Zone de lecture EPUB */}
-      {/* CORRECTION PRÉCÉDENTE: Suppression de la hauteur fixe 'height: "80vh"' sur le conteneur parent */}
       <div className="relative w-full epub-reader-container" style={{ minHeight: "600px" }}>
         {/* Indicateur de chargement de contenu pendant le scroll */}
         {isLoadingContent && (
@@ -432,7 +406,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           showToc={false}
           readerStyles={readerStyles}
           swipeable={false}
-          epubViewStyles={epubViewStyles}
+          epubViewStyles={epubViewStyles} // epubViewStyles est désormais un objet vide
         />
       </div>
     </div>
