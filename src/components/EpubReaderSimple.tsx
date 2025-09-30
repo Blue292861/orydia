@@ -1,4 +1,4 @@
-// src/components/EpubReaderSimple.tsx (Corrigé pour supprimer les conflits)
+// src/components/EpubReaderSimple.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ReactReader } from 'react-reader';
 import { useToast } from '@/hooks/use-toast';
@@ -112,6 +112,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           const currentLocation = book.locations.locationFromCfi(startCfi);
           const totalLocations = book.locations.total;
 
+          // Mise à jour de l'état UNIQUEMENT si la position a réellement changé
           if (currentLocation && totalLocations && currentLocation !== lastProgressUpdateRef.current) {
             const progress = Math.round((currentLocation / totalLocations) * 100);
 
@@ -121,6 +122,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
             setTotalPages(totalLocations);
             lastProgressUpdateRef.current = currentLocation;
 
+            // Déclenche la sauvegarde de la progression
             saveProgress({
               location: startCfi,
               progress,
@@ -134,6 +136,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       });
       
       // La logique qui ajoutait des écouteurs de scroll et keydown aux iframes internes a été supprimée
+      // pour éviter les interférences avec le défilement continu.
       rendition.on('rendered', () => {
         setIsLoadingContent(false);
       });
@@ -219,7 +222,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     }
   };
 
-  // ❌ Le useEffect global de keydown a été retiré.
+  // Suppression de l'écouteur d'événements keydown global (l. 209-219 de l'original)
+
 
   const navigateToProgress = (progressPercent: number) => {
     if (rendition && rendition.book && rendition.book.locations) {
@@ -246,12 +250,12 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none', pointerEvents: 'none', width: 0 },
   };
 
-  // Styles internes d'EpubView pour le scroll continu (utilise un conteneur scroll dédié)
+  // Styles internes d'EpubView pour le scroll continu
   const epubViewStyles: any = {
     viewHolder: {
       width: '100%',
       height: '100%',
-      overflow: 'auto'
+      overflow: 'auto' // C'est ici que le défilement est activé
     },
     view: { 
       width: '100%',
@@ -270,4 +274,127 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     <div className="relative w-full min-h-[80vh] react-reader-wrapper">
       {/* Contrôles supérieurs */}
       {showControls && (
-        <Card className="sticky top-0 z-20 mb-4 p
+        <Card className="sticky top-0 z-20 mb-4 p-4 bg-background/95 backdrop-blur border">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              <span className="text-sm font-medium">
+                {readingProgress > 0 && `${readingProgress}% lu`}
+              </span>
+            </div>
+            
+            <div className="flex-1 max-w-md min-w-32">
+              <Progress value={readingProgress} className="h-2" />
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowControls(false)}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Contrôles de lecture */}
+          <div className="flex items-center justify-between mt-4 gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => changeFontSize(Math.max(12, fontSize - 2))}
+              >
+                A-
+              </Button>
+              <span className="text-xs px-2">{fontSize}px</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => changeFontSize(Math.min(28, fontSize + 2))}
+              >
+                A+
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant={theme === 'light' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => changeTheme('light')}
+              >
+                <Sun className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={theme === 'sepia' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => changeTheme('sepia')}
+              >
+                <FileText className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={theme === 'dark' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => changeTheme('dark')}
+              >
+                <Moon className="h-4 w-4" />
+              </Button>
+            </div>
+
+          </div>
+        </Card>
+      )}
+
+      {/* Bouton pour réafficher les contrôles */}
+      {!showControls && (
+        <Button
+          className="sticky top-4 right-4 z-20 mb-4 ml-auto block"
+          variant="outline"
+          size="sm"
+          onClick={() => setShowControls(true)}
+        >
+          <Settings className="h-4 w-4" />
+        </Button>
+      )}
+
+      {/* Indicateur de chargement */}
+      {!isReady && (
+        <div className="flex items-center justify-center bg-background/80 rounded-lg p-8 mb-4">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Chargement de l'EPUB...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Zone de lecture EPUB */}
+      <div className="relative w-full epub-reader-container" style={{ height: "80vh", minHeight: "600px" }}>
+        {/* Indicateur de chargement de contenu pendant le scroll */}
+        {isLoadingContent && (
+          <div className="absolute top-4 right-4 z-30 bg-background/90 backdrop-blur-sm rounded-lg p-2 border shadow-sm">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span className="text-xs text-muted-foreground">Chargement...</span>
+            </div>
+          </div>
+        )}
+        
+        <ReactReader
+          url={url}
+          location={location}
+          locationChanged={() => { /* Désactivé pour éviter les double re-renders avec 'relocated' */ }}
+          getRendition={handleRenditionReady}
+          epubOptions={{
+            flow: "scrolled-continuous",
+            manager: "continuous",
+            allowScriptedContent: true,
+            spread: "none"
+          }}
+          showToc={false}
+          readerStyles={readerStyles}
+          swipeable={false}
+          epubViewStyles={epubViewStyles}
+        />
+      </div>
+    </div>
+  );
+};
