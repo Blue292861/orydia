@@ -232,4 +232,322 @@
     transform: perspective(1000px) rotateY(20deg) rotateX(20deg) skewY(-8deg) scaleY(0.92);
     transform-origin: bottom right;
     box-shadow: -8px 15px 25px rgba(0, 0, 0, 0.3);
-    clip-path: polygon(0% 0%, 100% 0%, 100% 85%,
+    clip-path: polygon(0% 0%, 100% 0%, 100% 85%, 10% 100%);
+  }
+  50% {
+    transform: perspective(1000px) rotateY(60deg) rotateX(35deg) skewY(-15deg) scaleY(0.85);
+    transform-origin: bottom right;
+    box-shadow: -15px 25px 40px rgba(0, 0, 0, 0.5);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 70%, 25% 100%);
+  }
+  75% {
+    transform: perspective(1000px) rotateY(120deg) rotateX(25deg) skewY(-10deg) scaleY(0.9);
+    transform-origin: bottom right;
+    box-shadow: 5px 20px 35px rgba(0, 0, 0, 0.4);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 80%, 15% 100%);
+  }
+  90% {
+    transform: perspective(1000px) rotateY(165deg) rotateX(10deg) skewY(-4deg) scaleY(0.96);
+    transform-origin: bottom right;
+    box-shadow: 3px 10px 20px rgba(0, 0, 0, 0.2);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 90%, 5% 100%);
+  }
+  100% {
+    transform: perspective(1000px) rotateY(180deg) rotateX(0deg) skewY(0deg) scaleY(1);
+    transform-origin: bottom right;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+    opacity: 0;
+  }
+}
+
+.book-open {
+  animation: book-open 1.5s ease-out forwards;
+}
+
+.page-turn-right {
+  animation: page-turn-right 1.5s ease-in-out forwards;
+}
+
+.page-turn-left {
+  animation: page-turn-left 1.5s ease-in-out forwards;
+}
+
+/* Nature & Luxe Animations */
+@keyframes gentle-float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+
+@keyframes leaf-dance {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+  66% {
+    transform: translateY(-4px) rotate(-1deg);
+  }
+}
+
+@keyframes golden-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes nature-breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes vine-grow {
+  0% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+}
+
+/* High Contrast Mode */
+body.high-contrast {
+  /* Inverse nature colors for high contrast */
+  --forest-50: 150 85% 8%;
+  --forest-100: 150 80% 12%;
+  --forest-200: 150 75% 18%;
+  --forest-300: 150 70% 25%;
+  --forest-400: 150 65% 35%;
+  --forest-500: 150 60% 45%;
+  --forest-600: 150 55% 60%;
+  --forest-700: 150 50% 75%;
+  --forest-800: 150 45% 88%;
+  --forest-900: 150 40% 95%;
+  
+  --wood-50: 30 22% 12%;
+  --wood-100: 30 25% 18%;
+  --wood-200: 30 28% 25%;
+  --wood-300: 30 30% 35%;
+  --wood-400: 30 35% 45%;
+  --wood-500: 30 40% 58%;
+  --wood-600: 30 45% 70%;
+  --wood-700: 30 50% 80%;
+  --wood-800: 30 55% 88%;
+  --wood-900: 30 60% 95%;
+  
+  --gold-50: 45 45% 15%;
+  --gold-100: 45 50% 20%;
+  --gold-200: 45 55% 28%;
+  --gold-300: 45 60% 38%;
+  --gold-400: 45 65% 48%;
+  --gold-500: 45 70% 58%;
+  --gold-600: 45 75% 68%;
+  --gold-700: 45 80% 78%;
+  --gold-800: 45 85% 88%;
+  --gold-900: 45 90% 95%;
+  
+  --stone-50: 25 3% 12%;
+  --stone-100: 25 4% 18%;
+  --stone-200: 25 5% 25%;
+  --stone-300: 25 6% 35%;
+  --stone-400: 25 8% 45%;
+  --stone-500: 25 10% 58%;
+  --stone-600: 25 12% 70%;
+  --stone-700: 25 15% 80%;
+  --stone-800: 25 18% 88%;
+  --stone-900: 25 20% 95%;
+  
+  /* Inverse main theme colors */
+  --background: 120 25% 8%;
+  --foreground: 45 15% 95%;
+  --card: 120 25% 12%;
+  --card-foreground: 45 20% 98%;
+  --popover: 120 25% 10%;
+  --popover-foreground: 45 25% 97%;
+  
+  --primary: 150 60% 75%;
+  --primary-foreground: 120 25% 8%;
+  
+  --secondary: 30 35% 25%;
+  --secondary-foreground: 45 30% 95%;
+  
+  --muted: 120 15% 18%;
+  --muted-foreground: 45 20% 75%;
+  
+  --accent: 45 85% 40%;
+  --accent-foreground: 45 15% 95%;
+  
+  background: hsl(var(--background)) !important;
+}
+
+body.high-contrast .nature-gradient {
+  background: linear-gradient(135deg, hsl(150 85% 8%), hsl(30 22% 12%));
+}
+
+body.high-contrast .luxury-gradient {
+  background: linear-gradient(135deg, hsl(150 60% 75%), hsl(45 85% 40%));
+}
+
+body.high-contrast .parchment-texture {
+  background-color: hsl(120 15% 18%);
+}
+
+/* Animation classes */
+.gentle-float {
+  animation: gentle-float 4s ease-in-out infinite;
+}
+
+.leaf-dance {
+  animation: leaf-dance 6s ease-in-out infinite;
+}
+
+.golden-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.4), transparent);
+  animation: golden-shimmer 3s ease-in-out infinite;
+}
+
+.nature-breathe {
+  animation: nature-breathe 5s ease-in-out infinite;
+}
+
+.vine-grow {
+  animation: vine-grow 1s ease-out forwards;
+}
+
+/* High contrast transition */
+body.high-contrast,
+body.high-contrast * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
+  
+  /* EPUB content styling - minimal interference with original styles */
+  .epub-content {
+    /* Preserve EPUB's fonts; do not override font-family */
+  }
+  
+  .epub-content img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    margin: 1em auto !important;
+  }
+
+/* EPUB Reader Container - Simple and reliable sizing with scroll */
+.epub-reader-container {
+  position: relative !important;
+  width: 100% !important;
+  overflow: auto !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 8px !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.react-reader-wrapper {
+  position: relative !important;
+  width: 100% !important;
+}
+
+/* EPUBjs specific fixes - Target dynamically generated elements */
+/* ❌ SIMPLIFIÉ : Retrait de overflow: auto !important sur les conteneurs internes */
+div[id*="epubjs-container"] {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 600px !important;
+  position: relative !important;
+}
+
+div[id*="epubjs-view"] {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 600px !important;
+  visibility: visible !important;
+  position: relative !important;
+  display: block !important;
+}
+
+/* EPUBjs iframe */
+div[id*="epubjs-view"] iframe {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 600px !important;
+  border: none !important;
+  display: block !important;
+}
+
+.react-reader {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 600px !important;
+  position: relative !important;
+  contain: content;
+}
+
+/* Improve text readability in EPUB with outer container scroll */
+div[id*="epubjs-view"] iframe body {
+  margin: 20px !important;
+  padding: 20px !important;
+  line-height: 1.6 !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  overflow-y: visible !important;
+  max-height: none !important;
+}
+
+/* Custom scrollbar for EPUB content - Maintenant ciblées uniquement sur le lecteur */
+.epub-reader-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.epub-reader-container::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+.epub-reader-container::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 4px;
+}
+
+.epub-reader-container::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
+}
+
+/* Hide ReactReader built-in page navigation arrows and controls (force) */
+.react-reader .arrow,
+.react-reader .previous,
+.react-reader .next,
+.react-reader .prev,
+.react-reader .nav,
+.react-reader .controls button,
+.react-reader [class*="arrow"],
+.react-reader [class*="prev"],
+.react-reader [class*="next"],
+.react-reader [class*="navigation"],
+.react-reader .tocArea,
+.react-reader .tocButton,
+.react-reader [class*="toc"],
+.react-reader button {
+  display: none !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
