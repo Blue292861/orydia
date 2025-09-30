@@ -375,10 +375,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
             const content = genreContent.get(genre);
             const totalItems = (content?.books.length || 0) + (content?.audiobooks.length || 0) + (content?.games.length || 0);
             
-            // Only show genres with content
-            if (totalItems === 0) {
-              return null;
-            }
+            // Show all genres, even empty ones
 
             return (
               <Card 

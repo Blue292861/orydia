@@ -126,11 +126,10 @@ serve(async (req) => {
       status: 200,
     });
 
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Cancellation error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Erreur lors de la résiliation";
     return new Response(JSON.stringify({ 
-      error: errorMessage 
+      error: error.message || "Erreur lors de la résiliation" 
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,

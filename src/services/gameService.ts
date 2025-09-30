@@ -75,47 +75,6 @@ export const gameService = {
   },
 
   async deleteGame(id: string): Promise<void> {
-    // Récupérer les données du jeu avant suppression pour nettoyer les fichiers
-    const { data: game, error: fetchError } = await supabase
-      .from('games')
-      .select('cover_url')
-      .eq('id', id)
-      .single();
-
-    if (fetchError) {
-      console.error('Error fetching game:', fetchError.code);
-      throw new Error('Erreur lors de la récupération du jeu');
-    }
-
-    // Supprimer la couverture si elle existe
-    if (game?.cover_url) {
-      const coverPath = game.cover_url.match(/\/storage\/v1\/object\/public\/[^\/]+\/(.+)$/)?.[1];
-      if (coverPath) {
-        try {
-          const { error: storageError } = await supabase.storage
-            .from('book-covers')
-            .remove([coverPath]);
-          
-          if (storageError) {
-            console.warn(`Failed to delete game cover ${coverPath}:`, storageError);
-          }
-        } catch (error) {
-          console.warn(`Error deleting game cover:`, error);
-        }
-      }
-    }
-
-    // Supprimer les chapitres du jeu
-    const { error: chaptersError } = await supabase
-      .from('game_chapters')
-      .delete()
-      .eq('game_id', id);
-
-    if (chaptersError) {
-      console.warn('Error deleting game chapters:', chaptersError);
-    }
-
-    // Supprimer le jeu
     const { error } = await supabase
       .from('games')
       .delete()

@@ -1,6 +1,5 @@
 export const LITERARY_GENRES = [
   'Fantaisie',
-  'Fantastique',
   'Science-Fiction',
   'Romance',
   'Western',
@@ -13,7 +12,7 @@ export const LITERARY_GENRES = [
   'Historique',
   'Biographie',
   'Policier',
-  'Érotisme',
+  'Fantasy Urbaine',
   'Dystopie'
 ] as const;
 
@@ -21,7 +20,6 @@ export type LiteraryGenre = typeof LITERARY_GENRES[number];
 
 export const GENRE_DESCRIPTIONS: Record<LiteraryGenre, string> = {
   'Fantaisie': 'Mondes magiques et créatures fantastiques',
-  'Fantastique': 'Surnaturel et paranormal',
   'Science-Fiction': 'Futur, technologie et exploration spatiale',
   'Romance': 'Histoires d\'amour et relations sentimentales',
   'Western': 'Far West américain et cowboys',
@@ -34,6 +32,6 @@ export const GENRE_DESCRIPTIONS: Record<LiteraryGenre, string> = {
   'Historique': 'Récits du passé et époques révolues',
   'Biographie': 'Vies réelles de personnalités',
   'Policier': 'Crimes et investigations',
-  'Érotisme': 'Contenu pour adultes et sensuel',
+  'Fantasy Urbaine': 'Magie dans le monde moderne',
   'Dystopie': 'Sociétés futures oppressives'
 };
