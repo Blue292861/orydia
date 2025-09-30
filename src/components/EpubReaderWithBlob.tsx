@@ -15,6 +15,12 @@ export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
   const [epubUrl, setEpubUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Styles pour forcer une hauteur auto à l'intérieur de ReactReader
+  const readerStyles = {
+    container: { width: '100%', height: 'auto' },
+    containerExpanded: { width: '100%', height: 'auto' },
+  };
+
   useEffect(() => {
     const fetchEpub = async () => {
       if (!url) return;
@@ -49,10 +55,9 @@ export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
   };
 
   return (
-    // CORRECTION: Remplacé height: '80vh' par height: 'auto' pour le défilement continu
+    // Hauteur du conteneur parent à 'auto'
     <div style={{ position: 'relative', width: '100%', height: 'auto' }}>
       {!isReady && (
-        // La div de chargement conserve une hauteur fixe pour être visible
         <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10" style={{ height: '80vh' }}>
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -64,6 +69,7 @@ export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
           locationChanged={handleLocationChanged}
           epubOptions={{ flow: 'scrolled-continuous', manager: 'continuous' }}
           showToc={false}
+          readerStyles={readerStyles} // AJOUT des styles pour hauteur auto
         />
       )}
     </div>
