@@ -101,7 +101,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       // Configurer la taille de police
       rendition.themes.fontSize(`${fontSize}px`);
 
-      // Gestion des événements de chargement pour le scroll continu
+      // Gestion des événements de progression (relocated)
       rendition.on('relocated', (location: any) => {
         setIsLoadingContent(false);
         try {
@@ -134,36 +134,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         }
       });
       
+      // Simplification : le listener 'rendered' ne fait que masquer l'indicateur de chargement
+      // Les listeners de scroll/keydown internes problématiques ont été retirés.
       rendition.on('rendered', () => {
         setIsLoadingContent(false);
-        const contents = rendition.getContents?.() || [];
-        contents.forEach((c: any) => {
-          const doc = c.document;
-          if (!doc) return;
-          
-          // Bloquer la navigation clavier
-          const keyHandler = (e: KeyboardEvent) => {
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-              e.preventDefault();
-              e.stopPropagation();
-            }
-          };
-          doc.addEventListener('keydown', keyHandler, true);
-          
-          // Détecter le scroll pour montrer l'indicateur de chargement
-          const scrollHandler = () => {
-            const scrollTop = doc.documentElement.scrollTop || doc.body.scrollTop;
-            const scrollHeight = doc.documentElement.scrollHeight || doc.body.scrollHeight;
-            const clientHeight = doc.documentElement.clientHeight || doc.body.clientHeight;
-            
-            // Si on approche de la fin, montrer l'indicateur de chargement
-            if (scrollHeight - scrollTop - clientHeight < 100) {
-              setIsLoadingContent(true);
-            }
-          };
-          
-          doc.addEventListener('scroll', scrollHandler, { passive: true });
-        });
       });
     }
     
@@ -248,7 +222,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     }
   };
 
-  // Désactive la navigation par flèches clavier (scroll-only)
+  // Désactive la navigation par flèches clavier pour le document principal (afin d'éviter le changement de page)
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
