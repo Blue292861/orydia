@@ -75,8 +75,6 @@
     padding: 0;
     width: 100vw;
     height: 100vh;
-    /* ❌ SUPPRIMÉ : overflow: hidden; pour permettre au corps de défiler si le contenu dépasse, */
-    /* ou pour garantir que le lecteur EPUB peut s'étendre sans être contraint. */
     overflow: auto; 
   }
   
@@ -102,9 +100,6 @@
     padding-top: var(--android-status-bar-height, 24px);
   }
 }
-
-/* ❌ SUPPRESSION : Retrait des règles de masquage de la barre de défilement globales (*) qui interfèrent avec la fluidité du défilement. */
-/* Le défilement natif doit être utilisé sans modification pour scrolled-continuous. */
 
 /* Nature & Luxe Design Elements */
 @layer utilities {
