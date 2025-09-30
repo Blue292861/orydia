@@ -23,7 +23,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   const [fontSize, setFontSize] = useState(18);
   const [theme, setTheme] = useState<'light' | 'dark' | 'sepia'>('light');
   const [showControls, setShowControls] = useState(true);
-  // Suppression de l'état isLoadingContent
   const lastProgressUpdateRef = useRef<number>(0);
   const initialLocationRef = useRef<string | number>(0);
   const { toast } = useToast();
@@ -103,15 +102,14 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
       // Gestion des événements de chargement pour le scroll continu
       rendition.on('relocated', (location: any) => {
-        // Suppression de setIsLoadingContent(false);
         try {
           if (!location || !rendition?.book?.locations) return;
           const book = rendition.book;
           const startCfi = location.start?.cfi || location?.cfi;
           if (!startCfi) return;
 
-          //const currentLocation = book.locations.locationFromCfi(startCfi);
-          //const totalLocations = book.locations.total;
+          const currentLocation = book.locations.locationFromCfi(startCfi);
+          const totalLocations = book.locations.total;
 
           if (currentLocation && totalLocations && currentLocation !== lastProgressUpdateRef.current) {
             const progress = Math.round((currentLocation / totalLocations) * 100);
@@ -157,7 +155,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       rendition.book.ready
         .then(() => {
           // Tente de générer les locations pour une progression précise
-          //return rendition.book.locations.generate(1600); 
+          return rendition.book.locations.generate(1600); 
         })
         .then(() => {
           setIsReady(true);
@@ -175,7 +173,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           });
         })
         .catch((error: any) => {
-          // CORRECTION: Assure l'affichage même en cas d'échec de la génération des locations
+          // Assure l'affichage même en cas d'échec de la génération des locations
           console.error('Error generating locations, attempting to display anyway:', error);
           setIsReady(true); 
           if (initialLocationRef.current) {
@@ -250,7 +248,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
   // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
   const readerStyles: any = {
-    // Correction finale: assure que le composant ReactReader ne contraint pas sa hauteur
+    // CORRECTION: Assure que le composant ReactReader ne contraint pas sa hauteur
     container: { width: '100%', height: 'auto' }, 
     containerExpanded: { width: '100%', height: 'auto' }, 
     readerArea: { left: 0, right: 0, width: '100%' },
@@ -263,7 +261,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none', pointerEvents: 'none', width: 0 },
   };
 
-  // Suppression de epubViewStyles pour utiliser les styles par défaut de react-reader
+  // Suppression de epubViewStyles (remplacé par objet vide) pour utiliser les styles par défaut
   const epubViewStyles: any = {}; 
 
   if (!url) {
@@ -367,7 +365,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       )}
 
       {/* Zone de lecture EPUB */}
-      {/* CORRECTION FINALE: Suppression du minHeight qui entravait le défilement continu */}
+      {/* CORRECTION: Suppression du minHeight en ligne (Fait dans la version précédente) */}
       <div className="relative w-full epub-reader-container">
         
         <ReactReader
