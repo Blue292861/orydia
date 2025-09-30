@@ -23,7 +23,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   const [fontSize, setFontSize] = useState(18);
   const [theme, setTheme] = useState<'light' | 'dark' | 'sepia'>('light');
   const [showControls, setShowControls] = useState(true);
-  // Supprimé: const [isLoadingContent, setIsLoadingContent] = useState(false);
+  // Suppression de l'état isLoadingContent
   const lastProgressUpdateRef = useRef<number>(0);
   const initialLocationRef = useRef<string | number>(0);
   const { toast } = useToast();
@@ -103,7 +103,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
       // Gestion des événements de chargement pour le scroll continu
       rendition.on('relocated', (location: any) => {
-        // Supprimé: setIsLoadingContent(false);
+        // Suppression de setIsLoadingContent(false);
         try {
           if (!location || !rendition?.book?.locations) return;
           const book = rendition.book;
@@ -135,7 +135,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       });
       
       rendition.on('rendered', () => {
-        // Supprimé: setIsLoadingContent(false);
         const contents = rendition.getContents?.() || [];
         contents.forEach((c: any) => {
           const doc = c.document;
@@ -149,9 +148,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
             }
           };
           doc.addEventListener('keydown', keyHandler, true);
-          
-          // Suppression de la logique de détection de scroll interne pour le chargement
-          // qui était source de conflit avec le mode scrolled-continuous.
         });
       });
     }
@@ -160,7 +156,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     if (rendition.book) {
       rendition.book.ready
         .then(() => {
-          return rendition.book.locations.generate(1600); // Plus de précision
+          // Tente de générer les locations pour une progression précise
+          return rendition.book.locations.generate(1600); 
         })
         .then(() => {
           setIsReady(true);
@@ -178,9 +175,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           });
         })
         .catch((error: any) => {
-          console.error('Error generating locations:', error);
-          setIsReady(true); // Permettre la lecture même si les locations échouent
-          // Tenter quand même d'afficher la position sauvegardée
+          // CORRECTION: Assure l'affichage même en cas d'échec de la génération des locations
+          console.error('Error generating locations, attempting to display anyway:', error);
+          setIsReady(true); 
           if (initialLocationRef.current) {
             try {
               rendition.display(initialLocationRef.current);
@@ -190,7 +187,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           }
           toast({
             title: "EPUB chargé",
-            description: "Le contenu est prêt (progression approximative)."
+            description: "Le contenu est prêt (progression approximative).",
+            variant: "warning" 
           });
         });
     }
@@ -249,11 +247,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     return () => document.removeEventListener('keydown', onKeyDown, true);
   }, []);
 
-  // Supprimé: const navigateToProgress = ...
 
   // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
   const readerStyles: any = {
-    // Correction: assure que le composant ReactReader ne contraint pas sa hauteur
+    // Correction finale: assure que le composant ReactReader ne contraint pas sa hauteur
     container: { width: '100%', height: 'auto' }, 
     containerExpanded: { width: '100%', height: 'auto' }, 
     readerArea: { left: 0, right: 0, width: '100%' },
@@ -266,7 +263,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none', pointerEvents: 'none', width: 0 },
   };
 
-  // Suppression de epubViewStyles, car il était potentiellement en conflit avec scrolled-continuous.
+  // Suppression de epubViewStyles pour utiliser les styles par défaut de react-reader
   const epubViewStyles: any = {}; 
 
   if (!url) {
@@ -370,8 +367,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       )}
 
       {/* Zone de lecture EPUB */}
-      <div className="relative w-full epub-reader-container" style={{ minHeight: "600px" }}>
-        {/* Suppression de l'indicateur de chargement fragmenté */}
+      {/* CORRECTION FINALE: Suppression du minHeight qui entravait le défilement continu */}
+      <div className="relative w-full epub-reader-container">
         
         <ReactReader
           url={url}
