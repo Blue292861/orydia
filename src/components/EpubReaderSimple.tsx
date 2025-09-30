@@ -169,22 +169,41 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     
     // Générer les locations pour le calcul de progression
     if (rendition.book) {
-      rendition.book.ready.then(() => {
-        return rendition.book.locations.generate(1600); // Plus de précision
-      }).then(() => {
-        setIsReady(true);
-        toast({
-          title: "EPUB chargé",
-          description: "Le contenu est prêt à être lu avec suivi de progression."
+      rendition.book.ready
+        .then(() => {
+          return rendition.book.locations.generate(1600); // Plus de précision
+        })
+        .then(() => {
+          setIsReady(true);
+          // Aller à la position sauvegardée si disponible
+          if (initialLocationRef.current) {
+            try {
+              rendition.display(initialLocationRef.current);
+            } catch (e) {
+              console.warn('Erreur lors de l\'affichage de la position initiale:', e);
+            }
+          }
+          toast({
+            title: "EPUB chargé",
+            description: "Le contenu est prêt à être lu avec suivi de progression."
+          });
+        })
+        .catch((error: any) => {
+          console.error('Error generating locations:', error);
+          setIsReady(true); // Permettre la lecture même si les locations échouent
+          // Tenter quand même d'afficher la position sauvegardée
+          if (initialLocationRef.current) {
+            try {
+              rendition.display(initialLocationRef.current);
+            } catch (e) {
+              console.warn('Erreur lors de l\'affichage de la position initiale (fallback):', e);
+            }
+          }
+          toast({
+            title: "EPUB chargé",
+            description: "Le contenu est prêt (progression approximative)."
+          });
         });
-      }).catch((error: any) => {
-        console.error('Error generating locations:', error);
-        setIsReady(true); // Permettre la lecture même si les locations échouent
-        toast({
-          title: "EPUB chargé",
-          description: "Le contenu est prêt (progression approximative)."
-        });
-      });
     }
   };
 
@@ -397,8 +416,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         
         <ReactReader
           url={url}
-          location={initialLocationRef.current}
-          locationChanged={() => { /* no-op to avoid controlled navigation loops */ }}
+          location={location}
+          locationChanged={(cfi: string) => setLocation(cfi)}
           getRendition={handleRenditionReady}
           epubOptions={{
             flow: "scrolled-continuous",
