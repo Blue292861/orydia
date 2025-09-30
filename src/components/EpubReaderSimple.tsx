@@ -25,6 +25,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   const [showControls, setShowControls] = useState(true);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
   const lastProgressUpdateRef = useRef<number>(0);
+  const initialLocationRef = useRef<string | number>(0);
   const { toast } = useToast();
   const { user } = useAuth();
   const progressKey = `epub_progress_${bookId || 'default'}`;
@@ -36,6 +37,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       if (savedProgress) {
         try {
           const progress = JSON.parse(savedProgress);
+          initialLocationRef.current = progress.location || 0;
           setLocation(progress.location || 0);
           setReadingProgress(progress.progress || 0);
           setCurrentPage(progress.currentPage || 1);
@@ -62,42 +64,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     localStorage.setItem(progressKey, JSON.stringify(progressToSave));
   }, [bookId, progressKey]);
 
-  const handleLocationChanged = useCallback((cfi: string) => {
-    // Mettre à jour la location pour une synchronisation parfaite
-    setLocation(cfi);
-    
-    if (rendition && rendition.book && rendition.book.locations) {
-      try {
-        const book = rendition.book;
-        const currentLocation = book.locations.locationFromCfi(cfi);
-        const totalLocations = book.locations.total;
-        
-        if (currentLocation && totalLocations && currentLocation !== lastProgressUpdateRef.current) {
-          const progress = Math.round((currentLocation / totalLocations) * 100);
-          const newCurrentPage = currentLocation;
-          const newTotalPages = totalLocations;
-          
-          // Éviter les mises à jour trop fréquentes
-          if (Math.abs(progress - readingProgress) >= 1) {
-            setReadingProgress(progress);
-            setCurrentPage(newCurrentPage);
-            setTotalPages(newTotalPages);
-            lastProgressUpdateRef.current = currentLocation;
-            
-            // Sauvegarder la progression avec debounce
-            saveProgress({
-              location: cfi,
-              progress,
-              currentPage: newCurrentPage,
-              totalPages: newTotalPages
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error calculating progress:', error);
-      }
-    }
-  }, [rendition, readingProgress, saveProgress]);
+  // Utilise uniquement l'événement 'relocated' pour suivre la progression en mode scroll continu
 
   const handleRenditionReady = (rendition: any) => {
     setRendition(rendition);
@@ -430,11 +397,11 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         
         <ReactReader
           url={url}
-          location={location}
-          locationChanged={handleLocationChanged}
+          location={initialLocationRef.current}
+          locationChanged={() => { /* no-op to avoid controlled navigation loops */ }}
           getRendition={handleRenditionReady}
           epubOptions={{
-            flow: "scrolled-doc",
+            flow: "scrolled-continuous",
             manager: "continuous",
             allowScriptedContent: true,
             spread: "none"
