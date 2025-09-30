@@ -235,9 +235,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
 
   // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
+  // CORRECTION: Retrait de 'overflow: hidden' pour permettre le défilement continu
   const readerStyles: any = {
-    container: { width: '100%', height: '100%', padding: 0, margin: 0, overflow: 'hidden' },
-    containerExpanded: { width: '100%', height: '100%', padding: 0, margin: 0, overflow: 'hidden' },
+    container: { width: '100%', height: '100%', padding: 0, margin: 0 },
+    containerExpanded: { width: '100%', height: '100%', padding: 0, margin: 0 },
     readerArea: { left: 0, right: 0, padding: 0, margin: 0, width: '100%' },
     titleArea: { display: 'none' },
     title: { display: 'none' },
