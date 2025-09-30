@@ -290,12 +290,12 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   const epubViewStyles: any = {
     viewHolder: {
       width: '100%',
-      height: '100%',
-      overflow: 'auto'
+      // height: '100%', // Supprimer la hauteur 100%
+      // overflow: 'auto' // Supprimer l'overflow pour laisser l'iframe défiler le contenu
     },
     view: { 
       width: '100%',
-      height: 'auto'
+      height: 'auto' // S'assurer que la vue s'ajuste
     },
     iframe: { 
       width: '100%', 
