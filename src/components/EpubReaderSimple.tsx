@@ -236,9 +236,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
   // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
   const readerStyles: any = {
-    container: { width: '100%', height: '100%' },
-    containerExpanded: { width: '100%', height: '100%' },
-    readerArea: { left: 0, right: 0, width: '100%' },
+    container: { width: '100%', height: '100%', padding: 0, margin: 0, overflow: 'hidden' },
+    containerExpanded: { width: '100%', height: '100%', padding: 0, margin: 0, overflow: 'hidden' },
+    readerArea: { left: 0, right: 0, padding: 0, margin: 0, width: '100%' },
     titleArea: { display: 'none' },
     title: { display: 'none' },
     tocArea: { display: 'none' },
@@ -248,15 +248,11 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none', pointerEvents: 'none', width: 0 },
   };
 
-  // Styles internes d'EpubView pour le scroll continu
+  // Styles internes d'EpubView pour éviter tout découpage
   const epubViewStyles: any = {
-    viewHolder: { 
-      width: '100%', 
-      height: '100%', 
-      overflow: 'auto'
-    },
+    viewHolder: { width: '100%', margin: 0, padding: 0 },
     view: { width: '100%' },
-    iframe: { width: '100%', border: 'none' }
+    iframe: { width: '100%' }
   };
   if (!url) {
     return <div className="p-4 text-center text-red-500">URL du fichier EPUB manquante.</div>;
