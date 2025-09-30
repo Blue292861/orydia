@@ -235,10 +235,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
 
   // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
-  // CORRECTION: Retrait de 'overflow: hidden' pour permettre le défilement continu
   const readerStyles: any = {
-    container: { width: '100%', height: '100%', padding: 0, margin: 0 },
-    containerExpanded: { width: '100%', height: '100%', padding: 0, margin: 0 },
+    // CORRECTION: Remplacer 'overflow: hidden' (de l'étape précédente) par 'overflow: visible' pour laisser le contenu s'étendre
+    container: { width: '100%', height: '100%', padding: 0, margin: 0, overflow: 'visible' }, 
+    containerExpanded: { width: '100%', height: '100%', padding: 0, margin: 0, overflow: 'visible' },
     readerArea: { left: 0, right: 0, padding: 0, margin: 0, width: '100%' },
     titleArea: { display: 'none' },
     title: { display: 'none' },
@@ -356,7 +356,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       )}
 
       {/* Zone de lecture EPUB */}
-      <div className="w-full epub-reader-container" style={{ height: "70vh", minHeight: "600px", overflow: "auto" }}>
+      {/* CORRECTION: Remplacer la hauteur fixe et l'overflow auto par une hauteur dynamique. L'overflow: visible permettra au contenu de déborder de manière illimitée. */}
+      <div className="w-full epub-reader-container" style={{ height: "auto", minHeight: "500px", overflowY: "visible" }}>
         <ReactReader
           url={url}
           location={location}
