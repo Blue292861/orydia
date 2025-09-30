@@ -300,15 +300,24 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none', pointerEvents: 'none', width: 0 },
   };
 
-  // Styles internes d'EpubView pour le scroll continu
+  // Styles internes d'EpubView pour le scroll continu - Permettre l'accès complet au contenu
   const epubViewStyles: any = {
     viewHolder: { 
       width: '100%', 
-      height: '100%', 
-      overflow: 'auto'
+      height: 'auto',
+      minHeight: '100%',
+      overflow: 'visible'
     },
-    view: { width: '100%' },
-    iframe: { width: '100%', border: 'none' }
+    view: { 
+      width: '100%',
+      height: 'auto',
+      minHeight: '100%'
+    },
+    iframe: { 
+      width: '100%', 
+      border: 'none',
+      minHeight: '100vh'
+    }
   };
   if (!url) {
     return <div className="p-4 text-center text-red-500">URL du fichier EPUB manquante.</div>;
@@ -410,8 +419,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         </div>
       )}
 
-      {/* Zone de lecture EPUB */}
-      <div className="relative w-full epub-reader-container" style={{ height: "70vh", minHeight: "600px", overflow: "auto" }}>
+      {/* Zone de lecture EPUB - Conteneur permettant le scroll complet */}
+      <div className="relative w-full epub-reader-container" style={{ minHeight: "80vh" }}>
         {/* Indicateur de chargement de contenu pendant le scroll */}
         {isLoadingContent && (
           <div className="absolute top-4 right-4 z-30 bg-background/90 backdrop-blur-sm rounded-lg p-2 border shadow-sm">
@@ -430,7 +439,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           epubOptions={{
             flow: "scrolled-continuous",
             manager: "continuous",
-            allowScriptedContent: true
+            allowScriptedContent: true,
+            spread: "none"
           }}
           showToc={false}
           readerStyles={readerStyles}
