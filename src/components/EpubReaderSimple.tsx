@@ -146,7 +146,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     if (rendition.book) {
       rendition.book.ready
         .then(() => {
-          return rendition.book.locations.generate(1600); // Plus de précision
+          return rendition.book.locations.generate(2048); // Plus de précision
         })
         .then(() => {
           setIsReady(true);
