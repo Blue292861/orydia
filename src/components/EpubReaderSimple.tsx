@@ -288,14 +288,16 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
   // Styles internes d'EpubView pour le scroll continu (utilise un conteneur scroll dédié)
   const epubViewStyles: any = {
+    // CORRECTION: Suppression des contraintes de hauteur (height: '100%') et d'overflow 
+    // pour permettre au contenu de l'EPUB de s'étendre verticalement.
     viewHolder: {
       width: '100%',
-      // height: '100%', // Supprimer la hauteur 100%
-      // overflow: 'auto' // Supprimer l'overflow pour laisser l'iframe défiler le contenu
+      // height: '100%', // Supprimé pour ne pas tronquer le contenu en mode scroll continu
+      // overflow: 'auto' // Supprimé pour laisser l'iframe interne gérer le défilement
     },
     view: { 
       width: '100%',
-      height: 'auto' // S'assurer que la vue s'ajuste
+      height: 'auto'
     },
     iframe: { 
       width: '100%', 
@@ -403,7 +405,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       )}
 
       {/* Zone de lecture EPUB */}
-      <div className="relative w-full epub-reader-container" style={{minHeight: "600px" }}>
+      {/* CORRECTION: Suppression de la hauteur fixe 'height: "80vh"' sur le conteneur parent */}
+      <div className="relative w-full epub-reader-container" style={{ minHeight: "600px" }}>
         {/* Indicateur de chargement de contenu pendant le scroll */}
         {isLoadingContent && (
           <div className="absolute top-4 right-4 z-30 bg-background/90 backdrop-blur-sm rounded-lg p-2 border shadow-sm">
