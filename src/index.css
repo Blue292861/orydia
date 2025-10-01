@@ -462,39 +462,11 @@ body.high-contrast * {
   width: 100% !important;
 }
 
-/* EPUBjs specific fixes - Let iframes auto-size to their content in scrolled flow */
-div[id*="epubjs-container"] {
-  width: 100% !important;
-  height: auto !important;
-  min-height: unset !important;
-  position: relative !important;
-}
-
-div[id*="epubjs-view"] {
-  width: 100% !important;
-  height: auto !important;
-  min-height: unset !important;
-  visibility: visible !important;
-  position: relative !important;
-  display: block !important;
-}
-
-/* EPUBjs iframe - must grow with document height */
-div[id*="epubjs-view"] iframe {
-  width: 100% !important;
-  height: auto !important;
-  min-height: unset !important;
-  border: none !important;
-  display: block !important;
-}
-
+/* Avoid overriding epub.js sizing; let it control iframe heights */
 .react-reader {
-  width: 100% !important;
-  height: 100% !important;
-  min-height: unset !important;
-  position: relative !important;
-  /* Remove layout containment to allow height expansion */
-  contain: unset !important;
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 /* Note: Cannot style inside iframe from parent CSS. Use rendition.themes to style EPUB content. */
