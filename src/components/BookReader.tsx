@@ -6,7 +6,6 @@ import { TextSizeControls } from '@/components/TextSizeControls';
 import { BannerAd } from '@/components/BannerAd';
 import { RewardAd } from '@/components/RewardAd';
 import { InteractiveBookReader } from '@/components/InteractiveBookReader';
-import { BookReaderEpub } from '@/components/BookReaderEpub';
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { RatingDialog } from './RatingDialog';
 import { CopyrightWarning } from '@/components/CopyrightWarning';
@@ -40,7 +39,6 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const pointsToWin = isPremium ? book.points * 2 : book.points;
   
   const bookUrl = book.content;
-  const isEpubContent = bookUrl && (bookUrl.startsWith('http') || bookUrl.startsWith('https')) && bookUrl.endsWith('.epub');
 
   useEffect(() => {
     const checkRatingStatus = async () => {
@@ -164,10 +162,7 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
     return <InteractiveBookReader book={book} onClose={handleBackClick} />;
   }
 
-  // Si c'est un EPUB, utiliser le lecteur EPUB
-  if (isEpubContent) {
-    return <BookReaderEpub book={book} onBack={handleBackClick} />;
-  }
+  
 
   if (book.isAdultContent && !ageVerified) {
     return (
