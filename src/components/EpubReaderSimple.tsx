@@ -381,7 +381,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         <ReactReader
           url={url}
           location={location}
-          locationChanged={(cfi: string) => setLocation(cfi)}
+          locationChanged={() => { /* no-op to prevent double renders; progress handled via 'relocated' */ }}
           getRendition={handleRenditionReady}
           epubOptions={{
             flow: "scrolled-continuous",
@@ -392,7 +392,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           showToc={false}
           readerStyles={readerStyles}
           swipeable={false}
-          epubViewStyles={epubViewStyles}
         />
       </div>
     </div>

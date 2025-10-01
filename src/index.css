@@ -447,12 +447,11 @@ body.high-contrast * {
     margin: 1em auto !important;
   }
 
-/* EPUB Reader Container - Fixed viewport; inner view handles scroll */
+/* EPUB Reader Container - Scroll host */
 .epub-reader-container {
   position: relative !important;
   width: 100% !important;
-  height: 100%;
-  overflow: hidden !important; /* scroll happens in inner viewHolder */
+  overflow: auto !important;
   border: 1px solid hsl(var(--border)) !important;
   border-radius: 8px !important;
   -webkit-overflow-scrolling: touch;
@@ -465,11 +464,41 @@ body.high-contrast * {
   height: 100% !important;
 }
 
-/* Avoid overriding epub.js sizing; let it control iframe heights */
+/* EPUBjs specific: outer scroll on container */
+div[id*="epubjs-container"] {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: auto !important;
+  position: relative !important;
+}
+
+div[id*="epubjs-view"] {
+  width: 100% !important;
+  height: auto !important;
+  min-height: unset !important;
+  visibility: visible !important;
+  position: relative !important;
+  display: block !important;
+}
+
+div[id*="epubjs-view"] iframe {
+  width: 100% !important;
+  height: auto !important;
+  min-height: unset !important;
+  border: none !important;
+  display: block !important;
+}
+
+.react-reader-wrapper {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .react-reader {
-  width: 100%;
-  height: 100%;
-  position: relative;
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
 }
 
 /* Note: Cannot style inside iframe from parent CSS. Use rendition.themes to style EPUB content. */
