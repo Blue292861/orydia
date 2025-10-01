@@ -451,15 +451,18 @@ body.high-contrast * {
 .epub-reader-container {
   position: relative !important;
   width: 100% !important;
-  overflow: hidden !important; /* prevent parent from capturing scroll */
+  height: 100%;
+  overflow: hidden !important; /* scroll happens in inner viewHolder */
   border: 1px solid hsl(var(--border)) !important;
   border-radius: 8px !important;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .react-reader-wrapper {
   position: relative !important;
   width: 100% !important;
+  height: 100% !important;
 }
 
 /* Avoid overriding epub.js sizing; let it control iframe heights */
