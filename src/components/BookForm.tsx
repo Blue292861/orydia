@@ -35,6 +35,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const { toast } = useToast();
 
+  const isEpubContent = book.content && (book.content.startsWith('http') || book.content.startsWith('https')) && book.content.endsWith('.epub');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -106,7 +107,62 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     setBook(prev => ({ ...prev, coverUrl: coverData }));
   };
 
-
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      
+      const fileName = file.name.toLowerCase();
+      const isEPUB = file.type === 'application/epub+zip' || fileName.endsWith('.epub');
+      
+      if (isEPUB) {
+        setIsExtracting(true);
+        setExtractionProgress(0);
+        
+        try {
+          const fileExt = file.name.split('.').pop()?.toLowerCase();
+          const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+          const filePath = `epubs/${uniqueFileName}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('epubs')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false,
+              contentType: 'application/epub+zip'
+            });
+          
+          if (uploadError) {
+            throw uploadError;
+          }
+          
+          const { data } = supabase.storage
+            .from('epubs')
+            .getPublicUrl(filePath);
+          
+          setBook(prev => ({ ...prev, content: data.publicUrl }));
+          
+          toast({
+            title: "EPUB uploadé avec succès",
+            description: "Le fichier EPUB a été uploadé et sera rendu avec le lecteur intégré"
+          });
+        } catch (error) {
+          console.error('Erreur upload EPUB:', error);
+          toast({
+            title: "Erreur d'upload",
+            description: "Impossible d'uploader le fichier EPUB",
+            variant: "destructive"
+          });
+          // Reset content state on error
+          setBook(prev => ({ ...prev, content: initialBook.content }));
+        } finally {
+          setIsExtracting(false);
+          setExtractionProgress(0);
+          setExtractionStatus('');
+        }
+      }
+    }
+  };
 
   const handleContentImport = (content: string, file?: File) => {
     if (file && file.type === 'application/epub+zip') {
@@ -377,8 +433,20 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
                 className="min-h-[200px]"
                 maxLength={1200000}
                 required
+                disabled={isEpubContent} // Désactive le champ si un EPUB est chargé
               />
-              
+              <div className="flex gap-2">
+                <div className="grid gap-2 flex-1">
+                  <Label htmlFor="file">Fichier EPUB (optionnel)</Label>
+                  <Input
+                    id="file"
+                    type="file"
+                    accept=".epub"
+                    onChange={handleFileChange}
+                    disabled={isExtracting}
+                  />
+                </div>
+              </div>
               
               {isExtracting && (
                 <div className="space-y-2">
