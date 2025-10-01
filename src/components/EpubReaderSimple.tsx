@@ -240,7 +240,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   const readerStyles: any = {
     container: { width: '100%', height: '100%' },
     containerExpanded: { width: '100%', height: '100%' },
-    readerArea: { left: 0, right: 0, width: '100%' },
+    readerArea: { left: 0, right: 0, width: '100%', height: '100%' },
     titleArea: { display: 'none' },
     title: { display: 'none' },
     tocArea: { display: 'none' },
