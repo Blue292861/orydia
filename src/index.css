@@ -462,29 +462,28 @@ body.high-contrast * {
   width: 100% !important;
 }
 
-/* EPUBjs specific fixes - Target dynamically generated elements */
-/* ❌ SIMPLIFIÉ : Retrait de overflow: auto !important sur les conteneurs internes */
+/* EPUBjs specific fixes - Let iframes auto-size to their content in scrolled flow */
 div[id*="epubjs-container"] {
   width: 100% !important;
-  height: 100% !important;
-  min-height: 600px !important;
+  height: auto !important;
+  min-height: unset !important;
   position: relative !important;
 }
 
 div[id*="epubjs-view"] {
   width: 100% !important;
-  height: 100% !important;
-  min-height: 600px !important;
+  height: auto !important;
+  min-height: unset !important;
   visibility: visible !important;
   position: relative !important;
   display: block !important;
 }
 
-/* EPUBjs iframe */
+/* EPUBjs iframe - must grow with document height */
 div[id*="epubjs-view"] iframe {
   width: 100% !important;
-  height: 100% !important;
-  min-height: 600px !important;
+  height: auto !important;
+  min-height: unset !important;
   border: none !important;
   display: block !important;
 }
@@ -492,21 +491,13 @@ div[id*="epubjs-view"] iframe {
 .react-reader {
   width: 100% !important;
   height: 100% !important;
-  min-height: 600px !important;
+  min-height: unset !important;
   position: relative !important;
-  contain: content;
+  /* Remove layout containment to allow height expansion */
+  contain: unset !important;
 }
 
-/* Improve text readability in EPUB with outer container scroll */
-div[id*="epubjs-view"] iframe body {
-  margin: 20px !important;
-  padding: 20px !important;
-  line-height: 1.6 !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  overflow-y: visible !important;
-  max-height: none !important;
-}
+/* Note: Cannot style inside iframe from parent CSS. Use rendition.themes to style EPUB content. */
 
 /* Custom scrollbar for EPUB content - Maintenant ciblées uniquement sur le lecteur */
 .epub-reader-container::-webkit-scrollbar {
