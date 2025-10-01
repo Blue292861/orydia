@@ -94,10 +94,7 @@ const extractFilePathFromUrl = (url: string): string | null => {
   return match ? match[1] : null;
 };
 
-export const deleteBookFromDB = async (id: string): Promise<void> => {
-  if (!id || typeof id !== 'string') {
-    throw new Error('ID invalide');
-  }
+
 
   // Récupérer les données du livre avant suppression pour nettoyer les fichiers
   const { data: book, error: fetchError } = await supabase
