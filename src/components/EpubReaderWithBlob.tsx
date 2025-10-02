@@ -20,7 +20,17 @@ export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
       if (!url) return;
       setIsReady(false);
       try {
-        const { data, error } = await supabase.storage.from('epubs').download(url.split('/').pop() || '');
+        // Extraire le chemin complet après /object/public/epubs/
+        // Format attendu: https://.../storage/v1/object/public/epubs/epubs/fichier.epub
+        const match = url.match(/\/object\/public\/epubs\/(.+)$/);
+        const filePath = match ? match[1] : url.split('/').pop() || '';
+        
+        console.log('Downloading EPUB from path:', filePath);
+        
+        const { data, error } = await supabase.storage
+          .from('epubs')
+          .download(filePath);
+          
         if (error) throw error;
         
         if (data) {
@@ -42,7 +52,7 @@ export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
       }
     };
     fetchEpub();
-  }, [url]);
+  }, [url, toast]);
 
   const handleLocationChanged = (cfi: string) => {
     setLocation(cfi);

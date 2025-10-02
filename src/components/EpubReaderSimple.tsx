@@ -236,11 +236,11 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   };
 
 
-  // Styles pour masquer la navigation interne et adapter à la taille du contenu
+  // Styles pour masquer la navigation interne et activer le scroll interne
   const readerStyles: any = {
-    container: { width: '100%', height: 'auto' },
-    containerExpanded: { width: '100%', height: 'auto' },
-    readerArea: { left: 0, right: 0, width: '100%', height: 'auto' },
+    container: { width: '100%', height: '100%' },
+    containerExpanded: { width: '100%', height: '100%' },
+    readerArea: { left: 0, right: 0, width: '100%', height: '100%' },
     titleArea: { display: 'none' },
     title: { display: 'none' },
     tocArea: { display: 'none' },
@@ -349,8 +349,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         </div>
       )}
 
-      {/* Zone de lecture EPUB - S'adapte à la taille totale du contenu */}
-      <div className="relative w-full epub-reader-container" style={{ minHeight: "600px" }}>
+      {/* Zone de lecture EPUB avec scroll interne pour le mode continuous */}
+      <div className="relative w-full epub-reader-container">
         {/* Indicateur de chargement de contenu */}
         {isLoadingContent && (
           <div className="absolute top-4 right-4 z-30 bg-background/90 backdrop-blur-sm rounded-lg p-2 border shadow-sm">

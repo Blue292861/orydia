@@ -447,11 +447,13 @@ body.high-contrast * {
     margin: 1em auto !important;
   }
 
-/* EPUB Reader Container - Auto-sizing without scroll */
+/* EPUB Reader Container - Fixed height with internal scroll */
 .epub-reader-container {
   position: relative !important;
   width: 100% !important;
-  overflow: visible !important;
+  height: 80vh !important;
+  min-height: 600px !important;
+  overflow: hidden !important;
   border: 1px solid hsl(var(--border)) !important;
   border-radius: 8px !important;
 }
@@ -459,22 +461,22 @@ body.high-contrast * {
 .react-reader-wrapper {
   position: relative !important;
   width: 100% !important;
-  height: auto !important;
-  min-height: 600px !important;
+  height: 100% !important;
 }
 
-/* EPUBjs specific: auto-sizing container */
+/* EPUBjs specific: Internal scroll for continuous reading */
 div[id*="epubjs-container"] {
   width: 100% !important;
-  height: auto !important;
-  overflow: visible !important;
+  height: 100% !important;
+  overflow: auto !important;
   position: relative !important;
+  -webkit-overflow-scrolling: touch;
 }
 
 div[id*="epubjs-view"] {
   width: 100% !important;
   height: auto !important;
-  min-height: unset !important;
+  min-height: 100% !important;
   visibility: visible !important;
   position: relative !important;
   display: block !important;
@@ -483,14 +485,14 @@ div[id*="epubjs-view"] {
 div[id*="epubjs-view"] iframe {
   width: 100% !important;
   height: auto !important;
-  min-height: unset !important;
+  min-height: 100vh !important;
   border: none !important;
   display: block !important;
 }
 
 .react-reader {
   width: 100% !important;
-  height: auto !important;
+  height: 100% !important;
   position: relative !important;
 }
 
