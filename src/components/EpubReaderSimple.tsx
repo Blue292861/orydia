@@ -367,7 +367,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           locationChanged={() => { /* no-op to prevent double renders; progress handled via 'relocated' */ }}
           getRendition={handleRenditionReady}
           epubOptions={{
-            flow: "scrolled-continuous",
+            flow: "scrolled",
             manager: "continuous",
             allowScriptedContent: true,
             spread: "none"
