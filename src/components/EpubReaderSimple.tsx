@@ -236,11 +236,11 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   };
 
 
-  // Styles pour masquer totalement la navigation interne et garantir la pleine largeur
+  // Styles pour masquer la navigation interne et adapter à la taille du contenu
   const readerStyles: any = {
-    container: { width: '100%', height: '100%' },
-    containerExpanded: { width: '100%', height: '100%' },
-    readerArea: { left: 0, right: 0, width: '100%', height: '100%' },
+    container: { width: '100%', height: 'auto' },
+    containerExpanded: { width: '100%', height: 'auto' },
+    readerArea: { left: 0, right: 0, width: '100%', height: 'auto' },
     titleArea: { display: 'none' },
     title: { display: 'none' },
     tocArea: { display: 'none' },
@@ -248,23 +248,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     arrow: { display: 'none' },
     prev: { display: 'none', pointerEvents: 'none', width: 0 },
     next: { display: 'none', pointerEvents: 'none', width: 0 },
-  };
-
-  // Styles internes d'EpubView pour le scroll continu
-  const epubViewStyles: any = {
-    viewHolder: {
-      width: '100%',
-      height: '100%',
-      overflow: 'auto' // C'est ici que le défilement est activé
-    },
-    view: { 
-      width: '100%',
-      height: 'auto'
-    },
-    iframe: { 
-      width: '100%', 
-      border: 'none'
-    }
   };
   if (!url) {
     return <div className="p-4 text-center text-red-500">URL du fichier EPUB manquante.</div>;
@@ -366,9 +349,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         </div>
       )}
 
-      {/* Zone de lecture EPUB */}
-      <div className="relative w-full epub-reader-container" style={{ height: "80vh", minHeight: "600px" }}>
-        {/* Indicateur de chargement de contenu pendant le scroll */}
+      {/* Zone de lecture EPUB - S'adapte à la taille totale du contenu */}
+      <div className="relative w-full epub-reader-container" style={{ minHeight: "600px" }}>
+        {/* Indicateur de chargement de contenu */}
         {isLoadingContent && (
           <div className="absolute top-4 right-4 z-30 bg-background/90 backdrop-blur-sm rounded-lg p-2 border shadow-sm">
             <div className="flex items-center gap-2">
