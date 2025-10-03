@@ -114,8 +114,7 @@ self.addEventListener('fetch', (event) => {
   }
   
   // Network-first strict pour les fichiers EPUB (ne jamais cacher)
-  else if (request.url.includes('.epub') || url.pathname.includes('epubs/') || 
-           request.url.startsWith('blob:')) {
+  else if (request.url.includes('.epub') || url.pathname.includes('epubs/')) {
     console.log('[SW] EPUB request intercepted:', request.url);
     event.respondWith(
       fetch(request).then(response => {

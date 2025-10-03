@@ -68,6 +68,18 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   const handleRenditionReady = (rendition: any) => {
     setRendition(rendition);
     
+    // Forcer le scroll interne sur le conteneur du manager (continuous)
+    try {
+      const scroller = (rendition as any)?.manager?.container as HTMLElement | undefined;
+      if (scroller) {
+        scroller.style.overflowY = 'auto';
+        scroller.style.height = '100%';
+        scroller.style.maxHeight = '100%';
+      }
+    } catch (e) {
+      console.warn('Impossible de configurer le scroll interne:', e);
+    }
+    
     // Configuration des styles de base
     if (rendition.themes) {
       rendition.themes.default({
