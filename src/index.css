@@ -461,7 +461,8 @@ body.high-contrast * {
 .react-reader-wrapper {
   position: relative !important;
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important; /* allow component to control its height */
+  min-height: 70vh; /* ensure visible area for scrolling */
 }
 
 /* EPUBjs specific: Internal scroll for continuous reading */

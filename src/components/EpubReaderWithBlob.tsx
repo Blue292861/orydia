@@ -164,7 +164,7 @@ export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
           locationChanged={handleLocationChanged}
           getRendition={handleRenditionReady}
           epubOptions={{
-            flow: 'scrolled',
+            flow: 'scrolled-continuous',
             manager: 'continuous',
             allowScriptedContent: true,
             spread: 'none'
