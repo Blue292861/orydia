@@ -83,12 +83,28 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     // Configuration des styles de base
     if (rendition.themes) {
       rendition.themes.default({
+        'html, body': {
+          'height': 'auto !important',
+          'min-height': 'auto !important',
+          'overflow': 'visible !important',
+          'margin': '0 !important',
+          'padding': '0 !important',
+          '-webkit-text-size-adjust': '100% !important'
+        },
         body: {
           'font-family': 'Georgia, serif !important',
           'line-height': '1.6 !important',
           'text-align': 'justify',
           'hyphens': 'auto',
-          'word-wrap': 'break-word'
+          'word-wrap': 'break-word',
+          '-webkit-column-width': 'auto !important',
+          '-moz-column-width': 'auto !important',
+          'column-width': 'auto !important',
+          'columns': 'auto !important',
+          'overflow-x': 'hidden !important'
+        },
+        '*': {
+          'box-sizing': 'border-box'
         },
         'p': {
           'margin': '0 0 1em 0 !important',
@@ -98,7 +114,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           'margin': '1.5em 0 0.5em 0 !important',
           'text-indent': '0 !important'
         },
-        'img': {
+        'img, svg, video': {
           'max-width': '100% !important',
           'height': 'auto !important',
           'display': 'block !important',
@@ -149,8 +165,30 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       
       // La logique qui ajoutait des écouteurs de scroll et keydown aux iframes internes a été supprimée
       // pour éviter les interférences avec le défilement continu.
-      rendition.on('rendered', () => {
+      rendition.on('rendered', (section: any) => {
         setIsLoadingContent(false);
+        try {
+          const doc = section?.document;
+          if (doc) {
+            const html = doc.documentElement as HTMLElement;
+            const body = doc.body as HTMLElement;
+            if (html) {
+              html.style.height = 'auto';
+              html.style.overflow = 'visible';
+            }
+            if (body) {
+              body.style.height = 'auto';
+              body.style.overflow = 'visible';
+              // Neutraliser toute mise en colonnes éventuelle
+              // @ts-ignore
+              body.style.webkitColumnWidth = 'auto';
+              // @ts-ignore
+              body.style.columnWidth = 'auto';
+            }
+          }
+        } catch (e) {
+          console.warn('Impossible d\'appliquer les correctifs de hauteur sur l\'iframe:', e);
+        }
       });
     }
     
@@ -266,7 +304,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   }
 
   return (
-    <div className="relative w-full min-h-[80vh] react-reader-wrapper">
+    <div className="relative w-full h-[85vh] react-reader-wrapper">
       {/* Contrôles supérieurs */}
       {showControls && (
         <Card className="sticky top-0 z-20 mb-4 p-4 bg-background/95 backdrop-blur border">
@@ -362,7 +400,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       )}
 
       {/* Zone de lecture EPUB avec scroll interne pour le mode continuous */}
-      <div className="relative w-full epub-reader-container">
+      <div className="relative w-full epub-reader-container" style={{ overflow: 'visible' }}>
         {/* Indicateur de chargement de contenu */}
         {isLoadingContent && (
           <div className="absolute top-4 right-4 z-30 bg-background/90 backdrop-blur-sm rounded-lg p-2 border shadow-sm">
