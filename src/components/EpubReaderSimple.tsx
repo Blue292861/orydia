@@ -88,7 +88,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           scroller.style.height = `${containerHeight}px`;
           scroller.style.maxHeight = `${containerHeight}px`;
           
-          // La logique de bascule automatique vers le mode paginé (qui empêchait le scroll)
+          // La logique de bascule automatique vers le mode paginé (qui a causé des problèmes de scroll)
           // a été désactivée/commentée pour garantir le mode "scrolled-continuous".
           /*
           setTimeout(() => {
@@ -352,9 +352,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none' },
   };
 
-  if (!url) return <div className="p-4 text-center text-red-500">URL manquante.</div>;
-
-  return (
+  // Correction de l'erreur de parsing JSX en utilisant une expression ternaire
+  return !url ? (
+    <div className="p-4 text-center text-red-500">URL manquante.</div>
+  ) : (
     <div className="relative w-full h-[85vh] flex flex-col">
       {showControls && (
         <Card className="sticky top-0 z-20 mb-2 p-3">
