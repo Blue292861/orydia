@@ -15,27 +15,6 @@ interface EpubReaderSimpleProps {
   bookId?: string;
 }
 
-// Fonction utilitaire pour le rendu récursif de la TOC
-const renderTocItems = (items: any[], goToTocItem: (href: string) => void, level = 0) => (
-  <>
-    {items.map((item: any, i: number) => (
-      <React.Fragment key={item.id || i}>
-        <Button 
-          variant="ghost" 
-          className="w-full justify-start text-left font-normal" 
-          // Ajoute une indentation pour les sous-éléments
-          style={{ paddingLeft: `${1.5 + level * 1.5}rem`, fontSize: `${14 - level * 1}px` }} 
-          onClick={() => goToTocItem(item.href)}
-        >
-          {item.label}
-        </Button>
-        {/* Rendu récursif des sous-éléments */}
-        {item.subitems && item.subitems.length > 0 && renderTocItems(item.subitems, goToTocItem, level + 1)}
-      </React.Fragment>
-    ))}
-  </>
-);
-
 export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId }) => {
   const [location, setLocation] = useState<string | number>(0);
   const [isReady, setIsReady] = useState(false);
@@ -105,13 +84,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         
         if (scroller && container) {
           const containerHeight = container.clientHeight;
-          // Ces styles forcent l'élément de défilement interne à avoir le viewport
           scroller.style.overflowY = 'auto';
           scroller.style.height = `${containerHeight}px`;
           scroller.style.maxHeight = `${containerHeight}px`;
           
-          /*
-          // Logique de bascule désactivée
           setTimeout(() => {
             const isScrollable = scroller.scrollHeight > scroller.clientHeight + 10;
             if (!isScrollable && flowMode === 'scrolled-continuous') {
@@ -119,7 +95,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
               setFlowMode('paginated');
             }
           }, 1500);
-          */
         }
       } catch (e) {
         console.warn('Cannot configure internal scroller:', e);
@@ -243,44 +218,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           console.warn('Impossible d\'appliquer les correctifs de hauteur sur l\'iframe:', e);
         }
       });
-      
-      // Déplacement du bloc de génération des locations dans handleRenditionReady
-      if (rendition.book) {
-        rendition.book.ready
-          .then(() => {
-            return rendition.book.locations.generate(2048); // Plus de précision
-          })
-          .then(() => {
-            setIsReady(true);
-            // Aller à la position sauvegardée si disponible
-            if (initialLocationRef.current) {
-              try {
-                rendition.display(initialLocationRef.current);
-              } catch (e) {
-                console.warn('Erreur lors de l\'affichage de la position initiale:', e);
-              }
-            }
-            toast({
-              title: "EPUB chargé",
-              description: "Le contenu est prêt à être lu avec suivi de progression."
-            });
-          })
-          .catch((error: any) => {
-            console.error('Error generating locations:', error);
-            setIsReady(true); 
-            if (initialLocationRef.current) {
-              try {
-                rendition.display(initialLocationRef.current);
-              } catch (e) {
-                console.warn('Erreur lors de l\'affichage de la position initiale (fallback):', e);
-              }
-            }
-            toast({
-              title: "EPUB chargé",
-              description: "Le contenu est prêt (progression approximative)."
-            });
-          });
-      }
     }
 
     return () => {
@@ -288,7 +225,45 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       window.removeEventListener('orientationchange', handleResize);
     };
   }, [bookId, flowMode]);
-    // FIN handleRenditionReady
+    
+    // Générer les locations pour le calcul de progression
+    if (rendition.book) {
+      rendition.book.ready
+        .then(() => {
+          return rendition.book.locations.generate(2048); // Plus de précision
+        })
+        .then(() => {
+          setIsReady(true);
+          // Aller à la position sauvegardée si disponible
+          if (initialLocationRef.current) {
+            try {
+              rendition.display(initialLocationRef.current);
+            } catch (e) {
+              console.warn('Erreur lors de l\'affichage de la position initiale:', e);
+            }
+          }
+          toast({
+            title: "EPUB chargé",
+            description: "Le contenu est prêt à être lu avec suivi de progression."
+          });
+        })
+        .catch((error: any) => {
+          console.error('Error generating locations:', error);
+          setIsReady(true); 
+          if (initialLocationRef.current) {
+            try {
+              rendition.display(initialLocationRef.current);
+            } catch (e) {
+              console.warn('Erreur lors de l\'affichage de la position initiale (fallback):', e);
+            }
+          }
+          toast({
+            title: "EPUB chargé",
+            description: "Le contenu est prêt (progression approximative)."
+          });
+        });
+    }
+  };
 
   const applyTheme = (rendition: any, selectedTheme: string) => {
     if (!rendition.themes) return;
@@ -331,6 +306,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     }
   };
 
+  // Suppression de l'écouteur d'événements keydown global (l. 209-219 de l'original)
+
 
   const navigateToProgress = (progressPercent: number) => {
     if (rendition && rendition.book && rendition.book.locations) {
@@ -356,18 +333,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
   const goToTocItem = (href: string) => {
     if (rendition) {
-      // Pour la navigation TOC, assurez-vous que le lien fonctionne.
-      // Si c'est un lien HTML simple, Epub.js devrait le gérer.
-      try {
-        rendition.display(href);
-      } catch(e) {
-        console.error("Error navigating to TOC item:", e);
-        toast({
-          title: "Erreur de navigation",
-          description: "Impossible d'accéder à ce chapitre. Le lien est peut-être invalide.",
-          variant: "destructive"
-        });
-      }
+      rendition.display(href);
       setShowToc(false);
     }
   };
@@ -382,128 +348,124 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none' },
   };
 
-  // Le rendu conditionnel est intégré ici pour fonctionner avec SWC
+  if (!url) return <div className="p-4 text-center text-red-500">URL manquante.</div>;
+
   return (
     <div className="relative w-full h-[85vh] flex flex-col">
-      {/* Condition d'affichage pour éviter l'erreur de transpilation SWC/Vite */}
-      {!url ? (
-        <div className="p-4 text-center text-red-500">URL manquante.</div>
-      ) : (
-        <>
-          {showControls && (
-            <Card className="sticky top-0 z-20 mb-2 p-3">
-              {/* Contrôles supérieurs */}
-              <div className="flex items-center justify-between gap-4 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  <span className="text-sm font-medium">
-                    {readingProgress > 0 && `${readingProgress}% lu`}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
-                    {flowMode === 'paginated' ? 'Pages' : 'Scroll'}
-                  </span>
-                </div>
-                
-                <div className="flex-1 max-w-md min-w-32">
-                  <Progress value={readingProgress} className="h-2" />
-                </div>
+      {showControls && (
+        <Card className="sticky top-0 z-20 mb-2 p-3">
+          {/* Contrôles supérieurs */}
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              <span className="text-sm font-medium">
+                {readingProgress > 0 && `${readingProgress}% lu`}
+              </span>
+              <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
+                {flowMode === 'paginated' ? 'Pages' : 'Scroll'}
+              </span>
+            </div>
+            
+            <div className="flex-1 max-w-md min-w-32">
+              <Progress value={readingProgress} className="h-2" />
+            </div>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowControls(false)}
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Contrôles de lecture */}
-              <div className="flex items-center justify-between mt-4 gap-2 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => changeFontSize(Math.max(12, fontSize - 2))}
-                  >
-                    A-
-                  </Button>
-                  <span className="text-xs px-2">{fontSize}px</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => changeFontSize(Math.min(28, fontSize + 2))}
-                  >
-                    A+
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant={theme === 'light' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => changeTheme('light')}
-                  >
-                    <Sun className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={theme === 'sepia' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => changeTheme('sepia')}
-                  >
-                    <FileText className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={theme === 'dark' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => changeTheme('dark')}
-                  >
-                    <Moon className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                {/* TOC Button */}
-                <Dialog open={showToc} onOpenChange={setShowToc}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm"><List className="h-4 w-4" />TOC</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader><DialogTitle>Table des matières</DialogTitle></DialogHeader>
-                    <ScrollArea className="h-[60vh]">
-                      {/* Utilisation de la fonction récursive pour afficher tous les niveaux */}
-                      {renderTocItems(tocItems, goToTocItem)}
-                    </ScrollArea>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </Card>
-          )}
-
-          {/* CORRECTION SCROLL: La classe 'overflow-hidden' est retirée du conteneur du lecteur, et l'élément <ReactReader> gère le défilement interne via les props et handleRenditionReady */}
-          <div ref={containerRef} className="flex-1 epub-reader-container relative">
-            {!isReady && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}
-            <ReactReader
-              url={url}
-              location={location}
-              locationChanged={() => {}}
-              getRendition={handleRenditionReady}
-              epubOptions={{ flow: flowMode, manager: flowMode === 'paginated' ? 'default' : 'continuous', spread: "none" }}
-              showToc={false}
-              readerStyles={readerStyles}
-              swipeable={false}
-            />
-            {flowMode === 'paginated' && isReady && (
-              <>
-                <Button variant="outline" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg z-10" onClick={goToPrevPage}>
-                  <ChevronLeft className="h-6 w-6" />
-                </Button>
-                <Button variant="outline" size="icon" className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg z-10" onClick={goToNextPage}>
-                  <ChevronRight className="h-6 w-6" />
-                </Button>
-              </>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowControls(false)}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
           </div>
-        </>
+
+          {/* Contrôles de lecture */}
+          <div className="flex items-center justify-between mt-4 gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => changeFontSize(Math.max(12, fontSize - 2))}
+              >
+                A-
+              </Button>
+              <span className="text-xs px-2">{fontSize}px</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => changeFontSize(Math.min(28, fontSize + 2))}
+              >
+                A+
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant={theme === 'light' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => changeTheme('light')}
+              >
+                <Sun className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={theme === 'sepia' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => changeTheme('sepia')}
+              >
+                <FileText className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={theme === 'dark' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => changeTheme('dark')}
+              >
+                <Moon className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* TOC Button */}
+            <Dialog open={showToc} onOpenChange={setShowToc}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm"><List className="h-4 w-4" />TOC</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Table des matières</DialogTitle></DialogHeader>
+                <ScrollArea className="h-[60vh]">
+                  {tocItems.map((item: any, i: number) => (
+                    <Button key={i} variant="ghost" className="w-full justify-start" onClick={() => goToTocItem(item.href)}>
+                      {item.label}
+                    </Button>
+                  ))}
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+          </Card>
+        </Card>
       )}
+
+      <div ref={containerRef} className="flex-1 epub-reader-container relative overflow-hidden">
+        {!isReady && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}
+        <ReactReader
+          url={url}
+          location={location}
+          locationChanged={() => {}}
+          getRendition={handleRenditionReady}
+          epubOptions={{ flow: flowMode, manager: flowMode === 'paginated' ? 'default' : 'continuous', spread: "none" }}
+          showToc={false}
+          readerStyles={readerStyles}
+          swipeable={false}
+        />
+        {flowMode === 'paginated' && isReady && (
+          <>
+            <Button variant="outline" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg z-10" onClick={goToPrevPage}>
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
+            <Button variant="outline" size="icon" className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg z-10" onClick={goToNextPage}>
+              <ChevronRight className="h-6 w-6" />
+            </Button>
+          </>
+        )}
+      </div>
     </div>
   );
 };
