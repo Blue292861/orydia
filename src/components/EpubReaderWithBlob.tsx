@@ -1,9 +1,12 @@
 // src/components/EpubReaderWithBlob.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ReactReader } from 'react-reader';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, List } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface EpubReaderProps {
   url: string;
@@ -13,6 +16,11 @@ export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
   const [location, setLocation] = useState<string | number>(0);
   const [isReady, setIsReady] = useState(false);
   const [epubUrl, setEpubUrl] = useState<string | null>(null);
+  const [flowMode, setFlowMode] = useState<'scrolled-continuous' | 'paginated'>('scrolled-continuous');
+  const [tocItems, setTocItems] = useState<any[]>([]);
+  const [showToc, setShowToc] = useState(false);
+  const [rendition, setRendition] = useState<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -20,160 +28,101 @@ export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
       if (!url) return;
       setIsReady(false);
       try {
-        // Extraire le chemin complet après /object/public/epubs/
-        // Format attendu: https://.../storage/v1/object/public/epubs/epubs/fichier.epub
         const match = url.match(/\/object\/public\/epubs\/(.+)$/);
         const filePath = match ? match[1] : url.split('/').pop() || '';
-        
-        console.log('Downloading EPUB from path:', filePath);
-        
-        const { data, error } = await supabase.storage
-          .from('epubs')
-          .download(filePath);
-          
+        const { data, error } = await supabase.storage.from('epubs').download(filePath);
         if (error) throw error;
-        
         if (data) {
-          const blobUrl = URL.createObjectURL(data);
-          setEpubUrl(blobUrl);
-          toast({
-            title: "EPUB récupéré",
-            description: "Le contenu est prêt à être lu."
-          });
+          setEpubUrl(URL.createObjectURL(data));
           setIsReady(true);
+          toast({ title: "EPUB récupéré" });
         }
       } catch (error) {
-        console.error('Download error:', error);
-        toast({
-          title: "Erreur de téléchargement",
-          description: "Impossible de récupérer le fichier.",
-          variant: "destructive",
-        });
+        toast({ title: "Erreur de téléchargement", variant: "destructive" });
       }
     };
     fetchEpub();
   }, [url, toast]);
 
+  const handleRenditionReady = (rendition: any) => {
+    setRendition(rendition);
+    if (rendition.book?.navigation?.toc) setTocItems(rendition.book.navigation.toc);
+    
+    const configureScroller = () => {
+      const scroller = (rendition as any)?.manager?.container as HTMLElement;
+      const container = containerRef.current;
+      if (scroller && container) {
+        scroller.style.overflowY = 'auto';
+        scroller.style.height = `${container.clientHeight}px`;
+        setTimeout(() => {
+          if (scroller.scrollHeight <= scroller.clientHeight + 10 && flowMode === 'scrolled-continuous') {
+            setFlowMode('paginated');
+          }
+        }, 1500);
+      }
+    };
+    configureScroller();
+  };
+
+  const goToPrevPage = () => rendition?.prev();
+  const goToNextPage = () => rendition?.next();
+  const goToTocItem = (href: string) => {
+    rendition?.display(href);
+    setShowToc(false);
+  };
+
   const readerStyles: any = {
     container: { width: '100%', height: '100%' },
-    containerExpanded: { width: '100%', height: '100%' },
-    readerArea: { left: 0, right: 0, width: '100%', height: '100%' },
-    titleArea: { display: 'none' },
-    title: { display: 'none' },
-    tocArea: { display: 'none' },
-    tocButton: { display: 'none' },
     arrow: { display: 'none' },
-    prev: { display: 'none', pointerEvents: 'none', width: 0 },
-    next: { display: 'none', pointerEvents: 'none', width: 0 },
-  };
-
-  const handleRenditionReady = (rendition: any) => {
-    try {
-      const scroller = (rendition as any)?.manager?.container as HTMLElement | undefined;
-      if (scroller) {
-        scroller.style.overflowY = 'auto';
-        scroller.style.height = '100%';
-        scroller.style.maxHeight = '100%';
-      }
-    } catch (e) {
-      console.warn('Impossible de configurer le scroll interne (blob):', e);
-    }
-
-    if (rendition.themes) {
-      rendition.themes.default({
-        'html, body': {
-          'height': 'auto !important',
-          'min-height': 'auto !important',
-          'overflow': 'visible !important',
-          'margin': '0 !important',
-          'padding': '0 !important',
-          '-webkit-text-size-adjust': '100% !important'
-        },
-        body: {
-          'font-family': 'Georgia, serif !important',
-          'line-height': '1.6 !important',
-          'text-align': 'justify',
-          'hyphens': 'auto',
-          'word-wrap': 'break-word',
-          '-webkit-column-width': 'auto !important',
-          '-moz-column-width': 'auto !important',
-          'column-width': 'auto !important',
-          'columns': 'auto !important',
-          'overflow-x': 'hidden !important'
-        },
-        '*': {
-          'box-sizing': 'border-box'
-        },
-        'p': {
-          'margin': '0 0 1em 0 !important',
-          'text-indent': '1.5em !important'
-        },
-        'h1, h2, h3, h4, h5, h6': {
-          'margin': '1.5em 0 0.5em 0 !important',
-          'text-indent': '0 !important'
-        },
-        'img, svg, video': {
-          'max-width': '100% !important',
-          'height': 'auto !important',
-          'display': 'block !important',
-          'margin': '1em auto !important'
-        }
-      });
-
-      rendition.on('rendered', (section: any) => {
-        try {
-          const doc = section?.document;
-          if (doc) {
-            const html = doc.documentElement as HTMLElement;
-            const body = doc.body as HTMLElement;
-            if (html) {
-              html.style.height = 'auto';
-              html.style.overflow = 'visible';
-            }
-            if (body) {
-              body.style.height = 'auto';
-              body.style.overflow = 'visible';
-              // @ts-ignore
-              body.style.webkitColumnWidth = 'auto';
-              // @ts-ignore
-              body.style.columnWidth = 'auto';
-            }
-          }
-        } catch (e) {
-          console.warn('Fix iframe sizing failed (blob):', e);
-        }
-      });
-    }
-  };
-
-  const handleLocationChanged = (cfi: string) => {
-    setLocation(cfi);
+    prev: { display: 'none' },
+    next: { display: 'none' },
   };
 
   return (
-    <div style={{ position: 'relative', height: '85vh', width: '100%', overflow: 'visible' }}>
-      {!isReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      )}
-      {epubUrl && (
-        <ReactReader
-          url={epubUrl}
-          location={location}
-          locationChanged={handleLocationChanged}
-          getRendition={handleRenditionReady}
-          epubOptions={{
-            flow: 'scrolled-continuous',
-            manager: 'continuous',
-            allowScriptedContent: true,
-            spread: 'none'
-          }}
-          showToc={false}
-          readerStyles={readerStyles}
-          swipeable={false}
-        />
-      )}
+    <div className="relative w-full h-[85vh] flex flex-col">
+      <div className="sticky top-0 z-20 bg-background/95 border-b px-4 py-2">
+        <Dialog open={showToc} onOpenChange={setShowToc}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm"><List className="h-4 w-4" />TOC</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Table des matières</DialogTitle></DialogHeader>
+            <ScrollArea className="h-[60vh]">
+              {tocItems.map((item: any, i: number) => (
+                <Button key={i} variant="ghost" className="w-full justify-start" onClick={() => goToTocItem(item.href)}>
+                  {item.label}
+                </Button>
+              ))}
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div ref={containerRef} className="flex-1 epub-reader-container relative overflow-hidden">
+        {!isReady && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}
+        {epubUrl && (
+          <ReactReader
+            url={epubUrl}
+            location={location}
+            locationChanged={setLocation}
+            getRendition={handleRenditionReady}
+            epubOptions={{ flow: flowMode, manager: flowMode === 'paginated' ? 'default' : 'continuous', spread: 'none' }}
+            showToc={false}
+            readerStyles={readerStyles}
+            swipeable={false}
+          />
+        )}
+        {flowMode === 'paginated' && isReady && epubUrl && (
+          <>
+            <Button variant="outline" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg" onClick={goToPrevPage}>
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
+            <Button variant="outline" size="icon" className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg" onClick={goToNextPage}>
+              <ChevronRight className="h-6 w-6" />
+            </Button>
+          </>
+        )}
+      </div>
     </div>
   );
 };

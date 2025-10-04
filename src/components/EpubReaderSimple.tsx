@@ -5,8 +5,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
-import { Loader2, BookOpen, Settings, Sun, Moon, FileText } from 'lucide-react';
+import { Loader2, BookOpen, Settings, Sun, Moon, FileText, ChevronLeft, ChevronRight, List } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface EpubReaderSimpleProps {
   url: string;
@@ -24,13 +26,18 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   const [theme, setTheme] = useState<'light' | 'dark' | 'sepia'>('light');
   const [showControls, setShowControls] = useState(true);
   const [isLoadingContent, setIsLoadingContent] = useState(false);
+  const [flowMode, setFlowMode] = useState<'scrolled-continuous' | 'paginated'>('scrolled-continuous');
+  const [tocItems, setTocItems] = useState<any[]>([]);
+  const [showToc, setShowToc] = useState(false);
   const lastProgressUpdateRef = useRef<number>(0);
   const initialLocationRef = useRef<string | number>(0);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const progressKey = `epub_progress_${bookId || 'default'}`;
 
   // Chargement de la progression depuis localStorage
+
   useEffect(() => {
     if (bookId) {
       const savedProgress = localStorage.getItem(progressKey);
@@ -49,10 +56,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     }
   }, [bookId, progressKey]);
 
-  // Sauvegarde de la progression avec debounce
   const saveProgress = useCallback((progressData: any) => {
     if (!bookId) return;
-
     const progressToSave = {
       location: progressData.location,
       progress: progressData.progress,
@@ -60,26 +65,48 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       totalPages: progressData.totalPages,
       lastRead: new Date().toISOString()
     };
-
     localStorage.setItem(progressKey, JSON.stringify(progressToSave));
   }, [bookId, progressKey]);
 
-
-  const handleRenditionReady = (rendition: any) => {
+  const handleRenditionReady = useCallback((rendition: any) => {
     setRendition(rendition);
-    
-    // Forcer le scroll interne sur le conteneur du manager (continuous)
-    try {
-      const scroller = (rendition as any)?.manager?.container as HTMLElement | undefined;
-      if (scroller) {
-        scroller.style.overflowY = 'auto';
-        scroller.style.height = '100%';
-        scroller.style.maxHeight = '100%';
-      }
-    } catch (e) {
-      console.warn('Impossible de configurer le scroll interne:', e);
+    console.log('[EPUB] Rendition ready, spine length:', rendition.book?.spine?.length);
+
+    if (rendition.book?.navigation?.toc) {
+      setTocItems(rendition.book.navigation.toc);
+      console.log('[EPUB] TOC items:', rendition.book.navigation.toc.length);
     }
-    
+
+    const configureScroller = () => {
+      try {
+        const scroller = (rendition as any)?.manager?.container as HTMLElement | undefined;
+        const container = containerRef.current;
+        
+        if (scroller && container) {
+          const containerHeight = container.clientHeight;
+          scroller.style.overflowY = 'auto';
+          scroller.style.height = `${containerHeight}px`;
+          scroller.style.maxHeight = `${containerHeight}px`;
+          
+          setTimeout(() => {
+            const isScrollable = scroller.scrollHeight > scroller.clientHeight + 10;
+            if (!isScrollable && flowMode === 'scrolled-continuous') {
+              console.warn('[EPUB] Scroll not working, switching to paginated mode');
+              setFlowMode('paginated');
+            }
+          }, 1500);
+        }
+      } catch (e) {
+        console.warn('Cannot configure internal scroller:', e);
+      }
+    };
+
+    configureScroller();
+
+    const handleResize = () => configureScroller();
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+
     // Configuration des styles de base
     if (rendition.themes) {
       rendition.themes.default({
@@ -167,6 +194,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       // pour éviter les interférences avec le défilement continu.
       rendition.on('rendered', (section: any) => {
         setIsLoadingContent(false);
+        console.log('[EPUB] Section rendered:', section?.index, section?.href);
         try {
           const doc = section?.document;
           if (doc) {
@@ -191,6 +219,12 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         }
       });
     }
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, [bookId, flowMode]);
     
     // Générer les locations pour le calcul de progression
     if (rendition.book) {
@@ -285,34 +319,50 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     }
   };
 
+  const goToPrevPage = () => {
+    if (rendition) {
+      rendition.prev();
+    }
+  };
+
+  const goToNextPage = () => {
+    if (rendition) {
+      rendition.next();
+    }
+  };
+
+  const goToTocItem = (href: string) => {
+    if (rendition) {
+      rendition.display(href);
+      setShowToc(false);
+    }
+  };
+
 
   // Styles pour masquer la navigation interne et activer le scroll interne
   const readerStyles: any = {
     container: { width: '100%', height: '100%' },
-    containerExpanded: { width: '100%', height: '100%' },
     readerArea: { left: 0, right: 0, width: '100%', height: '100%' },
-    titleArea: { display: 'none' },
-    title: { display: 'none' },
-    tocArea: { display: 'none' },
-    tocButton: { display: 'none' },
     arrow: { display: 'none' },
-    prev: { display: 'none', pointerEvents: 'none', width: 0 },
-    next: { display: 'none', pointerEvents: 'none', width: 0 },
+    prev: { display: 'none' },
+    next: { display: 'none' },
   };
-  if (!url) {
-    return <div className="p-4 text-center text-red-500">URL du fichier EPUB manquante.</div>;
-  }
+
+  if (!url) return <div className="p-4 text-center text-red-500">URL manquante.</div>;
 
   return (
-    <div className="relative w-full h-[85vh] react-reader-wrapper">
-      {/* Contrôles supérieurs */}
+    <div className="relative w-full h-[85vh] flex flex-col">
       {showControls && (
-        <Card className="sticky top-0 z-20 mb-4 p-4 bg-background/95 backdrop-blur border">
+        <Card className="sticky top-0 z-20 mb-2 p-3">
+          {/* Contrôles supérieurs */}
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
               <span className="text-sm font-medium">
                 {readingProgress > 0 && `${readingProgress}% lu`}
+              </span>
+              <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
+                {flowMode === 'paginated' ? 'Pages' : 'Scroll'}
               </span>
             </div>
             
@@ -373,59 +423,48 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
               </Button>
             </div>
 
-          </div>
+            {/* TOC Button */}
+            <Dialog open={showToc} onOpenChange={setShowToc}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm"><List className="h-4 w-4" />TOC</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Table des matières</DialogTitle></DialogHeader>
+                <ScrollArea className="h-[60vh]">
+                  {tocItems.map((item: any, i: number) => (
+                    <Button key={i} variant="ghost" className="w-full justify-start" onClick={() => goToTocItem(item.href)}>
+                      {item.label}
+                    </Button>
+                  ))}
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+          </Card>
         </Card>
       )}
 
-      {/* Bouton pour réafficher les contrôles */}
-      {!showControls && (
-        <Button
-          className="sticky top-4 right-4 z-20 mb-4 ml-auto block"
-          variant="outline"
-          size="sm"
-          onClick={() => setShowControls(true)}
-        >
-          <Settings className="h-4 w-4" />
-        </Button>
-      )}
-
-      {/* Indicateur de chargement */}
-      {!isReady && (
-        <div className="flex items-center justify-center bg-background/80 rounded-lg p-8 mb-4">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Chargement de l'EPUB...</p>
-          </div>
-        </div>
-      )}
-
-      {/* Zone de lecture EPUB avec scroll interne pour le mode continuous */}
-      <div className="relative w-full epub-reader-container" style={{ overflow: 'visible' }}>
-        {/* Indicateur de chargement de contenu */}
-        {isLoadingContent && (
-          <div className="absolute top-4 right-4 z-30 bg-background/90 backdrop-blur-sm rounded-lg p-2 border shadow-sm">
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <span className="text-xs text-muted-foreground">Chargement...</span>
-            </div>
-          </div>
-        )}
-        
+      <div ref={containerRef} className="flex-1 epub-reader-container relative overflow-hidden">
+        {!isReady && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}
         <ReactReader
           url={url}
           location={location}
-          locationChanged={() => { /* no-op to prevent double renders; progress handled via 'relocated' */ }}
+          locationChanged={() => {}}
           getRendition={handleRenditionReady}
-          epubOptions={{
-            flow: "scrolled-continuous",
-            manager: "continuous",
-            allowScriptedContent: true,
-            spread: "none"
-          }}
+          epubOptions={{ flow: flowMode, manager: flowMode === 'paginated' ? 'default' : 'continuous', spread: "none" }}
           showToc={false}
           readerStyles={readerStyles}
           swipeable={false}
         />
+        {flowMode === 'paginated' && isReady && (
+          <>
+            <Button variant="outline" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg z-10" onClick={goToPrevPage}>
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
+            <Button variant="outline" size="icon" className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg z-10" onClick={goToNextPage}>
+              <ChevronRight className="h-6 w-6" />
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );

@@ -113,18 +113,13 @@ self.addEventListener('fetch', (event) => {
     );
   }
   
-  // Network-first strict pour les fichiers EPUB (ne jamais cacher)
-  else if (request.url.includes('.epub') || url.pathname.includes('epubs/')) {
-    console.log('[SW] EPUB request intercepted:', request.url);
-    event.respondWith(
-      fetch(request).then(response => {
-        console.log('[SW] EPUB fetch success:', request.url, response.status);
-        return response;
-      }).catch(error => {
-        console.error('[SW] EPUB fetch failed:', request.url, error);
-        // Pas de fallback cache pour les EPUBs
-        return new Response('EPUB file not available', { status: 404 });
-      })
-    );
+  // Network-first strict pour les fichiers EPUB et blob URLs (ne jamais cacher ni intercepter)
+  else if (request.url.includes('.epub') || 
+           url.pathname.includes('epubs/') || 
+           request.url.startsWith('blob:') ||
+           url.hostname.includes('supabase')) {
+    console.log('[SW] EPUB/Blob/Supabase request bypassed:', request.url);
+    // Ne pas intercepter ces requêtes - laisser le navigateur les gérer directement
+    return;
   }
 });
