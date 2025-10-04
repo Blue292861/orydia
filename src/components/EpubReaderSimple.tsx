@@ -88,9 +88,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           scroller.style.height = `${containerHeight}px`;
           scroller.style.maxHeight = `${containerHeight}px`;
           
-          // La logique de bascule automatique vers le mode paginé (qui a causé des problèmes de scroll)
-          // a été désactivée/commentée pour garantir le mode "scrolled-continuous".
           /*
+          // Logique de bascule désactivée pour maintenir le scroll continu
           setTimeout(() => {
             const isScrollable = scroller.scrollHeight > scroller.clientHeight + 10;
             if (!isScrollable && flowMode === 'scrolled-continuous') {
@@ -267,7 +266,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           });
         });
     }
-  };
+  // LIGNE FAUTIVE SUPPRIMÉE: l'accolade et le point-virgule de fermeture de bloc étaient ici.
 
   const applyTheme = (rendition: any, selectedTheme: string) => {
     if (!rendition.themes) return;
@@ -310,8 +309,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     }
   };
 
-  // Suppression de l'écouteur d'événements keydown global (l. 209-219 de l'original)
-
 
   const navigateToProgress = (progressPercent: number) => {
     if (rendition && rendition.book && rendition.book.locations) {
@@ -352,7 +349,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none' },
   };
 
-  // CORRECTION CLÉ: La logique de vérification de l'URL est intégrée dans le bloc de rendu principal
+  // Le rendu conditionnel est intégré ici pour fonctionner avec SWC
   return (
     <div className="relative w-full h-[85vh] flex flex-col">
       {/* Condition d'affichage pour éviter l'erreur de transpilation SWC/Vite */}
