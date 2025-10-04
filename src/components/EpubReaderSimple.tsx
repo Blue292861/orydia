@@ -88,6 +88,9 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           scroller.style.height = `${containerHeight}px`;
           scroller.style.maxHeight = `${containerHeight}px`;
           
+          // La logique de bascule automatique vers le mode paginé (qui empêchait le scroll)
+          // a été désactivée/commentée pour garantir le mode "scrolled-continuous".
+          /*
           setTimeout(() => {
             const isScrollable = scroller.scrollHeight > scroller.clientHeight + 10;
             if (!isScrollable && flowMode === 'scrolled-continuous') {
@@ -95,6 +98,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
               setFlowMode('paginated');
             }
           }, 1500);
+          */
         }
       } catch (e) {
         console.warn('Cannot configure internal scroller:', e);
