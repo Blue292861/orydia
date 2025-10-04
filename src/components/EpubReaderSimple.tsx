@@ -352,10 +352,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none' },
   };
 
-  // Correction de l'erreur de parsing JSX en utilisant une expression ternaire
-  return !url ? (
-    <div className="p-4 text-center text-red-500">URL manquante.</div>
-  ) : (
+  // Correction de l'erreur de parsing JSX : Revenir à l'instruction 'if/return' directe
+  if (!url) return <div className="p-4 text-center text-red-500">URL manquante.</div>;
+  
+  return (
     <div className="relative w-full h-[85vh] flex flex-col">
       {showControls && (
         <Card className="sticky top-0 z-20 mb-2 p-3">
