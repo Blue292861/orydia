@@ -352,124 +352,129 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none' },
   };
 
-  // Correction de l'erreur de parsing JSX : Revenir à l'instruction 'if/return' directe
-  if (!url) return <div className="p-4 text-center text-red-500">URL manquante.</div>;
-  
+  // Correction de l'erreur de parsing JSX : intégrer la vérification de l'URL dans le rendu principal.
   return (
     <div className="relative w-full h-[85vh] flex flex-col">
-      {showControls && (
-        <Card className="sticky top-0 z-20 mb-2 p-3">
-          {/* Contrôles supérieurs */}
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
-              <span className="text-sm font-medium">
-                {readingProgress > 0 && `${readingProgress}% lu`}
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
-                {flowMode === 'paginated' ? 'Pages' : 'Scroll'}
-              </span>
-            </div>
-            
-            <div className="flex-1 max-w-md min-w-32">
-              <Progress value={readingProgress} className="h-2" />
-            </div>
+      {!url ? (
+        <div className="p-4 text-center text-red-500">URL manquante.</div>
+      ) : (
+        <>
+          {showControls && (
+            <Card className="sticky top-0 z-20 mb-2 p-3">
+              {/* Contrôles supérieurs */}
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  <span className="text-sm font-medium">
+                    {readingProgress > 0 && `${readingProgress}% lu`}
+                  </span>
+                  <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
+                    {flowMode === 'paginated' ? 'Pages' : 'Scroll'}
+                  </span>
+                </div>
+                
+                <div className="flex-1 max-w-md min-w-32">
+                  <Progress value={readingProgress} className="h-2" />
+                </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowControls(false)}
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowControls(false)}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Contrôles de lecture */}
+              <div className="flex items-center justify-between mt-4 gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => changeFontSize(Math.max(12, fontSize - 2))}
+                  >
+                    A-
+                  </Button>
+                  <span className="text-xs px-2">{fontSize}px</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => changeFontSize(Math.min(28, fontSize + 2))}
+                  >
+                    A+
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={theme === 'light' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => changeTheme('light')}
+                  >
+                    <Sun className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={theme === 'sepia' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => changeTheme('sepia')}
+                  >
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={theme === 'dark' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => changeTheme('dark')}
+                  >
+                    <Moon className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* TOC Button */}
+                <Dialog open={showToc} onOpenChange={setShowToc}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm"><List className="h-4 w-4" />TOC</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader><DialogTitle>Table des matières</DialogTitle></DialogHeader>
+                    <ScrollArea className="h-[60vh]">
+                      {tocItems.map((item: any, i: number) => (
+                        <Button key={i} variant="ghost" className="w-full justify-start" onClick={() => goToTocItem(item.href)}>
+                          {item.label}
+                        </Button>
+                      ))}
+                    </ScrollArea>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </Card>
+          )}
+
+          <div ref={containerRef} className="flex-1 epub-reader-container relative overflow-hidden">
+            {!isReady && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}
+            <ReactReader
+              url={url}
+              location={location}
+              locationChanged={() => {}}
+              getRendition={handleRenditionReady}
+              epubOptions={{ flow: flowMode, manager: flowMode === 'paginated' ? 'default' : 'continuous', spread: "none" }}
+              showToc={false}
+              readerStyles={readerStyles}
+              swipeable={false}
+            />
+            {flowMode === 'paginated' && isReady && (
+              <>
+                <Button variant="outline" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg z-10" onClick={goToPrevPage}>
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+                <Button variant="outline" size="icon" className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg z-10" onClick={goToNextPage}>
+                  <ChevronRight className="h-6 w-6" />
+                </Button>
+              </>
+            )}
           </div>
-
-          {/* Contrôles de lecture */}
-          <div className="flex items-center justify-between mt-4 gap-2 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => changeFontSize(Math.max(12, fontSize - 2))}
-              >
-                A-
-              </Button>
-              <span className="text-xs px-2">{fontSize}px</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => changeFontSize(Math.min(28, fontSize + 2))}
-              >
-                A+
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant={theme === 'light' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => changeTheme('light')}
-              >
-                <Sun className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={theme === 'sepia' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => changeTheme('sepia')}
-              >
-                <FileText className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={theme === 'dark' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => changeTheme('dark')}
-              >
-                <Moon className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* TOC Button */}
-            <Dialog open={showToc} onOpenChange={setShowToc}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm"><List className="h-4 w-4" />TOC</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Table des matières</DialogTitle></DialogHeader>
-                <ScrollArea className="h-[60vh]">
-                  {tocItems.map((item: any, i: number) => (
-                    <Button key={i} variant="ghost" className="w-full justify-start" onClick={() => goToTocItem(item.href)}>
-                      {item.label}
-                    </Button>
-                  ))}
-                </ScrollArea>
-              </DialogContent>
-            </Dialog>
-          </Card>
+        </>
       )}
-
-      <div ref={containerRef} className="flex-1 epub-reader-container relative overflow-hidden">
-        {!isReady && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}
-        <ReactReader
-          url={url}
-          location={location}
-          locationChanged={() => {}}
-          getRendition={handleRenditionReady}
-          epubOptions={{ flow: flowMode, manager: flowMode === 'paginated' ? 'default' : 'continuous', spread: "none" }}
-          showToc={false}
-          readerStyles={readerStyles}
-          swipeable={false}
-        />
-        {flowMode === 'paginated' && isReady && (
-          <>
-            <Button variant="outline" size="icon" className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg z-10" onClick={goToPrevPage}>
-              <ChevronLeft className="h-6 w-6" />
-            </Button>
-            <Button variant="outline" size="icon" className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg z-10" onClick={goToNextPage}>
-              <ChevronRight className="h-6 w-6" />
-            </Button>
-          </>
-        )}
-      </div>
     </div>
   );
 };
