@@ -221,6 +221,45 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           console.warn('Impossible d\'appliquer les correctifs de hauteur sur l\'iframe:', e);
         }
       });
+      
+      // CORRECTION: Déplacement du bloc de génération des locations dans handleRenditionReady
+      // pour éviter la race condition qui causait l'erreur "Cannot read properties of null (reading 'book')".
+      if (rendition.book) {
+        rendition.book.ready
+          .then(() => {
+            return rendition.book.locations.generate(2048); // Plus de précision
+          })
+          .then(() => {
+            setIsReady(true);
+            // Aller à la position sauvegardée si disponible
+            if (initialLocationRef.current) {
+              try {
+                rendition.display(initialLocationRef.current);
+              } catch (e) {
+                console.warn('Erreur lors de l\'affichage de la position initiale:', e);
+              }
+            }
+            toast({
+              title: "EPUB chargé",
+              description: "Le contenu est prêt à être lu avec suivi de progression."
+            });
+          })
+          .catch((error: any) => {
+            console.error('Error generating locations:', error);
+            setIsReady(true); 
+            if (initialLocationRef.current) {
+              try {
+                rendition.display(initialLocationRef.current);
+              } catch (e) {
+                console.warn('Erreur lors de l\'affichage de la position initiale (fallback):', e);
+              }
+            }
+            toast({
+              title: "EPUB chargé",
+              description: "Le contenu est prêt (progression approximative)."
+            });
+          });
+      }
     }
 
     return () => {
@@ -228,45 +267,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       window.removeEventListener('orientationchange', handleResize);
     };
   }, [bookId, flowMode]);
-    
-    // Générer les locations pour le calcul de progression
-    if (rendition.book) {
-      rendition.book.ready
-        .then(() => {
-          return rendition.book.locations.generate(2048); // Plus de précision
-        })
-        .then(() => {
-          setIsReady(true);
-          // Aller à la position sauvegardée si disponible
-          if (initialLocationRef.current) {
-            try {
-              rendition.display(initialLocationRef.current);
-            } catch (e) {
-              console.warn('Erreur lors de l\'affichage de la position initiale:', e);
-            }
-          }
-          toast({
-            title: "EPUB chargé",
-            description: "Le contenu est prêt à être lu avec suivi de progression."
-          });
-        })
-        .catch((error: any) => {
-          console.error('Error generating locations:', error);
-          setIsReady(true); 
-          if (initialLocationRef.current) {
-            try {
-              rendition.display(initialLocationRef.current);
-            } catch (e) {
-              console.warn('Erreur lors de l\'affichage de la position initiale (fallback):', e);
-            }
-          }
-          toast({
-            title: "EPUB chargé",
-            description: "Le contenu est prêt (progression approximative)."
-          });
-        });
-    }
-  // LIGNE FAUTIVE SUPPRIMÉE: l'accolade et le point-virgule de fermeture de bloc étaient ici.
+    // FIN handleRenditionReady
 
   const applyTheme = (rendition: any, selectedTheme: string) => {
     if (!rendition.themes) return;
