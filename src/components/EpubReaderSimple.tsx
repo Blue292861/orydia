@@ -222,8 +222,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         }
       });
       
-      // CORRECTION: Déplacement du bloc de génération des locations dans handleRenditionReady
-      // pour éviter la race condition qui causait l'erreur "Cannot read properties of null (reading 'book')".
+      // Déplacement du bloc de génération des locations dans handleRenditionReady
       if (rendition.book) {
         rendition.book.ready
           .then(() => {
@@ -335,6 +334,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
   const goToTocItem = (href: string) => {
     if (rendition) {
+      // Pour les TOC, l'href est souvent une URL relative (ex: 'chapitre1.xhtml#start')
       rendition.display(href);
       setShowToc(false);
     }
@@ -438,7 +438,12 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
                     <DialogHeader><DialogTitle>Table des matières</DialogTitle></DialogHeader>
                     <ScrollArea className="h-[60vh]">
                       {tocItems.map((item: any, i: number) => (
-                        <Button key={i} variant="ghost" className="w-full justify-start" onClick={() => goToTocItem(item.href)}>
+                        <Button 
+                          key={i} 
+                          variant="ghost" 
+                          className="w-full justify-start" 
+                          onClick={() => goToTocItem(item.href)}
+                        >
                           {item.label}
                         </Button>
                       ))}
@@ -449,7 +454,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
             </Card>
           )}
 
-          <div ref={containerRef} className="flex-1 epub-reader-container relative overflow-hidden">
+          {/* CORRECTION SCROLL: Suppression de la classe 'overflow-hidden' pour permettre l'affichage du scrollbar interne de l'EPUB. */}
+          <div ref={containerRef} className="flex-1 epub-reader-container relative">
             {!isReady && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}
             <ReactReader
               url={url}
