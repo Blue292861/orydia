@@ -352,9 +352,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none' },
   };
 
-  // Correction de l'erreur de parsing JSX : intégrer la vérification de l'URL dans le rendu principal.
+  // CORRECTION CLÉ: La logique de vérification de l'URL est intégrée dans le bloc de rendu principal
   return (
     <div className="relative w-full h-[85vh] flex flex-col">
+      {/* Condition d'affichage pour éviter l'erreur de transpilation SWC/Vite */}
       {!url ? (
         <div className="p-4 text-center text-red-500">URL manquante.</div>
       ) : (
