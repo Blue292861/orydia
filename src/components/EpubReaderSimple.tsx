@@ -15,6 +15,27 @@ interface EpubReaderSimpleProps {
   bookId?: string;
 }
 
+// Fonction utilitaire pour le rendu récursif de la TOC
+const renderTocItems = (items: any[], goToTocItem: (href: string) => void, level = 0) => (
+  <>
+    {items.map((item: any, i: number) => (
+      <React.Fragment key={item.id || i}>
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start text-left font-normal" 
+          // Ajoute une indentation pour les sous-éléments
+          style={{ paddingLeft: `${1.5 + level * 1.5}rem`, fontSize: `${14 - level * 1}px` }} 
+          onClick={() => goToTocItem(item.href)}
+        >
+          {item.label}
+        </Button>
+        {/* Rendu récursif des sous-éléments */}
+        {item.subitems && item.subitems.length > 0 && renderTocItems(item.subitems, goToTocItem, level + 1)}
+      </React.Fragment>
+    ))}
+  </>
+);
+
 export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId }) => {
   const [location, setLocation] = useState<string | number>(0);
   const [isReady, setIsReady] = useState(false);
@@ -84,12 +105,13 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
         
         if (scroller && container) {
           const containerHeight = container.clientHeight;
+          // Ces styles forcent l'élément de défilement interne à avoir le viewport
           scroller.style.overflowY = 'auto';
           scroller.style.height = `${containerHeight}px`;
           scroller.style.maxHeight = `${containerHeight}px`;
           
           /*
-          // Logique de bascule désactivée pour maintenir le scroll continu
+          // Logique de bascule désactivée
           setTimeout(() => {
             const isScrollable = scroller.scrollHeight > scroller.clientHeight + 10;
             if (!isScrollable && flowMode === 'scrolled-continuous') {
@@ -334,8 +356,18 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
 
   const goToTocItem = (href: string) => {
     if (rendition) {
-      // Pour les TOC, l'href est souvent une URL relative (ex: 'chapitre1.xhtml#start')
-      rendition.display(href);
+      // Pour la navigation TOC, assurez-vous que le lien fonctionne.
+      // Si c'est un lien HTML simple, Epub.js devrait le gérer.
+      try {
+        rendition.display(href);
+      } catch(e) {
+        console.error("Error navigating to TOC item:", e);
+        toast({
+          title: "Erreur de navigation",
+          description: "Impossible d'accéder à ce chapitre. Le lien est peut-être invalide.",
+          variant: "destructive"
+        });
+      }
       setShowToc(false);
     }
   };
@@ -437,16 +469,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
                   <DialogContent>
                     <DialogHeader><DialogTitle>Table des matières</DialogTitle></DialogHeader>
                     <ScrollArea className="h-[60vh]">
-                      {tocItems.map((item: any, i: number) => (
-                        <Button 
-                          key={i} 
-                          variant="ghost" 
-                          className="w-full justify-start" 
-                          onClick={() => goToTocItem(item.href)}
-                        >
-                          {item.label}
-                        </Button>
-                      ))}
+                      {/* Utilisation de la fonction récursive pour afficher tous les niveaux */}
+                      {renderTocItems(tocItems, goToTocItem)}
                     </ScrollArea>
                   </DialogContent>
                 </Dialog>
@@ -454,7 +478,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
             </Card>
           )}
 
-          {/* CORRECTION SCROLL: Suppression de la classe 'overflow-hidden' pour permettre l'affichage du scrollbar interne de l'EPUB. */}
+          {/* CORRECTION SCROLL: La classe 'overflow-hidden' est retirée du conteneur du lecteur, et l'élément <ReactReader> gère le défilement interne via les props et handleRenditionReady */}
           <div ref={containerRef} className="flex-1 epub-reader-container relative">
             {!isReady && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}
             <ReactReader
