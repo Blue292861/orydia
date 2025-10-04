@@ -440,7 +440,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
               </DialogContent>
             </Dialog>
           </Card>
-        </Card>
       )}
 
       <div ref={containerRef} className="flex-1 epub-reader-container relative overflow-hidden">
