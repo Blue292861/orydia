@@ -348,7 +348,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none' },
   };
 
-  if (!url) return <div className="p-4 text-center text-red-500">URL manquante.</div>;
+  // Correction : Ajout d'accolades autour du return dans le if pour éviter l'erreur de parseur.
+  if (!url) {
+    return <div className="p-4 text-center text-red-500">URL manquante.</div>;
+  }
 
   return (
     <div className="relative w-full h-[85vh] flex flex-col">
