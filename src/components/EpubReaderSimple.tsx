@@ -226,21 +226,14 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       });
     }
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-    };
-  }, [bookId, flowMode]);
-    
     // Générer les locations pour le calcul de progression
     if (rendition.book) {
       rendition.book.ready
         .then(() => {
-          return rendition.book.locations.generate(2048); // Plus de précision
+          return rendition.book.locations.generate(2048);
         })
         .then(() => {
           setIsReady(true);
-          // Aller à la position sauvegardée si disponible
           if (initialLocationRef.current) {
             try {
               rendition.display(initialLocationRef.current);
@@ -269,7 +262,12 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           });
         });
     }
-  };
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, [bookId, flowMode, toast]);
 
   const applyTheme = (rendition: any, selectedTheme: string) => {
     if (!rendition.themes) return;
@@ -445,7 +443,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
                 </ScrollArea>
               </DialogContent>
             </Dialog>
-          </Card>
+          </div>
         </Card>
       )}
 
