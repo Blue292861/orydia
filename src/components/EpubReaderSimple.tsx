@@ -224,50 +224,50 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           console.warn('Impossible d\'appliquer les correctifs de hauteur sur l\'iframe:', e);
         }
       });
-    }
 
-    // Générer les locations pour le calcul de progression
-    if (rendition.book) {
-      rendition.book.ready
-        .then(() => {
-          return rendition.book.locations.generate(2048);
-        })
-        .then(() => {
-          setIsReady(true);
-          if (initialLocationRef.current) {
-            try {
-              rendition.display(initialLocationRef.current);
-            } catch (e) {
-              console.warn('Erreur lors de l\'affichage de la position initiale:', e);
+      // Générer les locations pour le calcul de progression
+      if (rendition.book) {
+        rendition.book.ready
+          .then(() => {
+            return rendition.book.locations.generate(2048);
+          })
+          .then(() => {
+            setIsReady(true);
+            if (initialLocationRef.current) {
+              try {
+                rendition.display(initialLocationRef.current);
+              } catch (e) {
+                console.warn('Erreur lors de l\'affichage de la position initiale:', e);
+              }
             }
-          }
-          toast({
-            title: "EPUB chargé",
-            description: "Le contenu est prêt à être lu avec suivi de progression."
-          });
-        })
-        .catch((error: any) => {
-          console.error('Error generating locations:', error);
-          setIsReady(true); 
-          if (initialLocationRef.current) {
-            try {
-              rendition.display(initialLocationRef.current);
-            } catch (e) {
-              console.warn('Erreur lors de l\'affichage de la position initiale (fallback):', e);
+            toast({
+              title: "EPUB chargé",
+              description: "Le contenu est prêt à être lu avec suivi de progression."
+            });
+          })
+          .catch((error: any) => {
+            console.error('Error generating locations:', error);
+            setIsReady(true); 
+            if (initialLocationRef.current) {
+              try {
+                rendition.display(initialLocationRef.current);
+              } catch (e) {
+                console.warn('Erreur lors de l\'affichage de la position initiale (fallback):', e);
+              }
             }
-          }
-          toast({
-            title: "EPUB chargé",
-            description: "Le contenu est prêt (progression approximative)."
+            toast({
+              title: "EPUB chargé",
+              description: "Le contenu est prêt (progression approximative)."
+            });
           });
-        });
+      }
     }
 
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
     };
-  }, [bookId, flowMode, toast]);
+  }, [bookId, flowMode, toast, saveProgress, theme, fontSize]);
 
   const applyTheme = (rendition: any, selectedTheme: string) => {
     if (!rendition.themes) return;
