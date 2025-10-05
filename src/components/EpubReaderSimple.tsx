@@ -35,15 +35,8 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   const { toast } = useToast();
   const { user } = useAuth();
   const progressKey = `epub_progress_${bookId || 'default'}`;
-
-  // CORRECTION: Déplacement de la clause de garde en haut du composant
-  if (!url) {
-    return <div className="p-4 text-center text-red-500">URL manquante.</div>;
-  }
-  // Fin de la correction
   
   // Chargement de la progression depuis localStorage
-
   useEffect(() => {
     if (bookId) {
       const savedProgress = localStorage.getItem(progressKey);
@@ -352,7 +345,10 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
     next: { display: 'none' },
   };
 
-  // L'ancienne clause de garde (if (!url) return <...>) a été déplacée plus haut.
+  // Garde en fin de composant après tous les hooks
+  if (!url) {
+    return <div className="p-4 text-center text-red-500">URL manquante.</div>;
+  }
 
   return (
     <div className="relative w-full h-[85vh] flex flex-col">
