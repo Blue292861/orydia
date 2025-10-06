@@ -1,5 +1,5 @@
 // src/components/epub/EpubReaderCore.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ReactReader } from 'react-reader';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -61,6 +61,14 @@ export const EpubReaderCore: React.FC<EpubReaderCoreProps> = ({ url, bookId }) =
     next: { display: 'none' },
   };
 
+  // File d'attente de sécurité: si aucun événement de rendu ne survient, retirer le loader après 8s
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      setIsReady((ready) => ready || true);
+    }, 8000);
+    return () => window.clearTimeout(t);
+  }, [epubUrl]);
+
   return (
     <div className="relative w-full h-[85vh]">
       {!isReady && (
@@ -72,6 +80,20 @@ export const EpubReaderCore: React.FC<EpubReaderCoreProps> = ({ url, bookId }) =
         url={epubUrl}
         location={location}
         locationChanged={handleLocationChanged}
+        getRendition={(rendition: any) => {
+          try {
+            const markReady = () => {
+              if (!isReady) {
+                setIsReady(true);
+                toast({ title: 'EPUB chargé', description: 'Le livre est prêt à être lu' });
+              }
+            };
+            rendition.on('rendered', markReady);
+            rendition.on('displayed', markReady);
+          } catch (e) {
+            console.error('[EpubReaderCore] Rendition setup error:', e);
+          }
+        }}
         epubOptions={{
           flow: 'scrolled-continuous',
           manager: 'continuous',
