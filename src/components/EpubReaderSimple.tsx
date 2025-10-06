@@ -1,5 +1,5 @@
 // src/components/EpubReaderSimple.tsx
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { ReactReader } from 'react-reader';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Loader2, BookOpen, Settings, Sun, Moon, FileText, ChevronLeft, ChevronR
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EpubReaderSimpleProps {
   url: string;
@@ -35,6 +36,16 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
   const { toast } = useToast();
   const { user } = useAuth();
   const progressKey = `epub_progress_${bookId || 'default'}`;
+  
+  // ✅ Détection intelligente: convertir URL Supabase Storage en URL publique directe
+  const epubUrl = useMemo(() => {
+    if (url.includes('/object/public/epubs/')) {
+      const match = url.match(/\/object\/public\/epubs\/(.+)$/);
+      const filePath = match ? match[1] : url.split('/').pop() || '';
+      return supabase.storage.from('epubs').getPublicUrl(filePath).data.publicUrl;
+    }
+    return url; // URL externe ou déjà publique
+  }, [url]);
   
   // Chargement de la progression depuis localStorage
   useEffect(() => {
@@ -76,6 +87,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       console.log('[EPUB] TOC items:', rendition.book.navigation.toc.length);
     }
 
+    // ✅ Configuration simplifiée sans détection de scrollabilité
     const configureScroller = () => {
       try {
         const scroller = (rendition as any)?.manager?.container as HTMLElement | undefined;
@@ -86,14 +98,6 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
           scroller.style.overflowY = 'auto';
           scroller.style.height = `${containerHeight}px`;
           scroller.style.maxHeight = `${containerHeight}px`;
-          
-          setTimeout(() => {
-            const isScrollable = scroller.scrollHeight > scroller.clientHeight + 10;
-            if (!isScrollable && flowMode === 'scrolled-continuous') {
-              console.warn('[EPUB] Scroll not working, switching to paginated mode');
-              setFlowMode('paginated');
-            }
-          }, 1500);
         }
       } catch (e) {
         console.warn('Cannot configure internal scroller:', e);
@@ -446,7 +450,7 @@ export const EpubReaderSimple: React.FC<EpubReaderSimpleProps> = ({ url, bookId 
       <div ref={containerRef} className="flex-1 epub-reader-container relative overflow-hidden">
         {!isReady && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}
         <ReactReader
-          url={url}
+          url={epubUrl}
           location={location}
           locationChanged={() => {}}
           getRendition={handleRenditionReady}

@@ -30,15 +30,15 @@ export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
       try {
         const match = url.match(/\/object\/public\/epubs\/(.+)$/);
         const filePath = match ? match[1] : url.split('/').pop() || '';
-        const { data, error } = await supabase.storage.from('epubs').download(filePath);
-        if (error) throw error;
-        if (data) {
-          setEpubUrl(URL.createObjectURL(data));
-          setIsReady(true);
-          toast({ title: "EPUB récupéré" });
-        }
+        
+        // ✅ Solution: Utiliser URL publique directe (pas de téléchargement, pas de blob)
+        const { data } = supabase.storage.from('epubs').getPublicUrl(filePath);
+        
+        setEpubUrl(data.publicUrl);
+        setIsReady(true);
+        toast({ title: "EPUB chargé" });
       } catch (error) {
-        toast({ title: "Erreur de téléchargement", variant: "destructive" });
+        toast({ title: "Erreur de chargement", variant: "destructive" });
       }
     };
     fetchEpub();
@@ -48,17 +48,13 @@ export const EpubReaderWithBlob: React.FC<EpubReaderProps> = ({ url }) => {
     setRendition(rendition);
     if (rendition.book?.navigation?.toc) setTocItems(rendition.book.navigation.toc);
     
+    // ✅ Configuration simplifiée sans détection de scrollabilité
     const configureScroller = () => {
       const scroller = (rendition as any)?.manager?.container as HTMLElement;
       const container = containerRef.current;
       if (scroller && container) {
         scroller.style.overflowY = 'auto';
         scroller.style.height = `${container.clientHeight}px`;
-        setTimeout(() => {
-          if (scroller.scrollHeight <= scroller.clientHeight + 10 && flowMode === 'scrolled-continuous') {
-            setFlowMode('paginated');
-          }
-        }, 1500);
       }
     };
     configureScroller();
