@@ -8,7 +8,7 @@ import { RewardAd } from '@/components/RewardAd';
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { RatingDialog } from './RatingDialog';
 import { CopyrightWarning } from '@/components/CopyrightWarning';
-import { EpubReaderSimple } from './EpubReaderSimple';
+import { EpubReaderCore } from '@/components/epub/EpubReaderCore';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -253,7 +253,7 @@ export const BookReaderEpub: React.FC<BookReaderEpubProps> = ({ book, onBack }) 
         
         {/* Lecteur EPUB avec suivi de progression */}
         <div className="w-full" style={{ minHeight: "600px" }}>
-          <EpubReaderSimple 
+          <EpubReaderCore 
             url={book.content} 
             bookId={book.id}
           />
