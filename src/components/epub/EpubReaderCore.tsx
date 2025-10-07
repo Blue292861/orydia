@@ -207,6 +207,38 @@ export const EpubReaderCore: React.FC<EpubReaderCoreProps> = ({ url, bookId }) =
                   }
                 }
               };
+              
+              // Optimiser le preloading des chunks
+              if (rendition.manager && rendition.manager.views) {
+                // Augmenter le nombre de vues préchargées (par défaut: 1)
+                rendition.manager.settings.minSpreadWidth = 0;
+                rendition.manager.settings.gap = 0;
+              }
+              
+              // Précharger automatiquement les sections suivantes lors du scroll
+              rendition.on('relocated', (location: any) => {
+                if (rendition.manager && rendition.manager.views) {
+                  const views = rendition.manager.views;
+                  // Forcer le préchargement des 3 prochaines sections
+                  if (views.length > 0) {
+                    const currentIndex = location.start.index;
+                    const spine = rendition.book.spine;
+                    
+                    for (let i = 1; i <= 3; i++) {
+                      const nextIndex = currentIndex + i;
+                      if (nextIndex < spine.length) {
+                        const section = spine.get(nextIndex);
+                        if (section) {
+                          // Précharger la section en arrière-plan
+                          section.load(rendition.book.load.bind(rendition.book))
+                            .catch((err: any) => console.warn('Preload error:', err));
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+              
               rendition.on('rendered', markReady);
               rendition.on('displayed', markReady);
             } catch (e) {
@@ -216,7 +248,10 @@ export const EpubReaderCore: React.FC<EpubReaderCoreProps> = ({ url, bookId }) =
           epubOptions={{
             flow: 'scrolled-continuous',
             manager: 'continuous',
-            spread: 'none'
+            spread: 'none',
+            // Options de préchargement optimisées
+            allowScriptedContent: false, // Améliore les performances
+            snap: false, // Scroll plus fluide
           }}
           showToc={false}
           readerStyles={readerStyles}

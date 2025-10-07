@@ -471,6 +471,7 @@ div[id*="epubjs-container"] {
   overflow: auto !important;
   position: relative !important;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth !important;
 }
 
 div[id*="epubjs-view"] {
@@ -480,6 +481,8 @@ div[id*="epubjs-view"] {
   visibility: visible !important;
   position: relative !important;
   display: block !important;
+  /* Préchargement optimisé */
+  will-change: transform;
 }
 
 div[id*="epubjs-view"] iframe {
@@ -488,6 +491,9 @@ div[id*="epubjs-view"] iframe {
   min-height: 100vh !important;
   border: none !important;
   display: block !important;
+  /* Optimisation du rendu */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 100vh;
 }
 
 .react-reader {
