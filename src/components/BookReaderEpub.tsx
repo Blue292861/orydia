@@ -252,7 +252,7 @@ export const BookReaderEpub: React.FC<BookReaderEpubProps> = ({ book, onBack }) 
         </div>
         
         {/* Lecteur EPUB avec suivi de progression */}
-        <div className="w-full" style={{ minHeight: "600px" }}>
+        <div className="w-full">
           <EpubReaderCore 
             url={book.content} 
             bookId={book.id}
@@ -276,14 +276,7 @@ export const BookReaderEpub: React.FC<BookReaderEpubProps> = ({ book, onBack }) 
               <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-6 w-6 mx-auto mb-2" />
               <p>Tensens accordés ! Bien joué !</p>
             </div>
-          ) : readingProgress < 90 ? (
-            <div className="text-center text-muted-foreground">
-              <p>Continuez à lire pour gagner vos Tensens</p>
-              <p className="text-sm mt-1">
-                {readingProgress}% lu - Il vous reste {90 - readingProgress}% à lire
-              </p>
-            </div>
-          ) : (
+          ) : readingProgress >= 90 ? (
             <Button 
               onClick={handleManualFinish} 
               className="flex items-center gap-2"
@@ -295,7 +288,7 @@ export const BookReaderEpub: React.FC<BookReaderEpubProps> = ({ book, onBack }) 
                 `Regarder une publicité & Gagner ${pointsToWin} Tensens`
               }
             </Button>
-          )}
+          ) : null}
         </div>
 
         <RatingDialog 
