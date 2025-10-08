@@ -10,7 +10,6 @@ const CACHE_NAME = `orydia-v${CACHE_VERSION}`;
 
 const STATIC_CACHE_URLS = [
   '/favicon.ico'
-  // Plus de cache pour les routes principales pour éviter les conflits
 ];
 
 // Installation du service worker
@@ -41,10 +40,23 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-
-  // Ne pas intercepter les navigations pour éviter les conflits de cache
+  
+  // Ne pas intercepter les navigations
   if (request.mode === 'navigate') {
-    return; // Laisse le navigateur gérer les navigations
+    return;
+  }
+  
+  // PRIORITÉ ABSOLUE: Bypass EPUB files, Supabase storage & blob URLs AVANT tout autre traitement
+  const isEpubFile = url.pathname.endsWith('.epub') || url.pathname.includes('/epubs/');
+  const isSupabaseStorage = url.hostname.includes('supabase') && url.pathname.includes('/storage/');
+  const isBlobUrl = url.protocol === 'blob:';
+  
+  if (isEpubFile || isSupabaseStorage || isBlobUrl) {
+    // Log en mode debug
+    if (url.searchParams.has('sw') && url.searchParams.get('sw') === 'debug') {
+      console.log('[SW] BYPASS (EPUB/Storage/Blob):', url.href);
+    }
+    return; // Laisser passer sans cache ni interception
   }
 
   // Cache First pour les assets avec hash (versionnés)
@@ -68,10 +80,11 @@ self.addEventListener('fetch', (event) => {
         });
       })
     );
+    return;
   }
   
   // Cache First pour les images
-  else if (request.destination === 'image') {
+  if (request.destination === 'image') {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
         if (cachedResponse) {
@@ -87,19 +100,24 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         }).catch(() => {
-          // Fallback silencieux pour les images
           return new Response('', { status: 404 });
         });
       })
     );
+    return;
   }
   
-  // Network First pour les API et requêtes dynamiques
-  else if (url.pathname.includes('/api/') || url.hostname.includes('supabase') || 
-           url.pathname.includes('functions/')) {
+  // Network First pour les API et requêtes Supabase dynamiques (SAUF storage déjà bypassé)
+  if (url.pathname.includes('/api/') || 
+      (url.hostname.includes('supabase') && !url.pathname.includes('/storage/')) || 
+      url.pathname.includes('functions/')) {
+    
+    if (url.searchParams.has('sw') && url.searchParams.get('sw') === 'debug') {
+      console.log('[SW] Network First (API):', url.href);
+    }
+    
     event.respondWith(
       fetch(request).then((response) => {
-        // Ne pas cacher les erreurs API
         if (response.ok) {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -111,15 +129,6 @@ self.addEventListener('fetch', (event) => {
         return caches.match(request);
       })
     );
-  }
-  
-  // Network-first strict pour les fichiers EPUB et blob URLs (ne jamais cacher ni intercepter)
-  else if (request.url.includes('.epub') || 
-           url.pathname.includes('epubs/') || 
-           request.url.startsWith('blob:') ||
-           url.hostname.includes('supabase')) {
-    console.log('[SW] EPUB/Blob/Supabase request bypassed:', request.url);
-    // Ne pas intercepter ces requêtes - laisser le navigateur les gérer directement
     return;
   }
 });

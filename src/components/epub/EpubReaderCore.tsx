@@ -6,47 +6,41 @@ import { Loader2 } from 'lucide-react';
 import { toPublicEpubUrl } from '@/utils/epubUrl';
 import { useEpubSettings } from '@/hooks/useEpubSettings';
 import { EpubReadingControls } from '@/components/epub/EpubReadingControls';
+import { EpubDebugBanner } from '@/components/epub/EpubDebugBanner';
 
 interface EpubReaderCoreProps {
   url: string;
   bookId?: string;
 }
 
-/**
- * Lecteur EPUB minimal et robuste
- * - Utilise les URLs publiques Supabase directes (pas de blob)
- * - Mode scroll continu uniquement
- * - Pas de manipulation du scroller interne
- * - Pas de fonctionnalités avancées (TOC, progression, thèmes) pour garantir la stabilité
- */
 export const EpubReaderCore: React.FC<EpubReaderCoreProps> = ({ url, bookId }) => {
   const [location, setLocation] = useState<string | number>(0);
   const [isReady, setIsReady] = useState(false);
   const { toast } = useToast();
   const renditionRef = useRef<any>(null);
   
+  // Debug mode state (activé via ?debug=epub dans l'URL)
+  const [debugMode, setDebugMode] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({
+    spineLength: 0,
+    currentIndex: 0,
+    currentHref: '',
+    preloadStatus: 'idle',
+    averageLatency: 0,
+    lastError: null as string | null,
+  });
+  const latencyTimestamps = useRef<number[]>([]);
+  
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setDebugMode(params.get('debug') === 'epub');
+  }, []);
+  
   // Conversion intelligente vers URL publique
   const epubUrl = useMemo(() => toPublicEpubUrl(url), [url]);
   
   // Paramètres de lecture
   const { settings, updateFontSize, updateTheme, updateColorblindMode } = useEpubSettings(bookId);
-  
-  const handleReady = () => {
-    setIsReady(true);
-    toast({
-      title: "EPUB chargé",
-      description: "Le livre est prêt à être lu"
-    });
-  };
-  
-  const handleError = (error: any) => {
-    console.error('[EpubReaderCore] Error:', error);
-    toast({
-      title: "Erreur de chargement",
-      description: "Impossible de charger l'EPUB",
-      variant: "destructive"
-    });
-  };
   
   const handleLocationChanged = (cfi: string) => {
     setLocation(cfi);
@@ -182,76 +176,227 @@ export const EpubReaderCore: React.FC<EpubReaderCoreProps> = ({ url, bookId }) =
         className="relative w-full h-[calc(100vh-160px)] min-h-[600px]"
         style={{ filter: colorblindFilter }}
       >
+        {debugMode && (
+          <EpubDebugBanner
+            {...debugInfo}
+            onClose={() => setDebugMode(false)}
+          />
+        )}
+        
         {!isReady && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-10">
+            <div className="text-center space-y-4">
+              <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+              <p className="text-muted-foreground">Chargement de votre livre...</p>
+              {debugMode && (
+                <p className="text-xs text-muted-foreground font-mono">
+                  Debug mode actif - Vérifiez la console
+                </p>
+              )}
+            </div>
           </div>
         )}
+        
         <ReactReader
           url={epubUrl}
           location={location}
           locationChanged={handleLocationChanged}
           getRendition={(rendition: any) => {
+            const readyStartTime = performance.now();
             renditionRef.current = rendition;
+            
             try {
+              const book = rendition.book;
+              
+              // Instrumentation complète du book
+              if (book) {
+                if (debugMode) {
+                  console.log('[DEBUG] Book spine length:', book.spine?.length || 0);
+                  console.log('[DEBUG] Book spine items:', book.spine?.items?.map((item: any) => ({
+                    index: item.index,
+                    href: item.href,
+                    idref: item.idref,
+                  })));
+                }
+                
+                setDebugInfo(prev => ({
+                  ...prev,
+                  spineLength: book.spine?.length || 0,
+                }));
+                
+                // Event listeners sur le book
+                book.ready.then(() => {
+                  if (debugMode) console.log('[DEBUG] Book.ready promise resolved');
+                }).catch((err: any) => {
+                  const errMsg = `Book ready failed: ${err.message}`;
+                  console.error('[DEBUG]', errMsg);
+                  setDebugInfo(prev => ({ ...prev, lastError: errMsg }));
+                });
+                
+                book.opened.then(() => {
+                  if (debugMode) console.log('[DEBUG] Book.opened promise resolved');
+                }).catch((err: any) => {
+                  const errMsg = `Book open failed: ${err.message}`;
+                  console.error('[DEBUG]', errMsg);
+                  setDebugInfo(prev => ({ ...prev, lastError: errMsg }));
+                });
+              }
+              
               const markReady = () => {
                 if (!isReady) {
                   setIsReady(true);
                   toast({ title: 'EPUB chargé', description: 'Le livre est prêt à être lu' });
                   
                   // Générer les locations pour navigation fluide
-                  if (rendition.book && !rendition.book.locations.total) {
-                    rendition.book.locations.generate(1024).then(() => {
-                      console.log('[EpubReaderCore] Locations generated');
+                  if (book && book.locations && !book.locations.total) {
+                    const locStartTime = performance.now();
+                    book.locations.generate(1024).then(() => {
+                      const locDuration = performance.now() - locStartTime;
+                      console.log('[EpubReaderCore] Locations generated in', locDuration.toFixed(0), 'ms');
+                      if (debugMode) {
+                        console.log('[DEBUG] Total locations:', book.locations.total);
+                      }
                     });
                   }
                 }
               };
               
-              // Optimiser le preloading des chunks
+              // Event listeners exhaustifs
+              rendition.on('rendered', (section: any) => {
+                const renderTime = performance.now();
+                if (debugMode) {
+                  console.log('[DEBUG] Section rendered:', {
+                    index: section?.index,
+                    href: section?.href,
+                    timestamp: renderTime,
+                  });
+                }
+                
+                latencyTimestamps.current.push(renderTime);
+                if (latencyTimestamps.current.length > 10) {
+                  latencyTimestamps.current.shift();
+                }
+                
+                // Calculer latence moyenne
+                if (latencyTimestamps.current.length > 1) {
+                  const diffs = [];
+                  for (let i = 1; i < latencyTimestamps.current.length; i++) {
+                    diffs.push(latencyTimestamps.current[i] - latencyTimestamps.current[i - 1]);
+                  }
+                  const avgLatency = diffs.reduce((a, b) => a + b, 0) / diffs.length;
+                  setDebugInfo(prev => ({ ...prev, averageLatency: avgLatency }));
+                }
+                
+                markReady();
+              });
+              
+              rendition.on('displayed', (section: any) => {
+                if (debugMode) {
+                  console.log('[DEBUG] Section displayed:', {
+                    index: section?.index,
+                    href: section?.href,
+                  });
+                }
+                markReady();
+              });
+              
+              rendition.on('displayError', (err: any) => {
+                const errMsg = `Display error: ${err.message || err}`;
+                console.error('[DEBUG]', errMsg);
+                setDebugInfo(prev => ({ ...prev, lastError: errMsg }));
+              });
+              
+              rendition.on('layout', (layout: any) => {
+                if (debugMode) {
+                  console.log('[DEBUG] Layout changed:', layout);
+                }
+              });
+              
+              // Optimiser le preloading
               if (rendition.manager && rendition.manager.views) {
-                // Augmenter le nombre de vues préchargées (par défaut: 1)
                 rendition.manager.settings.minSpreadWidth = 0;
                 rendition.manager.settings.gap = 0;
+                if (debugMode) {
+                  console.log('[DEBUG] Manager settings applied');
+                }
               }
               
-              // Précharger automatiquement les sections suivantes lors du scroll
+              // Préchargement automatique lors du scroll
               rendition.on('relocated', (location: any) => {
-                if (rendition.manager && rendition.manager.views) {
-                  const views = rendition.manager.views;
-                  // Forcer le préchargement des 3 prochaines sections
-                  if (views.length > 0) {
-                    const currentIndex = location.start.index;
-                    const spine = rendition.book.spine;
-                    
-                    for (let i = 1; i <= 3; i++) {
-                      const nextIndex = currentIndex + i;
-                      if (nextIndex < spine.length) {
-                        const section = spine.get(nextIndex);
-                        if (section) {
-                          // Précharger la section en arrière-plan
-                          section.load(rendition.book.load.bind(rendition.book))
-                            .catch((err: any) => console.warn('Preload error:', err));
-                        }
+                // Mise à jour debug info
+                if (location?.start) {
+                  const currentIdx = location.start.index ?? 0;
+                  const currentHref = location.start.href || '';
+                  setDebugInfo(prev => ({
+                    ...prev,
+                    currentIndex: currentIdx,
+                    currentHref: currentHref,
+                  }));
+                  
+                  if (debugMode) {
+                    console.log('[DEBUG] Relocated to:', {
+                      index: currentIdx,
+                      href: currentHref,
+                      cfi: location.start.cfi,
+                    });
+                  }
+                }
+                
+                // Préchargement des prochaines sections
+                if (rendition.manager && location?.start && book?.spine) {
+                  const currentIndex = location.start.index ?? 0;
+                  const spine = book.spine;
+                  
+                  setDebugInfo(prev => ({ ...prev, preloadStatus: 'preloading...' }));
+                  
+                  let successCount = 0;
+                  
+                  for (let i = 1; i <= 3; i++) {
+                    const nextIndex = currentIndex + i;
+                    if (nextIndex < spine.length) {
+                      const section = spine.get(nextIndex);
+                      if (section) {
+                        section.load(book.load.bind(book))
+                          .then(() => {
+                            successCount++;
+                            if (debugMode) {
+                              console.log('[DEBUG] Preload success:', nextIndex, section.href);
+                            }
+                            setDebugInfo(prev => ({ 
+                              ...prev, 
+                              preloadStatus: `${successCount}/3 OK` 
+                            }));
+                          })
+                          .catch((err: any) => {
+                            const errMsg = `Preload failed [${nextIndex}]: ${err.message}`;
+                            console.warn('[DEBUG]', errMsg);
+                            setDebugInfo(prev => ({ 
+                              ...prev, 
+                              lastError: errMsg,
+                            }));
+                          });
                       }
                     }
                   }
                 }
               });
               
-              rendition.on('rendered', markReady);
-              rendition.on('displayed', markReady);
-            } catch (e) {
-              console.error('[EpubReaderCore] Rendition setup error:', e);
+              const readyDuration = performance.now() - readyStartTime;
+              if (debugMode) {
+                console.log('[DEBUG] Rendition setup completed in', readyDuration.toFixed(0), 'ms');
+              }
+            } catch (e: any) {
+              const errMsg = `Rendition setup error: ${e.message}`;
+              console.error('[EpubReaderCore]', errMsg, e);
+              setDebugInfo(prev => ({ ...prev, lastError: errMsg }));
             }
           }}
           epubOptions={{
             flow: 'scrolled-continuous',
             manager: 'continuous',
             spread: 'none',
-            // Options de préchargement optimisées
-            allowScriptedContent: false, // Améliore les performances
-            snap: false, // Scroll plus fluide
+            allowScriptedContent: false,
+            snap: false,
           }}
           showToc={false}
           readerStyles={readerStyles}
