@@ -227,11 +227,11 @@ export const getCSPDirectives = (): string => {
   return [
     "default-src 'self' blob: data: https:",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "style-src 'self' 'unsafe-inline' blob:",
+    "style-src 'self' 'unsafe-inline' https: https://fonts.googleapis.com blob:",
     "img-src 'self' data: blob: https:",
     "media-src 'self' data: blob: https:",
     "connect-src 'self' blob: data: https: wss: https://aotzivwzoxmnnawcxioo.supabase.co",
-    "font-src 'self' data: blob:",
+    "font-src 'self' data: https: https://fonts.gstatic.com blob:",
     "object-src 'self' data:",
     "frame-src 'self' data: blob:",
     "child-src 'self' data: blob:",

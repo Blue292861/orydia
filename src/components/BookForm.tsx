@@ -124,22 +124,55 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
           const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
           const filePath = `epubs/${uniqueFileName}`;
           
-          const { error: uploadError } = await supabase.storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
             .from('epubs')
             .upload(filePath, file, {
+              contentType: 'application/epub+zip',
               cacheControl: '3600',
-              upsert: false,
-              contentType: 'application/epub+zip'
+              upsert: false
             });
           
           if (uploadError) {
             throw uploadError;
           }
-          
+
+          // Validate upload: test Range support
           const { data } = supabase.storage
             .from('epubs')
             .getPublicUrl(filePath);
           
+          try {
+            console.log('[EPUB Upload] Testing Range support for:', data.publicUrl);
+            
+            // HEAD request to check headers
+            const headResponse = await fetch(data.publicUrl, { method: 'HEAD' });
+            const contentLength = headResponse.headers.get('content-length');
+            const acceptRanges = headResponse.headers.get('accept-ranges');
+            
+            console.log('[EPUB Upload] Content-Length:', contentLength);
+            console.log('[EPUB Upload] Accept-Ranges:', acceptRanges);
+            
+            // Test Range request
+            const rangeResponse = await fetch(data.publicUrl, {
+              headers: { 'Range': 'bytes=0-1023' }
+            });
+            
+            console.log('[EPUB Upload] Range test status:', rangeResponse.status);
+            
+            if (rangeResponse.status !== 206) {
+              console.warn('[EPUB Upload] Range requests not supported (expected 206, got', rangeResponse.status, ')');
+              toast({
+                title: "Avertissement",
+                description: "Les requêtes Range ne sont pas supportées. Utilisez ?epub=full pour ce fichier.",
+                variant: "default"
+              });
+            } else {
+              console.log('[EPUB Upload] ✓ Range requests supported');
+            }
+          } catch (testError) {
+            console.error('[EPUB Upload] Range test failed:', testError);
+          }
+
           setBook(prev => ({ ...prev, content: data.publicUrl }));
           
           toast({

@@ -9,6 +9,9 @@ interface EpubDebugBannerProps {
   preloadStatus: string;
   averageLatency: number;
   lastError: string | null;
+  isFullLoadMode: boolean;
+  isSafeCssMode: boolean;
+  onToggleSafeCss: () => void;
   onClose: () => void;
 }
 
@@ -19,6 +22,9 @@ export const EpubDebugBanner = ({
   preloadStatus,
   averageLatency,
   lastError,
+  isFullLoadMode,
+  isSafeCssMode,
+  onToggleSafeCss,
   onClose,
 }: EpubDebugBannerProps) => {
   return (
@@ -68,6 +74,26 @@ export const EpubDebugBanner = ({
         <div className="flex justify-between">
           <span className="text-muted-foreground">Avg Latency:</span>
           <span className="font-semibold">{averageLatency.toFixed(0)}ms</span>
+        </div>
+        
+        <div className="mt-2 pt-2 border-t">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-muted-foreground">Load Mode:</span>
+            <span className={`font-semibold ${isFullLoadMode ? 'text-green-500' : ''}`}>
+              {isFullLoadMode ? 'Full ArrayBuffer' : 'Stream/Range'}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">CSS Mode:</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onToggleSafeCss}
+              className="h-6 text-xs"
+            >
+              {isSafeCssMode ? 'Safe (no optimizations)' : 'Optimized'}
+            </Button>
+          </div>
         </div>
         
         {lastError && (
