@@ -107,102 +107,10 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     setBook(prev => ({ ...prev, coverUrl: coverData }));
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      
-      const fileName = file.name.toLowerCase();
-      const isEPUB = file.type === 'application/epub+zip' || fileName.endsWith('.epub');
-      
-      if (isEPUB) {
-        setIsExtracting(true);
-        setExtractionProgress(0);
-        
-        try {
-          const fileExt = file.name.split('.').pop()?.toLowerCase();
-          const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-          const filePath = `epubs/${uniqueFileName}`;
-          
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('epubs')
-            .upload(filePath, file, {
-              contentType: 'application/epub+zip',
-              cacheControl: '3600',
-              upsert: false
-            });
-          
-          if (uploadError) {
-            throw uploadError;
-          }
+  // Removed EPUB upload - now handled in chapter management
 
-          // Validate upload: test Range support
-          const { data } = supabase.storage
-            .from('epubs')
-            .getPublicUrl(filePath);
-          
-          try {
-            console.log('[EPUB Upload] Testing Range support for:', data.publicUrl);
-            
-            // HEAD request to check headers
-            const headResponse = await fetch(data.publicUrl, { method: 'HEAD' });
-            const contentLength = headResponse.headers.get('content-length');
-            const acceptRanges = headResponse.headers.get('accept-ranges');
-            
-            console.log('[EPUB Upload] Content-Length:', contentLength);
-            console.log('[EPUB Upload] Accept-Ranges:', acceptRanges);
-            
-            // Test Range request
-            const rangeResponse = await fetch(data.publicUrl, {
-              headers: { 'Range': 'bytes=0-1023' }
-            });
-            
-            console.log('[EPUB Upload] Range test status:', rangeResponse.status);
-            
-            if (rangeResponse.status !== 206) {
-              console.warn('[EPUB Upload] Range requests not supported (expected 206, got', rangeResponse.status, ')');
-              toast({
-                title: "Avertissement",
-                description: "Les requêtes Range ne sont pas supportées. Utilisez ?epub=full pour ce fichier.",
-                variant: "default"
-              });
-            } else {
-              console.log('[EPUB Upload] ✓ Range requests supported');
-            }
-          } catch (testError) {
-            console.error('[EPUB Upload] Range test failed:', testError);
-          }
-
-          setBook(prev => ({ ...prev, content: data.publicUrl }));
-          
-          toast({
-            title: "EPUB uploadé avec succès",
-            description: "Le fichier EPUB a été uploadé et sera rendu avec le lecteur intégré"
-          });
-        } catch (error) {
-          console.error('Erreur upload EPUB:', error);
-          toast({
-            title: "Erreur d'upload",
-            description: "Impossible d'uploader le fichier EPUB",
-            variant: "destructive"
-          });
-          // Reset content state on error
-          setBook(prev => ({ ...prev, content: initialBook.content }));
-        } finally {
-          setIsExtracting(false);
-          setExtractionProgress(0);
-          setExtractionStatus('');
-        }
-      }
-    }
-  };
-
-  const handleContentImport = (content: string, file?: File) => {
-    if (file && file.type === 'application/epub+zip') {
-      handleFileChange({ target: { files: [file] } } as any);
-      return;
-    }
-    const sanitizedContent = sanitizeHtml(content);
+  const handleContentImport = (importedContent: string) => {
+    const sanitizedContent = sanitizeHtml(importedContent);
     setBook(prev => ({ ...prev, content: sanitizedContent }));
   };
 
@@ -456,77 +364,47 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
 
           <div className="grid gap-2">
             <Label htmlFor="content">Contenu du livre</Label>
-            <div className="space-y-2">
-              <Textarea
-                id="content"
-                name="content"
-                value={book.content}
-                onChange={handleChange}
-                placeholder="Entrez le contenu du livre ou importez un fichier EPUB"
-                className="min-h-[200px]"
-                maxLength={1200000}
-                required
-                disabled={isEpubContent} // Désactive le champ si un EPUB est chargé
-              />
-              <div className="flex gap-2">
-                <div className="grid gap-2 flex-1">
-                  <Label htmlFor="file">Fichier EPUB (optionnel)</Label>
-                  <Input
-                    id="file"
-                    type="file"
-                    accept=".epub"
-                    onChange={handleFileChange}
-                    disabled={isExtracting}
-                  />
-                </div>
-              </div>
-              
-              {isExtracting && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Extraction en cours...</span>
-                    <span>{Math.round(extractionProgress)}%</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${extractionProgress}%` }}
-                    />
-                  </div>
-                  <p className="text-sm text-muted-foreground">{extractionStatus}</p>
-                </div>
-              )}
-              
-              {book.content && (
-                <div className="flex flex-col gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleExtractChapters}
-                    disabled={isExtracting}
-                    className="w-full"
-                  >
-                    {isExtracting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Extraction en cours...
-                      </>
-                    ) : (
-                      <>
-                        <BookOpen className="mr-2 h-4 w-4" />
-                        Détecter et extraire les chapitres
-                      </>
-                    )}
-                  </Button>
-                  
-                  {book.hasChapters && (
-                    <div className="text-sm text-green-600 dark:text-green-400">
-                      ✓ Chapitres détectés {book.isInteractive && '(Contenu interactif)'}
-                    </div>
+            <Textarea
+              id="content"
+              name="content"
+              value={book.content}
+              onChange={handleChange}
+              placeholder="Entrez le contenu du livre"
+              className="min-h-[200px]"
+              maxLength={1200000}
+              required
+            />
+            <FileImport type="pdf" onFileImport={(content) => handleContentImport(content)} />
+            
+            {book.content && (
+              <div className="flex flex-col gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleExtractChapters}
+                  disabled={isExtracting}
+                  className="w-full"
+                >
+                  {isExtracting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Extraction en cours...
+                    </>
+                  ) : (
+                    <>
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      Détecter et extraire les chapitres
+                    </>
                   )}
-                </div>
-              )}
-            </div>
+                </Button>
+                
+                {book.hasChapters && (
+                  <div className="text-sm text-green-600 dark:text-green-400">
+                    ✓ Chapitres détectés {book.isInteractive && '(Contenu interactif)'}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end">

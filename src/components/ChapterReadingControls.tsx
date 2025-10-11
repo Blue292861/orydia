@@ -1,21 +1,11 @@
-// src/components/epub/EpubReadingControls.tsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Type, 
-  Sun, 
-  Moon, 
-  Eye, 
-  ChevronDown, 
-  ChevronUp,
-  Palette
-} from 'lucide-react';
+import { Type, Sun, Moon, Eye, Palette } from 'lucide-react';
 import { useContrast } from '@/contexts/ContrastContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { ColorblindMode, EpubTheme } from '@/types/EpubSettings';
 import {
   Select,
   SelectContent,
@@ -24,16 +14,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-interface EpubReadingControlsProps {
+type Theme = 'light' | 'dark' | 'sepia';
+type ColorblindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
+
+interface ChapterReadingControlsProps {
   fontSize: number;
-  theme: EpubTheme;
+  theme: Theme;
   colorblindMode: ColorblindMode;
   onFontSizeChange: (size: number) => void;
-  onThemeChange: (theme: EpubTheme) => void;
+  onThemeChange: (theme: Theme) => void;
   onColorblindModeChange: (mode: ColorblindMode) => void;
 }
 
-export const EpubReadingControls: React.FC<EpubReadingControlsProps> = ({
+export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
   fontSize,
   theme,
   colorblindMode,
@@ -41,7 +34,6 @@ export const EpubReadingControls: React.FC<EpubReadingControlsProps> = ({
   onThemeChange,
   onColorblindModeChange,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
   const { isHighContrast, toggleContrast } = useContrast();
   const isMobile = useIsMobile();
 
@@ -55,7 +47,7 @@ export const EpubReadingControls: React.FC<EpubReadingControlsProps> = ({
 
   const ControlsContent = () => (
     <div className="space-y-4">
-      {/* Taille de texte */}
+      {/* Font Size */}
       <div className="space-y-2">
         <label className="text-sm font-medium flex items-center gap-2">
           <Type className="h-4 w-4" />
@@ -86,7 +78,7 @@ export const EpubReadingControls: React.FC<EpubReadingControlsProps> = ({
 
       <Separator />
 
-      {/* Thème */}
+      {/* Theme */}
       <div className="space-y-2">
         <label className="text-sm font-medium flex items-center gap-2">
           <Palette className="h-4 w-4" />
@@ -97,35 +89,29 @@ export const EpubReadingControls: React.FC<EpubReadingControlsProps> = ({
             variant={theme === 'light' ? 'default' : 'outline'}
             size="sm"
             onClick={() => onThemeChange('light')}
-            className="flex items-center gap-1"
           >
             <Sun className="h-4 w-4" />
-            Clair
           </Button>
           <Button
             variant={theme === 'dark' ? 'default' : 'outline'}
             size="sm"
             onClick={() => onThemeChange('dark')}
-            className="flex items-center gap-1"
           >
             <Moon className="h-4 w-4" />
-            Sombre
           </Button>
           <Button
             variant={theme === 'sepia' ? 'default' : 'outline'}
             size="sm"
             onClick={() => onThemeChange('sepia')}
-            className="flex items-center gap-1"
           >
             <Type className="h-4 w-4" />
-            Sépia
           </Button>
         </div>
       </div>
 
       <Separator />
 
-      {/* Contraste */}
+      {/* Contrast */}
       <div className="space-y-2">
         <label className="text-sm font-medium flex items-center gap-2">
           <Eye className="h-4 w-4" />
@@ -143,7 +129,7 @@ export const EpubReadingControls: React.FC<EpubReadingControlsProps> = ({
 
       <Separator />
 
-      {/* Mode daltonien */}
+      {/* Colorblind Mode */}
       <div className="space-y-2">
         <label className="text-sm font-medium flex items-center gap-2">
           <Eye className="h-4 w-4" />
@@ -164,7 +150,6 @@ export const EpubReadingControls: React.FC<EpubReadingControlsProps> = ({
     </div>
   );
 
-  // Version mobile : Sheet drawer
   if (isMobile) {
     return (
       <Sheet>
@@ -172,7 +157,7 @@ export const EpubReadingControls: React.FC<EpubReadingControlsProps> = ({
           <Button
             variant="secondary"
             size="icon"
-            className="fixed bottom-20 right-4 z-50 h-12 w-12 rounded-full shadow-lg backdrop-blur-sm bg-card/80 border-2"
+            className="fixed bottom-20 right-4 z-50 h-12 w-12 rounded-full shadow-lg"
           >
             <Type className="h-5 w-5" />
           </Button>
@@ -187,38 +172,9 @@ export const EpubReadingControls: React.FC<EpubReadingControlsProps> = ({
     );
   }
 
-  // Version desktop : Panneau flottant
   return (
-    <Card
-      className={`fixed top-20 right-4 z-50 shadow-lg backdrop-blur-sm bg-card/95 border-2 transition-all duration-300 ${
-        isExpanded ? 'w-72 p-4' : 'w-12 h-12 p-0'
-      }`}
-    >
-      {isExpanded ? (
-        <>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold">Paramètres</h3>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsExpanded(false)}
-              className="h-6 w-6"
-            >
-              <ChevronUp className="h-4 w-4" />
-            </Button>
-          </div>
-          <ControlsContent />
-        </>
-      ) : (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsExpanded(true)}
-          className="h-full w-full"
-        >
-          <ChevronDown className="h-5 w-5" />
-        </Button>
-      )}
+    <Card className="fixed bottom-4 right-4 z-50 w-72 p-4 shadow-lg">
+      <ControlsContent />
     </Card>
   );
 };

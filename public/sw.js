@@ -41,6 +41,11 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
   
+  // Only cache GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+  
   // Ne pas intercepter les navigations
   if (request.mode === 'navigate') {
     return;

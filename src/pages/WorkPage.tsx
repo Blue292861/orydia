@@ -13,11 +13,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { findWorkBySlug } from '@/utils/slugUtils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Share2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Share2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { TextReader } from '@/components/TextReader';
-import { EpubReaderCore } from '@/components/epub/EpubReaderCore';
-import { isUrl } from '@/utils/urlUtils';
 import { fetchBooksFromDB } from '@/services/bookService';
 
 /**
@@ -162,8 +160,6 @@ const WorkPage: React.FC = () => {
                   workType === 'audiobook' && 'description' in foundWork ? foundWork.description : undefined;
   const isPremium = 'isPremium' in foundWork ? foundWork.isPremium : foundWork.is_premium;
 
-  const isEpub = workType === 'book' && (foundWork as Book).content && isUrl((foundWork as Book).content) && (foundWork as Book).content.endsWith('.epub');
-
   return (
     <>
       <SecurityHeaders />
@@ -232,11 +228,9 @@ const WorkPage: React.FC = () => {
           </Card>
           
           <div className="mt-6">
-            {isEpub ? (
-              <EpubReaderCore url={(foundWork as Book).content} bookId={(foundWork as Book).id} />
-            ) : workType === 'book' ? (
+            {workType === 'book' && (
               <TextReader content={(foundWork as Book).content} />
-            ) : null}
+            )}
           </div>
         </main>
 

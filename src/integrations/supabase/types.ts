@@ -285,6 +285,53 @@ export type Database = {
         }
         Relationships: []
       }
+      book_chapter_epubs: {
+        Row: {
+          book_id: string
+          chapter_number: number
+          created_at: string
+          description: string | null
+          epub_url: string
+          id: string
+          illustration_url: string | null
+          position: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          book_id: string
+          chapter_number: number
+          created_at?: string
+          description?: string | null
+          epub_url: string
+          id?: string
+          illustration_url?: string | null
+          position: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          book_id?: string
+          chapter_number?: number
+          created_at?: string
+          description?: string | null
+          epub_url?: string
+          id?: string
+          illustration_url?: string | null
+          position?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_chapter_epubs_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       book_chapters: {
         Row: {
           book_id: string
@@ -1390,6 +1437,19 @@ export type Database = {
       cleanup_orphaned_storage_files: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      create_instant_order: {
+        Args: { p_item_id: string; p_item_name: string; p_price: number }
+        Returns: string
+      }
+      create_pending_order: {
+        Args: {
+          p_item_id: string
+          p_item_name: string
+          p_price: number
+          p_user_id: string
+        }
+        Returns: string
       }
       get_recommended_theme: {
         Args: { p_user_id: string }
