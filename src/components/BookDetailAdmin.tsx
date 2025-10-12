@@ -22,7 +22,7 @@ export const BookDetailAdmin: React.FC<BookDetailAdminProps> = ({
   onOpenChange,
   onBookUpdate,
 }) => {
-  const [activeTab, setActiveTab] = useState('info');
+  const [activeTab, setActiveTab] = useState('chapters'); // Default to chapters tab
   const [showChapterForm, setShowChapterForm] = useState(false);
   const [editingChapter, setEditingChapter] = useState<ChapterEpub | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);

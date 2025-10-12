@@ -6,14 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { BookForm } from '@/components/BookForm';
-import { Plus, Pencil, Trash2, Crown, Star, Zap } from 'lucide-react';
+import { BookDetailAdmin } from '@/components/BookDetailAdmin';
+import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
 import { useResponsive } from '@/hooks/useResponsive';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export const AdminDashboard: React.FC = () => {
   const { books, loading, addBook, updateBook, deleteBook } = useBooks();
   const [showDialog, setShowDialog] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
+  const [detailBook, setDetailBook] = useState<Book | null>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   const { isMobile, isTablet } = useResponsive();
 
   const handleOpenAdd = () => {
@@ -39,6 +48,16 @@ export const AdminDashboard: React.FC = () => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce livre ?')) {
       deleteBook(id);
     }
+  };
+
+  const handleOpenChapters = (book: Book) => {
+    setDetailBook(book);
+    setShowDetailDialog(true);
+  };
+
+  const handleCloseDetail = () => {
+    setShowDetailDialog(false);
+    setDetailBook(null);
   };
 
   if (loading) {
@@ -117,23 +136,31 @@ export const AdminDashboard: React.FC = () => {
                   ))
                 )}
               </div>
-              <div className={`flex ${isMobile ? 'flex-col gap-2' : 'justify-end gap-2'}`}>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => handleOpenEdit(book)}
-                  className={isMobile ? 'w-full' : ''}
-                >
-                  <Pencil className="h-4 w-4 mr-1" /> Modifier
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  size="sm" 
-                  onClick={() => handleDelete(book.id)}
-                  className={isMobile ? 'w-full' : ''}
-                >
-                  <Trash2 className="h-4 w-4 mr-1" /> Supprimer
-                </Button>
+              <div className="flex justify-end">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-background">
+                    <DropdownMenuItem onClick={() => handleOpenChapters(book)}>
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      Gérer les chapitres
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleOpenEdit(book)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Modifier
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleDelete(book.id)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Supprimer
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardContent>
           </Card>
@@ -168,7 +195,7 @@ export const AdminDashboard: React.FC = () => {
               isPremium: false,
               isMonthSuccess: false,
               isPacoFavourite: false,
-              hasChapters: false,
+              hasChapters: true,
               isInteractive: false,
               isAdultContent: false,
             }}
@@ -176,6 +203,18 @@ export const AdminDashboard: React.FC = () => {
           />
         </DialogContent>
       </Dialog>
+
+      {detailBook && (
+        <BookDetailAdmin
+          book={detailBook}
+          open={showDetailDialog}
+          onOpenChange={setShowDetailDialog}
+          onBookUpdate={(updatedBook) => {
+            updateBook(updatedBook);
+            handleCloseDetail();
+          }}
+        />
+      )}
     </div>
   );
 };

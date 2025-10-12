@@ -8,14 +8,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { TagInput } from '@/components/TagInput';
 import { GenreSelector } from '@/components/GenreSelector';
-import { LiteraryGenre } from '@/constants/genres'; // Ligne modifiée
+import { LiteraryGenre } from '@/constants/genres';
 import { FileImport } from '@/components/FileImport';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { sanitizeText, sanitizeImageUrl, sanitizeTextWithSpaces, sanitizeHtml, validateTextLength, validateImageUrl, validatePoints } from '@/utils/security';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { Loader2, BookOpen, Zap, FileText } from 'lucide-react';
 
 interface BookFormProps {
   initialBook: Book;
@@ -32,10 +30,6 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       typeof genre === 'string' && genre.length > 0
     )
   );
-  const [isExtracting, setIsExtracting] = React.useState(false);
-  const [extractionProgress, setExtractionProgress] = React.useState(0);
-  const [extractionStatus, setExtractionStatus] = React.useState('');
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const { toast } = useToast();
 
   const isEpubContent = book.content && (book.content.startsWith('http') || book.content.startsWith('https')) && book.content.endsWith('.epub');
@@ -108,65 +102,6 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
 
   const handleCoverImport = (coverData: string) => {
     setBook(prev => ({ ...prev, coverUrl: coverData }));
-  };
-
-  // Removed EPUB upload - now handled in chapter management
-
-  const handleContentImport = (importedContent: string) => {
-    const sanitizedContent = sanitizeHtml(importedContent);
-    setBook(prev => ({ ...prev, content: sanitizedContent }));
-  };
-
-  const handleExtractChapters = async () => {
-    if (!book.content?.trim()) {
-      toast({
-        title: "Contenu requis",
-        description: "Veuillez d'abord ajouter du contenu au livre pour extraire les chapitres.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsExtracting(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('extract-chapters', {
-        body: { 
-          content: book.content,
-          title: book.title || 'Livre sans titre'
-        }
-      });
-
-      if (error) throw error;
-
-      if (data?.hasChapters) {
-        setBook(prev => ({ 
-          ...prev, 
-          hasChapters: true,
-          isInteractive: data.isInteractive || false 
-        }));
-        
-        toast({
-          title: "Chapitres extraits avec succès",
-          description: `${data.chaptersCount} chapitres détectés. ${data.isInteractive ? 'Contenu interactif détecté!' : ''}`,
-        });
-      } else {
-        toast({
-          title: "Aucun chapitre détecté",
-          description: "Le contenu ne semble pas avoir de structure en chapitres claire.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Erreur lors de l\'extraction des chapitres:', error);
-      toast({
-        title: "Erreur d'extraction",
-        description: "Une erreur s'est produite lors de l'extraction des chapitres.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsExtracting(false);
-    }
   };
 
   const validateForm = (): boolean => {
