@@ -23,7 +23,10 @@ interface BookFormProps {
 }
 
 export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => {
-  const [book, setBook] = React.useState<Book>(initialBook);
+  const [book, setBook] = React.useState<Book>({
+    ...initialBook,
+    hasChapters: true // Système de chapitres obligatoire par défaut
+  });
   const [selectedGenres, setSelectedGenres] = React.useState<LiteraryGenre[]>(
     (initialBook.genres || []).filter((genre): genre is LiteraryGenre => 
       typeof genre === 'string' && genre.length > 0
@@ -191,15 +194,7 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       });
       return false;
     }
-    // Content is only required if not using chapter system
-    if (!book.hasChapters && !book.content?.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Content is required (or enable chapter system).",
-        variant: "destructive"
-      });
-      return false;
-    }
+    // Content is optional since chapters system is mandatory
     if (!validateImageUrl(book.coverUrl)) {
       toast({
         title: "Validation Error",
@@ -363,58 +358,11 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
             <TagInput tags={book.tags} onTagsChange={handleTagsChange} />
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="content">
-              Contenu du livre
-              {book.hasChapters && (
-                <span className="text-sm text-muted-foreground ml-2">
-                  (Facultatif - le contenu sera ajouté via les chapitres)
-                </span>
-              )}
-            </Label>
-            <Textarea
-              id="content"
-              name="content"
-              value={book.content}
-              onChange={handleChange}
-              placeholder={book.hasChapters ? "Le contenu sera géré via les chapitres" : "Entrez le contenu du livre"}
-              className="min-h-[200px]"
-              maxLength={1200000}
-              required={!book.hasChapters}
-              disabled={book.hasChapters}
-            />
-            <FileImport type="pdf" onFileImport={(content) => handleContentImport(content)} />
-            
-            {book.content && (
-              <div className="flex flex-col gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleExtractChapters}
-                  disabled={isExtracting}
-                  className="w-full"
-                >
-                  {isExtracting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Extraction en cours...
-                    </>
-                  ) : (
-                    <>
-                      <BookOpen className="mr-2 h-4 w-4" />
-                      Détecter et extraire les chapitres
-                    </>
-                  )}
-                </Button>
-                
-                {book.hasChapters && (
-                  <div className="text-sm text-green-600 dark:text-green-400">
-                    ✓ Chapitres détectés {book.isInteractive && '(Contenu interactif)'}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <Alert>
+            <AlertDescription>
+              Le contenu du livre sera géré via le système de chapitres. Après avoir créé le livre, vous pourrez ajouter les chapitres en cliquant sur "Gérer les chapitres".
+            </AlertDescription>
+          </Alert>
 
           <div className="flex justify-end">
             <Button type="submit">
