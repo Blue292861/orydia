@@ -191,10 +191,11 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
       });
       return false;
     }
-    if (!book.content?.trim()) {
+    // Content is only required if not using chapter system
+    if (!book.hasChapters && !book.content?.trim()) {
       toast({
         title: "Validation Error",
-        description: "Content is required.",
+        description: "Content is required (or enable chapter system).",
         variant: "destructive"
       });
       return false;
@@ -363,16 +364,24 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="content">Contenu du livre</Label>
+            <Label htmlFor="content">
+              Contenu du livre
+              {book.hasChapters && (
+                <span className="text-sm text-muted-foreground ml-2">
+                  (Facultatif - le contenu sera ajouté via les chapitres)
+                </span>
+              )}
+            </Label>
             <Textarea
               id="content"
               name="content"
               value={book.content}
               onChange={handleChange}
-              placeholder="Entrez le contenu du livre"
+              placeholder={book.hasChapters ? "Le contenu sera géré via les chapitres" : "Entrez le contenu du livre"}
               className="min-h-[200px]"
               maxLength={1200000}
-              required
+              required={!book.hasChapters}
+              disabled={book.hasChapters}
             />
             <FileImport type="pdf" onFileImport={(content) => handleContentImport(content)} />
             
