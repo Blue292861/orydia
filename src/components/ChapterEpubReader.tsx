@@ -151,27 +151,40 @@ export const ChapterEpubReader: React.FC = () => {
             url={chapter.epub_url}
             location={location}
             locationChanged={handleLocationChange}
+            epubInitOptions={{ openAs: 'epub' }}
             epubOptions={{
               flow: 'paginated',
               manager: 'default',
+              spread: 'none',
             }}
             getRendition={(rendition) => {
               console.log('EPUB rendition ready', rendition);
               setEpubReady(true);
               setEpubError(null);
-              
-              // Apply theme colors
-              rendition.themes.default(themeColors[theme]);
+
+              const themeStyles = {
+                light: { body: { background: themeColors.light.background, color: themeColors.light.color } },
+                dark: { body: { background: themeColors.dark.background, color: themeColors.dark.color } },
+                sepia: { body: { background: themeColors.sepia.background, color: themeColors.sepia.color } },
+              } as const;
+
+              rendition.themes.register('light', themeStyles.light);
+              rendition.themes.register('dark', themeStyles.dark);
+              rendition.themes.register('sepia', themeStyles.sepia);
+              rendition.themes.select(theme);
               rendition.themes.fontSize(`${fontSize}px`);
-              
-              // Apply colorblind filter if needed
-              if (colorblindMode !== 'none') {
-                rendition.themes.default({
-                  body: {
-                    filter: `url(#${colorblindMode}-filter)`,
-                  },
-                });
-              }
+
+              rendition.on('rendered', (section: any) => {
+                console.log('EPUB rendered section', section?.href);
+              });
+              rendition.on('relocated', (loc: any) => {
+                console.log('EPUB relocated', loc?.start?.cfi);
+              });
+              // @ts-ignore
+              rendition.on('displayError', (err: any) => {
+                console.error('EPUB displayError', err);
+                setEpubError("Erreur d’affichage du chapitre");
+              });
             }}
             loadingView={
               <div className="flex items-center justify-center h-full">
