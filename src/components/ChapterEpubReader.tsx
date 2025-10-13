@@ -76,6 +76,8 @@ export const ChapterEpubReader: React.FC = () => {
     if (chapterId) {
       localStorage.setItem(`chapter_fontSize_${chapterId}`, size.toString());
     }
+    // Force re-render to apply new font size
+    setLocation((prev) => prev);
   };
 
   const handleThemeChange = (newTheme: Theme) => {
@@ -138,75 +140,73 @@ export const ChapterEpubReader: React.FC = () => {
       </div>
 
       {/* EPUB Reader */}
-      <div className="flex-1 overflow-y-auto pb-32" style={{ fontSize: `${fontSize}px` }}>
-        <div className="min-h-screen">
-          {epubError ? (
-            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-              <p className="text-destructive">{epubError}</p>
-              <Button onClick={() => window.location.reload()}>Recharger</Button>
-            </div>
-          ) : (
-            <ReactReader
-              url={chapter.epub_url}
-              location={location}
-              locationChanged={handleLocationChange}
-              epubInitOptions={{
-                openAs: 'epub',
-              }}
-              epubOptions={{
-                flow: 'scrolled',
-                manager: 'continuous',
-                spread: 'none',
-                allowScriptedContent: false,
-              }}
-              getRendition={(rendition) => {
-                console.log('EPUB rendition ready');
-                setEpubReady(true);
-                setEpubError(null);
-                
-                // Apply theme colors
-                rendition.themes.default(themeColors[theme]);
-                
-                // Apply colorblind filter if needed
-                if (colorblindMode !== 'none') {
-                  rendition.themes.default({
-                    body: {
-                      filter: `url(#${colorblindMode}-filter)`,
-                    },
-                  });
-                }
-              }}
-              loadingView={
-                <div className="flex items-center justify-center min-h-[400px]">
-                  <div className="text-center space-y-2">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                    <p className="text-muted-foreground">Chargement du chapitre...</p>
-                  </div>
-                </div>
+      <div className="flex-1" style={{ height: 'calc(100vh - 64px)' }}>
+        {epubError ? (
+          <div className="flex flex-col items-center justify-center h-full gap-4">
+            <p className="text-destructive">{epubError}</p>
+            <Button onClick={() => window.location.reload()}>Recharger</Button>
+          </div>
+        ) : (
+          <ReactReader
+            url={chapter.epub_url}
+            location={location}
+            locationChanged={handleLocationChange}
+            epubOptions={{
+              flow: 'paginated',
+              manager: 'default',
+            }}
+            getRendition={(rendition) => {
+              console.log('EPUB rendition ready', rendition);
+              setEpubReady(true);
+              setEpubError(null);
+              
+              // Apply theme colors
+              rendition.themes.default(themeColors[theme]);
+              rendition.themes.fontSize(`${fontSize}px`);
+              
+              // Apply colorblind filter if needed
+              if (colorblindMode !== 'none') {
+                rendition.themes.default({
+                  body: {
+                    filter: `url(#${colorblindMode}-filter)`,
+                  },
+                });
               }
-            />
-          )}
-        </div>
-
-        {/* Footer Navigation */}
-        <div className="container mx-auto px-4 py-8 space-y-4">
-          {isLastChapter() ? (
-            <Button onClick={handleClaimReward} size="lg" className="w-full">
-              <Gift className="mr-2 h-5 w-5" />
-              Réclamer vos Tensens
-            </Button>
-          ) : nextChapter ? (
-            <Button
-              onClick={() => navigate(`/book/${bookId}/chapter/${nextChapter.id}`)}
-              size="lg"
-              className="w-full"
-            >
-              Chapitre suivant
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          ) : null}
-        </div>
+            }}
+            loadingView={
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center space-y-2">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                  <p className="text-muted-foreground">Chargement du chapitre...</p>
+                </div>
+              </div>
+            }
+          />
+        )}
       </div>
+
+      {/* Footer Navigation - Fixed at bottom */}
+      {(isLastChapter() || getNextChapter()) && (
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 z-30">
+          <div className="container mx-auto">
+            {isLastChapter() ? (
+              <Button onClick={handleClaimReward} size="lg" className="w-full">
+                <Gift className="mr-2 h-5 w-5" />
+                Réclamer vos Tensens
+              </Button>
+            ) : nextChapter ? (
+              <Button
+                onClick={() => navigate(`/book/${bookId}/chapter/${nextChapter.id}`)}
+                size="lg"
+                className="w-full"
+              >
+                Chapitre suivant
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      )}
 
       {/* Reading Controls */}
       <ChapterReadingControls
