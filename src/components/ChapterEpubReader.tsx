@@ -23,6 +23,8 @@ export const ChapterEpubReader: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('light');
   const [colorblindMode, setColorblindMode] = useState<ColorblindMode>('none');
   const [loading, setLoading] = useState(true);
+  const [epubReady, setEpubReady] = useState(false);
+  const [epubError, setEpubError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadChapter = async () => {
@@ -137,31 +139,53 @@ export const ChapterEpubReader: React.FC = () => {
 
       {/* EPUB Reader */}
       <div className="flex-1 overflow-y-auto pb-32" style={{ fontSize: `${fontSize}px` }}>
-        <div style={{ height: '100%', minHeight: '80vh' }}>
-          <ReactReader
-            url={chapter.epub_url}
-            location={location}
-            locationChanged={handleLocationChange}
-            epubOptions={{
-              flow: 'scrolled-doc',
-              manager: 'continuous',
-              spread: 'none',
-              allowScriptedContent: false,
-            }}
-            getRendition={(rendition) => {
-              // Apply theme colors
-              rendition.themes.default(themeColors[theme]);
-              
-              // Apply colorblind filter if needed
-              if (colorblindMode !== 'none') {
-                rendition.themes.default({
-                  body: {
-                    filter: `url(#${colorblindMode}-filter)`,
-                  },
-                });
+        <div className="min-h-screen">
+          {epubError ? (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+              <p className="text-destructive">{epubError}</p>
+              <Button onClick={() => window.location.reload()}>Recharger</Button>
+            </div>
+          ) : (
+            <ReactReader
+              url={chapter.epub_url}
+              location={location}
+              locationChanged={handleLocationChange}
+              epubInitOptions={{
+                openAs: 'epub',
+              }}
+              epubOptions={{
+                flow: 'scrolled',
+                manager: 'continuous',
+                spread: 'none',
+                allowScriptedContent: false,
+              }}
+              getRendition={(rendition) => {
+                console.log('EPUB rendition ready');
+                setEpubReady(true);
+                setEpubError(null);
+                
+                // Apply theme colors
+                rendition.themes.default(themeColors[theme]);
+                
+                // Apply colorblind filter if needed
+                if (colorblindMode !== 'none') {
+                  rendition.themes.default({
+                    body: {
+                      filter: `url(#${colorblindMode}-filter)`,
+                    },
+                  });
+                }
+              }}
+              loadingView={
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="text-center space-y-2">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-muted-foreground">Chargement du chapitre...</p>
+                  </div>
+                </div>
               }
-            }}
-          />
+            />
+          )}
         </div>
 
         {/* Footer Navigation */}

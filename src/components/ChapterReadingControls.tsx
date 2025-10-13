@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Type, Sun, Moon, Eye, Palette } from 'lucide-react';
 import { useContrast } from '@/contexts/ContrastContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -36,6 +36,7 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
 }) => {
   const { isHighContrast, toggleContrast } = useContrast();
   const isMobile = useIsMobile();
+  const [open, setOpen] = useState(false);
 
   const increaseFontSize = () => {
     if (fontSize < 24) onFontSizeChange(fontSize + 1);
@@ -152,7 +153,7 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
 
   if (isMobile) {
     return (
-      <Sheet>
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button
             variant="secondary"
@@ -173,8 +174,19 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 z-50 w-72 p-4 shadow-lg">
-      <ControlsContent />
-    </Card>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="secondary"
+          size="icon"
+          className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg"
+        >
+          <Type className="h-5 w-5" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-4" align="end">
+        <ControlsContent />
+      </PopoverContent>
+    </Popover>
   );
 };
