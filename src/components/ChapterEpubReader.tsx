@@ -155,9 +155,11 @@ export const ChapterEpubReader: React.FC = () => {
         const savedLocation = typeof location === 'string' ? location : undefined;
         try {
           await epubRendition.display(savedLocation);
+          setEpubReady(true);
         } catch (err) {
           console.warn('CFI display failed, fallback to start', err);
           await epubRendition.display();
+          setEpubReady(true);
         }
         
         console.log('✅ EPUB displayed successfully');
