@@ -237,7 +237,7 @@ export const ChapterEpubReader: React.FC = () => {
                 openAs: 'epub',
               }}
               epubOptions={{
-                flow: 'paginated',
+                flow: 'scrolled-doc',
                 manager: 'default',
                 spread: 'none',
               }}
@@ -247,20 +247,41 @@ export const ChapterEpubReader: React.FC = () => {
                 setEpubReady(true);
                 setEpubError(null);
 
-                const themeStyles = {
-                  light: { body: { background: themeColors.light.background, color: themeColors.light.color } },
-                  dark: { body: { background: themeColors.dark.background, color: themeColors.dark.color } },
-                  sepia: { body: { background: themeColors.sepia.background, color: themeColors.sepia.color } },
-                } as const;
+                // Stronger theme to override book CSS
+                const buildTheme = (bg: string, color: string) => `
+                  html, body { background: ${bg} !important; color: ${color} !important; }
+                  p, div, span, a, li, h1, h2, h3, h4, h5, h6 { color: ${color} !important; }
+                  img { max-width: 100% !important; height: auto !important; }
+                `;
 
-                rendition.themes.register('light', themeStyles.light);
-                rendition.themes.register('dark', themeStyles.dark);
-                rendition.themes.register('sepia', themeStyles.sepia);
+                rendition.themes.register('light', buildTheme(themeColors.light.background, themeColors.light.color));
+                rendition.themes.register('dark', buildTheme(themeColors.dark.background, themeColors.dark.color));
+                rendition.themes.register('sepia', buildTheme(themeColors.sepia.background, themeColors.sepia.color));
                 rendition.themes.select(theme);
                 rendition.themes.fontSize(`${fontSize}px`);
 
-                rendition.on('rendered', (section: any) => {
-                  console.log('EPUB rendered section', section?.href);
+                // Ensure correct sizing to parent container
+                try {
+                  const el = containerRef.current;
+                  if (el) {
+                    rendition.resize(el.clientWidth, el.clientHeight);
+                  }
+                  setTimeout(() => {
+                    try { rendition.display(location as any); } catch {}
+                  }, 0);
+                } catch {}
+
+                rendition.on('rendered', (_section: any, contents: any) => {
+                  try {
+                    // Ensure content is visible and inherits our theme
+                    contents.addStylesheet(`html, body { background: ${themeColors[theme].background} !important; color: ${themeColors[theme].color} !important; } img { max-width: 100% !important; height: auto !important; }`);
+                    contents.document.documentElement.style.background = themeColors[theme].background;
+                    contents.document.body.style.background = themeColors[theme].background;
+                    contents.document.body.style.color = themeColors[theme].color;
+                  } catch (e) {
+                    console.warn('EPUB contents styling injection failed', e);
+                  }
+                  console.log('EPUB rendered section', _section?.href);
                 });
                 rendition.on('relocated', (loc: any) => {
                   console.log('EPUB relocated', loc?.start?.cfi);
