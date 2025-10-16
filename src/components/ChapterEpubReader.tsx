@@ -217,13 +217,13 @@ export const ChapterEpubReader: React.FC = () => {
         // Display with saved location or fallback
         const savedCFI = chapterId ? localStorage.getItem(`chapter_location_${chapterId}`) : null;
         const savedLocation = typeof savedCFI === 'string' ? savedCFI : undefined;
+        const spineItems = (book.spine as any).items || [];
         
         try {
           if (savedLocation) {
             await rendition.display(savedLocation);
           } else {
             // Skip cover page by starting at second spine item if available
-            const spineItems = (book.spine as any).items || [];
             if (spineItems.length > 1) {
               await rendition.display(spineItems[1].href);
             } else {
@@ -232,12 +232,17 @@ export const ChapterEpubReader: React.FC = () => {
           }
           if (!cancelled) setEpubReady(true);
         } catch (err) {
-          console.warn('CFI display failed, fallback to start:', err);
-          // Invalid CFI -> clear it and start from beginning
+          console.warn('CFI display failed, fallback to skip cover:', err);
+          // Invalid CFI -> clear it and skip cover
           if (chapterId) {
             localStorage.removeItem(`chapter_location_${chapterId}`);
           }
-          await rendition.display();
+          // Skip cover on error too
+          if (spineItems.length > 1) {
+            await rendition.display(spineItems[1].href);
+          } else {
+            await rendition.display();
+          }
           if (!cancelled) setEpubReady(true);
         }
 
