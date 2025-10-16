@@ -226,7 +226,9 @@ export const ChapterEpubReader: React.FC = () => {
             html: { 
               background: '#ffffff !important', 
               color: '#000000 !important',
-              'overflow-x': 'hidden !important'
+              'overflow-x': 'hidden !important',
+              'scrollbar-width': 'none !important',
+              '-ms-overflow-style': 'none !important',
             },
             body: { 
               background: '#ffffff !important', 
@@ -240,6 +242,11 @@ export const ChapterEpubReader: React.FC = () => {
               'overflow-wrap': 'anywhere !important',
               'word-break': 'break-word !important',
               'hyphens': 'auto !important',
+              'scrollbar-width': 'none !important',
+              '-ms-overflow-style': 'none !important',
+            },
+            '::-webkit-scrollbar': {
+              display: 'none !important',
             },
             p: { color: '#000000 !important', 'line-height': '1.6' },
             h1: { color: '#000000 !important' },
@@ -262,7 +269,9 @@ export const ChapterEpubReader: React.FC = () => {
             html: { 
               background: '#1a1a1a !important', 
               color: '#ffffff !important',
-              'overflow-x': 'hidden !important'
+              'overflow-x': 'hidden !important',
+              'scrollbar-width': 'none !important',
+              '-ms-overflow-style': 'none !important',
             },
             body: { 
               background: '#1a1a1a !important', 
@@ -276,6 +285,11 @@ export const ChapterEpubReader: React.FC = () => {
               'overflow-wrap': 'anywhere !important',
               'word-break': 'break-word !important',
               'hyphens': 'auto !important',
+              'scrollbar-width': 'none !important',
+              '-ms-overflow-style': 'none !important',
+            },
+            '::-webkit-scrollbar': {
+              display: 'none !important',
             },
             p: { color: '#ffffff !important', 'line-height': '1.6' },
             h1: { color: '#ffffff !important' },
@@ -298,7 +312,9 @@ export const ChapterEpubReader: React.FC = () => {
             html: { 
               background: '#f4ecd8 !important', 
               color: '#5c4a2f !important',
-              'overflow-x': 'hidden !important'
+              'overflow-x': 'hidden !important',
+              'scrollbar-width': 'none !important',
+              '-ms-overflow-style': 'none !important',
             },
             body: { 
               background: '#f4ecd8 !important', 
@@ -312,6 +328,11 @@ export const ChapterEpubReader: React.FC = () => {
               'overflow-wrap': 'anywhere !important',
               'word-break': 'break-word !important',
               'hyphens': 'auto !important',
+              'scrollbar-width': 'none !important',
+              '-ms-overflow-style': 'none !important',
+            },
+            '::-webkit-scrollbar': {
+              display: 'none !important',
             },
             p: { color: '#5c4a2f !important', 'line-height': '1.6' },
             h1: { color: '#5c4a2f !important' },
@@ -513,14 +534,30 @@ export const ChapterEpubReader: React.FC = () => {
   };
 
   const handleNextPage = () => {
-    if (renditionRef.current) {
+    if (flowType === 'paginated' && renditionRef.current) {
       renditionRef.current.next();
+    } else if (flowType === 'scrolled-doc' && epubRootRef.current) {
+      // Scroll down by viewport height
+      const iframe = epubRootRef.current.querySelector('iframe');
+      if (iframe && iframe.contentWindow) {
+        const doc = iframe.contentWindow.document;
+        const scrollHeight = iframe.contentWindow.innerHeight * 0.9;
+        doc.documentElement.scrollTop += scrollHeight;
+      }
     }
   };
 
   const handlePrevPage = () => {
-    if (renditionRef.current) {
+    if (flowType === 'paginated' && renditionRef.current) {
       renditionRef.current.prev();
+    } else if (flowType === 'scrolled-doc' && epubRootRef.current) {
+      // Scroll up by viewport height
+      const iframe = epubRootRef.current.querySelector('iframe');
+      if (iframe && iframe.contentWindow) {
+        const doc = iframe.contentWindow.document;
+        const scrollHeight = iframe.contentWindow.innerHeight * 0.9;
+        doc.documentElement.scrollTop -= scrollHeight;
+      }
     }
   };
 
@@ -626,8 +663,8 @@ export const ChapterEpubReader: React.FC = () => {
                 </div>
               )}
 
-              {/* Navigation Button - Previous (only in paginated mode) */}
-              {epubReady && flowType === 'paginated' && (
+              {/* Navigation Button - Previous */}
+              {epubReady && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -642,15 +679,15 @@ export const ChapterEpubReader: React.FC = () => {
               {/* EPUB Container */}
               <div 
                 ref={epubRootRef}
-                className="absolute inset-0 overflow-hidden"
+                className="absolute inset-0 overflow-hidden [&>iframe]:!scrollbar-hide"
                 style={{ 
                   background: themeColors[theme].background,
                   filter: colorblindMode !== 'none' ? `url(#${colorblindMode}-filter)` : undefined,
                 }}
               />
 
-              {/* Navigation Button - Next (only in paginated mode) */}
-              {epubReady && flowType === 'paginated' && (
+              {/* Navigation Button - Next */}
+              {epubReady && (
                 <Button
                   variant="ghost"
                   size="icon"
