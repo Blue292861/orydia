@@ -434,7 +434,10 @@ export const ChapterEpubReader: React.FC = () => {
       </div>
 
       {/* EPUB Reader with Navigation */}
-      <div className="flex-1 flex flex-col min-h-0" style={{ height: 'calc(100dvh - 120px)' }}>
+      <div className="flex-1 flex flex-col min-h-0" style={{ 
+        height: 'calc(100dvh - 180px)',
+        maxHeight: 'calc(100dvh - 180px)'
+      }}>
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             <p className="text-destructive">{epubError}</p>
@@ -463,7 +466,7 @@ export const ChapterEpubReader: React.FC = () => {
             )}
 
             {/* Reader Container with Navigation Buttons */}
-            <div className="flex-1 relative" ref={containerRef}>
+            <div className="flex-1 relative overflow-hidden" ref={containerRef}>
               {!epubReady && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
                   <div className="text-center space-y-2">
@@ -489,7 +492,7 @@ export const ChapterEpubReader: React.FC = () => {
               {/* EPUB Container */}
               <div 
                 ref={epubRootRef}
-                className="absolute inset-0"
+                className="absolute inset-0 overflow-hidden"
                 style={{ 
                   background: themeColors[theme].background,
                   filter: colorblindMode !== 'none' ? `url(#${colorblindMode}-filter)` : undefined,
@@ -512,11 +515,11 @@ export const ChapterEpubReader: React.FC = () => {
 
             {/* Mobile Navigation Bar */}
             {epubReady && (
-              <div className="md:hidden border-t bg-card p-2">
+              <div className="md:hidden border-t bg-card p-3 safe-area-bottom">
                 <div className="flex gap-2 justify-center">
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="default"
                     onClick={handlePrevPage}
                     className="flex-1"
                   >
@@ -525,7 +528,7 @@ export const ChapterEpubReader: React.FC = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="default"
                     onClick={handleNextPage}
                     className="flex-1"
                   >
@@ -540,7 +543,7 @@ export const ChapterEpubReader: React.FC = () => {
       </div>
 
       {/* Footer - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-3 z-30">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-2 md:p-3 z-30 safe-area-bottom">
         <div className="container mx-auto flex gap-2 items-center">
           {/* Settings button on the left */}
           <Button
@@ -555,21 +558,20 @@ export const ChapterEpubReader: React.FC = () => {
           {/* Main action button (full width) */}
           <div className="flex-1">
             {isLastChapter() ? (
-              <Button onClick={handleClaimReward} size="lg" className="w-full">
-                <Gift className="mr-2 h-5 w-5" />
-                Réclamer vos Tensens
+              <Button onClick={handleClaimReward} className="w-full h-10">
+                <Gift className="mr-2 h-4 w-4" />
+                <span className="text-sm">Réclamer vos Tensens</span>
               </Button>
             ) : nextChapter ? (
               <Button
                 onClick={() => navigate(`/book/${bookId}/chapter/${nextChapter.id}`)}
-                size="lg"
-                className="w-full"
+                className="w-full h-10"
               >
-                Chapitre suivant
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <span className="text-sm">Chapitre suivant</span>
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             ) : (
-              <div className="text-center text-sm text-muted-foreground py-2">
+              <div className="text-center text-xs text-muted-foreground py-2">
                 Bonne lecture ! 📖
               </div>
             )}
