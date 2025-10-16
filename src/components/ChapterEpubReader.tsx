@@ -6,10 +6,9 @@ import { chapterEpubService } from '@/services/chapterEpubService';
 import { Button } from '@/components/ui/button';
 import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChapterBannerAd } from '@/components/ChapterBannerAd';
-import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 type Theme = 'light' | 'dark' | 'sepia';
 type ColorblindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
@@ -17,22 +16,32 @@ type ColorblindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
 export const ChapterEpubReader: React.FC = () => {
   const { bookId, chapterId } = useParams<{ bookId: string; chapterId: string }>();
   const navigate = useNavigate();
+  
+  // Chapter data
   const [chapter, setChapter] = useState<ChapterEpub | null>(null);
   const [allChapters, setAllChapters] = useState<ChapterEpub[]>([]);
-  const [location, setLocation] = useState<string | number>(0);
+  const [loading, setLoading] = useState(true);
+  
+  // Reading settings
   const [fontSize, setFontSize] = useState(16);
   const [theme, setTheme] = useState<Theme>('light');
   const [colorblindMode, setColorblindMode] = useState<ColorblindMode>('none');
-  const [loading, setLoading] = useState(true);
+  
+  // EPUB state
   const [epubReady, setEpubReady] = useState(false);
   const [epubError, setEpubError] = useState<string | null>(null);
-  const [rendition, setRendition] = useState<any>(null);
-  const [book, setBook] = useState<any>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const epubRootRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
-  const [currentLocation, setCurrentLocation] = useState<any>(null);
   const [totalLocations, setTotalLocations] = useState(0);
+  
+  // EPUB refs (not states!)
+  const bookRef = useRef<any>(null);
+  const renditionRef = useRef<any>(null);
+  const epubRootRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const saveTimerRef = useRef<number | null>(null);
+  const readinessTimerRef = useRef<number | null>(null);
+
+  // Load chapter data and settings
   useEffect(() => {
     const loadChapter = async () => {
       if (!bookId || !chapterId) return;
@@ -52,23 +61,12 @@ export const ChapterEpubReader: React.FC = () => {
         setChapter(chapterData);
         setAllChapters(chaptersData);
 
-        // Diagnostic HEAD check for EPUB accessibility
-        try {
-          await fetch(chapterData.epub_url, { method: 'HEAD' });
-          console.log('EPUB accessible:', chapterData.epub_url);
-        } catch (headError) {
-          console.error('EPUB not accessible:', headError);
-          setEpubError("Impossible de charger l'EPUB. Vérifiez l'URL et les permissions.");
-        }
-
         // Load saved settings
         const savedFontSize = localStorage.getItem(`chapter_fontSize_${chapterId}`);
         const savedTheme = localStorage.getItem(`chapter_theme_${chapterId}`);
-        const savedLocation = localStorage.getItem(`chapter_location_${chapterId}`);
 
         if (savedFontSize) setFontSize(parseInt(savedFontSize));
         if (savedTheme) setTheme(savedTheme as Theme);
-        if (savedLocation) setLocation(savedLocation);
       } catch (error) {
         console.error('Error loading chapter:', error);
         toast.error('Erreur lors du chargement');
@@ -80,182 +78,269 @@ export const ChapterEpubReader: React.FC = () => {
     loadChapter();
   }, [bookId, chapterId, navigate]);
 
-  // Initialize EPUB reader
+  // Throttled CFI save
+  const scheduleSaveCFI = (cfi: string) => {
+    if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = window.setTimeout(() => {
+      if (chapterId) {
+        localStorage.setItem(`chapter_location_${chapterId}`, cfi);
+      }
+    }, 300);
+  };
+
+  // Initialize EPUB reader with refs
   useEffect(() => {
     if (!chapter || !epubRootRef.current) return;
 
+    let cancelled = false;
+    setEpubReady(false);
+    setEpubError(null);
+
     const initEpub = async () => {
       try {
-        const epubBook = ePub(chapter.epub_url);
-        setBook(epubBook);
+        // Defensive cleanup before init
+        if (renditionRef.current) {
+          try {
+            renditionRef.current.destroy();
+          } catch (e) {
+            console.warn('Rendition cleanup warning:', e);
+          }
+          renditionRef.current = null;
+        }
+        if (bookRef.current) {
+          try {
+            bookRef.current.destroy?.();
+          } catch (e) {
+            console.warn('Book cleanup warning:', e);
+          }
+          bookRef.current = null;
+        }
+        if (epubRootRef.current) {
+          epubRootRef.current.innerHTML = '';
+        }
 
-        // Wait for book to be ready
-        await epubBook.ready;
-        console.log('📚 EPUB Book ready');
+        // Create book
+        const book = ePub(chapter.epub_url);
+        bookRef.current = book;
+        await book.ready;
+
+        if (cancelled) return;
 
         // Create rendition
-        const epubRendition = epubBook.renderTo(epubRootRef.current!, {
+        const rendition = book.renderTo(epubRootRef.current!, {
           width: '100%',
           height: '100%',
           flow: 'paginated',
           spread: 'none',
         });
+        renditionRef.current = rendition;
 
-        // Register themes
-        epubRendition.themes.register('light', {
-          body: { 
-            background: `${themeColors.light.background} !important`,
-            color: `${themeColors.light.color} !important`,
-            padding: '20px !important',
+        // Register themes with html + body for proper backgrounds
+        const themeConfigs = {
+          light: {
+            html: { background: '#ffffff !important', color: '#000000 !important' },
+            body: { 
+              background: '#ffffff !important', 
+              color: '#000000 !important',
+              padding: '20px !important',
+              margin: '0 !important',
+            },
+            p: { color: '#000000 !important', 'line-height': '1.6' },
+            h1: { color: '#000000 !important' },
+            h2: { color: '#000000 !important' },
+            h3: { color: '#000000 !important' },
+            img: { 'max-width': '100% !important', height: 'auto !important' },
           },
-          p: { color: `${themeColors.light.color} !important`, 'line-height': '1.6' },
-          h1: { color: `${themeColors.light.color} !important` },
-          h2: { color: `${themeColors.light.color} !important` },
-          h3: { color: `${themeColors.light.color} !important` },
-          img: { 'max-width': '100% !important', height: 'auto !important' },
-        });
-        
-        epubRendition.themes.register('dark', {
-          body: { 
-            background: `${themeColors.dark.background} !important`,
-            color: `${themeColors.dark.color} !important`,
-            padding: '20px !important',
+          dark: {
+            html: { background: '#1a1a1a !important', color: '#ffffff !important' },
+            body: { 
+              background: '#1a1a1a !important', 
+              color: '#ffffff !important',
+              padding: '20px !important',
+              margin: '0 !important',
+            },
+            p: { color: '#ffffff !important', 'line-height': '1.6' },
+            h1: { color: '#ffffff !important' },
+            h2: { color: '#ffffff !important' },
+            h3: { color: '#ffffff !important' },
+            img: { 'max-width': '100% !important', height: 'auto !important' },
           },
-          p: { color: `${themeColors.dark.color} !important`, 'line-height': '1.6' },
-          h1: { color: `${themeColors.dark.color} !important` },
-          h2: { color: `${themeColors.dark.color} !important` },
-          h3: { color: `${themeColors.dark.color} !important` },
-          img: { 'max-width': '100% !important', height: 'auto !important' },
-        });
-        
-        epubRendition.themes.register('sepia', {
-          body: { 
-            background: `${themeColors.sepia.background} !important`,
-            color: `${themeColors.sepia.color} !important`,
-            padding: '20px !important',
+          sepia: {
+            html: { background: '#f4ecd8 !important', color: '#5c4a2f !important' },
+            body: { 
+              background: '#f4ecd8 !important', 
+              color: '#5c4a2f !important',
+              padding: '20px !important',
+              margin: '0 !important',
+            },
+            p: { color: '#5c4a2f !important', 'line-height': '1.6' },
+            h1: { color: '#5c4a2f !important' },
+            h2: { color: '#5c4a2f !important' },
+            h3: { color: '#5c4a2f !important' },
+            img: { 'max-width': '100% !important', height: 'auto !important' },
           },
-          p: { color: `${themeColors.sepia.color} !important`, 'line-height': '1.6' },
-          h1: { color: `${themeColors.sepia.color} !important` },
-          h2: { color: `${themeColors.sepia.color} !important` },
-          h3: { color: `${themeColors.sepia.color} !important` },
-          img: { 'max-width': '100% !important', height: 'auto !important' },
-        });
+        };
+
+        rendition.themes.register('light', themeConfigs.light);
+        rendition.themes.register('dark', themeConfigs.dark);
+        rendition.themes.register('sepia', themeConfigs.sepia);
         
-        epubRendition.themes.select(theme);
-        epubRendition.themes.fontSize(`${fontSize}px`);
+        rendition.themes.select(theme);
+        rendition.themes.fontSize(`${fontSize}px`);
 
-        setRendition(epubRendition);
+        // Listener for readiness backup
+        const onRendered = () => {
+          if (!cancelled && !epubReady) {
+            setEpubReady(true);
+          }
+        };
 
-        // Listen for first render to mark ready
-        epubRendition.on('rendered', () => {
-          try { setEpubReady(true); } catch {}
-        });
-
-        // Display saved location or start with fallback
-        const savedLocation = typeof location === 'string' ? location : undefined;
-        try {
-          await epubRendition.display(savedLocation);
-          setEpubReady(true);
-        } catch (err) {
-          console.warn('CFI display failed, fallback to start', err);
-          await epubRendition.display();
-          setEpubReady(true);
-        }
-        
-        console.log('✅ EPUB displayed successfully');
-        toast.success('Chapitre chargé avec succès');
-
-        // Generate locations for progress tracking
-        await epubBook.locations.generate(1600);
-        const locationsTotal = (epubBook.locations as any).total || 0;
-        setTotalLocations(locationsTotal);
-
-        // Track location changes
-        epubRendition.on('relocated', (loc: any) => {
-          setCurrentLocation(loc);
-          const newLocation = loc.start.cfi;
-          handleLocationChange(newLocation);
+        // Listener for location tracking
+        const onRelocated = (loc: any) => {
+          if (cancelled) return;
+          const cfi = loc.start.cfi;
+          
+          // Throttle CFI save
+          scheduleSaveCFI(cfi);
           
           // Calculate progress
-          const locTotal = (epubBook.locations as any).total || 0;
-          if (locTotal > 0) {
-            const percentage = epubBook.locations.percentageFromCfi(newLocation);
+          if ((bookRef.current?.locations as any)?.total) {
+            const percentage = bookRef.current.locations.percentageFromCfi(cfi);
             setProgress(Math.round(percentage * 100));
           }
-        });
+        };
 
-        // Keyboard navigation
-        epubRendition.on('keyup', (e: KeyboardEvent) => {
-          if (e.key === 'ArrowRight') {
-            epubRendition.next();
-          } else if (e.key === 'ArrowLeft') {
-            epubRendition.prev();
+        rendition.on('rendered', onRendered);
+        rendition.on('relocated', onRelocated);
+
+        // Display with saved location or fallback
+        const savedCFI = chapterId ? localStorage.getItem(`chapter_location_${chapterId}`) : null;
+        const savedLocation = typeof savedCFI === 'string' ? savedCFI : undefined;
+        
+        try {
+          await rendition.display(savedLocation);
+          if (!cancelled) setEpubReady(true);
+        } catch (err) {
+          console.warn('CFI display failed, fallback to start:', err);
+          // Invalid CFI -> clear it and start from beginning
+          if (chapterId) {
+            localStorage.removeItem(`chapter_location_${chapterId}`);
           }
-        });
+          await rendition.display();
+          if (!cancelled) setEpubReady(true);
+        }
+
+        // Generate locations for progress
+        await book.locations.generate(1600);
+        const locTotal = (book.locations as any)?.total || 0;
+        if (!cancelled) {
+          setTotalLocations(locTotal);
+        }
+
+        // Fallback readiness check (in case rendered event doesn't fire)
+        readinessTimerRef.current = window.setTimeout(() => {
+          if (!cancelled && !epubReady && epubRootRef.current?.querySelector('iframe')) {
+            setEpubReady(true);
+          }
+        }, 800);
 
       } catch (error) {
-        console.error('❌ EPUB initialization failed:', error);
-        setEpubError('Erreur lors du chargement du chapitre');
-        toast.error('Impossible de charger le chapitre');
+        if (!cancelled) {
+          console.error('EPUB initialization failed:', error);
+          setEpubError('Erreur lors du chargement du chapitre');
+        }
       }
     };
 
     initEpub();
 
-    // Cleanup
+    // Guaranteed cleanup on unmount or chapter change
     return () => {
-      if (rendition) {
-        rendition.destroy();
+      cancelled = true;
+      
+      if (saveTimerRef.current) {
+        window.clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+      
+      if (readinessTimerRef.current) {
+        window.clearTimeout(readinessTimerRef.current);
+        readinessTimerRef.current = null;
+      }
+
+      try {
+        if (renditionRef.current) {
+          renditionRef.current.off?.('rendered');
+          renditionRef.current.off?.('relocated');
+          renditionRef.current.destroy?.();
+          renditionRef.current = null;
+        }
+      } catch (e) {
+        console.warn('Rendition cleanup error:', e);
+      }
+
+      try {
+        if (bookRef.current) {
+          bookRef.current.destroy?.();
+          bookRef.current = null;
+        }
+      } catch (e) {
+        console.warn('Book cleanup error:', e);
+      }
+
+      if (epubRootRef.current) {
+        epubRootRef.current.innerHTML = '';
       }
     };
   }, [chapter?.id]);
 
-  const handleLocationChange = (newLocation: string) => {
-    setLocation(newLocation);
-    if (chapterId) {
-      localStorage.setItem(`chapter_location_${chapterId}`, newLocation);
+  // Apply theme changes without re-initializing
+  useEffect(() => {
+    if (renditionRef.current && epubReady) {
+      renditionRef.current.themes?.select(theme);
+      if (chapterId) {
+        localStorage.setItem(`chapter_theme_${chapterId}`, theme);
+      }
     }
-  };
+  }, [theme, epubReady, chapterId]);
+
+  // Apply font size changes without re-initializing
+  useEffect(() => {
+    if (renditionRef.current && epubReady) {
+      renditionRef.current.themes?.fontSize(`${fontSize}px`);
+    }
+  }, [fontSize, epubReady]);
 
   const handleFontSizeChange = (size: number) => {
     setFontSize(size);
     if (chapterId) {
       localStorage.setItem(`chapter_fontSize_${chapterId}`, size.toString());
     }
-    // Force re-render to apply new font size
-    setLocation((prev) => prev);
   };
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
-    if (chapterId) {
-      localStorage.setItem(`chapter_theme_${chapterId}`, newTheme);
-    }
   };
 
-  // Apply theme changes dynamically
-  useEffect(() => {
-    if (rendition) {
-      rendition.themes?.select(theme);
+  const handleResetPosition = () => {
+    if (chapterId) {
+      localStorage.removeItem(`chapter_location_${chapterId}`);
     }
-  }, [theme, rendition]);
-
-  // Apply font size changes dynamically
-  useEffect(() => {
-    if (rendition) {
-      rendition.themes?.fontSize(`${fontSize}px`);
+    if (renditionRef.current) {
+      renditionRef.current.display?.().catch(() => {});
     }
-  }, [fontSize, rendition]);
+    toast.success('Position réinitialisée');
+  };
 
   const handleNextPage = () => {
-    if (rendition) {
-      rendition.next();
+    if (renditionRef.current) {
+      renditionRef.current.next();
     }
   };
 
   const handlePrevPage = () => {
-    if (rendition) {
-      rendition.prev();
+    if (renditionRef.current) {
+      renditionRef.current.prev();
     }
   };
 
@@ -272,7 +357,6 @@ export const ChapterEpubReader: React.FC = () => {
   };
 
   const handleClaimReward = async () => {
-    // Logic to claim Tensens reward
     toast.success('Récompense réclamée !');
     navigate(`/book/${bookId}/chapters`);
   };
@@ -311,16 +395,24 @@ export const ChapterEpubReader: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.open(chapter.epub_url, '_blank')}
-            aria-label="Ouvrir l’EPUB dans un nouvel onglet"
+            onClick={handleResetPosition}
+            title="Revenir au début du chapitre"
           >
-            Ouvrir l’EPUB
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open(chapter.epub_url, '_blank')}
+            aria-label="Ouvrir l'EPUB dans un nouvel onglet"
+          >
+            Ouvrir l'EPUB
           </Button>
         </div>
       </div>
 
       {/* EPUB Reader with Navigation */}
-      <div className="flex-1 flex flex-col" style={{ height: 'calc(100vh - 200px)' }}>
+      <div className="flex-1 flex flex-col min-h-0" style={{ height: 'calc(100dvh - 160px)' }}>
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             <p className="text-destructive">{epubError}</p>
@@ -378,6 +470,7 @@ export const ChapterEpubReader: React.FC = () => {
                 className="w-full h-full"
                 style={{ 
                   background: themeColors[theme].background,
+                  filter: colorblindMode !== 'none' ? `url(#${colorblindMode}-filter)` : undefined,
                 }}
               />
 
