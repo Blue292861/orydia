@@ -133,6 +133,7 @@ export const ChapterEpubReader: React.FC = () => {
           height: '100%',
           flow: 'paginated',
           spread: 'none',
+          minSpreadWidth: 0,
         });
         renditionRef.current = rendition;
 
@@ -143,7 +144,9 @@ export const ChapterEpubReader: React.FC = () => {
             body: { 
               background: '#ffffff !important', 
               color: '#000000 !important',
-              padding: '20px !important',
+              padding: '12px !important',
+              'padding-left': 'max(12px, env(safe-area-inset-left)) !important',
+              'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
               margin: '0 !important',
             },
             p: { color: '#000000 !important', 'line-height': '1.6' },
@@ -151,13 +154,18 @@ export const ChapterEpubReader: React.FC = () => {
             h2: { color: '#000000 !important' },
             h3: { color: '#000000 !important' },
             img: { 'max-width': '100% !important', height: 'auto !important' },
+            '@media (min-width: 768px)': {
+              body: { padding: '20px !important' }
+            },
           },
           dark: {
             html: { background: '#1a1a1a !important', color: '#ffffff !important' },
             body: { 
               background: '#1a1a1a !important', 
               color: '#ffffff !important',
-              padding: '20px !important',
+              padding: '12px !important',
+              'padding-left': 'max(12px, env(safe-area-inset-left)) !important',
+              'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
               margin: '0 !important',
             },
             p: { color: '#ffffff !important', 'line-height': '1.6' },
@@ -165,13 +173,18 @@ export const ChapterEpubReader: React.FC = () => {
             h2: { color: '#ffffff !important' },
             h3: { color: '#ffffff !important' },
             img: { 'max-width': '100% !important', height: 'auto !important' },
+            '@media (min-width: 768px)': {
+              body: { padding: '20px !important' }
+            },
           },
           sepia: {
             html: { background: '#f4ecd8 !important', color: '#5c4a2f !important' },
             body: { 
               background: '#f4ecd8 !important', 
               color: '#5c4a2f !important',
-              padding: '20px !important',
+              padding: '12px !important',
+              'padding-left': 'max(12px, env(safe-area-inset-left)) !important',
+              'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
               margin: '0 !important',
             },
             p: { color: '#5c4a2f !important', 'line-height': '1.6' },
@@ -179,6 +192,9 @@ export const ChapterEpubReader: React.FC = () => {
             h2: { color: '#5c4a2f !important' },
             h3: { color: '#5c4a2f !important' },
             img: { 'max-width': '100% !important', height: 'auto !important' },
+            '@media (min-width: 768px)': {
+              body: { padding: '20px !important' }
+            },
           },
         };
 
@@ -435,8 +451,8 @@ export const ChapterEpubReader: React.FC = () => {
 
       {/* EPUB Reader with Navigation */}
       <div className="flex-1 flex flex-col min-h-0" style={{ 
-        height: `calc(100dvh - ${epubReady && totalLocations > 0 ? '200' : '160'}px)`,
-        maxHeight: `calc(100dvh - ${epubReady && totalLocations > 0 ? '200' : '160'}px)`
+        height: `calc(100dvh - ${epubReady && totalLocations > 0 ? '162' : '114'}px)`,
+        maxHeight: `calc(100dvh - ${epubReady && totalLocations > 0 ? '162' : '114'}px)`
       }}>
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
@@ -455,8 +471,8 @@ export const ChapterEpubReader: React.FC = () => {
           <>
             {/* Progress Bar */}
             {epubReady && totalLocations > 0 && (
-              <div className="px-4 py-1.5 bg-card border-b">
-                <div className="container mx-auto space-y-1">
+              <div className="px-2 md:px-4 py-1.5 bg-card border-b">
+                <div className="space-y-1">
                   <Progress value={progress} className="h-2" />
                   <p className="text-xs text-muted-foreground text-center">
                     {progress}% du chapitre
@@ -466,7 +482,7 @@ export const ChapterEpubReader: React.FC = () => {
             )}
 
             {/* Reader Container with Navigation Buttons */}
-            <div className="flex-1 relative overflow-hidden" ref={containerRef}>
+            <div className="flex-1 relative overflow-y-auto overflow-x-hidden" ref={containerRef}>
               {!epubReady && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
                   <div className="text-center space-y-2">
@@ -481,7 +497,7 @@ export const ChapterEpubReader: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-background/90 hover:bg-background shadow-lg transition-all hover:scale-110 touch-manipulation"
+                  className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-background/80 hover:bg-background shadow-lg transition-all hover:scale-110 touch-manipulation"
                   onClick={handlePrevPage}
                   aria-label="Page précédente"
                 >
@@ -492,7 +508,7 @@ export const ChapterEpubReader: React.FC = () => {
               {/* EPUB Container */}
               <div 
                 ref={epubRootRef}
-                className="absolute inset-0 overflow-hidden"
+                className="absolute inset-0 overflow-y-auto overflow-x-hidden"
                 style={{ 
                   background: themeColors[theme].background,
                   filter: colorblindMode !== 'none' ? `url(#${colorblindMode}-filter)` : undefined,
@@ -504,7 +520,7 @@ export const ChapterEpubReader: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-background/90 hover:bg-background shadow-lg transition-all hover:scale-110 touch-manipulation"
+                  className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-background/80 hover:bg-background shadow-lg transition-all hover:scale-110 touch-manipulation"
                   onClick={handleNextPage}
                   aria-label="Page suivante"
                 >
@@ -519,7 +535,7 @@ export const ChapterEpubReader: React.FC = () => {
 
       {/* Footer - Fixed at bottom */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-2 md:p-3 z-30 safe-area-bottom">
-        <div className="container mx-auto flex gap-2 items-center">
+        <div className="px-2 md:px-4 flex gap-2 items-center">
           {/* Settings button on the left */}
           <Button
             variant="outline"
