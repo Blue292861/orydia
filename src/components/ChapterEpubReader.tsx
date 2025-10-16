@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ReactReader } from 'react-reader';
 import ePub from 'epubjs';
 import { ChapterEpub } from '@/types/ChapterEpub';
 import { chapterEpubService } from '@/services/chapterEpubService';
 import { Button } from '@/components/ui/button';
 import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChapterBannerAd } from '@/components/ChapterBannerAd';
-import { ArrowLeft, ArrowRight, Gift, TestTube, FileCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -26,12 +26,13 @@ export const ChapterEpubReader: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [epubReady, setEpubReady] = useState(false);
   const [epubError, setEpubError] = useState<string | null>(null);
-  const [renditionRef, setRenditionRef] = useState<any>(null);
+  const [rendition, setRendition] = useState<any>(null);
+  const [book, setBook] = useState<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const epubRootRef = useRef<HTMLDivElement>(null);
-  const [slowLoad, setSlowLoad] = useState(false);
-  const [testMode, setTestMode] = useState<'normal' | 'test-epub' | 'minimal'>('normal');
-  const [minimalRendition, setMinimalRendition] = useState<any>(null);
+  const [progress, setProgress] = useState(0);
+  const [currentLocation, setCurrentLocation] = useState<any>(null);
+  const [totalLocations, setTotalLocations] = useState(0);
   useEffect(() => {
     const loadChapter = async () => {
       if (!bookId || !chapterId) return;
@@ -79,20 +80,124 @@ export const ChapterEpubReader: React.FC = () => {
     loadChapter();
   }, [bookId, chapterId, navigate]);
 
-  // Slow load indicator and container size debug
+  // Initialize EPUB reader
   useEffect(() => {
-    if (epubReady) {
-      setSlowLoad(false);
-      return;
-    }
-    const t = setTimeout(() => setSlowLoad(true), 3000);
-    // Debug: log container size
-    const el = containerRef.current;
-    if (el) {
-      console.log('EPUB container size', { width: el.clientWidth, height: el.clientHeight });
-    }
-    return () => clearTimeout(t);
-  }, [epubReady]);
+    if (!chapter || !epubRootRef.current) return;
+
+    const initEpub = async () => {
+      try {
+        const epubBook = ePub(chapter.epub_url);
+        setBook(epubBook);
+
+        // Wait for book to be ready
+        await epubBook.ready;
+        console.log('📚 EPUB Book ready');
+
+        // Create rendition
+        const epubRendition = epubBook.renderTo(epubRootRef.current!, {
+          width: '100%',
+          height: '100%',
+          flow: 'paginated',
+          spread: 'none',
+        });
+
+        // Register themes
+        epubRendition.themes.register('light', {
+          body: { 
+            background: `${themeColors.light.background} !important`,
+            color: `${themeColors.light.color} !important`,
+            padding: '20px !important',
+          },
+          p: { color: `${themeColors.light.color} !important`, 'line-height': '1.6' },
+          h1: { color: `${themeColors.light.color} !important` },
+          h2: { color: `${themeColors.light.color} !important` },
+          h3: { color: `${themeColors.light.color} !important` },
+          img: { 'max-width': '100% !important', height: 'auto !important' },
+        });
+        
+        epubRendition.themes.register('dark', {
+          body: { 
+            background: `${themeColors.dark.background} !important`,
+            color: `${themeColors.dark.color} !important`,
+            padding: '20px !important',
+          },
+          p: { color: `${themeColors.dark.color} !important`, 'line-height': '1.6' },
+          h1: { color: `${themeColors.dark.color} !important` },
+          h2: { color: `${themeColors.dark.color} !important` },
+          h3: { color: `${themeColors.dark.color} !important` },
+          img: { 'max-width': '100% !important', height: 'auto !important' },
+        });
+        
+        epubRendition.themes.register('sepia', {
+          body: { 
+            background: `${themeColors.sepia.background} !important`,
+            color: `${themeColors.sepia.color} !important`,
+            padding: '20px !important',
+          },
+          p: { color: `${themeColors.sepia.color} !important`, 'line-height': '1.6' },
+          h1: { color: `${themeColors.sepia.color} !important` },
+          h2: { color: `${themeColors.sepia.color} !important` },
+          h3: { color: `${themeColors.sepia.color} !important` },
+          img: { 'max-width': '100% !important', height: 'auto !important' },
+        });
+        
+        epubRendition.themes.select(theme);
+        epubRendition.themes.fontSize(`${fontSize}px`);
+
+        setRendition(epubRendition);
+
+        // Display saved location or start
+        const savedLocation = typeof location === 'string' ? location : undefined;
+        await epubRendition.display(savedLocation);
+        
+        console.log('✅ EPUB displayed successfully');
+        setEpubReady(true);
+        toast.success('Chapitre chargé avec succès');
+
+        // Generate locations for progress tracking
+        await epubBook.locations.generate(1600);
+        const locationsTotal = (epubBook.locations as any).total || 0;
+        setTotalLocations(locationsTotal);
+
+        // Track location changes
+        epubRendition.on('relocated', (loc: any) => {
+          setCurrentLocation(loc);
+          const newLocation = loc.start.cfi;
+          handleLocationChange(newLocation);
+          
+          // Calculate progress
+          const locTotal = (epubBook.locations as any).total || 0;
+          if (locTotal > 0) {
+            const percentage = epubBook.locations.percentageFromCfi(newLocation);
+            setProgress(Math.round(percentage * 100));
+          }
+        });
+
+        // Keyboard navigation
+        epubRendition.on('keyup', (e: KeyboardEvent) => {
+          if (e.key === 'ArrowRight') {
+            epubRendition.next();
+          } else if (e.key === 'ArrowLeft') {
+            epubRendition.prev();
+          }
+        });
+
+      } catch (error) {
+        console.error('❌ EPUB initialization failed:', error);
+        setEpubError('Erreur lors du chargement du chapitre');
+        toast.error('Impossible de charger le chapitre');
+      }
+    };
+
+    initEpub();
+
+    // Cleanup
+    return () => {
+      if (rendition) {
+        rendition.destroy();
+      }
+    };
+  }, [chapter?.id]);
 
   const handleLocationChange = (newLocation: string) => {
     setLocation(newLocation);
@@ -119,17 +224,29 @@ export const ChapterEpubReader: React.FC = () => {
 
   // Apply theme changes dynamically
   useEffect(() => {
-    if (renditionRef) {
-      renditionRef.themes?.select(theme);
+    if (rendition) {
+      rendition.themes?.select(theme);
     }
-  }, [theme, renditionRef]);
+  }, [theme, rendition]);
 
   // Apply font size changes dynamically
   useEffect(() => {
-    if (renditionRef) {
-      renditionRef.themes?.fontSize(`${fontSize}px`);
+    if (rendition) {
+      rendition.themes?.fontSize(`${fontSize}px`);
     }
-  }, [fontSize, renditionRef]);
+  }, [fontSize, rendition]);
+
+  const handleNextPage = () => {
+    if (rendition) {
+      rendition.next();
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (rendition) {
+      rendition.prev();
+    }
+  };
 
   const getNextChapter = () => {
     if (!chapter) return null;
@@ -147,144 +264,6 @@ export const ChapterEpubReader: React.FC = () => {
     // Logic to claim Tensens reward
     toast.success('Récompense réclamée !');
     navigate(`/book/${bookId}/chapters`);
-  };
-
-  const handleTestEpub = () => {
-    setTestMode('test-epub');
-    setEpubReady(false);
-    setEpubError(null);
-    toast.info('Chargement de l\'EPUB de test (Alice in Wonderland)...');
-  };
-
-  const handleMinimalMode = async () => {
-    if (!chapter) return;
-    setTestMode('minimal');
-    setEpubError(null);
-    
-    toast.info('Mode test minimal activé - chargement direct avec ePub.js...');
-    
-    setTimeout(() => {
-      if (!epubRootRef.current) return;
-      
-      const url = chapter.epub_url;
-      const book = ePub(url);
-      
-      // Debug: log book info
-      book.ready.then(() => {
-        console.log('📚 EPUB Book ready', {
-          metadata: book.packaging?.metadata,
-          spine: book.spine,
-          navigation: book.navigation,
-        });
-        
-        return book.loaded.navigation;
-      }).then((nav: any) => {
-        console.log('📖 EPUB Navigation:', nav);
-        console.log('📄 EPUB Spine items:', book.spine);
-      });
-
-      const rendition = book.renderTo(epubRootRef.current, {
-        width: '100%',
-        height: '80vh',
-        flow: 'paginated',
-        spread: 'none',
-      });
-
-      // Register themes
-      rendition.themes.register('light', {
-        body: { background: themeColors.light.background, color: themeColors.light.color },
-        p: { color: themeColors.light.color },
-        img: { 'max-width': '100%', height: 'auto' },
-      });
-      rendition.themes.register('dark', {
-        body: { background: themeColors.dark.background, color: themeColors.dark.color },
-        p: { color: themeColors.dark.color },
-        img: { 'max-width': '100%', height: 'auto' },
-      });
-      rendition.themes.register('sepia', {
-        body: { background: themeColors.sepia.background, color: themeColors.sepia.color },
-        p: { color: themeColors.sepia.color },
-        img: { 'max-width': '100%', height: 'auto' },
-      });
-      
-      rendition.themes.select(theme);
-      rendition.themes.fontSize(`${fontSize}px`);
-      
-      // Try to display the first spine item (after cover)
-      book.ready.then(() => {
-        // Display first item
-        return rendition.display();
-      }).then(() => {
-        console.log('✅ Mode minimal: EPUB affiché (position initiale)');
-        toast.success('Mode minimal: EPUB chargé! Utilisez ← → pour naviguer.');
-        setMinimalRendition(rendition);
-      }).catch((err: any) => {
-        console.error('❌ Mode minimal: échec du display', err);
-        setEpubError('Échec du chargement même en mode minimal: ' + err.message);
-      });
-
-      // Navigation via keyboard
-      rendition.on('keyup', (e: KeyboardEvent) => {
-        if (e.key === 'ArrowRight') {
-          rendition.next();
-        } else if (e.key === 'ArrowLeft') {
-          rendition.prev();
-        }
-      });
-
-      rendition.on('rendered', (section: any) => {
-        console.log('🎨 Mode minimal: section rendered', section?.href);
-      });
-    }, 100);
-  };
-
-  const handleMinimalNext = () => {
-    if (minimalRendition) {
-      minimalRendition.next();
-    }
-  };
-
-  const handleMinimalPrev = () => {
-    if (minimalRendition) {
-      minimalRendition.prev();
-    }
-  };
-
-  const handleVerifyArchive = async () => {
-    if (!chapter) return;
-    
-    toast.info('Vérification de l\'archive EPUB...');
-    try {
-      const response = await fetch(chapter.epub_url, { method: 'GET' });
-      const blob = await response.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      
-      // Check for ZIP signature (PK\x03\x04)
-      const isPK = bytes[0] === 0x50 && bytes[1] === 0x4B && bytes[2] === 0x03 && bytes[3] === 0x04;
-      
-      const contentType = response.headers.get('Content-Type');
-      const contentDisposition = response.headers.get('Content-Disposition');
-      
-      console.log('📦 Archive EPUB vérification:', {
-        isPKSignature: isPK,
-        contentType,
-        contentDisposition,
-        fileSize: blob.size,
-        firstBytes: Array.from(bytes.slice(0, 4)).map(b => `0x${b.toString(16).padStart(2, '0')}`).join(' '),
-      });
-      
-      if (!isPK) {
-        toast.error('❌ Fichier corrompu: pas une archive ZIP valide');
-      } else if (contentType !== 'application/epub+zip') {
-        toast.warning(`⚠️ Type MIME incorrect: ${contentType} (attendu: application/epub+zip)`);
-      } else {
-        toast.success('✅ Archive EPUB valide (signature PK OK, type MIME OK)');
-      }
-    } catch (error) {
-      console.error('Erreur vérification archive:', error);
-      toast.error('Erreur lors de la vérification');
-    }
   };
 
   const themeColors = {
@@ -329,68 +308,8 @@ export const ChapterEpubReader: React.FC = () => {
         </div>
       </div>
 
-      {/* Diagnostic Controls */}
-      <div className="border-b bg-card p-3">
-        <div className="container mx-auto flex gap-2 flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleTestEpub}
-            disabled={testMode === 'test-epub'}
-          >
-            <TestTube className="h-4 w-4 mr-2" />
-            Charger EPUB de test
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleMinimalMode}
-            disabled={testMode === 'minimal'}
-          >
-            <TestTube className="h-4 w-4 mr-2" />
-            Mode test minimal
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleVerifyArchive}
-          >
-            <FileCheck className="h-4 w-4 mr-2" />
-            Vérifier l'archive
-          </Button>
-          {testMode !== 'normal' && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                setTestMode('normal');
-                setEpubReady(false);
-                setEpubError(null);
-                if (minimalRendition) {
-                  minimalRendition.destroy();
-                  setMinimalRendition(null);
-                }
-              }}
-            >
-              Retour au mode normal
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* EPUB Reader */}
-      <div
-        ref={containerRef}
-        className="flex-1 epub-reader-container bg-background"
-        style={{ 
-          minHeight: '70vh',
-          height: 'calc(100vh - 200px)',
-          padding: '16px',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-      >
+      {/* EPUB Reader with Navigation */}
+      <div className="flex-1 flex flex-col" style={{ height: 'calc(100vh - 200px)' }}>
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             <p className="text-destructive">{epubError}</p>
@@ -404,165 +323,93 @@ export const ChapterEpubReader: React.FC = () => {
               </Button>
             </div>
           </div>
-        ) : testMode === 'minimal' ? (
-          <div className="flex flex-col h-full">
-            <div className="flex gap-2 mb-2">
-              <Button onClick={handleMinimalPrev} size="sm" variant="outline">
-                ← Page précédente
-              </Button>
-              <Button onClick={handleMinimalNext} size="sm" variant="outline">
-                Page suivante →
-              </Button>
-            </div>
-            <div 
-              ref={epubRootRef} 
-              style={{ 
-                flex: 1,
-                height: '75vh', 
-                width: '100%',
-                border: '1px solid rgba(0,0,0,0.1)',
-                background: themeColors[theme].background,
-              }}
-            />
-          </div>
         ) : (
-          <div style={{ 
-            flex: 1, 
-            width: '100%', 
-            position: 'relative', 
-            minHeight: '500px',
-            height: '80vh',
-            border: '1px solid rgba(0,0,0,0.1)',
-          }}>
-            {!epubReady && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
-                <div className="text-center space-y-2">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                  <p className="text-muted-foreground">Chargement du chapitre...</p>
-                  {slowLoad && (
-                    <p className="text-sm text-muted-foreground">
-                      Cela prend plus de temps que prévu...
-                    </p>
-                  )}
+          <>
+            {/* Progress Bar */}
+            {epubReady && totalLocations > 0 && (
+              <div className="px-4 py-2 bg-card border-b">
+                <div className="container mx-auto space-y-1">
+                  <Progress value={progress} className="h-2" />
+                  <p className="text-xs text-muted-foreground text-center">
+                    {progress}% du chapitre
+                  </p>
                 </div>
               </div>
             )}
-            <ReactReader
-              key={testMode === 'test-epub' ? 'test-epub' : chapter.id}
-              url={testMode === 'test-epub' 
-                ? 'https://gerhardsletten.github.io/react-reader/files/alice.epub'
-                : chapter.epub_url
-              }
-              location={location}
-              locationChanged={handleLocationChange}
-              epubInitOptions={{ 
-                openAs: 'epub',
-              }}
-              epubOptions={{
-                flow: 'paginated',
-                manager: 'default',
-                spread: 'none',
-              }}
-              getRendition={(rendition) => {
-                console.log('✅ EPUB rendition ready', rendition);
-                setRenditionRef(rendition);
-                setEpubReady(true);
-                setEpubError(null);
 
-                // Clean theme registration with objects (not strings)
-                const lightTheme = {
-                  body: { 
-                    background: `${themeColors.light.background} !important`,
-                    color: `${themeColors.light.color} !important`,
-                  },
-                  p: { color: `${themeColors.light.color} !important` },
-                  div: { color: `${themeColors.light.color} !important` },
-                  span: { color: `${themeColors.light.color} !important` },
-                  h1: { color: `${themeColors.light.color} !important` },
-                  h2: { color: `${themeColors.light.color} !important` },
-                  h3: { color: `${themeColors.light.color} !important` },
-                  img: { 'max-width': '100% !important', height: 'auto !important' },
-                };
-                
-                const darkTheme = {
-                  body: { 
-                    background: `${themeColors.dark.background} !important`,
-                    color: `${themeColors.dark.color} !important`,
-                  },
-                  p: { color: `${themeColors.dark.color} !important` },
-                  div: { color: `${themeColors.dark.color} !important` },
-                  span: { color: `${themeColors.dark.color} !important` },
-                  h1: { color: `${themeColors.dark.color} !important` },
-                  h2: { color: `${themeColors.dark.color} !important` },
-                  h3: { color: `${themeColors.dark.color} !important` },
-                  img: { 'max-width': '100% !important', height: 'auto !important' },
-                };
-                
-                const sepiaTheme = {
-                  body: { 
-                    background: `${themeColors.sepia.background} !important`,
-                    color: `${themeColors.sepia.color} !important`,
-                  },
-                  p: { color: `${themeColors.sepia.color} !important` },
-                  div: { color: `${themeColors.sepia.color} !important` },
-                  span: { color: `${themeColors.sepia.color} !important` },
-                  h1: { color: `${themeColors.sepia.color} !important` },
-                  h2: { color: `${themeColors.sepia.color} !important` },
-                  h3: { color: `${themeColors.sepia.color} !important` },
-                  img: { 'max-width': '100% !important', height: 'auto !important' },
-                };
+            {/* Reader Container with Navigation Buttons */}
+            <div className="flex-1 relative" ref={containerRef}>
+              {!epubReady && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+                  <div className="text-center space-y-2">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-muted-foreground">Chargement du chapitre...</p>
+                  </div>
+                </div>
+              )}
 
-                rendition.themes.register('light', lightTheme);
-                rendition.themes.register('dark', darkTheme);
-                rendition.themes.register('sepia', sepiaTheme);
-                rendition.themes.select(theme);
-                rendition.themes.fontSize(`${fontSize}px`);
+              {/* Navigation Button - Previous */}
+              {epubReady && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-background/80 hover:bg-background shadow-lg transition-all hover:scale-110"
+                  onClick={handlePrevPage}
+                  aria-label="Page précédente"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+              )}
 
-                // Proper display sequence
-                rendition.display().then(() => {
-                  console.log('✅ EPUB displayed successfully');
-                  
-                  // Resize to container
-                  const el = containerRef.current;
-                  if (el) {
-                    console.log('📐 Resizing to container', { width: el.clientWidth, height: el.clientHeight });
-                    rendition.resize(el.clientWidth, el.clientHeight);
-                  }
-                  
-                  // Then navigate to saved location if any
-                  if (location) {
-                    setTimeout(() => {
-                      rendition.display(location as any).catch((err: any) => {
-                        console.warn('Failed to navigate to saved location', err);
-                      });
-                    }, 100);
-                  }
-                }).catch((err: any) => {
-                  console.error('❌ EPUB display() failed', err);
-                  setEpubError('Échec de l\'affichage initial');
-                });
+              {/* EPUB Container */}
+              <div 
+                ref={epubRootRef}
+                className="w-full h-full"
+                style={{ 
+                  background: themeColors[theme].background,
+                }}
+              />
 
-                // Event handlers with detailed logs
-                rendition.on('rendered', (_section: any) => {
-                  console.log('🎨 EPUB rendered section', _section?.href);
-                });
-                
-                rendition.on('relocated', (loc: any) => {
-                  console.log('📍 EPUB relocated', loc?.start?.cfi);
-                });
-                
-                rendition.on('resized', (size: any) => {
-                  console.log('📐 EPUB resized', size);
-                });
-                
-                // @ts-ignore
-                rendition.on('displayError', (err: any) => {
-                  console.error('❌ EPUB displayError', err);
-                  setEpubError("Erreur d'affichage du chapitre");
-                });
-              }}
-            />
-          </div>
+              {/* Navigation Button - Next */}
+              {epubReady && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-background/80 hover:bg-background shadow-lg transition-all hover:scale-110"
+                  onClick={handleNextPage}
+                  aria-label="Page suivante"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </Button>
+              )}
+            </div>
+
+            {/* Mobile Navigation Bar */}
+            {epubReady && (
+              <div className="md:hidden border-t bg-card p-2">
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePrevPage}
+                    className="flex-1"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Précédent
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    className="flex-1"
+                  >
+                    Suivant
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
