@@ -190,8 +190,15 @@ export const ChapterEpubReader: React.FC = () => {
       {/* EPUB Reader */}
       <div
         ref={containerRef}
-        className="flex-1 epub-reader-container"
-        style={{ height: 'calc(100vh - 96px)', paddingTop: '16px', paddingBottom: '16px' }}
+        className="flex-1 epub-reader-container bg-background"
+        style={{ 
+          minHeight: '70vh',
+          height: 'calc(100vh - 200px)',
+          padding: '16px',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
       >
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
@@ -207,11 +214,18 @@ export const ChapterEpubReader: React.FC = () => {
             </div>
           </div>
         ) : (
-          <>
-            {slowLoad && !epubReady && (
-              <div className="mb-2 text-center text-sm text-muted-foreground">
-                Chargement inhabituellement long…
-                <Button className="ml-2" size="sm" variant="outline" onClick={() => window.open(chapter?.epub_url, '_blank')}>Ouvrir l’EPUB</Button>
+          <div style={{ flex: 1, width: '100%', position: 'relative', minHeight: '500px' }}>
+            {!epubReady && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+                <div className="text-center space-y-2">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                  <p className="text-muted-foreground">Chargement du chapitre...</p>
+                  {slowLoad && (
+                    <p className="text-sm text-muted-foreground">
+                      Cela prend plus de temps que prévu...
+                    </p>
+                  )}
+                </div>
               </div>
             )}
             <ReactReader
@@ -219,9 +233,11 @@ export const ChapterEpubReader: React.FC = () => {
               url={chapter.epub_url}
               location={location}
               locationChanged={handleLocationChange}
-              epubInitOptions={{ openAs: 'epub' }}
+              epubInitOptions={{ 
+                openAs: 'epub',
+              }}
               epubOptions={{
-                flow: 'scrolled-doc',
+                flow: 'paginated',
                 manager: 'default',
                 spread: 'none',
               }}
@@ -252,19 +268,11 @@ export const ChapterEpubReader: React.FC = () => {
                 // @ts-ignore
                 rendition.on('displayError', (err: any) => {
                   console.error('EPUB displayError', err);
-                  setEpubError("Erreur d’affichage du chapitre");
+                  setEpubError("Erreur d'affichage du chapitre");
                 });
               }}
-              loadingView={
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center space-y-2">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                    <p className="text-muted-foreground">Chargement du chapitre...</p>
-                  </div>
-                </div>
-              }
             />
-          </>
+          </div>
         )}
       </div>
 
