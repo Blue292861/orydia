@@ -6,7 +6,7 @@ export const fetchChaptersByBookId = async (bookId: string): Promise<Chapter[]> 
     .from('book_chapters')
     .select(`
       *,
-      interactive_choices (*)
+      interactive_choices!interactive_choices_chapter_id_fkey (*)
     `)
     .eq('book_id', bookId)
     .order('chapter_number', { ascending: true });
