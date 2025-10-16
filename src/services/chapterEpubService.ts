@@ -68,7 +68,7 @@ export const chapterEpubService = {
   async uploadChapterEpub(file: File, bookId: string, chapterNumber: number): Promise<string> {
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(7);
-    const filePath = `epubs/${bookId}/chapter-${chapterNumber}-${timestamp}-${randomString}.epub`;
+    const filePath = `${bookId}/chapter-${chapterNumber}-${timestamp}-${randomString}.epub`;
 
     const { error: uploadError } = await supabase.storage
       .from('epubs')
@@ -90,7 +90,7 @@ export const chapterEpubService = {
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(7);
     const extension = file.name.split('.').pop();
-    const filePath = `chapter-illustrations/${timestamp}-${randomString}.${extension}`;
+    const filePath = `illustrations/${timestamp}-${randomString}.${extension}`;
 
     const { error: uploadError } = await supabase.storage
       .from('book-covers')
