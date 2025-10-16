@@ -176,6 +176,14 @@ export const ChapterEpubReader: React.FC = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-semibold line-clamp-1 flex-1">{chapter.title}</h1>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open(chapter.epub_url, '_blank')}
+            aria-label="Ouvrir l’EPUB dans un nouvel onglet"
+          >
+            Ouvrir l’EPUB
+          </Button>
         </div>
       </div>
 
