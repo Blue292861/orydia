@@ -25,6 +25,7 @@ export const ChapterEpubReader: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [epubReady, setEpubReady] = useState(false);
   const [epubError, setEpubError] = useState<string | null>(null);
+  const [renditionRef, setRenditionRef] = useState<any>(null);
 
   useEffect(() => {
     const loadChapter = async () => {
@@ -44,6 +45,15 @@ export const ChapterEpubReader: React.FC = () => {
 
         setChapter(chapterData);
         setAllChapters(chaptersData);
+
+        // Diagnostic HEAD check for EPUB accessibility
+        try {
+          await fetch(chapterData.epub_url, { method: 'HEAD' });
+          console.log('EPUB accessible:', chapterData.epub_url);
+        } catch (headError) {
+          console.error('EPUB not accessible:', headError);
+          setEpubError("Impossible de charger l'EPUB. Vérifiez l'URL et les permissions.");
+        }
 
         // Load saved settings
         const savedFontSize = localStorage.getItem(`chapter_fontSize_${chapterId}`);
@@ -86,6 +96,20 @@ export const ChapterEpubReader: React.FC = () => {
       localStorage.setItem(`chapter_theme_${chapterId}`, newTheme);
     }
   };
+
+  // Apply theme changes dynamically
+  useEffect(() => {
+    if (renditionRef) {
+      renditionRef.themes?.select(theme);
+    }
+  }, [theme, renditionRef]);
+
+  // Apply font size changes dynamically
+  useEffect(() => {
+    if (renditionRef) {
+      renditionRef.themes?.fontSize(`${fontSize}px`);
+    }
+  }, [fontSize, renditionRef]);
 
   const getNextChapter = () => {
     if (!chapter) return null;
@@ -140,11 +164,19 @@ export const ChapterEpubReader: React.FC = () => {
       </div>
 
       {/* EPUB Reader */}
-      <div className="flex-1" style={{ height: 'calc(100vh - 64px)' }}>
+      <div className="flex-1" style={{ height: 'calc(100vh - 64px - 72px - 64px)', paddingBottom: '16px' }}>
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             <p className="text-destructive">{epubError}</p>
-            <Button onClick={() => window.location.reload()}>Recharger</Button>
+            <div className="flex gap-2">
+              <Button onClick={() => window.location.reload()}>Recharger</Button>
+              <Button
+                variant="outline"
+                onClick={() => window.open(chapter?.epub_url, '_blank')}
+              >
+                Ouvrir dans un nouvel onglet
+              </Button>
+            </div>
           </div>
         ) : (
           <ReactReader
@@ -159,6 +191,7 @@ export const ChapterEpubReader: React.FC = () => {
             }}
             getRendition={(rendition) => {
               console.log('EPUB rendition ready', rendition);
+              setRenditionRef(rendition);
               setEpubReady(true);
               setEpubError(null);
 

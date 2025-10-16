@@ -8,8 +8,6 @@ import { AdminDashboard } from '@/components/AdminDashboard';
 import { ShopAdmin } from '@/components/ShopAdmin';
 import { AchievementAdmin } from '@/components/AchievementAdmin';
 import { AudiobookAdmin } from '@/components/AudiobookAdmin';
-import { GameAdmin } from '@/components/GameAdmin';
-import { GameReader } from '@/components/GameReader';
 import { PointsAdmin } from '@/components/PointsAdmin';
 import { ApiKeysAdmin } from '@/components/ApiKeysAdmin';
 import { Shop } from '@/components/Shop';
@@ -37,14 +35,13 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
 import { TutorialPopup } from '@/components/TutorialPopup';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin' | 'tensens-codes' | 'premium-admin' | 'user-stats';
-type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'game-reader' | AdminPage;
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'tensens-codes' | 'premium-admin' | 'user-stats';
+type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
 
 const AppContent = () => {
   const location = useLocation();
   const [currentPage, setCurrentPage] = useState<Page>('library');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [selectedGame, setSelectedGame] = useState<any>(null);
   const [bookForAd, setBookForAd] = useState<Book | null>(null);
   
   const { books } = useBooks();
@@ -92,14 +89,8 @@ const AppContent = () => {
     }
   };
 
-  const handleGameSelect = (game: any) => {
-    setSelectedGame(game);
-    setCurrentPage('game-reader');
-  };
-
   const handleBackToLibrary = () => {
     setSelectedBook(null);
-    setSelectedGame(null);
     setCurrentPage('library');
   };
 
@@ -111,16 +102,10 @@ const AppContent = () => {
         return selectedBook ? (
           <BookReader book={selectedBook} onBack={handleBackToLibrary} />
         ) : null;
-      case 'game-reader':
-        return selectedGame ? (
-          <GameReader game={selectedGame} onBack={handleBackToLibrary} />
-        ) : null;
       case 'admin':
         return <AdminDashboard />;
       case 'audiobook-admin':
         return <AudiobookAdmin />;
-      case 'game-admin':
-        return <GameAdmin />;
       case 'shop-admin':
         return <ShopAdmin />;
       case 'achievement-admin':
@@ -157,13 +142,13 @@ const AppContent = () => {
       case 'premium':
         return <PremiumPage />;
       default:
-        return <BookLibrary books={books} onBookSelect={handleBookSelect} onGameSelect={handleGameSelect} />;
+        return <BookLibrary books={books} onBookSelect={handleBookSelect} />;
     }
   };
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
   
-  const isAdminPage = (['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'reading-stats-export', 'user-stats', 'audiobook-admin', 'game-admin', 'points-admin', 'premium-admin', 'tensens-codes', 'api-keys-admin'] as const).includes(currentPage as any);
+  const isAdminPage = (['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'reading-stats-export', 'user-stats', 'audiobook-admin', 'points-admin', 'premium-admin', 'tensens-codes', 'api-keys-admin'] as const).includes(currentPage as any);
 
   const getMainPadding = () => {
     if (isMobile) {
@@ -217,7 +202,7 @@ const AppContent = () => {
           {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
           {renderCurrentPage()}
         </main>
-        {currentPage !== 'reader' && currentPage !== 'game-reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={setCurrentPage as any} />}
+        {currentPage !== 'reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={setCurrentPage as any} />}
         
         {/* Panel de sélection premium */}
         <PremiumSelectionDialog 

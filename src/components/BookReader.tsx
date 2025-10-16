@@ -5,7 +5,6 @@ import { ChevronLeft, X, Star } from 'lucide-react';
 import { TextSizeControls } from '@/components/TextSizeControls';
 import { BannerAd } from '@/components/BannerAd';
 import { RewardAd } from '@/components/RewardAd';
-import { InteractiveBookReader } from '@/components/InteractiveBookReader';
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { RatingDialog } from './RatingDialog';
 import { CopyrightWarning } from '@/components/CopyrightWarning';
@@ -167,10 +166,6 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
     setShowAgeVerification(false);
     handleBackClick();
   };
-
-  if (book.hasChapters) {
-    return <InteractiveBookReader book={book} onClose={handleBackClick} />;
-  }
 
   if (book.isAdultContent && !ageVerified) {
     return (

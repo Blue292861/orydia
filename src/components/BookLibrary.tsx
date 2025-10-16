@@ -1,13 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Book } from '@/types/Book';
-import { Game } from '@/types/Game';
 import { Audiobook } from '@/types/Audiobook';
-import { Info, Headphones, Gamepad2 } from 'lucide-react';
+import { Info, Headphones } from 'lucide-react';
 import { BookCarousel } from './BookCarousel';
 import { BookPreviewDialog } from './BookPreviewDialog';
-import { GameCard } from './GameCard';
-import { gameService } from '@/services/gameService';
 import { audiobookService } from '@/services/audiobookService';
 import { useResponsive } from '@/hooks/useResponsive';
 import { RecentReads } from './RecentReads';
@@ -15,14 +12,12 @@ import { RecentReads } from './RecentReads';
 interface BookLibraryProps {
   books: Book[];
   onBookSelect: (book: Book) => void;
-  onGameSelect?: (game: Game) => void;
 }
 
-export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, onGameSelect }) => {
+export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect }) => {
   const { isMobile, isTablet } = useResponsive();
   const [featuredAudiobooks, setFeaturedAudiobooks] = useState<Audiobook[]>([]);
   const [pacoChronicleAudiobooks, setPacoChronicleAudiobooks] = useState<Audiobook[]>([]);
-  const [featuredGames, setFeaturedGames] = useState<Game[]>([]);
   const [previewBook, setPreviewBook] = useState<Book | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   
@@ -41,14 +36,12 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
   useEffect(() => {
     const loadFeaturedContent = async () => {
       try {
-        const [audiobooks, pacoChronicleData, games] = await Promise.all([
+        const [audiobooks, pacoChronicleData] = await Promise.all([
           audiobookService.getFeaturedAudiobooks(),
-          audiobookService.getPacoChronicleAudiobooks(),
-          gameService.getFeaturedGames()
+          audiobookService.getPacoChronicleAudiobooks()
         ]);
         setFeaturedAudiobooks(audiobooks);
         setPacoChronicleAudiobooks(pacoChronicleData);
-        setFeaturedGames(games);
       } catch (error) {
         console.error('Erreur lors du chargement du contenu à la une:', error);
       }
@@ -166,36 +159,6 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect, o
         </div>
       </div>
 
-      {/* Jeux à la une */}
-      <div className={getSpacing()}>
-        <h2 className={`font-cursive text-wood-300 px-2 flex items-center gap-2 ${
-          isMobile ? 'text-lg' : isTablet ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'
-        }`}>
-          <Gamepad2 className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
-          Jeux à la une
-        </h2>
-        <div className="px-2">
-          {featuredGames.length > 0 ? (
-            <div className={`flex gap-4 overflow-x-auto pb-4 ${
-              isMobile ? 'scroll-smooth' : ''
-            }`}>
-              {featuredGames.map((game) => (
-                <GameCard 
-                  key={game.id} 
-                  game={game} 
-                  onSelect={onGameSelect || (() => {})} 
-                />
-              ))}
-            </div>
-          ) : (
-            <div className={`text-wood-300 px-2 ${
-              isMobile ? 'text-xs' : isTablet ? 'text-sm' : 'text-sm'
-            }`}>
-              Aucun jeu à la une pour le moment.
-            </div>
-          )}
-        </div>
-      </div>
       {/* Reprise de lecture - harmonisé avec les autres catégories */}
       <div className={getSpacing()}>
         <h2 className={`font-display text-forest-700 px-2 flex items-center gap-2 ${
