@@ -18,6 +18,8 @@ type Theme = 'light' | 'dark' | 'sepia';
 type ColorblindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
 
 interface ChapterReadingControlsProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   fontSize: number;
   theme: Theme;
   colorblindMode: ColorblindMode;
@@ -27,6 +29,8 @@ interface ChapterReadingControlsProps {
 }
 
 export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
+  open,
+  onOpenChange,
   fontSize,
   theme,
   colorblindMode,
@@ -36,7 +40,6 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
 }) => {
   const { isHighContrast, toggleContrast } = useContrast();
   const isMobile = useIsMobile();
-  const [open, setOpen] = useState(false);
 
   const increaseFontSize = () => {
     if (fontSize < 24) onFontSizeChange(fontSize + 1);
@@ -153,16 +156,7 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
 
   if (isMobile) {
     return (
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <Button
-            variant="secondary"
-            size="icon"
-            className="fixed bottom-20 right-4 z-50 h-12 w-12 rounded-full shadow-lg"
-          >
-            <Type className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
+      <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="bottom" className="h-auto max-h-[80vh]">
           <div className="py-4">
             <h3 className="text-lg font-semibold mb-4">Paramètres de lecture</h3>
@@ -174,16 +168,7 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="secondary"
-          size="icon"
-          className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg"
-        >
-          <Type className="h-5 w-5" />
-        </Button>
-      </PopoverTrigger>
+    <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverContent className="w-72 p-4" align="end">
         <ControlsContent />
       </PopoverContent>

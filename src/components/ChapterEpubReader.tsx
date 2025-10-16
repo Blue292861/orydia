@@ -6,7 +6,7 @@ import { chapterEpubService } from '@/services/chapterEpubService';
 import { Button } from '@/components/ui/button';
 import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChapterBannerAd } from '@/components/ChapterBannerAd';
-import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw, Type } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 
@@ -32,6 +32,7 @@ export const ChapterEpubReader: React.FC = () => {
   const [epubError, setEpubError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [totalLocations, setTotalLocations] = useState(0);
+  const [controlsOpen, setControlsOpen] = useState(false);
   
   // EPUB refs (not states!)
   const bookRef = useRef<any>(null);
@@ -218,7 +219,17 @@ export const ChapterEpubReader: React.FC = () => {
         const savedLocation = typeof savedCFI === 'string' ? savedCFI : undefined;
         
         try {
-          await rendition.display(savedLocation);
+          if (savedLocation) {
+            await rendition.display(savedLocation);
+          } else {
+            // Skip cover page by starting at second spine item if available
+            const spineItems = (book.spine as any).items || [];
+            if (spineItems.length > 1) {
+              await rendition.display(spineItems[1].href);
+            } else {
+              await rendition.display();
+            }
+          }
           if (!cancelled) setEpubReady(true);
         } catch (err) {
           console.warn('CFI display failed, fallback to start:', err);
@@ -382,8 +393,8 @@ export const ChapterEpubReader: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="border-b bg-card p-4 sticky top-0 z-40">
-        <div className="container mx-auto flex items-center gap-4">
+      <div className="border-b bg-card p-2 md:p-3 sticky top-0 z-40">
+        <div className="container mx-auto flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
@@ -391,7 +402,7 @@ export const ChapterEpubReader: React.FC = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-lg font-semibold line-clamp-1 flex-1">{chapter.title}</h1>
+          <h1 className="text-base md:text-lg font-semibold line-clamp-1 flex-1">{chapter.title}</h1>
           <Button
             variant="outline"
             size="sm"
@@ -400,19 +411,11 @@ export const ChapterEpubReader: React.FC = () => {
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.open(chapter.epub_url, '_blank')}
-            aria-label="Ouvrir l'EPUB dans un nouvel onglet"
-          >
-            Ouvrir l'EPUB
-          </Button>
         </div>
       </div>
 
       {/* EPUB Reader with Navigation */}
-      <div className="flex-1 flex flex-col min-h-0" style={{ height: 'calc(100dvh - 160px)' }}>
+      <div className="flex-1 flex flex-col min-h-0" style={{ height: 'calc(100dvh - 120px)' }}>
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             <p className="text-destructive">{epubError}</p>
@@ -430,7 +433,7 @@ export const ChapterEpubReader: React.FC = () => {
           <>
             {/* Progress Bar */}
             {epubReady && totalLocations > 0 && (
-              <div className="px-4 py-2 bg-card border-b">
+              <div className="px-4 py-1.5 bg-card border-b">
                 <div className="container mx-auto space-y-1">
                   <Progress value={progress} className="h-2" />
                   <p className="text-xs text-muted-foreground text-center">
@@ -517,10 +520,21 @@ export const ChapterEpubReader: React.FC = () => {
         )}
       </div>
 
-      {/* Footer Navigation - Fixed at bottom */}
-      {(isLastChapter() || getNextChapter()) && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 z-30">
-          <div className="container mx-auto">
+      {/* Footer - Fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-3 z-30">
+        <div className="container mx-auto flex gap-2 items-center">
+          {/* Settings button on the left */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setControlsOpen(true)}
+            className="h-10 w-10 shrink-0"
+          >
+            <Type className="h-5 w-5" />
+          </Button>
+          
+          {/* Main action button (full width) */}
+          <div className="flex-1">
             {isLastChapter() ? (
               <Button onClick={handleClaimReward} size="lg" className="w-full">
                 <Gift className="mr-2 h-5 w-5" />
@@ -535,13 +549,19 @@ export const ChapterEpubReader: React.FC = () => {
                 Chapitre suivant
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-            ) : null}
+            ) : (
+              <div className="text-center text-sm text-muted-foreground py-2">
+                Bonne lecture ! 📖
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Reading Controls */}
       <ChapterReadingControls
+        open={controlsOpen}
+        onOpenChange={setControlsOpen}
         fontSize={fontSize}
         theme={theme}
         colorblindMode={colorblindMode}
