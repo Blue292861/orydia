@@ -435,8 +435,8 @@ export const ChapterEpubReader: React.FC = () => {
 
       {/* EPUB Reader with Navigation */}
       <div className="flex-1 flex flex-col min-h-0" style={{ 
-        height: 'calc(100dvh - 180px)',
-        maxHeight: 'calc(100dvh - 180px)'
+        height: `calc(100dvh - ${epubReady && totalLocations > 0 ? '200' : '160'}px)`,
+        maxHeight: `calc(100dvh - ${epubReady && totalLocations > 0 ? '200' : '160'}px)`
       }}>
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
@@ -481,7 +481,7 @@ export const ChapterEpubReader: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-background/80 hover:bg-background shadow-lg transition-all hover:scale-110"
+                  className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-background/90 hover:bg-background shadow-lg transition-all hover:scale-110 touch-manipulation"
                   onClick={handlePrevPage}
                   aria-label="Page précédente"
                 >
@@ -504,7 +504,7 @@ export const ChapterEpubReader: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 h-12 w-12 rounded-full bg-background/80 hover:bg-background shadow-lg transition-all hover:scale-110"
+                  className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 md:h-12 md:w-12 rounded-full bg-background/90 hover:bg-background shadow-lg transition-all hover:scale-110 touch-manipulation"
                   onClick={handleNextPage}
                   aria-label="Page suivante"
                 >
@@ -513,31 +513,6 @@ export const ChapterEpubReader: React.FC = () => {
               )}
             </div>
 
-            {/* Mobile Navigation Bar */}
-            {epubReady && (
-              <div className="md:hidden border-t bg-card p-3 safe-area-bottom">
-                <div className="flex gap-2 justify-center">
-                  <Button
-                    variant="outline"
-                    size="default"
-                    onClick={handlePrevPage}
-                    className="flex-1"
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Précédent
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="default"
-                    onClick={handleNextPage}
-                    className="flex-1"
-                  >
-                    Suivant
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
