@@ -168,6 +168,21 @@ export const ChapterEpubReader: React.FC = () => {
       
       const url = chapter.epub_url;
       const book = ePub(url);
+      
+      // Debug: log book info
+      book.ready.then(() => {
+        console.log('📚 EPUB Book ready', {
+          metadata: book.packaging?.metadata,
+          spine: book.spine,
+          navigation: book.navigation,
+        });
+        
+        return book.loaded.navigation;
+      }).then((nav: any) => {
+        console.log('📖 EPUB Navigation:', nav);
+        console.log('📄 EPUB Spine items:', book.spine);
+      });
+
       const rendition = book.renderTo(epubRootRef.current, {
         width: '100%',
         height: '80vh',
@@ -195,15 +210,44 @@ export const ChapterEpubReader: React.FC = () => {
       rendition.themes.select(theme);
       rendition.themes.fontSize(`${fontSize}px`);
       
-      rendition.display().then(() => {
-        console.log('✅ Mode minimal: EPUB affiché avec succès');
-        toast.success('Mode minimal: EPUB chargé avec succès!');
+      // Try to display the first spine item (after cover)
+      book.ready.then(() => {
+        // Display first item
+        return rendition.display();
+      }).then(() => {
+        console.log('✅ Mode minimal: EPUB affiché (position initiale)');
+        toast.success('Mode minimal: EPUB chargé! Utilisez ← → pour naviguer.');
         setMinimalRendition(rendition);
       }).catch((err: any) => {
         console.error('❌ Mode minimal: échec du display', err);
-        setEpubError('Échec du chargement même en mode minimal');
+        setEpubError('Échec du chargement même en mode minimal: ' + err.message);
+      });
+
+      // Navigation via keyboard
+      rendition.on('keyup', (e: KeyboardEvent) => {
+        if (e.key === 'ArrowRight') {
+          rendition.next();
+        } else if (e.key === 'ArrowLeft') {
+          rendition.prev();
+        }
+      });
+
+      rendition.on('rendered', (section: any) => {
+        console.log('🎨 Mode minimal: section rendered', section?.href);
       });
     }, 100);
+  };
+
+  const handleMinimalNext = () => {
+    if (minimalRendition) {
+      minimalRendition.next();
+    }
+  };
+
+  const handleMinimalPrev = () => {
+    if (minimalRendition) {
+      minimalRendition.prev();
+    }
   };
 
   const handleVerifyArchive = async () => {
@@ -361,15 +405,26 @@ export const ChapterEpubReader: React.FC = () => {
             </div>
           </div>
         ) : testMode === 'minimal' ? (
-          <div 
-            ref={epubRootRef} 
-            style={{ 
-              height: '80vh', 
-              width: '100%',
-              border: '1px solid rgba(0,0,0,0.1)',
-              background: themeColors[theme].background,
-            }}
-          />
+          <div className="flex flex-col h-full">
+            <div className="flex gap-2 mb-2">
+              <Button onClick={handleMinimalPrev} size="sm" variant="outline">
+                ← Page précédente
+              </Button>
+              <Button onClick={handleMinimalNext} size="sm" variant="outline">
+                Page suivante →
+              </Button>
+            </div>
+            <div 
+              ref={epubRootRef} 
+              style={{ 
+                flex: 1,
+                height: '75vh', 
+                width: '100%',
+                border: '1px solid rgba(0,0,0,0.1)',
+                background: themeColors[theme].background,
+              }}
+            />
+          </div>
         ) : (
           <div style={{ 
             flex: 1, 
