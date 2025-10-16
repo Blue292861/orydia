@@ -146,12 +146,21 @@ export const ChapterEpubReader: React.FC = () => {
 
         setRendition(epubRendition);
 
-        // Display saved location or start
+        // Listen for first render to mark ready
+        epubRendition.on('rendered', () => {
+          try { setEpubReady(true); } catch {}
+        });
+
+        // Display saved location or start with fallback
         const savedLocation = typeof location === 'string' ? location : undefined;
-        await epubRendition.display(savedLocation);
+        try {
+          await epubRendition.display(savedLocation);
+        } catch (err) {
+          console.warn('CFI display failed, fallback to start', err);
+          await epubRendition.display();
+        }
         
         console.log('✅ EPUB displayed successfully');
-        setEpubReady(true);
         toast.success('Chapitre chargé avec succès');
 
         // Generate locations for progress tracking
