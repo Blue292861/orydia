@@ -4,7 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import { Type, Sun, Moon, Eye, Palette } from 'lucide-react';
 import { useContrast } from '@/contexts/ContrastContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
@@ -158,8 +158,11 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="bottom" className="h-auto max-h-[80vh]">
-          <div className="py-4">
-            <h3 className="text-lg font-semibold mb-4">Paramètres de lecture</h3>
+          <SheetHeader>
+            <SheetTitle>Paramètres de lecture</SheetTitle>
+            <SheetDescription className="sr-only">Ajustez la taille du texte, le thème et l’accessibilité.</SheetDescription>
+          </SheetHeader>
+          <div className="py-2">
             <ControlsContent />
           </div>
         </SheetContent>

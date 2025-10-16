@@ -214,32 +214,46 @@ export const ChapterEpubReader: React.FC = () => {
         rendition.on('rendered', onRendered);
         rendition.on('relocated', onRelocated);
 
-        // Display with saved location or fallback
-        const savedCFI = chapterId ? localStorage.getItem(`chapter_location_${chapterId}`) : null;
+        // Display with saved location or fallback, robustly skipping cover pages
+        const cfiKey = chapterId ? `chapter_location_${chapterId}` : '';
+        const savedCFI = cfiKey ? localStorage.getItem(cfiKey) : null;
         const savedLocation = typeof savedCFI === 'string' ? savedCFI : undefined;
-        const spineItems = (book.spine as any).items || [];
+
+        const spineItems: any[] = ((book.spine as any).items || []) as any[];
+        const isCoverLike = (item: any) => {
+          const href = String(item?.href || '').toLowerCase();
+          const idref = String(item?.idref || '').toLowerCase();
+          const props = String(item?.properties || '').toLowerCase();
+          const looksLike = /cover|title|front|copyright|nav|toc/.test(href) ||
+            /cover|title|front|copyright|nav|toc/.test(idref) ||
+            props.includes('cover') || props.includes('nav');
+          const nonLinear = String(item?.linear || '').toLowerCase() === 'no';
+          return looksLike || nonLinear;
+        };
+        const firstReadable = spineItems.find((it) => !isCoverLike(it)) || spineItems[1] || spineItems[0];
+        const readingHref = firstReadable?.href;
         
         try {
           if (savedLocation) {
             await rendition.display(savedLocation);
-          } else {
-            // Skip cover page by starting at second spine item if available
-            if (spineItems.length > 1) {
-              await rendition.display(spineItems[1].href);
-            } else {
-              await rendition.display();
+            // If saved CFI lands on a cover-like first item, jump to first readable
+            const loc = (rendition.currentLocation?.() as any) || null;
+            const atFirst = !!(loc && typeof loc.start?.index === 'number' && loc.start.index === 0);
+            if (atFirst && spineItems[0] && isCoverLike(spineItems[0]) && readingHref) {
+              if (cfiKey) localStorage.removeItem(cfiKey);
+              await rendition.display(readingHref);
             }
+          } else if (readingHref) {
+            await rendition.display(readingHref);
+          } else {
+            await rendition.display();
           }
           if (!cancelled) setEpubReady(true);
         } catch (err) {
-          console.warn('CFI display failed, fallback to skip cover:', err);
-          // Invalid CFI -> clear it and skip cover
-          if (chapterId) {
-            localStorage.removeItem(`chapter_location_${chapterId}`);
-          }
-          // Skip cover on error too
-          if (spineItems.length > 1) {
-            await rendition.display(spineItems[1].href);
+          console.warn('Display failed, fallback while skipping cover if possible:', err);
+          if (cfiKey) localStorage.removeItem(cfiKey);
+          if (readingHref) {
+            await rendition.display(readingHref);
           } else {
             await rendition.display();
           }
