@@ -6,8 +6,7 @@ import { chapterEpubService } from '@/services/chapterEpubService';
 import { Button } from '@/components/ui/button';
 import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChapterBannerAd } from '@/components/ChapterBannerAd';
-import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw, Type } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw, Type, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 
 type Theme = 'light' | 'dark' | 'sepia';
@@ -451,8 +450,8 @@ export const ChapterEpubReader: React.FC = () => {
 
       {/* EPUB Reader with Navigation */}
       <div className="flex-1 flex flex-col min-h-0" style={{ 
-        height: `calc(100dvh - ${epubReady && totalLocations > 0 ? '162' : '114'}px)`,
-        maxHeight: `calc(100dvh - ${epubReady && totalLocations > 0 ? '162' : '114'}px)`
+        height: 'calc(100dvh - 186px)',
+        maxHeight: 'calc(100dvh - 186px)'
       }}>
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
@@ -469,17 +468,15 @@ export const ChapterEpubReader: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Progress Bar */}
-            {epubReady && totalLocations > 0 && (
-              <div className="px-2 md:px-4 py-1.5 bg-card border-b">
-                <div className="space-y-1">
-                  <Progress value={progress} className="h-2" />
-                  <p className="text-xs text-muted-foreground text-center">
-                    {progress}% du chapitre
-                  </p>
-                </div>
+            {/* Copyright Warning Banner */}
+            <div className="px-2 md:px-4 py-2 md:py-3 bg-amber-50 dark:bg-amber-950 border-b border-amber-200 dark:border-amber-800">
+              <div className="flex items-start gap-2">
+                <ShieldAlert className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <p className="text-xs md:text-sm text-amber-900 dark:text-amber-100 leading-relaxed">
+                  <span className="font-semibold">Protection légale du contenu :</span> Tout le contenu (littéraire et audio) diffusé ici est protégé par le droit d'auteur, et son usage est strictement limité à l'écoute/lecture privée en streaming au sein de cette application. Toute reproduction, téléchargement ou diffusion non autorisé constitue un délit de contrefaçon, formellement interdit par l'article L335-2 du Code de la propriété intellectuelle.
+                </p>
               </div>
-            )}
+            </div>
 
             {/* Reader Container with Navigation Buttons */}
             <div className="flex-1 relative overflow-y-auto overflow-x-hidden" ref={containerRef}>
