@@ -26,7 +26,6 @@ export const BookDetailAdmin: React.FC<BookDetailAdminProps> = ({
   const [showChapterForm, setShowChapterForm] = useState(false);
   const [editingChapter, setEditingChapter] = useState<ChapterEpub | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [nextPosition, setNextPosition] = useState(1);
 
   const handleChapterSuccess = () => {
     setShowChapterForm(false);
@@ -75,7 +74,6 @@ export const BookDetailAdmin: React.FC<BookDetailAdminProps> = ({
               <ChapterEpubForm
                 bookId={book.id}
                 chapter={editingChapter || undefined}
-                nextPosition={nextPosition}
                 onSuccess={handleChapterSuccess}
                 onCancel={() => {
                   setShowChapterForm(false);

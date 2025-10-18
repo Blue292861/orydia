@@ -14,7 +14,6 @@ import { supabase } from '@/integrations/supabase/client';
 interface ChapterEpubFormProps {
   bookId: string;
   chapter?: ChapterEpub;
-  nextPosition: number;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -22,32 +21,34 @@ interface ChapterEpubFormProps {
 export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
   bookId,
   chapter,
-  nextPosition,
   onSuccess,
   onCancel,
 }) => {
   const [loading, setLoading] = useState(false);
   const [nextChapterNumber, setNextChapterNumber] = useState<number>(1);
+  const [nextPosition, setNextPosition] = useState<number>(1);
   const [formData, setFormData] = useState({
     title: chapter?.title || '',
     description: chapter?.description || '',
-    position: chapter?.position || nextPosition,
+    position: chapter?.position || 1,
     chapter_number: chapter?.chapter_number || 1,
   });
   const [epubFile, setEpubFile] = useState<File | null>(null);
   const [illustrationFile, setIllustrationFile] = useState<File | null>(null);
 
-  // Calculate next available chapter_number
+  // Calculate next available chapter_number and position
   useEffect(() => {
-    const fetchNextChapterNumber = async () => {
+    const fetchNextValues = async () => {
       if (chapter) {
-        // En mode édition, conserver le chapter_number existant
+        // En mode édition, conserver les valeurs existantes
         setNextChapterNumber(chapter.chapter_number);
+        setNextPosition(chapter.position);
         return;
       }
 
       try {
-        const { data, error } = await supabase
+        // Récupérer le maximum de chapter_number
+        const { data: chapterData, error: chapterError } = await supabase
           .from('book_chapter_epubs')
           .select('chapter_number')
           .eq('book_id', bookId)
@@ -55,27 +56,46 @@ export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
           .limit(1)
           .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching max chapter_number:', error);
-          return;
+        if (chapterError && chapterError.code !== 'PGRST116') {
+          console.error('Error fetching max chapter_number:', chapterError);
         }
 
-        const maxChapterNumber = data?.chapter_number || 0;
+        const maxChapterNumber = chapterData?.chapter_number || 0;
         setNextChapterNumber(maxChapterNumber + 1);
+
+        // Récupérer le maximum de position
+        const { data: positionData, error: positionError } = await supabase
+          .from('book_chapter_epubs')
+          .select('position')
+          .eq('book_id', bookId)
+          .order('position', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (positionError && positionError.code !== 'PGRST116') {
+          console.error('Error fetching max position:', positionError);
+        }
+
+        const maxPosition = positionData?.position || 0;
+        setNextPosition(maxPosition + 1);
       } catch (error) {
-        console.error('Error calculating next chapter number:', error);
+        console.error('Error calculating next values:', error);
       }
     };
 
-    fetchNextChapterNumber();
+    fetchNextValues();
   }, [bookId, chapter]);
 
-  // Synchronize formData with nextChapterNumber
+  // Synchronize formData with nextChapterNumber and nextPosition
   useEffect(() => {
     if (!chapter) {
-      setFormData(prev => ({ ...prev, chapter_number: nextChapterNumber }));
+      setFormData(prev => ({ 
+        ...prev, 
+        chapter_number: nextChapterNumber,
+        position: nextPosition 
+      }));
     }
-  }, [nextChapterNumber, chapter]);
+  }, [nextChapterNumber, nextPosition, chapter]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
