@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChapterEpub } from '@/types/ChapterEpub';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { chapterEpubService } from '@/services/chapterEpubService';
 import { Loader2 } from 'lucide-react';
 import DOMPurify from 'dompurify';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChapterEpubFormProps {
   bookId: string;
@@ -26,14 +27,55 @@ export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
   onCancel,
 }) => {
   const [loading, setLoading] = useState(false);
+  const [nextChapterNumber, setNextChapterNumber] = useState<number>(1);
   const [formData, setFormData] = useState({
     title: chapter?.title || '',
     description: chapter?.description || '',
     position: chapter?.position || nextPosition,
-    chapter_number: chapter?.chapter_number || nextPosition,
+    chapter_number: chapter?.chapter_number || 1,
   });
   const [epubFile, setEpubFile] = useState<File | null>(null);
   const [illustrationFile, setIllustrationFile] = useState<File | null>(null);
+
+  // Calculate next available chapter_number
+  useEffect(() => {
+    const fetchNextChapterNumber = async () => {
+      if (chapter) {
+        // En mode édition, conserver le chapter_number existant
+        setNextChapterNumber(chapter.chapter_number);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('book_chapter_epubs')
+          .select('chapter_number')
+          .eq('book_id', bookId)
+          .order('chapter_number', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching max chapter_number:', error);
+          return;
+        }
+
+        const maxChapterNumber = data?.chapter_number || 0;
+        setNextChapterNumber(maxChapterNumber + 1);
+      } catch (error) {
+        console.error('Error calculating next chapter number:', error);
+      }
+    };
+
+    fetchNextChapterNumber();
+  }, [bookId, chapter]);
+
+  // Synchronize formData with nextChapterNumber
+  useEffect(() => {
+    if (!chapter) {
+      setFormData(prev => ({ ...prev, chapter_number: nextChapterNumber }));
+    }
+  }, [nextChapterNumber, chapter]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,9 +129,14 @@ export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
       }
 
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving chapter:', error);
-      toast.error('Erreur lors de la sauvegarde du chapitre');
+      
+      if (error?.code === '23505') {
+        toast.error('Ce numéro de chapitre existe déjà. Veuillez rafraîchir la page et réessayer.');
+      } else {
+        toast.error('Erreur lors de la sauvegarde du chapitre');
+      }
     } finally {
       setLoading(false);
     }
