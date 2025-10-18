@@ -6,8 +6,12 @@ import { chapterEpubService } from '@/services/chapterEpubService';
 import { Button } from '@/components/ui/button';
 import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChapterBannerAd } from '@/components/ChapterBannerAd';
+import { RewardAd } from '@/components/RewardAd';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw, Type, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
+import { Book } from '@/types/Book';
 
 type Theme = 'light' | 'dark' | 'sepia';
 type ColorblindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
@@ -15,11 +19,13 @@ type ColorblindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
 export const ChapterEpubReader: React.FC = () => {
   const { bookId, chapterId } = useParams<{ bookId: string; chapterId: string }>();
   const navigate = useNavigate();
+  const { user, subscription } = useAuth();
   
   // Chapter data
   const [chapter, setChapter] = useState<ChapterEpub | null>(null);
   const [allChapters, setAllChapters] = useState<ChapterEpub[]>([]);
   const [loading, setLoading] = useState(true);
+  const [book, setBook] = useState<Book | null>(null);
   
   // Reading settings
   const [fontSize, setFontSize] = useState(16);
@@ -32,6 +38,10 @@ export const ChapterEpubReader: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [totalLocations, setTotalLocations] = useState(0);
   const [controlsOpen, setControlsOpen] = useState(false);
+  
+  // Reward state
+  const [showRewardAd, setShowRewardAd] = useState(false);
+  const [hasClaimedReward, setHasClaimedReward] = useState(false);
   
   // EPUB refs (not states!)
   const bookRef = useRef<any>(null);
@@ -61,6 +71,33 @@ export const ChapterEpubReader: React.FC = () => {
         setChapter(chapterData);
         setAllChapters(chaptersData);
 
+        // Load book data for rewards
+        const { data: bookData } = await supabase
+          .from('books')
+          .select('*')
+          .eq('id', bookId)
+          .single();
+        
+        if (bookData) {
+          setBook({
+            id: bookData.id,
+            title: bookData.title,
+            author: bookData.author,
+            coverUrl: bookData.cover_url,
+            content: bookData.content,
+            summary: bookData.summary,
+            points: bookData.points,
+            tags: bookData.tags,
+            genres: bookData.genres,
+            isPremium: bookData.is_premium,
+            isMonthSuccess: bookData.is_month_success,
+            isPacoFavourite: bookData.is_paco_favourite,
+            hasChapters: bookData.has_chapters,
+            isInteractive: bookData.is_interactive,
+            isAdultContent: bookData.is_adult_content
+          });
+        }
+
         // Load saved settings
         const savedFontSize = localStorage.getItem(`chapter_fontSize_${chapterId}`);
         const savedTheme = localStorage.getItem(`chapter_theme_${chapterId}`);
@@ -77,6 +114,26 @@ export const ChapterEpubReader: React.FC = () => {
 
     loadChapter();
   }, [bookId, chapterId, navigate]);
+
+  // Check if book completion reward was already claimed
+  useEffect(() => {
+    const checkBookCompletion = async () => {
+      if (!user || !bookId) return;
+      
+      const { data } = await supabase
+        .from('book_completions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('book_id', bookId)
+        .maybeSingle();
+      
+      if (data) {
+        setHasClaimedReward(true);
+      }
+    };
+    
+    checkBookCompletion();
+  }, [user, bookId]);
 
   // Throttled CFI save
   const scheduleSaveCFI = (cfi: string) => {
@@ -401,9 +458,77 @@ export const ChapterEpubReader: React.FC = () => {
     return currentIndex === allChapters.length - 1;
   };
 
+  const awardPointsAndComplete = async () => {
+    if (!user || !book || !bookId) return;
+    
+    const basePoints = book.points || 50;
+    const pointsToAward = subscription.isPremium ? basePoints * 2 : basePoints;
+    
+    try {
+      // 1. Call award-points edge function
+      const { error: pointsError } = await supabase.functions.invoke('award-points', {
+        body: {
+          user_id: user.id,
+          points: pointsToAward,
+          transaction_type: 'book_completion',
+          reference_id: bookId,
+          description: `Livre terminé: ${book.title}${subscription.isPremium ? ' (Premium x2)' : ''}`
+        }
+      });
+      
+      if (pointsError) throw pointsError;
+      
+      // 2. Record book completion
+      const { error: completionError } = await supabase
+        .from('book_completions')
+        .insert({
+          user_id: user.id,
+          book_id: bookId
+        });
+      
+      if (completionError) throw completionError;
+      
+      // 3. Update state and notify user
+      setHasClaimedReward(true);
+      toast.success(`${pointsToAward} Tensens ajoutés à votre compte !`);
+      
+      // 4. Navigate back to chapters after brief delay
+      setTimeout(() => {
+        navigate(`/book/${bookId}/chapters`);
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Error awarding points:', error);
+      toast.error("Une erreur est survenue lors de l'attribution des points");
+    }
+  };
+
   const handleClaimReward = async () => {
-    toast.success('Récompense réclamée !');
-    navigate(`/book/${bookId}/chapters`);
+    if (!user) {
+      toast.error("Vous devez être connecté pour réclamer vos Tensens");
+      return;
+    }
+    
+    // Check if already claimed
+    const { data: existingCompletion } = await supabase
+      .from('book_completions')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('book_id', bookId)
+      .maybeSingle();
+    
+    if (existingCompletion) {
+      toast.error("Vous avez déjà réclamé vos Tensens pour ce livre");
+      return;
+    }
+    
+    // If freemium: show ad
+    if (!subscription.isPremium) {
+      setShowRewardAd(true);
+    } else {
+      // If premium: award points directly
+      await awardPointsAndComplete();
+    }
   };
 
   const themeColors = {
@@ -449,10 +574,7 @@ export const ChapterEpubReader: React.FC = () => {
       </div>
 
       {/* EPUB Reader with Navigation */}
-      <div className="flex-1 flex flex-col min-h-0" style={{ 
-        height: 'calc(100dvh - 186px)',
-        maxHeight: 'calc(100dvh - 186px)'
-      }}>
+      <div className="flex-1 flex flex-col min-h-0">
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             <p className="text-destructive">{epubError}</p>
@@ -546,10 +668,17 @@ export const ChapterEpubReader: React.FC = () => {
           {/* Main action button (full width) */}
           <div className="flex-1">
             {isLastChapter() ? (
-              <Button onClick={handleClaimReward} className="w-full h-10">
-                <Gift className="mr-2 h-4 w-4" />
-                <span className="text-sm">Réclamer vos Tensens</span>
-              </Button>
+              hasClaimedReward ? (
+                <Button disabled className="w-full h-10">
+                  <Gift className="mr-2 h-4 w-4" />
+                  <span className="text-sm">Tensens déjà réclamés ✓</span>
+                </Button>
+              ) : (
+                <Button onClick={handleClaimReward} className="w-full h-10">
+                  <Gift className="mr-2 h-4 w-4" />
+                  <span className="text-sm">Réclamer vos Tensens</span>
+                </Button>
+              )
             ) : nextChapter ? (
               <Button
                 onClick={() => navigate(`/book/${bookId}/chapter/${nextChapter.id}`)}
@@ -581,6 +710,22 @@ export const ChapterEpubReader: React.FC = () => {
 
       {/* Ad Banner for non-premium users */}
       <ChapterBannerAd />
+
+      {/* Reward Ad for claiming tensens */}
+      {showRewardAd && book && (
+        <RewardAd
+          book={book}
+          pointsToWin={book.points || 50}
+          onAdCompleted={async () => {
+            setShowRewardAd(false);
+            await awardPointsAndComplete();
+          }}
+          onAdClosed={() => {
+            setShowRewardAd(false);
+            toast.info("Publicité fermée. Recommencez pour réclamer vos Tensens.");
+          }}
+        />
+      )}
 
       {/* SVG Filters for colorblind modes */}
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>

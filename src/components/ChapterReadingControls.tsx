@@ -157,10 +157,10 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-auto max-h-[80vh]">
+        <SheetContent side="bottom" className="h-auto max-h-[80vh] z-50">
           <SheetHeader>
             <SheetTitle>Paramètres de lecture</SheetTitle>
-            <SheetDescription className="sr-only">Ajustez la taille du texte, le thème et l’accessibilité.</SheetDescription>
+            <SheetDescription className="sr-only">Ajustez la taille du texte, le thème et l'accessibilité.</SheetDescription>
           </SheetHeader>
           <div className="py-2">
             <ControlsContent />
@@ -172,7 +172,7 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverContent className="w-72 p-4" align="end">
+      <PopoverContent className="w-72 p-4 z-50" align="end">
         <ControlsContent />
       </PopoverContent>
     </Popover>
