@@ -71,12 +71,36 @@ export const ChapterEpubReader: React.FC = () => {
         setChapter(chapterData);
         setAllChapters(chaptersData);
 
-        // Load book data for rewards
-        const { data: bookData } = await supabase
+        // Load saved settings
+        const savedFontSize = localStorage.getItem(`chapter_fontSize_${chapterId}`);
+        const savedTheme = localStorage.getItem(`chapter_theme_${chapterId}`);
+
+        if (savedFontSize) setFontSize(parseInt(savedFontSize));
+        if (savedTheme) setTheme(savedTheme as Theme);
+      } catch (error) {
+        console.error('Error loading chapter:', error);
+        toast.error('Erreur lors du chargement');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadChapter();
+  }, [bookId, chapterId, navigate]);
+
+  // Load book data separately for rewards
+  useEffect(() => {
+    const loadBook = async () => {
+      if (!bookId) return;
+      
+      try {
+        const { data: bookData, error } = await supabase
           .from('books')
           .select('*')
           .eq('id', bookId)
           .single();
+        
+        if (error) throw error;
         
         if (bookData) {
           setBook({
@@ -97,23 +121,13 @@ export const ChapterEpubReader: React.FC = () => {
             isAdultContent: bookData.is_adult_content
           });
         }
-
-        // Load saved settings
-        const savedFontSize = localStorage.getItem(`chapter_fontSize_${chapterId}`);
-        const savedTheme = localStorage.getItem(`chapter_theme_${chapterId}`);
-
-        if (savedFontSize) setFontSize(parseInt(savedFontSize));
-        if (savedTheme) setTheme(savedTheme as Theme);
       } catch (error) {
-        console.error('Error loading chapter:', error);
-        toast.error('Erreur lors du chargement');
-      } finally {
-        setLoading(false);
+        console.error('Error loading book data:', error);
       }
     };
 
-    loadChapter();
-  }, [bookId, chapterId, navigate]);
+    loadBook();
+  }, [bookId]);
 
   // Check if book completion reward was already claimed
   useEffect(() => {
@@ -574,7 +588,7 @@ export const ChapterEpubReader: React.FC = () => {
       </div>
 
       {/* EPUB Reader with Navigation */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             <p className="text-destructive">{epubError}</p>
