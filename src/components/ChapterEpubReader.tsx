@@ -588,7 +588,7 @@ export const ChapterEpubReader: React.FC = () => {
       </div>
 
       {/* EPUB Reader with Navigation */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden pb-16 md:pb-14">
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             <p className="text-destructive">{epubError}</p>
@@ -615,7 +615,7 @@ export const ChapterEpubReader: React.FC = () => {
             </div>
 
             {/* Reader Container with Navigation Buttons */}
-            <div className="flex-1 relative overflow-y-auto overflow-x-hidden" ref={containerRef}>
+            <div className="flex-1 relative overflow-y-auto overflow-x-hidden pb-2" ref={containerRef}>
               {!epubReady && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
                   <div className="text-center space-y-2">
@@ -667,14 +667,14 @@ export const ChapterEpubReader: React.FC = () => {
       </div>
 
       {/* Footer - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-2 md:p-3 z-30 safe-area-bottom">
-        <div className="px-2 md:px-4 flex gap-2 items-center">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-1.5 md:p-2 z-30 safe-area-bottom">
+        <div className="px-2 md:px-3 flex gap-2 items-center">
           {/* Settings button on the left */}
           <Button
             variant="outline"
             size="icon"
             onClick={() => setControlsOpen(true)}
-            className="h-10 w-10 shrink-0"
+            className="h-9 w-9 shrink-0"
           >
             <Type className="h-5 w-5" />
           </Button>
@@ -683,12 +683,12 @@ export const ChapterEpubReader: React.FC = () => {
           <div className="flex-1">
             {isLastChapter() ? (
               hasClaimedReward ? (
-                <Button disabled className="w-full h-10">
+                <Button disabled className="w-full h-9">
                   <Gift className="mr-2 h-4 w-4" />
                   <span className="text-sm">Tensens déjà réclamés ✓</span>
                 </Button>
               ) : (
-                <Button onClick={handleClaimReward} className="w-full h-10">
+                <Button onClick={handleClaimReward} className="w-full h-9">
                   <Gift className="mr-2 h-4 w-4" />
                   <span className="text-sm">Réclamer vos Tensens</span>
                 </Button>
@@ -696,7 +696,7 @@ export const ChapterEpubReader: React.FC = () => {
             ) : nextChapter ? (
               <Button
                 onClick={() => navigate(`/book/${bookId}/chapter/${nextChapter.id}`)}
-                className="w-full h-10"
+                className="w-full h-9"
               >
                 <span className="text-sm">Chapitre suivant</span>
                 <ArrowRight className="ml-2 h-4 w-4" />
