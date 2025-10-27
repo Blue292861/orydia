@@ -40,6 +40,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
     games: []
   });
   const [showResults, setShowResults] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
     loadAdditionalContent();
@@ -270,10 +271,18 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
                           <div 
                             key={book.id} 
                             className="flex items-center gap-3 p-2 hover:bg-wood-700 rounded cursor-pointer"
-                            onClick={() => {
-                              onBookSelect(book);
-                              setSearchQuery('');
+                            onClick={(e) => {
+                              if (isNavigating) return;
+                              
+                              e.stopPropagation();
+                              setIsNavigating(true);
                               setShowResults(false);
+                              setSearchQuery('');
+                              
+                              setTimeout(() => {
+                                onBookSelect(book);
+                                setTimeout(() => setIsNavigating(false), 1000);
+                              }, 0);
                             }}
                           >
                             <img src={book.coverUrl} alt={book.title} className="w-8 h-10 object-cover rounded" />

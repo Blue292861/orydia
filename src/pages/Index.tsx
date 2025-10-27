@@ -65,18 +65,23 @@ const AppContent = () => {
   }, [location.state]);
 
   const handleBookSelect = async (book: Book) => {
-    // Si le livre est premium et l'utilisateur n'est pas premium, ouvrir le panel de sélection
-    if (book.isPremium && !subscription.isPremium) {
+    const isPremium = subscription.isPremium;
+    const isBookPremium = book.isPremium;
+
+    // Si le livre est premium et l'utilisateur n'est pas premium
+    if (isBookPremium && !isPremium) {
       setShowPremiumDialog(true);
       return;
     }
 
-    // Pour les utilisateurs premium ou les livres non-premium, ouvrir directement le lecteur
-    if (subscription.isPremium || !book.isPremium) {
+    // Pour les utilisateurs premium ou les livres non-premium
+    if (isPremium || !isBookPremium) {
       setSelectedBook(book);
       setCurrentPage('reader');
+      
+      // Forcer un scroll vers le haut
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Pour les utilisateurs non-premium avec des livres premium, montrer le dialog premium
       setShowPremiumDialog(true);
     }
   };
