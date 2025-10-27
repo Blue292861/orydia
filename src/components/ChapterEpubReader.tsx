@@ -190,8 +190,33 @@ export const ChapterEpubReader: React.FC = () => {
           epubRootRef.current.innerHTML = '';
         }
 
-        // Create book
-        const book = ePub(chapter.epub_url);
+        // If custom OPF exists, use edge function to merge EPUB with custom OPF
+        let epubUrl = chapter.epub_url;
+        if (chapter.opf_url) {
+          console.log('Custom OPF detected, merging with EPUB...');
+          try {
+            const { data, error } = await supabase.functions.invoke('merge-epub-opf', {
+              body: {
+                epubUrl: chapter.epub_url,
+                opfUrl: chapter.opf_url,
+              },
+            });
+
+            if (error) throw error;
+
+            // Create a blob URL from the merged EPUB
+            if (data instanceof Blob) {
+              epubUrl = URL.createObjectURL(data);
+              console.log('Successfully merged EPUB with custom OPF');
+            }
+          } catch (error) {
+            console.error('Failed to merge EPUB with custom OPF, using default:', error);
+            toast.error('Erreur lors du chargement de l\'OPF personnalisé');
+          }
+        }
+
+        // Create book with potentially merged EPUB
+        const book = ePub(epubUrl);
         bookRef.current = book;
         await book.ready;
 

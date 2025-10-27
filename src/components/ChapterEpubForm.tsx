@@ -35,6 +35,7 @@ export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
   });
   const [epubFile, setEpubFile] = useState<File | null>(null);
   const [illustrationFile, setIllustrationFile] = useState<File | null>(null);
+  const [opfFile, setOpfFile] = useState<File | null>(null);
 
   // Calculate next available chapter_number and position
   useEffect(() => {
@@ -115,6 +116,7 @@ export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
     try {
       let epub_url = chapter?.epub_url || '';
       let illustration_url = chapter?.illustration_url || '';
+      let opf_url = chapter?.opf_url || '';
 
       // Upload EPUB if provided
       if (epubFile) {
@@ -130,6 +132,15 @@ export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
         illustration_url = await chapterEpubService.uploadChapterIllustration(illustrationFile);
       }
 
+      // Upload OPF if provided
+      if (opfFile) {
+        opf_url = await chapterEpubService.uploadChapterOPF(
+          opfFile,
+          bookId,
+          formData.chapter_number
+        );
+      }
+
       const chapterData = {
         book_id: bookId,
         chapter_number: formData.chapter_number,
@@ -137,6 +148,7 @@ export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
         description: formData.description.trim() ? DOMPurify.sanitize(formData.description.trim()) : undefined,
         epub_url,
         illustration_url: illustration_url || undefined,
+        opf_url: opf_url || undefined,
         position: formData.position,
       };
 
@@ -230,6 +242,22 @@ export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
             {chapter && !epubFile && (
               <p className="text-sm text-muted-foreground">EPUB actuel présent</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="opf">Fichier OPF personnalisé (facultatif)</Label>
+            <Input
+              id="opf"
+              type="file"
+              accept=".opf,application/oebps-package+xml"
+              onChange={(e) => setOpfFile(e.target.files?.[0] || null)}
+            />
+            {chapter?.opf_url && !opfFile && (
+              <p className="text-sm text-muted-foreground">OPF personnalisé présent</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              ℹ️ Un fichier EPUB contient déjà un OPF. N'uploadez un OPF personnalisé que si vous souhaitez remplacer la structure par défaut.
+            </p>
           </div>
 
           <div className="flex gap-2 justify-end">

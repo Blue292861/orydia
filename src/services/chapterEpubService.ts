@@ -107,4 +107,25 @@ export const chapterEpubService = {
 
     return urlData.publicUrl;
   },
+
+  async uploadChapterOPF(file: File, bookId: string, chapterNumber: number): Promise<string> {
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(7);
+    const filePath = `${bookId}/chapter-${chapterNumber}-${timestamp}-${randomString}.opf`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('epubs')
+      .upload(filePath, file, {
+        contentType: 'application/oebps-package+xml',
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabase.storage
+      .from('epubs')
+      .getPublicUrl(filePath);
+
+    return urlData.publicUrl;
+  },
 };

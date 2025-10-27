@@ -294,6 +294,7 @@ export type Database = {
           epub_url: string
           id: string
           illustration_url: string | null
+          opf_url: string | null
           position: number
           title: string
           updated_at: string
@@ -306,6 +307,7 @@ export type Database = {
           epub_url: string
           id?: string
           illustration_url?: string | null
+          opf_url?: string | null
           position: number
           title: string
           updated_at?: string
@@ -318,6 +320,7 @@ export type Database = {
           epub_url?: string
           id?: string
           illustration_url?: string | null
+          opf_url?: string | null
           position?: number
           title?: string
           updated_at?: string
