@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShopItem } from '@/types/ShopItem';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SoundEffects } from '@/utils/soundEffects';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { AddressRequiredDialog } from '@/components/AddressRequiredDialog';
 
 interface ShopItemDetailProps {
   item: ShopItem;
@@ -19,6 +20,24 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
   const { userStats, spendPoints } = useUserStats();
   const { session } = useAuth();
   const { toast } = useToast();
+  const [showAddressDialog, setShowAddressDialog] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (session?.user?.id) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('address, postal_code, city, country')
+          .eq('id', session.user.id)
+          .single();
+        
+        setUserProfile(data);
+      }
+    };
+    
+    fetchProfile();
+  }, [session]);
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {
@@ -40,6 +59,13 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
       toast({ title: "Erreur", description: "Vous devez être connecté pour acheter.", variant: "destructive" });
       return;
     }
+    
+    // Vérifier si l'adresse est renseignée
+    if (!userProfile?.address || !userProfile?.city || !userProfile?.country) {
+      setShowAddressDialog(true);
+      return;
+    }
+    
     if (userStats.totalPoints >= item.price) {
       spendPoints(item.price);
       
@@ -73,6 +99,21 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
         variant: "destructive",
       });
     }
+  };
+
+  const handleAddressSaved = async () => {
+    // Recharger le profil
+    const { data } = await supabase
+      .from('profiles')
+      .select('address, postal_code, city, country')
+      .eq('id', session!.user.id)
+      .single();
+    
+    setUserProfile(data);
+    setShowAddressDialog(false);
+    
+    // Relancer l'achat
+    handlePurchase();
   };
 
   return (
@@ -159,6 +200,13 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
           </div>
         </div>
       </div>
+
+      <AddressRequiredDialog
+        open={showAddressDialog}
+        onClose={() => setShowAddressDialog(false)}
+        onAddressSaved={handleAddressSaved}
+        userId={session!.user.id}
+      />
     </div>
   );
 };

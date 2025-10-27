@@ -764,6 +764,7 @@ export type Database = {
           has_rated_app: boolean | null
           id: string
           last_name: string | null
+          postal_code: string | null
           rated_at: string | null
           tutorials_seen: string | null
           updated_at: string | null
@@ -779,6 +780,7 @@ export type Database = {
           has_rated_app?: boolean | null
           id: string
           last_name?: string | null
+          postal_code?: string | null
           rated_at?: string | null
           tutorials_seen?: string | null
           updated_at?: string | null
@@ -794,6 +796,7 @@ export type Database = {
           has_rated_app?: boolean | null
           id?: string
           last_name?: string | null
+          postal_code?: string | null
           rated_at?: string | null
           tutorials_seen?: string | null
           updated_at?: string | null
@@ -806,21 +809,21 @@ export type Database = {
           action_type: string
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           user_id: string | null
         }
         Insert: {
           action_type: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_id?: string | null
         }
         Update: {
           action_type?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_id?: string | null
         }
         Relationships: []
@@ -855,7 +858,7 @@ export type Database = {
           event_data: Json | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           severity: string | null
           user_agent: string | null
           user_id: string | null
@@ -865,7 +868,7 @@ export type Database = {
           event_data?: Json | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           severity?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -875,7 +878,7 @@ export type Database = {
           event_data?: Json | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           severity?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -1202,6 +1205,27 @@ export type Database = {
           },
         ]
       }
+      user_favorites: {
+        Row: {
+          added_at: string | null
+          id: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          id?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string | null
+          id?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_genre_preferences: {
         Row: {
           created_at: string
@@ -1421,10 +1445,7 @@ export type Database = {
           next_level_xp: number
         }[]
       }
-      calculate_level: {
-        Args: { experience_points: number }
-        Returns: number
-      }
+      calculate_level: { Args: { experience_points: number }; Returns: number }
       check_rate_limit: {
         Args: {
           p_action_type: string
@@ -1434,10 +1455,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      cleanup_orphaned_storage_files: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_orphaned_storage_files: { Args: never; Returns: undefined }
       create_instant_order: {
         Args: { p_item_id: string; p_item_name: string; p_price: number }
         Returns: string
@@ -1475,14 +1493,8 @@ export type Database = {
         Args: { details?: Json; event_type: string; user_id?: string }
         Returns: undefined
       }
-      reset_revenue_and_orders: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      revoke_manual_premium: {
-        Args: { p_user_id: string }
-        Returns: undefined
-      }
+      reset_revenue_and_orders: { Args: never; Returns: undefined }
+      revoke_manual_premium: { Args: { p_user_id: string }; Returns: undefined }
       revoke_manual_premium_by_email_secure: {
         Args: { p_email: string }
         Returns: undefined
@@ -1497,10 +1509,7 @@ export type Database = {
           email: string
         }[]
       }
-      sync_user_level_info: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      sync_user_level_info: { Args: never; Returns: undefined }
       update_genre_preference: {
         Args: {
           p_genre: string

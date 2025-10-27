@@ -16,6 +16,7 @@ export const NewSignupForm: React.FC = () => {
     firstName: '',
     lastName: '',
     address: '',
+    postalCode: '',
     city: '',
     country: ''
   });
@@ -34,7 +35,7 @@ export const NewSignupForm: React.FC = () => {
     e.preventDefault();
     
     // Vérification que tous les champs sont remplis
-    const requiredFields = ['email', 'password', 'username', 'firstName', 'lastName', 'address', 'city', 'country'];
+    const requiredFields = ['email', 'password', 'username', 'firstName', 'lastName', 'city', 'country'];
     const emptyFields = requiredFields.filter(field => !signupData[field as keyof typeof signupData].trim());
     
     if (emptyFields.length > 0) {
@@ -52,17 +53,18 @@ export const NewSignupForm: React.FC = () => {
       const { error } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
-        options: {
-          emailRedirectTo: getEmailConfirmationUrl(),
-          data: {
-            username: signupData.username,
-            first_name: signupData.firstName,
-            last_name: signupData.lastName,
-            address: signupData.address,
-            city: signupData.city,
-            country: signupData.country
-          }
+      options: {
+        emailRedirectTo: getEmailConfirmationUrl(),
+        data: {
+          username: signupData.username,
+          first_name: signupData.firstName,
+          last_name: signupData.lastName,
+          address: signupData.address || null,
+          postal_code: signupData.postalCode || null,
+          city: signupData.city,
+          country: signupData.country
         }
+      }
       });
 
       if (error) throw error;
@@ -176,15 +178,27 @@ export const NewSignupForm: React.FC = () => {
         </div>
         <div className="md:col-span-2">
           <Label htmlFor="signup-address" className="text-forest-800 font-medium font-medieval text-sm">
-            Adresse *
+            Adresse
           </Label>
           <Input
             id="signup-address"
             name="address"
             value={signupData.address}
             onChange={handleChange}
-            required
             placeholder="123 rue de la Paix"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
+          />
+        </div>
+        <div>
+          <Label htmlFor="signup-postalCode" className="text-forest-800 font-medium font-medieval text-sm">
+            Code postal
+          </Label>
+          <Input
+            id="signup-postalCode"
+            name="postalCode"
+            value={signupData.postalCode}
+            onChange={handleChange}
+            placeholder="75000"
             className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
           />
         </div>
