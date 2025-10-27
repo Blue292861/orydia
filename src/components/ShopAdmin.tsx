@@ -26,10 +26,16 @@ export const ShopAdmin: React.FC = () => {
   };
 
   const handleSubmit = (itemData: ShopItem) => {
+    // Force shopType to 'internal' for Orydia shop
+    const orydiaItem: ShopItem = {
+      ...itemData,
+      shopType: 'internal'
+    };
+    
     if (editingItem) {
-      updateShopItem(itemData);
+      updateShopItem(orydiaItem);
     } else {
-      addShopItem(itemData);
+      addShopItem(orydiaItem);
     }
     setShowDialog(false);
   };
@@ -134,7 +140,7 @@ export const ShopAdmin: React.FC = () => {
             </DialogTitle>
           </DialogHeader>
           <ShopItemForm 
-            initialItem={editingItem || {
+            initialItem={editingItem ? { ...editingItem, shopType: 'internal' } : {
               id: '',
               name: '',
               description: '',
