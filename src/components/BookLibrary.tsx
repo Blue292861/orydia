@@ -63,7 +63,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect })
   };
 
   return (
-    <div className={`max-w-full overflow-hidden ${getSpacing()}`}>
+    <div className={`max-w-full overflow-x-hidden ${getSpacing()}`}>
 
       <BookCarousel
         title="Succès du mois"

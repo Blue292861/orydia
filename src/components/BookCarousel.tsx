@@ -42,7 +42,7 @@ export const BookCarousel: React.FC<BookCarouselProps> = ({ title, books, onBook
       }`}>
         {title}
       </h2>
-      <div className={`flex overflow-x-auto -mb-4 py-2 px-2 ${
+      <div className={`flex overflow-x-auto overflow-y-visible -mb-4 py-4 px-2 ${
         isMobile ? 'space-x-2' : isTablet ? 'space-x-3' : 'space-x-3 sm:space-x-4'
       }`}>
         {books.map((book) => (
