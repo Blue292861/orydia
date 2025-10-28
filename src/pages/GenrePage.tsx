@@ -16,6 +16,7 @@ import { audiobookService } from '@/services/audiobookService';
 import { gameService } from '@/services/gameService';
 import { LITERARY_GENRES, GENRE_DESCRIPTIONS, LiteraryGenre } from '@/constants/genres';
 import { genreAnalyticsService } from '@/services/genreAnalyticsService';
+import { createBookPath } from '@/utils/slugUtils';
 
 export const GenrePage: React.FC = () => {
   const { genre } = useParams<{ genre: string }>();
@@ -226,7 +227,7 @@ export const GenrePage: React.FC = () => {
                   <BookCard 
                     key={book.id} 
                     book={book} 
-                    onBookSelect={() => navigate(`/book/${book.id}`)} 
+                    onBookSelect={(b) => navigate(createBookPath(b.author, b.title))} 
                   />
                 ))}
               </div>
@@ -244,7 +245,7 @@ export const GenrePage: React.FC = () => {
                   <AudiobookCard 
                     key={audiobook.id} 
                     audiobook={audiobook} 
-                    onClick={() => {/* Handle audiobook selection */}} 
+                    onClick={() => navigate(createBookPath(audiobook.author, audiobook.name))} 
                   />
                 ))}
               </div>
@@ -262,7 +263,7 @@ export const GenrePage: React.FC = () => {
                   <GameCard 
                     key={game.id} 
                     game={game} 
-                    onSelect={() => navigate(`/game/${game.id}`)} 
+                    onSelect={() => {/* Pas de route jeu pour le moment */}} 
                   />
                 ))}
               </div>
