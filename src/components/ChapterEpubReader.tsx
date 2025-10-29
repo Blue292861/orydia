@@ -232,7 +232,10 @@ export const ChapterEpubReader: React.FC = () => {
         // Create book with potentially merged EPUB
         const book = ePub(epubUrl);
         bookRef.current = book;
+        
+        // Wait for book to be fully opened (not just ready)
         await book.ready;
+        await book.opened;
 
         if (cancelled) return;
 
