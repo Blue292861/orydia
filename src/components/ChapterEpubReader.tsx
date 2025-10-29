@@ -53,8 +53,8 @@ export const ChapterEpubReader: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const saveTimerRef = useRef<number | null>(null);
   const readinessTimerRef = useRef<number | null>(null);
-  const resizeObserverRef = useRef<ResizeObserver | null>(null);
-  const rafRef = useRef<number | null>(null);
+  const lastSizeRef = useRef({ width: 0, height: 0 });
+  const viewportResizeHandlerRef = useRef<(() => void) | null>(null);
 
   // Load chapter data and settings
   useEffect(() => {
@@ -236,21 +236,10 @@ export const ChapterEpubReader: React.FC = () => {
 
         if (cancelled) return;
 
-        // Measure container to get explicit dimensions
-        const measure = () => {
-          if (!containerRef.current) return { width: 800, height: 600 };
-          const rect = containerRef.current.getBoundingClientRect();
-          return { 
-            width: Math.floor(rect.width), 
-            height: Math.floor(rect.height) 
-          };
-        };
-        const { width, height } = measure();
-
-        // Create rendition with explicit dimensions
+        // Create rendition with percentage dimensions for stable layout
         const rendition = book.renderTo(epubRootRef.current!, {
-          width,
-          height,
+          width: '100%',
+          height: '100%',
           flow: 'paginated',
           spread: 'none',
           minSpreadWidth: 0,
@@ -263,19 +252,14 @@ export const ChapterEpubReader: React.FC = () => {
           light: {
             body: { 
               background: '#ffffff !important', 
-              color: '#000000 !important',
+              color: '#1a1a1a !important',
               margin: '0 !important',
               padding: '16px !important',
             },
             p: { 
-              color: '#000000 !important', 
               'line-height': '1.6',
-              'margin-bottom': '0.8em'
+              margin: '0 0 0.8em 0'
             },
-            h1: { color: '#000000 !important' },
-            h2: { color: '#000000 !important' },
-            h3: { color: '#000000 !important' },
-            img: { 'max-width': '100% !important', height: 'auto !important' },
           },
           dark: {
             body: { 
@@ -285,31 +269,21 @@ export const ChapterEpubReader: React.FC = () => {
               padding: '16px !important',
             },
             p: { 
-              color: '#ffffff !important', 
               'line-height': '1.6',
-              'margin-bottom': '0.8em'
+              margin: '0 0 0.8em 0'
             },
-            h1: { color: '#ffffff !important' },
-            h2: { color: '#ffffff !important' },
-            h3: { color: '#ffffff !important' },
-            img: { 'max-width': '100% !important', height: 'auto !important' },
           },
           sepia: {
             body: { 
               background: '#f4ecd8 !important', 
-              color: '#5c4a2f !important',
+              color: '#5c4a3a !important',
               margin: '0 !important',
               padding: '16px !important',
             },
             p: { 
-              color: '#5c4a2f !important', 
               'line-height': '1.6',
-              'margin-bottom': '0.8em'
+              margin: '0 0 0.8em 0'
             },
-            h1: { color: '#5c4a2f !important' },
-            h2: { color: '#5c4a2f !important' },
-            h3: { color: '#5c4a2f !important' },
-            img: { 'max-width': '100% !important', height: 'auto !important' },
           },
         };
 
@@ -391,19 +365,25 @@ export const ChapterEpubReader: React.FC = () => {
           if (!cancelled) setEpubReady(true);
         }
 
-        // Setup ResizeObserver after display (with throttling)
-        resizeObserverRef.current = new ResizeObserver(() => {
-          if (rafRef.current) cancelAnimationFrame(rafRef.current);
-          rafRef.current = requestAnimationFrame(() => {
-            if (!renditionRef.current || !containerRef.current) return;
-            const { width, height } = measure();
+        // Setup window resize listeners to handle viewport changes
+        const onViewportResize = () => {
+          if (!containerRef.current || !renditionRef.current) return;
+          
+          const rect = containerRef.current.getBoundingClientRect();
+          const width = Math.floor(rect.width);
+          const height = Math.floor(rect.height);
+          
+          // Only resize if dimensions actually changed (> 1px difference)
+          if (Math.abs(width - lastSizeRef.current.width) > 1 || 
+              Math.abs(height - lastSizeRef.current.height) > 1) {
+            lastSizeRef.current = { width, height };
             renditionRef.current.resize(width, height);
-          });
-        });
-
-        if (containerRef.current) {
-          resizeObserverRef.current.observe(containerRef.current);
-        }
+          }
+        };
+        
+        viewportResizeHandlerRef.current = onViewportResize;
+        window.addEventListener('resize', onViewportResize);
+        window.addEventListener('orientationchange', onViewportResize);
 
         // Generate locations for progress
         await book.locations.generate(1600);
@@ -433,6 +413,13 @@ export const ChapterEpubReader: React.FC = () => {
     return () => {
       cancelled = true;
       
+      // Remove window listeners
+      if (viewportResizeHandlerRef.current) {
+        window.removeEventListener('resize', viewportResizeHandlerRef.current);
+        window.removeEventListener('orientationchange', viewportResizeHandlerRef.current);
+        viewportResizeHandlerRef.current = null;
+      }
+      
       if (saveTimerRef.current) {
         window.clearTimeout(saveTimerRef.current);
         saveTimerRef.current = null;
@@ -441,16 +428,6 @@ export const ChapterEpubReader: React.FC = () => {
       if (readinessTimerRef.current) {
         window.clearTimeout(readinessTimerRef.current);
         readinessTimerRef.current = null;
-      }
-
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-
-      if (resizeObserverRef.current) {
-        resizeObserverRef.current.disconnect();
-        resizeObserverRef.current = null;
       }
 
       try {
@@ -497,7 +474,13 @@ export const ChapterEpubReader: React.FC = () => {
       const rect = containerRef.current.getBoundingClientRect();
       const width = Math.floor(rect.width);
       const height = Math.floor(rect.height);
-      renditionRef.current.resize(width, height);
+      
+      // Only resize if dimensions changed
+      if (Math.abs(width - lastSizeRef.current.width) > 1 || 
+          Math.abs(height - lastSizeRef.current.height) > 1) {
+        lastSizeRef.current = { width, height };
+        renditionRef.current.resize(width, height);
+      }
     }
   }, [fontSize, epubReady]);
 
@@ -723,14 +706,14 @@ export const ChapterEpubReader: React.FC = () => {
               )}
 
               {/* EPUB Container */}
-              <div 
-                ref={epubRootRef}
-                className="h-full w-full overflow-hidden"
-                style={{ 
-                  background: themeColors[theme].background,
-                  filter: colorblindMode !== 'none' ? `url(#${colorblindMode}-filter)` : undefined,
-                }}
-              />
+        <div
+          ref={epubRootRef}
+          className="absolute inset-0 overflow-hidden"
+          style={{
+            background: themeColors[theme].background,
+            filter: colorblindMode !== 'none' ? `url(#${colorblindMode}-filter)` : undefined,
+          }}
+        />
 
               {/* Navigation Button - Next */}
               {epubReady && (
