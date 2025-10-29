@@ -53,6 +53,8 @@ export const ChapterEpubReader: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const saveTimerRef = useRef<number | null>(null);
   const readinessTimerRef = useRef<number | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   // Load chapter data and settings
   useEffect(() => {
@@ -234,36 +236,41 @@ export const ChapterEpubReader: React.FC = () => {
 
         if (cancelled) return;
 
-        // Create rendition
+        // Measure container to get explicit dimensions
+        const measure = () => {
+          if (!containerRef.current) return { width: 800, height: 600 };
+          const rect = containerRef.current.getBoundingClientRect();
+          return { 
+            width: Math.floor(rect.width), 
+            height: Math.floor(rect.height) 
+          };
+        };
+        const { width, height } = measure();
+
+        // Create rendition with explicit dimensions
         const rendition = book.renderTo(epubRootRef.current!, {
-          width: '100%',
-          height: '100%',
+          width,
+          height,
           flow: 'paginated',
           spread: 'none',
           minSpreadWidth: 0,
           allowScriptedContent: false,
-          snap: true,
         });
         renditionRef.current = rendition;
 
-        // Register themes with html + body for proper backgrounds
+        // Register themes with minimal styles (let epub.js handle layout)
         const themeConfigs = {
           light: {
-            html: { background: '#ffffff !important', color: '#000000 !important' },
             body: { 
               background: '#ffffff !important', 
               color: '#000000 !important',
-              padding: '16px !important',
               margin: '0 !important',
-              height: '100% !important',
-              width: '100% !important',
-              overflow: 'hidden !important',
+              padding: '16px !important',
             },
             p: { 
               color: '#000000 !important', 
               'line-height': '1.6',
-              'margin': '0 0 0.8em 0 !important',
-              'padding': '0 !important'
+              'margin-bottom': '0.8em'
             },
             h1: { color: '#000000 !important' },
             h2: { color: '#000000 !important' },
@@ -271,21 +278,16 @@ export const ChapterEpubReader: React.FC = () => {
             img: { 'max-width': '100% !important', height: 'auto !important' },
           },
           dark: {
-            html: { background: '#1a1a1a !important', color: '#ffffff !important' },
             body: { 
               background: '#1a1a1a !important', 
               color: '#ffffff !important',
-              padding: '16px !important',
               margin: '0 !important',
-              height: '100% !important',
-              width: '100% !important',
-              overflow: 'hidden !important',
+              padding: '16px !important',
             },
             p: { 
               color: '#ffffff !important', 
               'line-height': '1.6',
-              'margin': '0 0 0.8em 0 !important',
-              'padding': '0 !important'
+              'margin-bottom': '0.8em'
             },
             h1: { color: '#ffffff !important' },
             h2: { color: '#ffffff !important' },
@@ -293,21 +295,16 @@ export const ChapterEpubReader: React.FC = () => {
             img: { 'max-width': '100% !important', height: 'auto !important' },
           },
           sepia: {
-            html: { background: '#f4ecd8 !important', color: '#5c4a2f !important' },
             body: { 
               background: '#f4ecd8 !important', 
               color: '#5c4a2f !important',
-              padding: '16px !important',
               margin: '0 !important',
-              height: '100% !important',
-              width: '100% !important',
-              overflow: 'hidden !important',
+              padding: '16px !important',
             },
             p: { 
               color: '#5c4a2f !important', 
               'line-height': '1.6',
-              'margin': '0 0 0.8em 0 !important',
-              'padding': '0 !important'
+              'margin-bottom': '0.8em'
             },
             h1: { color: '#5c4a2f !important' },
             h2: { color: '#5c4a2f !important' },
@@ -347,17 +344,6 @@ export const ChapterEpubReader: React.FC = () => {
 
         rendition.on('rendered', onRendered);
         rendition.on('relocated', onRelocated);
-
-        // Add resize observer to recalculate pagination
-        const resizeObserver = new ResizeObserver(() => {
-          if (renditionRef.current) {
-            renditionRef.current.resize?.();
-          }
-        });
-
-        if (containerRef.current) {
-          resizeObserver.observe(containerRef.current);
-        }
 
         // Display with saved location or fallback, robustly skipping cover pages
         const cfiKey = chapterId ? `chapter_location_${chapterId}` : '';
@@ -405,6 +391,20 @@ export const ChapterEpubReader: React.FC = () => {
           if (!cancelled) setEpubReady(true);
         }
 
+        // Setup ResizeObserver after display (with throttling)
+        resizeObserverRef.current = new ResizeObserver(() => {
+          if (rafRef.current) cancelAnimationFrame(rafRef.current);
+          rafRef.current = requestAnimationFrame(() => {
+            if (!renditionRef.current || !containerRef.current) return;
+            const { width, height } = measure();
+            renditionRef.current.resize(width, height);
+          });
+        });
+
+        if (containerRef.current) {
+          resizeObserverRef.current.observe(containerRef.current);
+        }
+
         // Generate locations for progress
         await book.locations.generate(1600);
         const locTotal = (book.locations as any)?.total || 0;
@@ -443,6 +443,16 @@ export const ChapterEpubReader: React.FC = () => {
         readinessTimerRef.current = null;
       }
 
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+        resizeObserverRef.current = null;
+      }
+
       try {
         if (renditionRef.current) {
           renditionRef.current.off?.('rendered');
@@ -466,12 +476,6 @@ export const ChapterEpubReader: React.FC = () => {
       if (epubRootRef.current) {
         epubRootRef.current.innerHTML = '';
       }
-      
-      // Disconnect resize observer
-      const resizeObserver = (containerRef.current as any)?._resizeObserver;
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
     };
   }, [chapter?.id]);
 
@@ -487,8 +491,13 @@ export const ChapterEpubReader: React.FC = () => {
 
   // Apply font size changes without re-initializing
   useEffect(() => {
-    if (renditionRef.current && epubReady) {
+    if (renditionRef.current && epubReady && containerRef.current) {
       renditionRef.current.themes?.fontSize(`${fontSize}px`);
+      // Re-measure after font size change
+      const rect = containerRef.current.getBoundingClientRect();
+      const width = Math.floor(rect.width);
+      const height = Math.floor(rect.height);
+      renditionRef.current.resize(width, height);
     }
   }, [fontSize, epubReady]);
 
@@ -716,11 +725,10 @@ export const ChapterEpubReader: React.FC = () => {
               {/* EPUB Container */}
               <div 
                 ref={epubRootRef}
-                className="absolute inset-0 flex items-center justify-center"
+                className="h-full w-full overflow-hidden"
                 style={{ 
                   background: themeColors[theme].background,
                   filter: colorblindMode !== 'none' ? `url(#${colorblindMode}-filter)` : undefined,
-                  overflow: 'hidden',
                 }}
               />
 
