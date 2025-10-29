@@ -43,6 +43,9 @@ export const ChapterEpubReader: React.FC = () => {
   const [showRewardAd, setShowRewardAd] = useState(false);
   const [hasClaimedReward, setHasClaimedReward] = useState(false);
   
+  // Copyright warning state
+  const [showCopyrightWarning, setShowCopyrightWarning] = useState(true);
+  
   // EPUB refs (not states!)
   const bookRef = useRef<any>(null);
   const renditionRef = useRef<any>(null);
@@ -149,6 +152,15 @@ export const ChapterEpubReader: React.FC = () => {
     checkBookCompletion();
   }, [user, bookId]);
 
+  // Auto-hide copyright warning after 10 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowCopyrightWarning(false);
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   // Throttled CFI save
   const scheduleSaveCFI = (cfi: string) => {
     if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
@@ -242,9 +254,19 @@ export const ChapterEpubReader: React.FC = () => {
               padding: '12px !important',
               'padding-left': 'max(12px, env(safe-area-inset-left)) !important',
               'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
-              margin: '0 !important',
+              margin: '0 auto !important',
+              'max-width': '800px !important',
             },
-            p: { color: '#000000 !important', 'line-height': '1.6' },
+            p: { 
+              color: '#000000 !important', 
+              'line-height': '1.6',
+              'margin-top': '0.5em !important',
+              'margin-bottom': '0.5em !important',
+              'padding': '0 !important'
+            },
+            'p + p': { 'margin-top': '1em !important' },
+            div: { 'margin': '0 !important' },
+            span: { 'margin': '0 !important' },
             h1: { color: '#000000 !important' },
             h2: { color: '#000000 !important' },
             h3: { color: '#000000 !important' },
@@ -261,9 +283,19 @@ export const ChapterEpubReader: React.FC = () => {
               padding: '12px !important',
               'padding-left': 'max(12px, env(safe-area-inset-left)) !important',
               'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
-              margin: '0 !important',
+              margin: '0 auto !important',
+              'max-width': '800px !important',
             },
-            p: { color: '#ffffff !important', 'line-height': '1.6' },
+            p: { 
+              color: '#ffffff !important', 
+              'line-height': '1.6',
+              'margin-top': '0.5em !important',
+              'margin-bottom': '0.5em !important',
+              'padding': '0 !important'
+            },
+            'p + p': { 'margin-top': '1em !important' },
+            div: { 'margin': '0 !important' },
+            span: { 'margin': '0 !important' },
             h1: { color: '#ffffff !important' },
             h2: { color: '#ffffff !important' },
             h3: { color: '#ffffff !important' },
@@ -280,9 +312,19 @@ export const ChapterEpubReader: React.FC = () => {
               padding: '12px !important',
               'padding-left': 'max(12px, env(safe-area-inset-left)) !important',
               'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
-              margin: '0 !important',
+              margin: '0 auto !important',
+              'max-width': '800px !important',
             },
-            p: { color: '#5c4a2f !important', 'line-height': '1.6' },
+            p: { 
+              color: '#5c4a2f !important', 
+              'line-height': '1.6',
+              'margin-top': '0.5em !important',
+              'margin-bottom': '0.5em !important',
+              'padding': '0 !important'
+            },
+            'p + p': { 'margin-top': '1em !important' },
+            div: { 'margin': '0 !important' },
+            span: { 'margin': '0 !important' },
             h1: { color: '#5c4a2f !important' },
             h2: { color: '#5c4a2f !important' },
             h3: { color: '#5c4a2f !important' },
@@ -629,15 +671,25 @@ export const ChapterEpubReader: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Copyright Warning Banner */}
-            <div className="px-2 md:px-4 py-2 md:py-3 bg-amber-50 dark:bg-amber-950 border-b border-amber-200 dark:border-amber-800">
-              <div className="flex items-start gap-2">
-                <ShieldAlert className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <p className="text-xs md:text-sm text-amber-900 dark:text-amber-100 leading-relaxed">
-                  <span className="font-semibold">Protection légale du contenu :</span> Tout le contenu (littéraire et audio) diffusé ici est protégé par le droit d'auteur, et son usage est strictement limité à l'écoute/lecture privée en streaming au sein de cette application. Toute reproduction, téléchargement ou diffusion non autorisé constitue un délit de contrefaçon, formellement interdit par l'article L335-2 du Code de la propriété intellectuelle.
-                </p>
+            {/* Copyright Warning Banner - Auto-disappears after 10 seconds */}
+            {showCopyrightWarning && (
+              <div className="px-2 md:px-4 py-2 md:py-3 bg-amber-50 dark:bg-amber-950 border-b border-amber-200 dark:border-amber-800 transition-opacity duration-500 ease-out">
+                <div className="flex items-start gap-2">
+                  <ShieldAlert className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-xs md:text-sm text-amber-900 dark:text-amber-100 leading-relaxed flex-1">
+                    <span className="font-semibold">Protection légale du contenu :</span> Tout le contenu (littéraire et audio) diffusé ici est protégé par le droit d'auteur, et son usage est strictement limité à l'écoute/lecture privée en streaming au sein de cette application. Toute reproduction, téléchargement ou diffusion non autorisé constitue un délit de contrefaçon, formellement interdit par l'article L335-2 du Code de la propriété intellectuelle.
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 shrink-0 hover:bg-amber-100 dark:hover:bg-amber-900"
+                    onClick={() => setShowCopyrightWarning(false)}
+                  >
+                    <span className="text-amber-600 dark:text-amber-400">×</span>
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Reader Container with Navigation Buttons */}
             <div className="flex-1 relative overflow-y-auto overflow-x-hidden pb-2" ref={containerRef}>
