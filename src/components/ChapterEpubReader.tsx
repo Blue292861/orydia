@@ -257,6 +257,10 @@ export const ChapterEpubReader: React.FC = () => {
               margin: '0 auto !important',
               'max-width': '800px !important',
             },
+            '*': {
+              'column-count': '1 !important',
+              'column-gap': '0 !important',
+            },
             p: { 
               color: '#000000 !important', 
               'line-height': '1.6',
@@ -286,6 +290,10 @@ export const ChapterEpubReader: React.FC = () => {
               margin: '0 auto !important',
               'max-width': '800px !important',
             },
+            '*': {
+              'column-count': '1 !important',
+              'column-gap': '0 !important',
+            },
             p: { 
               color: '#ffffff !important', 
               'line-height': '1.6',
@@ -314,6 +322,10 @@ export const ChapterEpubReader: React.FC = () => {
               'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
               margin: '0 auto !important',
               'max-width': '800px !important',
+            },
+            '*': {
+              'column-count': '1 !important',
+              'column-gap': '0 !important',
             },
             p: { 
               color: '#5c4a2f !important', 
@@ -718,7 +730,7 @@ export const ChapterEpubReader: React.FC = () => {
               {/* EPUB Container */}
               <div 
                 ref={epubRootRef}
-                className="absolute inset-0 overflow-y-auto overflow-x-hidden"
+                className="absolute inset-0 overflow-hidden"
                 style={{ 
                   background: themeColors[theme].background,
                   filter: colorblindMode !== 'none' ? `url(#${colorblindMode}-filter)` : undefined,
