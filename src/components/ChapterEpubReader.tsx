@@ -254,12 +254,9 @@ export const ChapterEpubReader: React.FC = () => {
               padding: '12px !important',
               'padding-left': 'max(12px, env(safe-area-inset-left)) !important',
               'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
-              margin: '0 auto !important',
-              'max-width': '800px !important',
-            },
-            '*': {
-              'column-count': '1 !important',
+              margin: '0 !important',
               'column-gap': '0 !important',
+              'column-fill': 'auto !important',
             },
             p: { 
               color: '#000000 !important', 
@@ -287,12 +284,9 @@ export const ChapterEpubReader: React.FC = () => {
               padding: '12px !important',
               'padding-left': 'max(12px, env(safe-area-inset-left)) !important',
               'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
-              margin: '0 auto !important',
-              'max-width': '800px !important',
-            },
-            '*': {
-              'column-count': '1 !important',
+              margin: '0 !important',
               'column-gap': '0 !important',
+              'column-fill': 'auto !important',
             },
             p: { 
               color: '#ffffff !important', 
@@ -320,12 +314,9 @@ export const ChapterEpubReader: React.FC = () => {
               padding: '12px !important',
               'padding-left': 'max(12px, env(safe-area-inset-left)) !important',
               'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
-              margin: '0 auto !important',
-              'max-width': '800px !important',
-            },
-            '*': {
-              'column-count': '1 !important',
+              margin: '0 !important',
               'column-gap': '0 !important',
+              'column-fill': 'auto !important',
             },
             p: { 
               color: '#5c4a2f !important', 
@@ -704,7 +695,7 @@ export const ChapterEpubReader: React.FC = () => {
             )}
 
             {/* Reader Container with Navigation Buttons */}
-            <div className="flex-1 relative overflow-y-auto overflow-x-hidden pb-2" ref={containerRef}>
+            <div className="flex-1 relative overflow-hidden pb-2" ref={containerRef}>
               {!epubReady && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
                   <div className="text-center space-y-2">
