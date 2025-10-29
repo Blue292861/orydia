@@ -241,6 +241,8 @@ export const ChapterEpubReader: React.FC = () => {
           flow: 'paginated',
           spread: 'none',
           minSpreadWidth: 0,
+          allowScriptedContent: false,
+          snap: true,
         });
         renditionRef.current = rendition;
 
@@ -251,90 +253,66 @@ export const ChapterEpubReader: React.FC = () => {
             body: { 
               background: '#ffffff !important', 
               color: '#000000 !important',
-              padding: '12px !important',
-              'padding-left': 'max(12px, env(safe-area-inset-left)) !important',
-              'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
+              padding: '16px !important',
               margin: '0 !important',
-              'column-gap': '0 !important',
-              'column-fill': 'auto !important',
+              height: '100% !important',
+              width: '100% !important',
+              overflow: 'hidden !important',
             },
             p: { 
               color: '#000000 !important', 
               'line-height': '1.6',
-              'margin-top': '0.5em !important',
-              'margin-bottom': '0.5em !important',
+              'margin': '0 0 0.8em 0 !important',
               'padding': '0 !important'
             },
-            'p + p': { 'margin-top': '1em !important' },
-            div: { 'margin': '0 !important' },
-            span: { 'margin': '0 !important' },
             h1: { color: '#000000 !important' },
             h2: { color: '#000000 !important' },
             h3: { color: '#000000 !important' },
             img: { 'max-width': '100% !important', height: 'auto !important' },
-            '@media (min-width: 768px)': {
-              body: { padding: '20px !important' }
-            },
           },
           dark: {
             html: { background: '#1a1a1a !important', color: '#ffffff !important' },
             body: { 
               background: '#1a1a1a !important', 
               color: '#ffffff !important',
-              padding: '12px !important',
-              'padding-left': 'max(12px, env(safe-area-inset-left)) !important',
-              'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
+              padding: '16px !important',
               margin: '0 !important',
-              'column-gap': '0 !important',
-              'column-fill': 'auto !important',
+              height: '100% !important',
+              width: '100% !important',
+              overflow: 'hidden !important',
             },
             p: { 
               color: '#ffffff !important', 
               'line-height': '1.6',
-              'margin-top': '0.5em !important',
-              'margin-bottom': '0.5em !important',
+              'margin': '0 0 0.8em 0 !important',
               'padding': '0 !important'
             },
-            'p + p': { 'margin-top': '1em !important' },
-            div: { 'margin': '0 !important' },
-            span: { 'margin': '0 !important' },
             h1: { color: '#ffffff !important' },
             h2: { color: '#ffffff !important' },
             h3: { color: '#ffffff !important' },
             img: { 'max-width': '100% !important', height: 'auto !important' },
-            '@media (min-width: 768px)': {
-              body: { padding: '20px !important' }
-            },
           },
           sepia: {
             html: { background: '#f4ecd8 !important', color: '#5c4a2f !important' },
             body: { 
               background: '#f4ecd8 !important', 
               color: '#5c4a2f !important',
-              padding: '12px !important',
-              'padding-left': 'max(12px, env(safe-area-inset-left)) !important',
-              'padding-right': 'max(12px, env(safe-area-inset-right)) !important',
+              padding: '16px !important',
               margin: '0 !important',
-              'column-gap': '0 !important',
-              'column-fill': 'auto !important',
+              height: '100% !important',
+              width: '100% !important',
+              overflow: 'hidden !important',
             },
             p: { 
               color: '#5c4a2f !important', 
               'line-height': '1.6',
-              'margin-top': '0.5em !important',
-              'margin-bottom': '0.5em !important',
+              'margin': '0 0 0.8em 0 !important',
               'padding': '0 !important'
             },
-            'p + p': { 'margin-top': '1em !important' },
-            div: { 'margin': '0 !important' },
-            span: { 'margin': '0 !important' },
             h1: { color: '#5c4a2f !important' },
             h2: { color: '#5c4a2f !important' },
             h3: { color: '#5c4a2f !important' },
             img: { 'max-width': '100% !important', height: 'auto !important' },
-            '@media (min-width: 768px)': {
-              body: { padding: '20px !important' }
-            },
           },
         };
 
@@ -369,6 +347,17 @@ export const ChapterEpubReader: React.FC = () => {
 
         rendition.on('rendered', onRendered);
         rendition.on('relocated', onRelocated);
+
+        // Add resize observer to recalculate pagination
+        const resizeObserver = new ResizeObserver(() => {
+          if (renditionRef.current) {
+            renditionRef.current.resize?.();
+          }
+        });
+
+        if (containerRef.current) {
+          resizeObserver.observe(containerRef.current);
+        }
 
         // Display with saved location or fallback, robustly skipping cover pages
         const cfiKey = chapterId ? `chapter_location_${chapterId}` : '';
@@ -476,6 +465,12 @@ export const ChapterEpubReader: React.FC = () => {
 
       if (epubRootRef.current) {
         epubRootRef.current.innerHTML = '';
+      }
+      
+      // Disconnect resize observer
+      const resizeObserver = (containerRef.current as any)?._resizeObserver;
+      if (resizeObserver) {
+        resizeObserver.disconnect();
       }
     };
   }, [chapter?.id]);
@@ -695,7 +690,7 @@ export const ChapterEpubReader: React.FC = () => {
             )}
 
             {/* Reader Container with Navigation Buttons */}
-            <div className="flex-1 relative overflow-hidden pb-2" ref={containerRef}>
+            <div className="flex-1 relative overflow-hidden pb-2" ref={containerRef} style={{ minHeight: '0' }}>
               {!epubReady && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
                   <div className="text-center space-y-2">
@@ -721,10 +716,11 @@ export const ChapterEpubReader: React.FC = () => {
               {/* EPUB Container */}
               <div 
                 ref={epubRootRef}
-                className="absolute inset-0 overflow-hidden"
+                className="absolute inset-0 flex items-center justify-center"
                 style={{ 
                   background: themeColors[theme].background,
                   filter: colorblindMode !== 'none' ? `url(#${colorblindMode}-filter)` : undefined,
+                  overflow: 'hidden',
                 }}
               />
 
