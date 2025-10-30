@@ -46,9 +46,9 @@ export const BannerAd: React.FC<BannerAdProps> = ({ className }) => {
 
   // Rendu pour le Web (AdSense)
   return (
-    <div className={`w-full h-[100px] bg-gray-200/50 dark:bg-gray-800/50 rounded-lg flex items-center justify-center text-gray-500 border border-dashed ${className}`}>
+    <div className={`w-full h-[50px] bg-gray-200/50 dark:bg-gray-800/50 rounded flex items-center justify-center text-gray-500 border border-dashed ${className}`}>
       <div className="text-center">
-        <p className="text-sm">Emplacement publicitaire (Web AdSense)</p>
+        <p className="text-xs">Emplacement publicitaire (Web AdSense)</p>
         <ins className="adsbygoogle"
             style={{ display: 'block' }}
             data-ad-client="ca-pub-7828832970015207" // Remplacez par votre ID d'éditeur AdSense
