@@ -50,8 +50,8 @@ serve(async (req) => {
     let failCount = 0;
     const failedChapters = [];
 
-    // Process in batches of 3 chapters
-    const batchSize = 3;
+    // Process in batches of 2 chapters to reduce concurrency
+    const batchSize = 2;
     for (let i = 0; i < chapters.length; i += batchSize) {
       const batch = chapters.slice(i, i + batchSize);
       

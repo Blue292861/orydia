@@ -45,10 +45,10 @@ export const BookTranslationManager = () => {
 
       if (chaptersError) throw chaptersError;
 
-      // Get translation counts
+      // Get translation counts per chapter and language
       const { data: translationsData, error: translationsError } = await supabase
         .from('chapter_translations')
-        .select('chapter_id')
+        .select('chapter_id, language')
         .eq('status', 'completed');
 
       if (translationsError) throw translationsError;
@@ -62,29 +62,33 @@ export const BookTranslationManager = () => {
         chaptersByBook.get(ch.book_id)!.add(ch.id);
       });
 
-      // Build translation map
-      const translatedChapters = new Set(translationsData?.map(t => t.chapter_id) || []);
+      // Build translation map: count completed languages per chapter
+      const translationsByChapter = new Map<string, Set<string>>();
+      translationsData?.forEach(t => {
+        if (!translationsByChapter.has(t.chapter_id)) {
+          translationsByChapter.set(t.chapter_id, new Set());
+        }
+        translationsByChapter.get(t.chapter_id)!.add(t.language);
+      });
 
       // Combine data
       const booksWithStatus: BookWithTranslationStatus[] = (booksData || []).map(book => {
         const bookChapters = chaptersByBook.get(book.id) || new Set();
         const totalChapters = bookChapters.size;
         
-        let translatedCount = 0;
+        // Count how many chapters have all 6 languages completed
+        let fullyTranslatedChapters = 0;
         bookChapters.forEach(chapterId => {
-          if (translatedChapters.has(chapterId)) {
-            translatedCount++;
+          const completedLanguages = translationsByChapter.get(chapterId)?.size || 0;
+          if (completedLanguages >= 6) {
+            fullyTranslatedChapters++;
           }
         });
 
-        // Each chapter needs 6 translations to be complete
-        const requiredTranslations = totalChapters * 6;
-        const actualTranslations = translatedCount;
-
         let status: 'complete' | 'partial' | 'none';
-        if (actualTranslations >= requiredTranslations) {
+        if (fullyTranslatedChapters === totalChapters && totalChapters > 0) {
           status = 'complete';
-        } else if (actualTranslations > 0) {
+        } else if (fullyTranslatedChapters > 0 || translationsByChapter.size > 0) {
           status = 'partial';
         } else {
           status = 'none';
@@ -93,7 +97,7 @@ export const BookTranslationManager = () => {
         return {
           ...book,
           total_chapters: totalChapters,
-          translated_chapters: Math.floor(actualTranslations / 6),
+          translated_chapters: fullyTranslatedChapters,
           translation_status: status,
         };
       });
@@ -206,20 +210,29 @@ export const BookTranslationManager = () => {
             {books.length} livres · {untranslatedCount} restant{untranslatedCount > 1 ? 's' : ''}
           </p>
         </div>
-        <Button 
-          onClick={translateAllBooks}
-          disabled={translatingAll || untranslatedCount === 0}
-          size="lg"
-        >
-          {translatingAll ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Traduction en cours...
-            </>
-          ) : (
-            `Traduire tous (${untranslatedCount})`
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={fetchBooksWithStatus}
+            disabled={translatingAll || translatingBookId !== null}
+            variant="outline"
+          >
+            Actualiser
+          </Button>
+          <Button 
+            onClick={translateAllBooks}
+            disabled={translatingAll || untranslatedCount === 0}
+            size="lg"
+          >
+            {translatingAll ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Traduction en cours...
+              </>
+            ) : (
+              `Traduire tous (${untranslatedCount})`
+            )}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

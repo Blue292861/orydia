@@ -103,24 +103,43 @@ serve(async (req) => {
 
     console.log(`Translating ${sections.length} sections into ${validLanguages.length} languages`);
 
-    // Translate into each language
-    for (const targetLanguage of validLanguages) {
-      try {
-        // Create pending record
-        await supabaseAdmin
-          .from('chapter_translations')
-          .upsert({
-            chapter_id,
-            language: targetLanguage,
-            translated_content: { sections: [] },
-            status: 'processing',
-            error_message: null,
-          }, {
-            onConflict: 'chapter_id,language'
-          });
+    // Translate into each language with retry logic
+    for (let langIndex = 0; langIndex < validLanguages.length; langIndex++) {
+      const targetLanguage = validLanguages[langIndex];
+      
+      // Add 700ms delay between languages to reduce rate limiting
+      if (langIndex > 0) {
+        await new Promise(resolve => setTimeout(resolve, 700));
+      }
 
-        // Call Lovable AI for translation
-        const translationResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      // Retry logic with exponential backoff
+      let attempt = 0;
+      const maxRetries = 2;
+      let success = false;
+
+      while (attempt <= maxRetries && !success) {
+        try {
+          if (attempt > 0) {
+            const backoffMs = Math.pow(2, attempt) * 1000; // 2s, 4s
+            console.log(`Retry ${attempt}/${maxRetries} for ${targetLanguage} after ${backoffMs}ms`);
+            await new Promise(resolve => setTimeout(resolve, backoffMs));
+          }
+
+          // Create pending record
+          await supabaseAdmin
+            .from('chapter_translations')
+            .upsert({
+              chapter_id,
+              language: targetLanguage,
+              translated_content: { sections: [] },
+              status: 'processing',
+              error_message: null,
+            }, {
+              onConflict: 'chapter_id,language'
+            });
+
+          // Call Lovable AI for translation
+          const translationResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${LOVABLE_API_KEY}`,
@@ -154,6 +173,13 @@ CRITICAL RULES:
 
         if (!translationResponse.ok) {
           const errorText = await translationResponse.text();
+          
+          // Check for rate limiting or payment errors
+          if (translationResponse.status === 429 || translationResponse.status === 402) {
+            console.error(`Rate limit/payment error for ${targetLanguage} (attempt ${attempt + 1}):`, errorText);
+            throw new Error(`Retryable error: ${translationResponse.status}`);
+          }
+          
           console.error(`Translation failed for ${targetLanguage}:`, errorText);
           throw new Error(`Translation API error: ${translationResponse.status}`);
         }
@@ -196,20 +222,25 @@ CRITICAL RULES:
           .eq('language', targetLanguage);
 
         console.log(`Successfully translated chapter ${chapter_id} to ${targetLanguage}`);
+        success = true;
       } catch (error) {
-        console.error(`Failed to translate to ${targetLanguage}:`, error);
+        attempt++;
+        console.error(`Failed to translate to ${targetLanguage} (attempt ${attempt}):`, error);
         
-        // Mark as failed
-        await supabaseAdmin
-          .from('chapter_translations')
-          .update({
-            status: 'failed',
-            error_message: error instanceof Error ? error.message : 'Unknown error',
-          })
-          .eq('chapter_id', chapter_id)
-          .eq('language', targetLanguage);
+        // If we've exhausted retries, mark as failed
+        if (attempt > maxRetries) {
+          await supabaseAdmin
+            .from('chapter_translations')
+            .update({
+              status: 'failed',
+              error_message: error instanceof Error ? error.message : 'Unknown error',
+            })
+            .eq('chapter_id', chapter_id)
+            .eq('language', targetLanguage);
+        }
       }
     }
+  }
 
     return new Response(
       JSON.stringify({ 
