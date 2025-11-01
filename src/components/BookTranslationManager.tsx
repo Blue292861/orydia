@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Languages, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Languages, CheckCircle2, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 
 interface BookWithTranslationStatus {
   id: string;
@@ -22,10 +22,21 @@ export const BookTranslationManager = () => {
   const [translationLogs, setTranslationLogs] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [translatingAll, setTranslatingAll] = useState(false);
+  const [pollingBookIds, setPollingBookIds] = useState<Set<string>>(new Set());
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     fetchBooksWithStatus();
   }, []);
+
+  // Cleanup polling interval on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
 
   const fetchBooksWithStatus = async () => {
     try {
@@ -122,61 +133,118 @@ export const BookTranslationManager = () => {
     setTranslationLogs(prev => [`[${timestamp}] ${message}`, ...prev].slice(0, 100));
   };
 
-  const translateBook = async (bookId: string, bookTitle: string) => {
-    setTranslatingBookId(bookId);
-    addLog(`🚀 Démarrage de la traduction: ${bookTitle}`);
-    toast.info(`Traduction de "${bookTitle}" en cours...`);
+  // Start polling for translation status
+  const startPolling = (bookId: string) => {
+    setPollingBookIds(prev => new Set(prev).add(bookId));
 
+    // Clear existing interval if any
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+    }
+
+    // Poll every 15 seconds
+    const interval = setInterval(async () => {
+      await fetchBooksWithStatus();
+      
+      // Check if any books have completed
+      const currentBooks = books.filter(b => pollingBookIds.has(b.id));
+      const completedBooks = currentBooks.filter(b => b.translation_status === 'complete');
+      
+      if (completedBooks.length > 0) {
+        completedBooks.forEach(book => {
+          addLog(`✅ Traduction complétée: ${book.title}`);
+          setPollingBookIds(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(book.id);
+            return newSet;
+          });
+        });
+      }
+
+      // If no more books to poll, clear interval
+      if (pollingBookIds.size === 0) {
+        clearInterval(interval);
+        setPollingInterval(null);
+      }
+    }, 15000);
+
+    setPollingInterval(interval);
+  };
+
+  const translateBook = async (bookId: string, bookTitle: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('translate-book-chapters', {
+      setTranslatingBookId(bookId);
+      addLog(`🚀 Lancement de la traduction en arrière-plan: ${bookTitle}`);
+      addLog(`ℹ️ Vous pouvez quitter la page, le traitement continue côté serveur`);
+      
+      // Call kickoff function instead of direct translation
+      const { data, error } = await supabase.functions.invoke('translate-book-kickoff', {
         body: { book_id: bookId }
       });
 
-      if (error) throw error;
-
-      if (data.success) {
-        addLog(`✅ "${bookTitle}" terminé: ${data.succeeded}/${data.total_chapters} chapitres`);
-        toast.success(`"${bookTitle}" traduit avec succès!`);
-        
-        if (data.failed > 0) {
-          addLog(`⚠️ ${data.failed} chapitres ont échoué dans "${bookTitle}"`);
-          toast.warning(`${data.failed} chapitres ont échoué`);
+      if (error) {
+        // Check if it's a network error vs real error
+        if (error.message.includes('Failed to fetch') || error.message.includes('FunctionsFetchError')) {
+          addLog(`⚠️ Connexion interrompue — la traduction continue côté serveur: ${bookTitle}`);
+          toast.info(`${bookTitle} - traduction en cours en arrière-plan`);
+        } else {
+          addLog(`❌ Erreur lors du lancement de ${bookTitle}: ${error.message}`);
+          toast.error(`Impossible de lancer la traduction de ${bookTitle}`);
+          setTranslatingBookId(null);
+          return false;
         }
+      } else {
+        addLog(`✅ Traduction lancée: ${bookTitle}`);
+        toast.success(`${bookTitle} - traduction en cours`);
       }
 
-      await fetchBooksWithStatus();
-    } catch (error) {
-      console.error('Translation error:', error);
-      addLog(`❌ Erreur lors de la traduction de "${bookTitle}"`);
-      toast.error(`Erreur: ${bookTitle}`);
+      // Start polling for this book
+      startPolling(bookId);
+      return true;
+      
+    } catch (error: any) {
+      // Network errors during translation
+      if (error.message.includes('Failed to fetch') || error.name === 'FunctionsFetchError') {
+        addLog(`⚠️ Connexion perdue pour ${bookTitle} — poursuite en arrière-plan`);
+        startPolling(bookId);
+        return true;
+      }
+      
+      addLog(`❌ Erreur inattendue pour ${bookTitle}: ${error.message}`);
+      toast.error('Une erreur inattendue s\'est produite');
+      return false;
     } finally {
       setTranslatingBookId(null);
     }
   };
 
   const translateAllBooks = async () => {
-    setTranslatingAll(true);
-    addLog('🌍 Démarrage de la traduction de tous les livres non traduits');
-    toast.info('Traduction de tous les livres en cours...');
-
     const untranslatedBooks = books.filter(b => b.translation_status !== 'complete');
-    addLog(`📚 ${untranslatedBooks.length} livres à traduire`);
+
+    if (untranslatedBooks.length === 0) {
+      toast.info('Tous les livres sont déjà traduits');
+      return;
+    }
+
+    setTranslatingAll(true);
+    addLog(`📚 Lancement de la traduction de ${untranslatedBooks.length} livres en arrière-plan`);
+    addLog(`ℹ️ Vous pouvez quitter la page, les traductions continuent côté serveur`);
 
     for (let i = 0; i < untranslatedBooks.length; i++) {
       const book = untranslatedBooks[i];
-      addLog(`📖 [${i + 1}/${untranslatedBooks.length}] ${book.title}`);
+      addLog(`📖 [${i + 1}/${untranslatedBooks.length}] Lancement: ${book.title}`);
+      
       await translateBook(book.id, book.title);
       
-      // Wait 10 seconds between books
+      // Courte pause entre chaque lancement
       if (i < untranslatedBooks.length - 1) {
-        addLog('⏸️ Pause de 10 secondes...');
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
 
-    addLog('🎉 Traduction de tous les livres terminée!');
-    toast.success('Tous les livres ont été traités!');
     setTranslatingAll(false);
+    addLog(`🎉 Tous les livres ont été lancés en traduction!`);
+    toast.success(`${untranslatedBooks.length} livres en cours de traduction`);
   };
 
   const getStatusBadge = (status: string) => {
@@ -200,6 +268,22 @@ export const BookTranslationManager = () => {
 
   return (
     <div className="space-y-6">
+      {pollingBookIds.size > 0 && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <div>
+                <p className="font-medium">Traduction en arrière-plan</p>
+                <p className="text-sm text-muted-foreground">
+                  {pollingBookIds.size} livre(s) en cours • Vous pouvez quitter la page, le traitement continue
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -213,9 +297,10 @@ export const BookTranslationManager = () => {
         <div className="flex gap-2">
           <Button 
             onClick={fetchBooksWithStatus}
-            disabled={translatingAll || translatingBookId !== null}
+            disabled={loading}
             variant="outline"
           >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Actualiser
           </Button>
           <Button 
@@ -226,7 +311,7 @@ export const BookTranslationManager = () => {
             {translatingAll ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Traduction en cours...
+                Lancement...
               </>
             ) : (
               `Traduire tous (${untranslatedCount})`
@@ -256,14 +341,14 @@ export const BookTranslationManager = () => {
               </div>
               <Button 
                 onClick={() => translateBook(book.id, book.title)}
-                disabled={translatingBookId === book.id || translatingAll}
+                disabled={translatingBookId === book.id || translatingAll || pollingBookIds.has(book.id)}
                 className="w-full"
                 variant={book.translation_status === 'complete' ? 'outline' : 'default'}
               >
-                {translatingBookId === book.id ? (
+                {translatingBookId === book.id || pollingBookIds.has(book.id) ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Traduction...
+                    En cours...
                   </>
                 ) : book.translation_status === 'complete' ? (
                   'Retraduire'

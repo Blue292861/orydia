@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.translate-chapter-batch]
 verify_jwt = false
 
+[functions.translate-book-kickoff]
+verify_jwt = false
+
 [functions.award-points]
 [functions.cancel-subscription]
 [functions.check-subscription]
