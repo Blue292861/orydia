@@ -3,6 +3,9 @@ project_id = "aotzivwzoxmnnawcxioo"
 [functions.send-unsubscribe-request]
 verify_jwt = false
 
+[functions.translate-chapter-batch]
+verify_jwt = false
+
 [functions.award-points]
 [functions.cancel-subscription]
 [functions.check-subscription]
@@ -13,5 +16,4 @@ verify_jwt = false
 [functions.get-user-stats]
 [functions.merge-epub-opf]
 [functions.translate-epub-content]
-[functions.translate-chapter-batch]
 [functions.translate-book-chapters]
