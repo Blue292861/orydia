@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Type, Sun, Moon, Eye, Palette } from 'lucide-react';
+import { Type, Sun, Moon, Eye, Palette, Languages } from 'lucide-react';
 import { useContrast } from '@/contexts/ContrastContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -16,6 +16,7 @@ import {
 
 type Theme = 'light' | 'dark' | 'sepia';
 type ColorblindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
+type Language = 'fr' | 'en' | 'es' | 'de' | 'ru' | 'zh' | 'ja';
 
 interface ChapterReadingControlsProps {
   open: boolean;
@@ -23,9 +24,11 @@ interface ChapterReadingControlsProps {
   fontSize: number;
   theme: Theme;
   colorblindMode: ColorblindMode;
+  language: Language;
   onFontSizeChange: (size: number) => void;
   onThemeChange: (theme: Theme) => void;
   onColorblindModeChange: (mode: ColorblindMode) => void;
+  onLanguageChange: (language: Language) => void;
 }
 
 export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
@@ -34,9 +37,11 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
   fontSize,
   theme,
   colorblindMode,
+  language,
   onFontSizeChange,
   onThemeChange,
   onColorblindModeChange,
+  onLanguageChange,
 }) => {
   const { isHighContrast, toggleContrast } = useContrast();
   const isMobile = useIsMobile();
@@ -150,6 +155,35 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
             <SelectItem value="tritanopia">Tritanopie</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      <Separator />
+
+      {/* Language Selection */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium flex items-center gap-2">
+          <Languages className="h-4 w-4" />
+          Langue de lecture
+        </label>
+        <Select value={language} onValueChange={(value) => onLanguageChange(value as Language)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Français" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="fr">🇫🇷 Français (original)</SelectItem>
+            <SelectItem value="en">🇬🇧 English</SelectItem>
+            <SelectItem value="es">🇪🇸 Español</SelectItem>
+            <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
+            <SelectItem value="ru">🇷🇺 Русский</SelectItem>
+            <SelectItem value="zh">🇨🇳 中文</SelectItem>
+            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+          </SelectContent>
+        </Select>
+        {language !== 'fr' && (
+          <p className="text-xs text-muted-foreground">
+            Traduction par IA • Peut prendre quelques secondes
+          </p>
+        )}
       </div>
     </div>
   );

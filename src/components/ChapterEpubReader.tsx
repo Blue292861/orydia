@@ -15,6 +15,7 @@ import { Book } from '@/types/Book';
 
 type Theme = 'light' | 'dark' | 'sepia';
 type ColorblindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
+type Language = 'fr' | 'en' | 'es' | 'de' | 'ru' | 'zh' | 'ja';
 
 export const ChapterEpubReader: React.FC = () => {
   const { bookId, chapterId } = useParams<{ bookId: string; chapterId: string }>();
@@ -31,6 +32,8 @@ export const ChapterEpubReader: React.FC = () => {
   const [fontSize, setFontSize] = useState(16);
   const [theme, setTheme] = useState<Theme>('light');
   const [colorblindMode, setColorblindMode] = useState<ColorblindMode>('none');
+  const [language, setLanguage] = useState<Language>('fr');
+  const [isTranslating, setIsTranslating] = useState(false);
   
   // EPUB state
   const [epubReady, setEpubReady] = useState(false);
@@ -55,6 +58,8 @@ export const ChapterEpubReader: React.FC = () => {
   const readinessTimerRef = useRef<number | null>(null);
   const lastSizeRef = useRef({ width: 0, height: 0 });
   const viewportResizeHandlerRef = useRef<(() => void) | null>(null);
+  const translationCacheRef = useRef<Map<string, string>>(new Map());
+  const originalContentRef = useRef<string>('');
 
   // Load chapter data and settings
   useEffect(() => {
@@ -79,9 +84,11 @@ export const ChapterEpubReader: React.FC = () => {
         // Load saved settings
         const savedFontSize = localStorage.getItem(`chapter_fontSize_${chapterId}`);
         const savedTheme = localStorage.getItem(`chapter_theme_${chapterId}`);
+        const savedLanguage = localStorage.getItem(`chapter_language_${chapterId}`);
 
         if (savedFontSize) setFontSize(parseInt(savedFontSize));
         if (savedTheme) setTheme(savedTheme as Theme);
+        if (savedLanguage) setLanguage(savedLanguage as Language);
       } catch (error) {
         console.error('Error loading chapter:', error);
         toast.error('Erreur lors du chargement');
@@ -498,6 +505,108 @@ export const ChapterEpubReader: React.FC = () => {
     setTheme(newTheme);
   };
 
+  const handleLanguageChange = (newLanguage: Language) => {
+    setLanguage(newLanguage);
+    if (chapterId) {
+      localStorage.setItem(`chapter_language_${chapterId}`, newLanguage);
+    }
+  };
+
+  // Translation function
+  const translateCurrentPage = async (targetLang: Language) => {
+    if (!renditionRef.current || !epubReady) return;
+
+    try {
+      setIsTranslating(true);
+
+      // Get current location
+      const currentLocation = renditionRef.current.currentLocation();
+      if (!currentLocation) return;
+
+      const cfi = currentLocation.start.cfi;
+      const cacheKey = `${cfi}_${targetLang}`;
+
+      // Check cache first
+      if (translationCacheRef.current.has(cacheKey)) {
+        const cachedTranslation = translationCacheRef.current.get(cacheKey)!;
+        const contents = renditionRef.current.getContents();
+        if (contents && contents[0]) {
+          const doc = contents[0].document;
+          if (doc && doc.body) {
+            doc.body.innerHTML = cachedTranslation;
+          }
+        }
+        setIsTranslating(false);
+        return;
+      }
+
+      // Get the current page content
+      const contents = renditionRef.current.getContents();
+      if (!contents || !contents[0]) return;
+
+      const doc = contents[0].document;
+      if (!doc || !doc.body) return;
+
+      // Save original content if not already saved
+      if (!originalContentRef.current) {
+        originalContentRef.current = doc.body.innerHTML;
+      }
+
+      const htmlContent = doc.body.innerHTML;
+
+      // Call translation edge function
+      const { data, error } = await supabase.functions.invoke('translate-epub-content', {
+        body: {
+          content: htmlContent,
+          targetLanguage: targetLang,
+          sourceLanguage: 'fr',
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.translatedContent) {
+        // Inject translated content
+        doc.body.innerHTML = data.translatedContent;
+
+        // Cache the translation
+        translationCacheRef.current.set(cacheKey, data.translatedContent);
+
+        toast.success('Traduction terminée');
+      }
+    } catch (error) {
+      console.error('Translation error:', error);
+      toast.error('Erreur lors de la traduction');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  // Handle language changes
+  useEffect(() => {
+    if (!epubReady || !renditionRef.current) return;
+
+    if (language === 'fr') {
+      // Restore original French content
+      const contents = renditionRef.current.getContents();
+      if (contents && contents[0]) {
+        const doc = contents[0].document;
+        if (doc && doc.body && originalContentRef.current) {
+          doc.body.innerHTML = originalContentRef.current;
+        }
+      }
+    } else {
+      // Translate to selected language
+      translateCurrentPage(language);
+    }
+  }, [language, epubReady]);
+
+  // Clear translation cache and reset when chapter changes
+  useEffect(() => {
+    translationCacheRef.current.clear();
+    originalContentRef.current = '';
+  }, [chapterId]);
+
   const handleResetPosition = () => {
     if (chapterId) {
       localStorage.removeItem(`chapter_location_${chapterId}`);
@@ -508,15 +617,23 @@ export const ChapterEpubReader: React.FC = () => {
     toast.success('Position réinitialisée');
   };
 
-  const handleNextPage = () => {
+  const handleNextPage = async () => {
     if (renditionRef.current) {
       renditionRef.current.next();
+      // If translated, translate the new page after a brief delay
+      if (language !== 'fr') {
+        setTimeout(() => translateCurrentPage(language), 300);
+      }
     }
   };
 
-  const handlePrevPage = () => {
+  const handlePrevPage = async () => {
     if (renditionRef.current) {
       renditionRef.current.prev();
+      // If translated, translate the new page after a brief delay
+      if (language !== 'fr') {
+        setTimeout(() => translateCurrentPage(language), 300);
+      }
     }
   };
 
@@ -635,7 +752,14 @@ export const ChapterEpubReader: React.FC = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-base md:text-lg font-semibold line-clamp-1 flex-1">{chapter.title}</h1>
+          <h1 className="text-base md:text-lg font-semibold line-clamp-1 flex-1">
+            {chapter.title}
+            {language !== 'fr' && (
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                (traduit)
+              </span>
+            )}
+          </h1>
           <Button
             variant="outline"
             size="sm"
@@ -686,17 +810,19 @@ export const ChapterEpubReader: React.FC = () => {
 
             {/* Reader Container with Navigation Buttons */}
             <div className="flex-1 relative overflow-hidden pb-2" ref={containerRef} style={{ minHeight: '0' }}>
-              {!epubReady && (
+              {(!epubReady || isTranslating) && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
                   <div className="text-center space-y-2">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                    <p className="text-muted-foreground">Chargement du chapitre...</p>
+                    <p className="text-muted-foreground">
+                      {isTranslating ? 'Traduction en cours...' : 'Chargement du chapitre...'}
+                    </p>
                   </div>
                 </div>
               )}
 
               {/* Navigation Button - Previous */}
-              {epubReady && (
+              {epubReady && !isTranslating && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -719,7 +845,7 @@ export const ChapterEpubReader: React.FC = () => {
         />
 
               {/* Navigation Button - Next */}
-              {epubReady && (
+              {epubReady && !isTranslating && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -787,9 +913,11 @@ export const ChapterEpubReader: React.FC = () => {
         fontSize={fontSize}
         theme={theme}
         colorblindMode={colorblindMode}
+        language={language}
         onFontSizeChange={handleFontSizeChange}
         onThemeChange={handleThemeChange}
         onColorblindModeChange={setColorblindMode}
+        onLanguageChange={handleLanguageChange}
       />
 
       {/* Ad Banner for non-premium users */}
