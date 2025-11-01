@@ -329,6 +329,23 @@ export const ChapterEpubReader: React.FC = () => {
         rendition.on('rendered', onRendered);
         rendition.on('relocated', onRelocated);
 
+        // Register hook to apply pre-translated content
+        rendition.hooks.content.register((contents: any) => {
+          const doc = contents.document;
+          if (!doc || language === 'fr') return;
+
+          // Get section ID
+          const section = contents.section;
+          const sectionId = section?.idref;
+          
+          if (sectionId && translationCacheRef.current.has(sectionId)) {
+            const translatedHTML = translationCacheRef.current.get(sectionId);
+            if (doc.body && translatedHTML) {
+              doc.body.innerHTML = translatedHTML;
+            }
+          }
+        });
+
         // Display with saved location or fallback, robustly skipping cover pages
         const cfiKey = chapterId ? `chapter_location_${chapterId}` : '';
         const savedCFI = cfiKey ? localStorage.getItem(cfiKey) : null;
@@ -512,94 +529,81 @@ export const ChapterEpubReader: React.FC = () => {
     }
   };
 
-  // Translation function
-  const translateCurrentPage = async (targetLang: Language) => {
-    if (!renditionRef.current || !epubReady) return;
+  // Load translations from database
+  const loadTranslationsFromDatabase = async (targetLang: Language) => {
+    if (!chapterId) return;
 
     try {
       setIsTranslating(true);
 
-      // Get current location
-      const currentLocation = renditionRef.current.currentLocation();
-      if (!currentLocation) return;
+      const { data, error } = await supabase
+        .from('chapter_translations')
+        .select('translated_content, status')
+        .eq('chapter_id', chapterId)
+        .eq('language', targetLang)
+        .single();
 
-      const cfi = currentLocation.start.cfi;
-      const cacheKey = `${cfi}_${targetLang}`;
-
-      // Check cache first
-      if (translationCacheRef.current.has(cacheKey)) {
-        const cachedTranslation = translationCacheRef.current.get(cacheKey)!;
-        const contents = renditionRef.current.getContents();
-        if (contents && contents[0]) {
-          const doc = contents[0].document;
-          if (doc && doc.body) {
-            doc.body.innerHTML = cachedTranslation;
-          }
-        }
-        setIsTranslating(false);
+      if (error || !data) {
+        toast.error('Traduction non disponible pour cette langue');
+        setLanguage('fr');
         return;
       }
 
-      // Get the current page content
-      const contents = renditionRef.current.getContents();
-      if (!contents || !contents[0]) return;
-
-      const doc = contents[0].document;
-      if (!doc || !doc.body) return;
-
-      // Save original content if not already saved
-      if (!originalContentRef.current) {
-        originalContentRef.current = doc.body.innerHTML;
+      if (data.status === 'processing') {
+        toast.info('Traduction en cours de génération... Réessayez dans quelques minutes.');
+        setLanguage('fr');
+        return;
       }
 
-      const htmlContent = doc.body.innerHTML;
+      if (data.status === 'failed') {
+        toast.error('La traduction a échoué. Contactez l\'administrateur.');
+        setLanguage('fr');
+        return;
+      }
 
-      // Call translation edge function
-      const { data, error } = await supabase.functions.invoke('translate-epub-content', {
-        body: {
-          content: htmlContent,
-          targetLanguage: targetLang,
-          sourceLanguage: 'fr',
-        },
-      });
+      if (data.status === 'completed') {
+        const translatedData = data.translated_content as any;
+        const sections = translatedData?.sections || [];
+        translationCacheRef.current.clear();
+        sections.forEach((s: any) => {
+          translationCacheRef.current.set(s.id, s.html);
+        });
 
-      if (error) throw error;
+        // Reload current page to apply translations
+        if (renditionRef.current) {
+          const currentCfi = renditionRef.current.currentLocation()?.start?.cfi;
+          if (currentCfi) {
+            renditionRef.current.display(currentCfi);
+          }
+        }
 
-      if (data?.translatedContent) {
-        // Inject translated content
-        doc.body.innerHTML = data.translatedContent;
-
-        // Cache the translation
-        translationCacheRef.current.set(cacheKey, data.translatedContent);
-
-        toast.success('Traduction terminée');
+        toast.success('Traduction chargée !');
       }
     } catch (error) {
-      console.error('Translation error:', error);
-      toast.error('Erreur lors de la traduction');
+      console.error('Error loading translation:', error);
+      toast.error('Erreur lors du chargement de la traduction');
+      setLanguage('fr');
     } finally {
       setIsTranslating(false);
     }
   };
 
-  // Handle language changes
+  // Load translations from database when language changes
   useEffect(() => {
-    if (!epubReady || !renditionRef.current) return;
+    if (!epubReady || !renditionRef.current || !chapterId) return;
 
     if (language === 'fr') {
-      // Restore original French content
-      const contents = renditionRef.current.getContents();
-      if (contents && contents[0]) {
-        const doc = contents[0].document;
-        if (doc && doc.body && originalContentRef.current) {
-          doc.body.innerHTML = originalContentRef.current;
-        }
+      // Clear translations and reload original content
+      translationCacheRef.current.clear();
+      const currentCfi = renditionRef.current.currentLocation()?.start?.cfi;
+      if (currentCfi) {
+        renditionRef.current.display(currentCfi);
       }
     } else {
-      // Translate to selected language
-      translateCurrentPage(language);
+      // Load pre-translated content from database
+      loadTranslationsFromDatabase(language);
     }
-  }, [language, epubReady]);
+  }, [language, epubReady, chapterId]);
 
   // Clear translation cache and reset when chapter changes
   useEffect(() => {
@@ -620,20 +624,12 @@ export const ChapterEpubReader: React.FC = () => {
   const handleNextPage = async () => {
     if (renditionRef.current) {
       renditionRef.current.next();
-      // If translated, translate the new page after a brief delay
-      if (language !== 'fr') {
-        setTimeout(() => translateCurrentPage(language), 300);
-      }
     }
   };
 
   const handlePrevPage = async () => {
     if (renditionRef.current) {
       renditionRef.current.prev();
-      // If translated, translate the new page after a brief delay
-      if (language !== 'fr') {
-        setTimeout(() => translateCurrentPage(language), 300);
-      }
     }
   };
 

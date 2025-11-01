@@ -490,6 +490,47 @@ export type Database = {
         }
         Relationships: []
       }
+      chapter_translations: {
+        Row: {
+          chapter_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          language: string
+          status: string
+          translated_content: Json
+          updated_at: string
+        }
+        Insert: {
+          chapter_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          language: string
+          status?: string
+          translated_content: Json
+          updated_at?: string
+        }
+        Update: {
+          chapter_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          language?: string
+          status?: string
+          translated_content?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapter_translations_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "book_chapter_epubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       epub_reading_progress: {
         Row: {
           book_id: string

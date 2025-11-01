@@ -152,12 +152,32 @@ export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
         position: formData.position,
       };
 
+      let createdChapterId: string | undefined;
+
       if (chapter) {
         await chapterEpubService.updateChapter(chapter.id, chapterData);
         toast.success('Chapitre mis à jour avec succès');
+        createdChapterId = chapter.id;
       } else {
-        await chapterEpubService.createChapter(chapterData);
+        const newChapter = await chapterEpubService.createChapter(chapterData);
         toast.success('Chapitre créé avec succès');
+        createdChapterId = newChapter.id;
+      }
+
+      // Trigger background translations for new chapters
+      if (createdChapterId && !chapter) {
+        toast.info('Traductions en cours en arrière-plan...');
+        
+        const languagesToTranslate = ['en', 'es', 'de', 'ru', 'zh', 'ja'];
+        
+        supabase.functions.invoke('translate-chapter-batch', {
+          body: {
+            chapter_id: createdChapterId,
+            languages: languagesToTranslate,
+          }
+        }).catch((error) => {
+          console.error('Translation batch error:', error);
+        });
       }
 
       onSuccess();

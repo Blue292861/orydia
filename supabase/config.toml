@@ -13,3 +13,4 @@ verify_jwt = false
 [functions.get-user-stats]
 [functions.merge-epub-opf]
 [functions.translate-epub-content]
+[functions.translate-chapter-batch]
