@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookForm } from '@/components/BookForm';
 import { BookDetailAdmin } from '@/components/BookDetailAdmin';
+import { BookTranslationManager } from '@/components/BookTranslationManager';
 import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -66,27 +68,35 @@ export const AdminDashboard: React.FC = () => {
 
   return (
     <div className="h-full max-h-screen overflow-y-auto space-y-6 pr-2">
-      <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between items-center'}`}>
-        <h2 className={`font-bold ${isMobile ? 'text-2xl' : isTablet ? 'text-3xl' : 'text-3xl'}`}>
-          Tableau de bord Admin
-        </h2>
-        <Button 
-          onClick={handleOpenAdd} 
-          className={`flex items-center gap-2 ${isMobile ? 'w-full justify-center' : ''}`}
-          size={isMobile ? 'default' : 'default'}
-        >
-          <Plus className="h-4 w-4" /> 
-          {isMobile ? 'Ajouter' : 'Ajouter un nouveau livre'}
-        </Button>
-      </div>
+      <h2 className={`font-bold ${isMobile ? 'text-2xl' : isTablet ? 'text-3xl' : 'text-3xl'}`}>
+        Tableau de bord Admin
+      </h2>
 
-      <div className={`grid gap-4 ${
-        isMobile 
-          ? 'grid-cols-1' 
-          : isTablet 
-            ? 'grid-cols-1 md:grid-cols-2' 
-            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-      }`}>
+      <Tabs defaultValue="books" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="books">Livres</TabsTrigger>
+          <TabsTrigger value="translations">Traductions</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="books" className="space-y-6">
+          <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-end items-center'}`}>
+            <Button 
+              onClick={handleOpenAdd} 
+              className={`flex items-center gap-2 ${isMobile ? 'w-full justify-center' : ''}`}
+              size={isMobile ? 'default' : 'default'}
+            >
+              <Plus className="h-4 w-4" /> 
+              {isMobile ? 'Ajouter' : 'Ajouter un nouveau livre'}
+            </Button>
+          </div>
+
+          <div className={`grid gap-4 ${
+            isMobile 
+              ? 'grid-cols-1' 
+              : isTablet 
+                ? 'grid-cols-1 md:grid-cols-2' 
+                : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+          }`}>
         {books.map((book) => (
           <Card key={book.id} className={book.isPremium ? "ring-2 ring-yellow-500" : ""}>
             <div className={`flex ${isMobile ? 'h-[100px]' : 'h-[120px]'}`}>
@@ -167,13 +177,19 @@ export const AdminDashboard: React.FC = () => {
         ))}
       </div>
 
-      {books.length === 0 && (
-        <div className={`text-center py-12 border rounded-lg ${isMobile ? 'px-4' : ''}`}>
-          <p className={`text-muted-foreground ${isMobile ? 'text-sm' : ''}`}>
-            Aucun livre dans la bibliothèque pour le moment. Ajoutez votre premier livre !
-          </p>
-        </div>
-      )}
+          {books.length === 0 && (
+            <div className={`text-center py-12 border rounded-lg ${isMobile ? 'px-4' : ''}`}>
+              <p className={`text-muted-foreground ${isMobile ? 'text-sm' : ''}`}>
+                Aucun livre dans la bibliothèque pour le moment. Ajoutez votre premier livre !
+              </p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="translations">
+          <BookTranslationManager />
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className={`${isMobile ? 'w-[95vw] max-w-[95vw]' : 'sm:max-w-[525px]'}`}>

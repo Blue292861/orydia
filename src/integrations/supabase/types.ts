@@ -330,6 +330,13 @@ export type Database = {
             foreignKeyName: "book_chapter_epubs_book_id_fkey"
             columns: ["book_id"]
             isOneToOne: false
+            referencedRelation: "book_translation_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "book_chapter_epubs_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
             referencedRelation: "books"
             referencedColumns: ["id"]
           },
@@ -367,6 +374,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "book_chapters_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "book_translation_status"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "book_chapters_book_id_fkey"
             columns: ["book_id"]
@@ -1237,6 +1251,13 @@ export type Database = {
             foreignKeyName: "user_chapter_progress_book_id_fkey"
             columns: ["book_id"]
             isOneToOne: false
+            referencedRelation: "book_translation_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_chapter_progress_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
             referencedRelation: "books"
             referencedColumns: ["id"]
           },
@@ -1426,6 +1447,13 @@ export type Database = {
             foreignKeyName: "user_story_choices_book_id_fkey"
             columns: ["book_id"]
             isOneToOne: false
+            referencedRelation: "book_translation_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_story_choices_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
             referencedRelation: "books"
             referencedColumns: ["id"]
           },
@@ -1477,7 +1505,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      book_translation_status: {
+        Row: {
+          author: string | null
+          id: string | null
+          title: string | null
+          total_chapters: number | null
+          translated_chapter_count: number | null
+          translation_status: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_exponential_level: {
