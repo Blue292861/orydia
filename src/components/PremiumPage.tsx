@@ -6,9 +6,11 @@ import { Star, Check, Crown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { PremiumSelectionDialog } from '@/components/PremiumSelectionDialog';
 import { SubscriptionManagement } from '@/components/SubscriptionManagement';
+import { useNavigate } from 'react-router-dom';
 
 export const PremiumPage: React.FC = () => {
-  const { subscription, checkSubscriptionStatus } = useAuth();
+  const { subscription, checkSubscriptionStatus, user } = useAuth();
+  const navigate = useNavigate();
 
   const features = [
     'Accès illimité à tous les livres',
@@ -20,6 +22,25 @@ export const PremiumPage: React.FC = () => {
     'Téléchargement hors ligne',
     'Synchronisation multi-appareils'
   ];
+
+  // Si non connecté, afficher un message
+  if (!user) {
+    return (
+      <div className="space-y-6 pb-20">
+        <Card>
+          <CardHeader>
+            <CardTitle>Connexion requise</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p>Connectez-vous pour accéder aux offres Premium et profiter de tous les avantages.</p>
+            <Button onClick={() => navigate('/auth')}>
+              Se connecter
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-20">

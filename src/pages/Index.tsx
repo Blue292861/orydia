@@ -34,6 +34,7 @@ import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
 import { TutorialPopup } from '@/components/TutorialPopup';
+import { AuthRequiredDialog } from '@/components/AuthRequiredDialog';
 
 type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'tensens-codes' | 'premium-admin' | 'user-stats';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
@@ -47,10 +48,12 @@ const AppContent = () => {
   const { books } = useBooks();
   const { shopItems } = useShopItems('internal'); // Only load internal Orydia shop items
   const { userStats, addAchievement, updateAchievement, deleteAchievement } = useUserStats();
-  const { subscription } = useAuth();
+  const { subscription, user } = useAuth();
   const { isMobile, isTablet } = useResponsive();
 
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [authDialogMessage, setAuthDialogMessage] = useState('');
 
   // Handle shared work from WorkPage
   useEffect(() => {
@@ -65,6 +68,13 @@ const AppContent = () => {
   }, [location.state]);
 
   const handleBookSelect = async (book: Book) => {
+    // Vérifier si l'utilisateur est connecté
+    if (!user) {
+      setAuthDialogMessage("Pour lire ce livre, vous devez vous connecter.");
+      setShowAuthDialog(true);
+      return;
+    }
+
     const isPremium = subscription.isPremium;
     const isBookPremium = book.isPremium;
 
@@ -225,7 +235,7 @@ const AppContent = () => {
         />
       </div>
       
-      {/* Pop-up du tutoriel d'accueil */}
+        {/* Pop-up du tutoriel d'accueil */}
       {currentPage === 'library' && (
         <TutorialPopup 
           tutorialId="welcome"
@@ -233,6 +243,13 @@ const AppContent = () => {
           description="Tu trouveras, en cette bibliothèque, de merveilleuses aventures !"
         />
       )}
+
+      {/* Dialog d'authentification requise */}
+      <AuthRequiredDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
+        message={authDialogMessage}
+      />
     </>
   );
 };

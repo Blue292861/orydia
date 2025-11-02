@@ -10,11 +10,15 @@ import { LevelProgressBar } from '@/components/LevelProgressBar';
 import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 import { useResponsive } from '@/hooks/useResponsive';
 import { TutorialPopup } from '@/components/TutorialPopup';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 export const ProfilePage: React.FC = () => {
   const { userStats } = useUserStats();
-  const { subscription, checkSubscriptionStatus } = useAuth();
+  const { subscription, checkSubscriptionStatus, user } = useAuth();
   const { isMobile, isTablet } = useResponsive();
+  const navigate = useNavigate();
 
   const unlockedAchievements = userStats.achievements.filter(a => a.unlocked);
   const totalAchievementPoints = unlockedAchievements.reduce((sum, a) => sum + a.points, 0);
@@ -30,6 +34,25 @@ export const ProfilePage: React.FC = () => {
     if (isTablet) return 'p-3';
     return 'p-4';
   };
+
+  // Si non connecté, afficher un message
+  if (!user) {
+    return (
+      <div className={`${getSpacing()} bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen text-white ${getPadding()} max-w-full overflow-x-hidden`}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Connexion requise</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p>Connectez-vous pour accéder à votre profil et voir vos statistiques.</p>
+            <Button onClick={() => navigate('/auth')}>
+              Se connecter
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className={`${getSpacing()} bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen text-white ${getPadding()} max-w-full overflow-x-hidden`}>

@@ -1,7 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useResponsive } from '@/hooks/useResponsive';
+import { useAuth } from '@/contexts/AuthContext';
+import { AuthRequiredDialog } from './AuthRequiredDialog';
 
 interface NavigationFooterProps {
   onNavigate: (page: 'library' | 'search' | 'shop' | 'profile') => void;
@@ -9,6 +11,9 @@ interface NavigationFooterProps {
 
 export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }) => {
   const { isMobile, isTablet } = useResponsive();
+  const { user } = useAuth();
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [authMessage, setAuthMessage] = useState('');
   
   const navItems = [
     { id: 'library' as const, icon: '/lovable-uploads/b50e70c6-4063-405e-8340-84ade6817368.png', label: 'Bibliothèque' },
@@ -35,7 +40,18 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
     return 'px-1 py-1';
   };
 
+  const handleNavigation = (page: 'library' | 'search' | 'shop' | 'profile') => {
+    // Vérifier si l'authentification est requise
+    if (!user && page === 'profile') {
+      setAuthMessage("Pour accéder à votre profil, vous devez vous connecter.");
+      setShowAuthDialog(true);
+      return;
+    }
+    onNavigate(page);
+  };
+
   return (
+    <>
     <footer className="fixed bottom-0 left-0 right-0 z-40 pb-safe-bottom">
       {/* Nature background with organic elements */}
       <div className="relative">
@@ -53,7 +69,7 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
                   key={item.id}
                   variant="ghost"
                   size="sm"
-                  onClick={() => onNavigate(item.id)}
+                  onClick={() => handleNavigation(item.id)}
                   className="group flex flex-col items-center justify-center gap-0.5 h-auto py-2 px-1 text-wood-100 hover:text-gold-300 hover:bg-forest-800/50 min-w-0 flex-1 max-w-none transition-all duration-300 rounded-lg relative overflow-hidden"
                 >
                   {/* Hover effect background */}
@@ -83,5 +99,13 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
         </div>
       </div>
     </footer>
+
+    {/* Dialog d'authentification requise */}
+    <AuthRequiredDialog
+      open={showAuthDialog}
+      onOpenChange={setShowAuthDialog}
+      message={authMessage}
+    />
+    </>
   );
 };

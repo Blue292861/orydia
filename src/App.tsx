@@ -20,6 +20,7 @@ import SplashScreen from "./components/SplashScreen";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserStatsProvider } from "./contexts/UserStatsContext";
 import { ContrastProvider } from "./contexts/ContrastContext";
+import { PlatformUtils } from "./utils/platformDetection";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const AppContent = () => {
   const { session, loading } = useAuth();
   const location = useLocation();
   const [showSplash, setShowSplash] = useState(true);
+  const isWeb = PlatformUtils.isWeb();
 
   const handleSplashComplete = () => {
     setShowSplash(false);
@@ -45,8 +47,28 @@ const AppContent = () => {
     );
   }
 
-  // Si pas de session, aller à la page d'auth (sauf pour la confirmation d'email)
+  // Routes publiques accessibles sans authentification (web uniquement)
+  const publicRoutes = ['/', '/auth', '/email-confirmation'];
+  const isPublicRoute = publicRoutes.includes(location.pathname) || 
+                        location.pathname.startsWith('/genre/') || 
+                        location.pathname.match(/^\/[^/]+\/[^/]+$/); // Pattern /:authorSlug/:titleSlug
+
+  // Si pas de session
   if (!session) {
+    // Sur web, autoriser l'accès aux routes publiques
+    if (isWeb && isPublicRoute) {
+      return (
+        <Routes>
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
+          <Route path="/genre/:genre" element={<GenrePage />} />
+          <Route path="/:authorSlug/:titleSlug" element={<WorkPage />} />
+          <Route path="/*" element={<Index />} />
+        </Routes>
+      );
+    }
+    
+    // Sur mobile natif ou routes non publiques, rediriger vers auth
     return (
       <Routes>
         <Route path="/auth" element={<AuthPage />} />

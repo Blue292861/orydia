@@ -5,7 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { useContrast } from '@/contexts/ContrastContext';
 import { PointsDisplay } from '@/components/PointsDisplay';
-import { LogOut, Settings, Contrast } from 'lucide-react';
+import { LogOut, Settings, Contrast, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 type Page = 'library' | 'reader' | 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'audiobook-admin' | 'game-admin' | 'points-admin' | 'api-keys-admin' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'game-reader';
 
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   const { isMobile, isTablet } = useResponsive();
   const { isHighContrast, toggleContrast } = useContrast();
   const isReader = currentPage === 'reader' || currentPage === 'game-reader';
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
@@ -102,8 +104,8 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
               </Button>
             )}
             
-            {/* Tensens Counter */}
-            <PointsDisplay />
+            {/* Tensens Counter - uniquement si connecté */}
+            {user && <PointsDisplay />}
             
             {/* Contrast Toggle Button */}
             <Button
@@ -150,27 +152,42 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
             </div>
           )}
 
-          {/* Right side - Premium status and Logout */}
+          {/* Right side - Premium status and Login/Logout */}
           <div className="flex items-center space-x-2 flex-1 justify-end">
-            {subscription?.isPremium && (
+            {user && subscription?.isPremium && (
               <div className="bg-gradient-to-r from-gold-400 to-gold-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-md">
                 Premium
               </div>
             )}
             
-            {/* Logout Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className={`text-wood-100 hover:text-red-400 hover:bg-red-900/20 backdrop-blur-sm border border-transparent hover:border-red-400/30 ${
-                isMobile ? 'px-2' : 'px-3'
-              }`}
-              title="Se déconnecter"
-            >
-              <LogOut className={`${isMobile ? 'h-4 w-4' : 'h-4 w-4'}`} />
-              {!isMobile && <span className="ml-1 font-medium">Déconnexion</span>}
-            </Button>
+            {/* Login or Logout Button */}
+            {user ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className={`text-wood-100 hover:text-red-400 hover:bg-red-900/20 backdrop-blur-sm border border-transparent hover:border-red-400/30 ${
+                  isMobile ? 'px-2' : 'px-3'
+                }`}
+                title="Se déconnecter"
+              >
+                <LogOut className={`${isMobile ? 'h-4 w-4' : 'h-4 w-4'}`} />
+                {!isMobile && <span className="ml-1 font-medium">Déconnexion</span>}
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/auth')}
+                className={`bg-gold-400/90 hover:bg-gold-500/90 text-forest-800 border-gold-500 backdrop-blur-sm ${
+                  isMobile ? 'px-2' : 'px-3'
+                }`}
+                title="Se connecter"
+              >
+                <LogIn className={`${isMobile ? 'h-4 w-4' : 'h-4 w-4'}`} />
+                {!isMobile && <span className="ml-1 font-medium">Connexion</span>}
+              </Button>
+            )}
           </div>
         </div>
       </div>

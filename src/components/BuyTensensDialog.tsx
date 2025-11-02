@@ -13,6 +13,8 @@ import { TensensDialogFooter } from './TensensDialogFooter';
 import { AdForTensens } from './AdForTensens';
 import { TensensCodeRedemption } from './TensensCodeRedemption';
 import { useUserStats } from '@/contexts/UserStatsContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { AuthRequiredDialog } from './AuthRequiredDialog';
 
 interface BuyTensensDialogProps {
   trigger?: React.ReactNode;
@@ -31,6 +33,9 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
   const [canWatchAd, setCanWatchAd] = useState(true);
   const [remainingAds, setRemainingAds] = useState(5);
   const { userStats, addPointsForBook, checkDailyAdLimit, recordAdView } = useUserStats();
+  const { user } = useAuth();
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [authMessage, setAuthMessage] = useState('');
 
   useEffect(() => {
     if (openState) {
@@ -63,18 +68,16 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
   };
 
   const handlePurchase = async (pack: TensensPack) => {
+    if (!user) {
+      setAuthMessage("Pour acheter des Tensens, vous devez vous connecter.");
+      setShowAuthDialog(true);
+      setOpenState(false);
+      return;
+    }
+
     setLoading(pack.id);
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: 'Connexion requise',
-          description: 'Vous devez être connecté pour acheter des Tensens.',
-          variant: 'destructive',
-        });
-        return;
-      }
 
       const { data, error } = await supabase.functions.invoke('create-tensens-checkout', {
         body: {
@@ -102,6 +105,13 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
   };
 
   const handleWatchAd = async () => {
+    if (!user) {
+      setAuthMessage("Pour regarder une publicité et gagner des Tensens gratuits, vous devez vous connecter.");
+      setShowAuthDialog(true);
+      setOpenState(false);
+      return;
+    }
+
     const canWatch = await checkDailyAdLimit();
     if (!canWatch) {
       toast({
@@ -217,6 +227,13 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
         
         <TensensDialogFooter />
       </DialogContent>
+
+      {/* Dialog d'authentification requise */}
+      <AuthRequiredDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
+        message={authMessage}
+      />
     </Dialog>
   );
 };
