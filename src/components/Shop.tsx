@@ -5,8 +5,6 @@ import { ShopFilters } from '@/components/ShopFilters';
 import { ShopItemGrid } from '@/components/ShopItemGrid';
 import { ShopItemDetail } from '@/components/ShopItemDetail';
 import { TutorialPopup } from '@/components/TutorialPopup';
-import { AuthRequiredDialog } from '@/components/AuthRequiredDialog';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface ShopProps {
   shopItems: ShopItem[];
@@ -17,8 +15,6 @@ export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('name');
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const { user } = useAuth();
 
   const categories = Array.from(new Set(shopItems.map(item => item.category)));
 
@@ -42,10 +38,6 @@ export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
     });
 
   const handleItemClick = (item: ShopItem) => {
-    if (!user) {
-      setShowAuthDialog(true);
-      return;
-    }
     setSelectedItem(item);
   };
 
@@ -78,13 +70,6 @@ export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
         tutorialId="shop"
         title="Bienvenue dans l'emporium du marchand !"
         description="Dépenses tes Tensens honorablement gagnés pour t'offrir de magnifiques cadeaux ou en faire don à une association !"
-      />
-
-      {/* Dialog d'authentification requise */}
-      <AuthRequiredDialog
-        open={showAuthDialog}
-        onOpenChange={setShowAuthDialog}
-        message="Pour accéder à la boutique, vous devez vous connecter."
       />
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ShopItem } from '@/types/ShopItem';
 import { useUserStats } from '@/contexts/UserStatsContext';
@@ -10,6 +9,7 @@ import { SoundEffects } from '@/utils/soundEffects';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { AddressRequiredDialog } from '@/components/AddressRequiredDialog';
+import { AuthRequiredDialog } from '@/components/AuthRequiredDialog';
 
 interface ShopItemDetailProps {
   item: ShopItem;
@@ -21,6 +21,7 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
   const { session } = useAuth();
   const { toast } = useToast();
   const [showAddressDialog, setShowAddressDialog] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
 
   const handlePurchase = async () => {
     if (!session) {
-      toast({ title: "Erreur", description: "Vous devez être connecté pour acheter.", variant: "destructive" });
+      setShowAuthDialog(true);
       return;
     }
     
@@ -205,7 +206,13 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
         open={showAddressDialog}
         onClose={() => setShowAddressDialog(false)}
         onAddressSaved={handleAddressSaved}
-        userId={session!.user.id}
+        userId={session?.user?.id || ''}
+      />
+      
+      <AuthRequiredDialog
+        open={showAuthDialog}
+        onOpenChange={setShowAuthDialog}
+        message="Pour acheter des articles, vous devez vous connecter."
       />
     </div>
   );

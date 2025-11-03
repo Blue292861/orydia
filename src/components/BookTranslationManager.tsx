@@ -91,7 +91,7 @@ export const BookTranslationManager = () => {
         let fullyTranslatedChapters = 0;
         bookChapters.forEach(chapterId => {
           const completedLanguages = translationsByChapter.get(chapterId)?.size || 0;
-          if (completedLanguages >= 6) {
+          if (completedLanguages === 6) {
             fullyTranslatedChapters++;
           }
         });
