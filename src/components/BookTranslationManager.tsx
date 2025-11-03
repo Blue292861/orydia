@@ -99,7 +99,7 @@ export const BookTranslationManager = () => {
         let status: 'complete' | 'partial' | 'none';
         if (fullyTranslatedChapters === totalChapters && totalChapters > 0) {
           status = 'complete';
-        } else if (fullyTranslatedChapters > 0 || translationsByChapter.size > 0) {
+        } else if (fullyTranslatedChapters > 0) {
           status = 'partial';
         } else {
           status = 'none';
