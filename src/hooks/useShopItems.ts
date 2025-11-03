@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ShopItem } from '@/types/ShopItem';
 import { validateShopItem, sanitizeShopItem } from '@/utils/shopItemValidation';
@@ -10,7 +10,7 @@ export const useShopItems = (shopType?: 'internal' | 'external') => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchShopItems = async () => {
+  const fetchShopItems = useCallback(async () => {
     try {
       setLoading(true);
       const mappedItems = await fetchShopItemsFromDB(shopType);
@@ -25,7 +25,7 @@ export const useShopItems = (shopType?: 'internal' | 'external') => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [shopType, toast]);
 
   const addShopItem = async (item: ShopItem) => {
     try {
@@ -113,7 +113,7 @@ export const useShopItems = (shopType?: 'internal' | 'external') => {
 
   useEffect(() => {
     fetchShopItems();
-  }, []);
+  }, [fetchShopItems]);
 
   return {
     shopItems,
