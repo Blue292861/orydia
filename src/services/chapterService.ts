@@ -143,3 +143,35 @@ export const getUserChoicesForBook = async (bookId: string): Promise<UserStoryCh
     chosenAt: choice.chosen_at,
   }));
 };
+
+export const startReadingBook = async (bookId: string, firstChapterId: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  const { error } = await supabase
+    .from('user_chapter_progress')
+    .upsert({
+      user_id: user.id,
+      book_id: bookId,
+      chapter_id: firstChapterId,
+      is_completed: false,
+    }, {
+      onConflict: 'user_id,chapter_id'
+    });
+
+  if (error) throw error;
+};
+
+export const removeBookFromProgress = async (bookId: string): Promise<void> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  const { error } = await supabase
+    .from('user_chapter_progress')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('book_id', bookId)
+    .eq('is_completed', false);
+
+  if (error) throw error;
+};

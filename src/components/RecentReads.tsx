@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, BookOpen, Clock } from 'lucide-react';
+import { Play, BookOpen, Clock, X } from 'lucide-react';
 import { getRecentReadingProgress } from '@/services/readingStatsService';
+import { removeBookFromProgress } from '@/services/chapterService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useResponsive } from '@/hooks/useResponsive';
+import { toast } from 'sonner';
 
 interface RecentReadsProps {
   onSelectBook?: (book: any) => void;
@@ -103,15 +105,36 @@ export const RecentReads: React.FC<RecentReadsProps> = ({
             </p>
           </div>
           
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onSelectBook?.(progress.book_chapters.books)}
-            className="shrink-0 bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white border-forest-600 hover:border-forest-800 shadow-md"
-          >
-            <BookOpen className="h-4 w-4 mr-1" />
-            Lire
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onSelectBook?.(progress.book_chapters.books)}
+              className="shrink-0 bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white border-forest-600 hover:border-forest-800 shadow-md"
+            >
+              <BookOpen className="h-4 w-4 mr-1" />
+              Lire
+            </Button>
+            
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  await removeBookFromProgress(progress.book_chapters.books.id);
+                  toast.success("Livre retiré des lectures en cours");
+                  fetchRecentProgress();
+                } catch (error) {
+                  console.error('Error removing book:', error);
+                  toast.error("Impossible de retirer le livre");
+                }
+              }}
+              className="shrink-0 h-8 w-8 hover:bg-red-100 hover:text-red-600"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       ))}
       
