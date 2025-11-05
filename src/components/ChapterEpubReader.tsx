@@ -57,6 +57,7 @@ export const ChapterEpubReader: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const saveTimerRef = useRef<number | null>(null);
   const readinessTimerRef = useRef<number | null>(null);
+  const fatalLoadTimerRef = useRef<number | null>(null);
   const lastSizeRef = useRef({ width: 0, height: 0 });
   const viewportResizeHandlerRef = useRef<(() => void) | null>(null);
   const translationCacheRef = useRef<Map<string, string>>(new Map());
@@ -85,7 +86,7 @@ export const ChapterEpubReader: React.FC = () => {
         // Mark book as started when user opens first chapter
       if (user && bookId && chapterData) {
         try {
-          await startReadingEpubChapter(bookId, chapterData.id);
+          void startReadingEpubChapter(bookId, chapterData.id).catch(console.error);
         } catch (error) {
           console.error('Error starting reading:', error);
           // Don't block the UI if progress tracking fails
@@ -222,28 +223,27 @@ export const ChapterEpubReader: React.FC = () => {
           epubRootRef.current.innerHTML = '';
         }
 
-        // If custom OPF exists, use edge function to merge EPUB with custom OPF
+        // If custom OPF exists, try merging quickly but don't block initial render
         let epubUrl = chapter.epub_url;
         if (chapter.opf_url) {
-          console.log('Custom OPF detected, merging with EPUB...');
+          console.log('Custom OPF detected, attempting quick merge...');
           try {
-            const { data, error } = await supabase.functions.invoke('merge-epub-opf', {
+            const mergePromise = supabase.functions.invoke('merge-epub-opf', {
               body: {
                 epubUrl: chapter.epub_url,
                 opfUrl: chapter.opf_url,
               },
             });
-
-            if (error) throw error;
-
-            // Create a blob URL from the merged EPUB
-            if (data instanceof Blob) {
-              epubUrl = URL.createObjectURL(data);
-              console.log('Successfully merged EPUB with custom OPF');
+            const timeout = new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error('OPF merge timeout')), 1000)
+            );
+            const res: any = await Promise.race([mergePromise, timeout]);
+            if (res?.data instanceof Blob) {
+              epubUrl = URL.createObjectURL(res.data);
+              console.log('OPF merge succeeded within timeout');
             }
           } catch (error) {
-            console.error('Failed to merge EPUB with custom OPF, using default:', error);
-            toast.error('Erreur lors du chargement de l\'OPF personnalisé');
+            console.warn('OPF merge skipped (timeout or error). Using original EPUB:', error);
           }
         }
 
@@ -253,7 +253,6 @@ export const ChapterEpubReader: React.FC = () => {
         
         // Wait for book to be fully opened (not just ready)
         await book.ready;
-        await book.opened;
 
         if (cancelled) return;
 
@@ -376,32 +375,40 @@ export const ChapterEpubReader: React.FC = () => {
         const firstReadable = spineItems.find((it) => !isCoverLike(it)) || spineItems[1] || spineItems[0];
         const readingHref = firstReadable?.href;
         
-        try {
-          if (savedLocation) {
-            await rendition.display(savedLocation);
-            // If saved CFI lands on a cover-like first item, jump to first readable
-            const loc = (rendition.currentLocation?.() as any) || null;
-            const atFirst = !!(loc && typeof loc.start?.index === 'number' && loc.start.index === 0);
-            if (atFirst && spineItems[0] && isCoverLike(spineItems[0]) && readingHref) {
-              if (cfiKey) localStorage.removeItem(cfiKey);
+        const tryDisplay = async (target?: any) => {
+          try {
+            await rendition.display(target);
+          } catch (err) {
+            console.warn('Display failed, retrying with first readable if possible:', err);
+            if (cfiKey) localStorage.removeItem(cfiKey);
+            if (readingHref) {
               await rendition.display(readingHref);
+            } else {
+              await rendition.display();
             }
-          } else if (readingHref) {
-            await rendition.display(readingHref);
-          } else {
-            await rendition.display();
           }
-          if (!cancelled) setEpubReady(true);
-        } catch (err) {
-          console.warn('Display failed, fallback while skipping cover if possible:', err);
-          if (cfiKey) localStorage.removeItem(cfiKey);
-          if (readingHref) {
-            await rendition.display(readingHref);
-          } else {
-            await rendition.display();
+        };
+
+        const initialTarget = savedLocation || readingHref;
+        const displayPromise = tryDisplay(initialTarget).then(() => {
+          if (!cancelled && !epubReady) setEpubReady(true);
+        });
+
+        // Fallback readiness check if 'rendered' event is slow
+        if (readinessTimerRef.current) window.clearTimeout(readinessTimerRef.current);
+        readinessTimerRef.current = window.setTimeout(() => {
+          if (!cancelled && !epubReady && epubRootRef.current?.querySelector('iframe')) {
+            setEpubReady(true);
           }
-          if (!cancelled) setEpubReady(true);
-        }
+        }, 1500);
+
+        // Fatal timeout: after 5s, show error if nothing displayed
+        if (fatalLoadTimerRef.current) window.clearTimeout(fatalLoadTimerRef.current);
+        fatalLoadTimerRef.current = window.setTimeout(() => {
+          if (!cancelled && !epubReady && !epubRootRef.current?.querySelector('iframe')) {
+            setEpubError('Erreur lors du chargement du chapitre');
+          }
+        }, 5000);
 
         // Setup window resize listeners to handle viewport changes
         const onViewportResize = () => {
@@ -423,12 +430,18 @@ export const ChapterEpubReader: React.FC = () => {
         window.addEventListener('resize', onViewportResize);
         window.addEventListener('orientationchange', onViewportResize);
 
-        // Generate locations for progress
-        await book.locations.generate(1600);
-        const locTotal = (book.locations as any)?.total || 0;
-        if (!cancelled) {
-          setTotalLocations(locTotal);
-        }
+        // Generate locations for progress (non-blocking)
+        (async () => {
+          try {
+            await book.locations.generate(1600);
+            const locTotal = (book.locations as any)?.total || 0;
+            if (!cancelled) {
+              setTotalLocations(locTotal);
+            }
+          } catch (e) {
+            console.warn('locations.generate failed', e);
+          }
+        })();
 
         // Fallback readiness check (in case rendered event doesn't fire)
         readinessTimerRef.current = window.setTimeout(() => {
@@ -466,6 +479,10 @@ export const ChapterEpubReader: React.FC = () => {
       if (readinessTimerRef.current) {
         window.clearTimeout(readinessTimerRef.current);
         readinessTimerRef.current = null;
+      }
+      if (fatalLoadTimerRef.current) {
+        window.clearTimeout(fatalLoadTimerRef.current);
+        fatalLoadTimerRef.current = null;
       }
 
       try {
@@ -901,7 +918,7 @@ export const ChapterEpubReader: React.FC = () => {
                 onClick={async () => {
                   if (user && chapter && bookId) {
                     try {
-                      await markEpubChapterCompleted(chapter.id, bookId);
+                      void markEpubChapterCompleted(chapter.id, bookId).catch(console.error);
                     } catch (error) {
                       console.error('Error marking chapter completed:', error);
                     }
