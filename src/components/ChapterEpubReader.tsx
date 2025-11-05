@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ePub from 'epubjs';
 import { ChapterEpub } from '@/types/ChapterEpub';
 import { chapterEpubService } from '@/services/chapterEpubService';
-import { startReadingBook, markChapterCompleted } from '@/services/chapterService';
+import { startReadingEpubChapter, markEpubChapterCompleted } from '@/services/chapterService';
 import { Button } from '@/components/ui/button';
 import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChapterBannerAd } from '@/components/ChapterBannerAd';
@@ -83,13 +83,14 @@ export const ChapterEpubReader: React.FC = () => {
         setAllChapters(chaptersData);
 
         // Mark book as started when user opens first chapter
-        if (user && bookId && chapterData) {
-          try {
-            await startReadingBook(bookId, chapterData.id);
-          } catch (error) {
-            console.error('Error starting reading:', error);
-          }
+      if (user && bookId && chapterData) {
+        try {
+          await startReadingEpubChapter(bookId, chapterData.id);
+        } catch (error) {
+          console.error('Error starting reading:', error);
+          // Don't block the UI if progress tracking fails
         }
+      }
 
         // Load saved settings
         const savedFontSize = localStorage.getItem(`chapter_fontSize_${chapterId}`);
@@ -900,7 +901,7 @@ export const ChapterEpubReader: React.FC = () => {
                 onClick={async () => {
                   if (user && chapter && bookId) {
                     try {
-                      await markChapterCompleted(chapter.id, bookId);
+                      await markEpubChapterCompleted(chapter.id, bookId);
                     } catch (error) {
                       console.error('Error marking chapter completed:', error);
                     }
