@@ -226,3 +226,29 @@ export const removeEpubBookFromProgress = async (bookId: string): Promise<void> 
 
   if (error) throw error;
 };
+
+export const getUserEpubProgressForBook = async (bookId: string): Promise<Map<string, boolean>> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return new Map();
+  }
+
+  const { data, error } = await supabase
+    .from('user_epub_chapter_progress')
+    .select('chapter_id, is_completed')
+    .eq('user_id', user.id)
+    .eq('book_id', bookId);
+
+  if (error) {
+    console.error('Error fetching epub progress:', error);
+    return new Map();
+  }
+
+  const progressMap = new Map<string, boolean>();
+  data?.forEach((item) => {
+    progressMap.set(item.chapter_id, item.is_completed);
+  });
+
+  return progressMap;
+};

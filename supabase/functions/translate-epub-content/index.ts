@@ -15,6 +15,13 @@ const languageNames: Record<string, string> = {
   'zh': 'Chinese (中文)',
   'ja': 'Japanese (日本語)',
   'fr': 'French (Français)',
+  'ar': 'Arabic (العربية)',
+  'it': 'Italian (Italiano)',
+  'pt': 'Portuguese (Português)',
+  'nl': 'Dutch (Nederlands)',
+  'pl': 'Polish (Polski)',
+  'tr': 'Turkish (Türkçe)',
+  'ko': 'Korean (한국어)',
 };
 
 serve(async (req) => {

@@ -4,9 +4,11 @@ import { ChapterEpub } from '@/types/ChapterEpub';
 import { Book } from '@/types/Book';
 import { chapterEpubService } from '@/services/chapterEpubService';
 import { fetchBooksFromDB } from '@/services/bookService';
+import { getUserEpubProgressForBook } from '@/services/chapterService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, BookOpen, CheckCircle2, BookMarked } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const BookTableOfContents: React.FC = () => {
@@ -15,6 +17,7 @@ export const BookTableOfContents: React.FC = () => {
   const [book, setBook] = useState<Book | null>(null);
   const [chapters, setChapters] = useState<ChapterEpub[]>([]);
   const [loading, setLoading] = useState(true);
+  const [progressMap, setProgressMap] = useState<Map<string, boolean>>(new Map());
 
   useEffect(() => {
     const loadData = async () => {
@@ -32,6 +35,9 @@ export const BookTableOfContents: React.FC = () => {
 
         const chaptersData = await chapterEpubService.getChaptersByBookId(bookId);
         setChapters(chaptersData);
+
+        const progress = await getUserEpubProgressForBook(bookId);
+        setProgressMap(progress);
       } catch (error) {
         console.error('Error loading data:', error);
         toast.error('Erreur lors du chargement');
@@ -89,7 +95,12 @@ export const BookTableOfContents: React.FC = () => {
 
       {/* Table of Contents */}
       <div className="container mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold mb-6">Table des matières</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Table des matières</h2>
+          <Badge variant="secondary" className="text-sm">
+            {Array.from(progressMap.values()).filter(Boolean).length} / {chapters.length} lus
+          </Badge>
+        </div>
         
         {chapters.length === 0 ? (
           <Card>
@@ -100,37 +111,58 @@ export const BookTableOfContents: React.FC = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {chapters.map((chapter) => (
-              <Card
-                key={chapter.id}
-                className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => navigate(`/book/${bookId}/chapter/${chapter.id}`)}
-              >
-                {chapter.illustration_url && (
-                  <div className="aspect-video w-full overflow-hidden">
-                    <img
-                      src={chapter.illustration_url}
-                      alt={chapter.title}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform"
-                    />
-                  </div>
-                )}
-                <CardHeader>
-                  <CardTitle className="line-clamp-2">{chapter.title}</CardTitle>
-                  {chapter.description && (
-                    <CardDescription className="line-clamp-3">
-                      {chapter.description}
-                    </CardDescription>
+            {chapters.map((chapter) => {
+              const isCompleted = progressMap.get(chapter.id) === true;
+              const isInProgress = progressMap.has(chapter.id) && !isCompleted;
+              
+              return (
+                <Card
+                  key={chapter.id}
+                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative"
+                  onClick={() => navigate(`/book/${bookId}/chapter/${chapter.id}`)}
+                >
+                  {isCompleted && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Lu
+                      </Badge>
+                    </div>
                   )}
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    Lire le chapitre
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                  {isInProgress && !isCompleted && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <Badge variant="secondary">
+                        <BookMarked className="h-3 w-3 mr-1" />
+                        En cours
+                      </Badge>
+                    </div>
+                  )}
+                  {chapter.illustration_url && (
+                    <div className="aspect-video w-full overflow-hidden">
+                      <img
+                        src={chapter.illustration_url}
+                        alt={chapter.title}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform"
+                      />
+                    </div>
+                  )}
+                  <CardHeader>
+                    <CardTitle className="line-clamp-2">{chapter.title}</CardTitle>
+                    {chapter.description && (
+                      <CardDescription className="line-clamp-3">
+                        {chapter.description}
+                      </CardDescription>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <Button className="w-full">
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      {isCompleted ? 'Relire le chapitre' : isInProgress ? 'Continuer' : 'Lire le chapitre'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

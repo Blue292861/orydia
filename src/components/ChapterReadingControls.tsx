@@ -16,7 +16,7 @@ import {
 
 type Theme = 'light' | 'dark' | 'sepia';
 type ColorblindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
-type Language = 'fr' | 'en' | 'es' | 'de' | 'ru' | 'zh' | 'ja';
+type Language = 'fr' | 'en' | 'es' | 'de' | 'ru' | 'zh' | 'ja' | 'ar' | 'it' | 'pt' | 'nl' | 'pl' | 'tr' | 'ko';
 
 interface ChapterReadingControlsProps {
   open: boolean;
@@ -177,6 +177,13 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
             <SelectItem value="ru">🇷🇺 Русский</SelectItem>
             <SelectItem value="zh">🇨🇳 中文</SelectItem>
             <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+            <SelectItem value="ar">🇸🇦 العربية</SelectItem>
+            <SelectItem value="it">🇮🇹 Italiano</SelectItem>
+            <SelectItem value="pt">🇵🇹 Português</SelectItem>
+            <SelectItem value="nl">🇳🇱 Nederlands</SelectItem>
+            <SelectItem value="pl">🇵🇱 Polski</SelectItem>
+            <SelectItem value="tr">🇹🇷 Türkçe</SelectItem>
+            <SelectItem value="ko">🇰🇷 한국어</SelectItem>
           </SelectContent>
         </Select>
         {language !== 'fr' && (
@@ -191,7 +198,7 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-auto max-h-[80vh] z-50">
+        <SheetContent side="bottom" className="h-auto max-h-[80vh] z-[100]">
           <SheetHeader>
             <SheetTitle>Paramètres de lecture</SheetTitle>
             <SheetDescription className="sr-only">Ajustez la taille du texte, le thème et l'accessibilité.</SheetDescription>
@@ -206,7 +213,7 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverContent className="w-72 p-4 z-50" align="end">
+      <PopoverContent className="w-72 p-4 z-[100]" align="end">
         <ControlsContent />
       </PopoverContent>
     </Popover>

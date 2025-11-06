@@ -16,7 +16,7 @@ import { Book } from '@/types/Book';
 
 type Theme = 'light' | 'dark' | 'sepia';
 type ColorblindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
-type Language = 'fr' | 'en' | 'es' | 'de' | 'ru' | 'zh' | 'ja';
+type Language = 'fr' | 'en' | 'es' | 'de' | 'ru' | 'zh' | 'ja' | 'ar' | 'it' | 'pt' | 'nl' | 'pl' | 'tr' | 'ko';
 
 export const ChapterEpubReader: React.FC = () => {
   const { bookId, chapterId } = useParams<{ bookId: string; chapterId: string }>();
@@ -46,6 +46,7 @@ export const ChapterEpubReader: React.FC = () => {
   // Reward state
   const [showRewardAd, setShowRewardAd] = useState(false);
   const [hasClaimedReward, setHasClaimedReward] = useState(false);
+  const [allChaptersCompleted, setAllChaptersCompleted] = useState(false);
   
   // Copyright warning state
   const [showCopyrightWarning, setShowCopyrightWarning] = useState(true);
@@ -62,6 +63,7 @@ export const ChapterEpubReader: React.FC = () => {
   const viewportResizeHandlerRef = useRef<(() => void) | null>(null);
   const translationCacheRef = useRef<Map<string, string>>(new Map());
   const originalContentRef = useRef<string>('');
+  const preloadCacheRef = useRef<Map<string, Blob>>(new Map());
 
   // Load chapter data and settings
   useEffect(() => {
@@ -173,6 +175,26 @@ export const ChapterEpubReader: React.FC = () => {
     checkBookCompletion();
   }, [user, bookId]);
 
+  // Check if all chapters are completed
+  useEffect(() => {
+    const checkAllChaptersCompleted = async () => {
+      if (!user || !bookId || allChapters.length === 0) return;
+
+      const { data } = await supabase
+        .from('user_epub_chapter_progress')
+        .select('chapter_id, is_completed')
+        .eq('user_id', user.id)
+        .eq('book_id', bookId);
+
+      if (!data) return;
+
+      const completedChapters = data.filter((p) => p.is_completed).length;
+      setAllChaptersCompleted(completedChapters === allChapters.length);
+    };
+
+    checkAllChaptersCompleted();
+  }, [user, bookId, allChapters]);
+
   // Auto-hide copyright warning after 10 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -225,7 +247,13 @@ export const ChapterEpubReader: React.FC = () => {
 
         // If custom OPF exists, try merging quickly but don't block initial render
         let epubUrl = chapter.epub_url;
-        if (chapter.opf_url) {
+        
+        // Check if we have a preloaded Blob for this chapter
+        const cachedBlob = preloadCacheRef.current.get(chapter.id);
+        if (cachedBlob) {
+          console.log('Using preloaded EPUB from cache');
+          epubUrl = URL.createObjectURL(cachedBlob);
+        } else if (chapter.opf_url) {
           console.log('Custom OPF detected, attempting quick merge...');
           try {
             const mergePromise = supabase.functions.invoke('merge-epub-opf', {
@@ -673,6 +701,31 @@ export const ChapterEpubReader: React.FC = () => {
     return currentIndex === allChapters.length - 1;
   };
 
+  // Preload next chapter for instant transitions
+  const preloadNextChapter = async () => {
+    const nextChapter = getNextChapter();
+    if (!nextChapter || preloadCacheRef.current.has(nextChapter.id)) return;
+
+    try {
+      console.time(`preload-chapter-${nextChapter.id}`);
+      const response = await fetch(nextChapter.epub_url);
+      if (response.ok) {
+        const blob = await response.blob();
+        preloadCacheRef.current.set(nextChapter.id, blob);
+        console.timeEnd(`preload-chapter-${nextChapter.id}`);
+      }
+    } catch (error) {
+      console.warn('Failed to preload next chapter:', error);
+    }
+  };
+
+  // Trigger preloading when epub is ready
+  useEffect(() => {
+    if (epubReady) {
+      void preloadNextChapter();
+    }
+  }, [epubReady]);
+
   const awardPointsAndComplete = async () => {
     if (!user || !book || !bookId) return;
     
@@ -800,14 +853,11 @@ export const ChapterEpubReader: React.FC = () => {
         {epubError ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             <p className="text-destructive">{epubError}</p>
-            <div className="flex gap-2">
-              <Button onClick={() => window.location.reload()}>Recharger</Button>
-              <Button
-                variant="outline"
-                onClick={() => window.open(chapter?.epub_url, '_blank')}
-              >
-                Ouvrir dans un nouvel onglet
-              </Button>
+            <div className="flex flex-col gap-3 items-center">
+              <Button onClick={() => window.location.reload()}>Recharger la page</Button>
+              <p className="text-xs text-muted-foreground">
+                Si le problème persiste, contactez le support.
+              </p>
             </div>
           </div>
         ) : (
@@ -835,7 +885,7 @@ export const ChapterEpubReader: React.FC = () => {
             {/* Reader Container with Navigation Buttons */}
             <div className="flex-1 relative overflow-hidden pb-2" ref={containerRef} style={{ minHeight: '0' }}>
               {(!epubReady || isTranslating) && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+                <div className="absolute inset-0 flex items-center justify-center bg-background/60 z-10 pointer-events-none">
                   <div className="text-center space-y-2">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                     <p className="text-muted-foreground">
@@ -894,7 +944,7 @@ export const ChapterEpubReader: React.FC = () => {
             variant="outline"
             size="icon"
             onClick={() => setControlsOpen(true)}
-            className="h-9 w-9 shrink-0"
+            className="h-9 w-9 shrink-0 z-40"
           >
             <Type className="h-5 w-5" />
           </Button>
@@ -907,10 +957,18 @@ export const ChapterEpubReader: React.FC = () => {
                   <Gift className="mr-2 h-4 w-4" />
                   <span className="text-sm">Tensens déjà réclamés ✓</span>
                 </Button>
-              ) : (
-                <Button onClick={handleClaimReward} className="w-full h-9">
+              ) : allChaptersCompleted ? (
+                <Button
+                  onClick={handleClaimReward}
+                  className="w-full h-9"
+                  variant="default"
+                >
                   <Gift className="mr-2 h-4 w-4" />
                   <span className="text-sm">Réclamer vos Tensens</span>
+                </Button>
+              ) : (
+                <Button disabled className="w-full h-9" variant="outline">
+                  <span className="text-sm">Terminez tous les chapitres pour réclamer</span>
                 </Button>
               )
             ) : nextChapter ? (
