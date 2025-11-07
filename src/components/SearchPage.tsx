@@ -394,19 +394,26 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
               <Card 
                 key={genre} 
                 className={`
-                  ${GENRE_STYLES[genre]?.card || 'bg-wood-800/50'} 
-                  ${GENRE_STYLES[genre]?.border || 'border-wood-700'}
-                  ${GENRE_STYLES[genre]?.animation || ''}
-                  ${GENRE_STYLES[genre]?.hoverGlow || ''}
-                  hover:scale-[1.02] transition-all duration-300 cursor-pointer group
-                  relative overflow-hidden
+                  bg-wood-800/50 
+                  border-2 
+                  ${GENRE_STYLES[genre]?.borderColor || 'border-wood-700'}
+                  hover:scale-[1.01] 
+                  transition-all duration-200 
+                  cursor-pointer 
+                  group
+                  relative
                 `}
+                style={{
+                  boxShadow: `0 0 15px ${GENRE_STYLES[genre]?.accentColor || 'transparent'}`
+                }}
                 onClick={() => handleGenreClick(genre)}
               >
-                {/* Ornement décoratif */}
-                <div className="absolute top-4 right-4 text-5xl opacity-20 group-hover:opacity-30 transition-opacity pointer-events-none">
-                  {GENRE_STYLES[genre]?.ornament}
-                </div>
+                {/* Ornement très discret */}
+                {GENRE_STYLES[genre]?.ornament && (
+                  <div className="absolute top-2 right-2 text-xl opacity-10 group-hover:opacity-20 transition-opacity">
+                    {GENRE_STYLES[genre].ornament}
+                  </div>
+                )}
 
                 <CardContent className="p-6 relative z-10">
                   <div className="space-y-4">
