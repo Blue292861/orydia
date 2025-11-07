@@ -12,6 +12,7 @@ import { BookCard } from './BookCard';
 import { AudiobookCard } from './AudiobookCard';
 import { GameCard } from './GameCard';
 import { LITERARY_GENRES, GENRE_DESCRIPTIONS, LiteraryGenre } from '@/constants/genres';
+import { GENRE_STYLES } from '@/constants/genreStyles';
 import { genreAnalyticsService } from '@/services/genreAnalyticsService';
 import { audiobookService } from '@/services/audiobookService';
 import { gameService } from '@/services/gameService';
@@ -392,10 +393,22 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
             return (
               <Card 
                 key={genre} 
-                className="bg-wood-800/50 border-wood-700 hover:bg-wood-800/70 transition-colors cursor-pointer group"
+                className={`
+                  ${GENRE_STYLES[genre]?.card || 'bg-wood-800/50'} 
+                  ${GENRE_STYLES[genre]?.border || 'border-wood-700'}
+                  ${GENRE_STYLES[genre]?.animation || ''}
+                  ${GENRE_STYLES[genre]?.hoverGlow || ''}
+                  hover:scale-[1.02] transition-all duration-300 cursor-pointer group
+                  relative overflow-hidden
+                `}
                 onClick={() => handleGenreClick(genre)}
               >
-                <CardContent className="p-6">
+                {/* Ornement décoratif */}
+                <div className="absolute top-4 right-4 text-5xl opacity-20 group-hover:opacity-30 transition-opacity pointer-events-none">
+                  {GENRE_STYLES[genre]?.ornament}
+                </div>
+
+                <CardContent className="p-6 relative z-10">
                   <div className="space-y-4">
                     {/* Genre Header */}
                     <div className="flex items-center justify-between">
