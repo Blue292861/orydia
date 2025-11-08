@@ -13,6 +13,7 @@ import { AudiobookCard } from './AudiobookCard';
 import { GameCard } from './GameCard';
 import { LITERARY_GENRES, GENRE_DESCRIPTIONS, LiteraryGenre } from '@/constants/genres';
 import { GENRE_STYLES } from '@/constants/genreStyles';
+import { GenreFrame } from '@/components/genre-frames/GenreFrame';
 import { genreAnalyticsService } from '@/services/genreAnalyticsService';
 import { audiobookService } from '@/services/audiobookService';
 import { gameService } from '@/services/gameService';
@@ -395,22 +396,21 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
                 key={genre} 
                 className={`
                   bg-wood-800/50 
-                  border-2 
-                  ${GENRE_STYLES[genre]?.borderColor || 'border-wood-700'}
                   hover:scale-[1.01] 
                   transition-all duration-200 
                   cursor-pointer 
                   group
                   relative
+                  overflow-hidden
                 `}
-                style={{
-                  boxShadow: `0 0 15px ${GENRE_STYLES[genre]?.accentColor || 'transparent'}`
-                }}
                 onClick={() => handleGenreClick(genre)}
               >
+                {/* Cadre SVG thématique */}
+                <GenreFrame genre={genre} className="opacity-60 group-hover:opacity-80 transition-opacity" />
+                
                 {/* Ornement très discret */}
                 {GENRE_STYLES[genre]?.ornament && (
-                  <div className="absolute top-2 right-2 text-xl opacity-10 group-hover:opacity-20 transition-opacity">
+                  <div className="absolute top-2 right-2 text-xl opacity-10 group-hover:opacity-20 transition-opacity z-20">
                     {GENRE_STYLES[genre].ornament}
                   </div>
                 )}
