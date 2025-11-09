@@ -46,7 +46,7 @@ export const BookCarousel: React.FC<BookCarouselProps> = ({ title, books, onBook
         isMobile ? 'space-x-2' : isTablet ? 'space-x-3' : 'space-x-3 sm:space-x-4'
       }`}>
         {books.map((book) => (
-          <BookCard key={book.id} book={book} onBookSelect={onBookSelect} large={large} />
+          <BookCard key={book.id} book={book} onBookSelect={onBookSelect} large={large} variant="carousel" />
         ))}
         <div className="flex-shrink-0 w-1"></div>
       </div>

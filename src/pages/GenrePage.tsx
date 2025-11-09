@@ -227,7 +227,8 @@ export const GenrePage: React.FC = () => {
                   <BookCard 
                     key={book.id} 
                     book={book} 
-                    onBookSelect={(b) => navigate(createBookPath(b.author, b.title))} 
+                    onBookSelect={(b) => navigate(createBookPath(b.author, b.title))}
+                    variant="grid"
                   />
                 ))}
               </div>

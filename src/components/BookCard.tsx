@@ -13,9 +13,10 @@ interface BookCardProps {
   onBookSelect: (book: Book) => void;
   large?: boolean;
   showPreview?: boolean;
+  variant?: 'grid' | 'carousel';
 }
 
-export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = false, showPreview = false }) => {
+export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = false, showPreview = false, variant = 'carousel' }) => {
   const { userStats } = useUserStats();
   const { subscription } = useAuth();
   const { isMobile, isTablet } = useResponsive();
@@ -24,10 +25,25 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onBookSelect, large = 
   const isUserPremium = subscription.isPremium;
 
   const getCardWidth = () => {
-    if (large) {
-      return 'w-full max-w-[220px]';
+    // Pour les grilles CSS, utiliser w-full
+    if (variant === 'grid') {
+      if (large) {
+        return 'w-full max-w-[220px]';
+      }
+      return 'w-full';
     }
-    return 'w-full';
+    
+    // Pour les carousels, utiliser des largeurs fixes
+    if (large) {
+      if (isMobile) return 'w-32';
+      if (isTablet) return 'w-40';
+      return 'w-48 lg:w-56';
+    }
+    
+    // Cartes normales dans carousel
+    if (isMobile) return 'w-24';
+    if (isTablet) return 'w-28';
+    return 'w-32 lg:w-36';
   };
 
   const getCheckIconSize = () => {

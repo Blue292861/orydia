@@ -43,6 +43,23 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
   });
   const [showResults, setShowResults] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [showOnlyPremium, setShowOnlyPremium] = useState(false);
+
+  // Écouter les changements de filtre premium
+  useEffect(() => {
+    const saved = localStorage.getItem('showOnlyPremium');
+    if (saved !== null) {
+      setShowOnlyPremium(saved === 'true');
+    }
+    
+    const handleFilterChange = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setShowOnlyPremium(customEvent.detail.showOnlyPremium);
+    };
+    
+    window.addEventListener('premiumFilterChanged', handleFilterChange);
+    return () => window.removeEventListener('premiumFilterChanged', handleFilterChange);
+  }, []);
 
   useEffect(() => {
     loadAdditionalContent();
@@ -64,6 +81,18 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
     }
   };
 
+  // Filtrer le contenu selon la préférence premium
+  const filteredBooks = showOnlyPremium 
+    ? books.filter(b => b.isPremium) 
+    : books;
+  
+  const filteredAudiobooks = showOnlyPremium
+    ? audiobooks.filter(a => a.is_premium)
+    : audiobooks;
+
+  // Games don't have premium field, so we don't filter them
+  const filteredGames = games;
+
   // Search functionality
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -73,26 +102,26 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
     }
 
     const query = searchQuery.toLowerCase();
-    const searchBooks = books.filter(book => 
+    const searchBooks = filteredBooks.filter(book => 
       book.title.toLowerCase().includes(query) || 
       book.author.toLowerCase().includes(query) ||
       book.tags?.some(tag => tag.toLowerCase().includes(query))
     );
     
-    const searchAudiobooks = audiobooks.filter(audiobook => 
+    const searchAudiobooks = filteredAudiobooks.filter(audiobook => 
       audiobook.name.toLowerCase().includes(query) || 
       audiobook.author?.toLowerCase().includes(query) ||
       audiobook.tags?.some(tag => tag.toLowerCase().includes(query))
     );
     
-    const searchGames = games.filter(game => 
+    const searchGames = filteredGames.filter(game => 
       game.name.toLowerCase().includes(query) || 
       (game.description && game.description.toLowerCase().includes(query))
     );
 
     setFilteredResults({ books: searchBooks, audiobooks: searchAudiobooks, games: searchGames });
     setShowResults(true);
-  }, [searchQuery, books, audiobooks, games]);
+  }, [searchQuery, filteredBooks, filteredAudiobooks, filteredGames]);
 
   // Group content by genre and get top 5 by views for each genre
   const genreContent = useMemo(() => {
@@ -109,7 +138,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
     });
 
     // Categorize books by genre using genres field if available, fallback to tags
-    books.forEach(book => {
+    filteredBooks.forEach(book => {
       let bookGenres: string[] = [];
       
       // Check if book has genres field (new format)
@@ -132,7 +161,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
     });
 
     // Categorize audiobooks by genre using genres field if available, fallback to tags  
-    audiobooks.forEach(audiobook => {
+    filteredAudiobooks.forEach(audiobook => {
       let audiobookGenres: string[] = [];
       
       // Check if audiobook has genres field (new format)
@@ -155,7 +184,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
     });
 
     // Categorize games by genre using genres field if available, fallback to simple matching
-    games.forEach(game => {
+    filteredGames.forEach(game => {
       let gameGenres: string[] = [];
       
       // Check if game has genres field (new format)
@@ -199,7 +228,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
     });
 
     return genreMap;
-  }, [books, audiobooks, games]);
+  }, [filteredBooks, filteredAudiobooks, filteredGames]);
 
   // Get top 5 content items for each genre
   const getTopContentForGenre = (genre: LiteraryGenre) => {

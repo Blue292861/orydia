@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { EditProfileForm } from '@/components/EditProfileForm';
@@ -12,6 +12,9 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { TutorialPopup } from '@/components/TutorialPopup';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const ProfilePage: React.FC = () => {
@@ -19,9 +22,26 @@ export const ProfilePage: React.FC = () => {
   const { subscription, checkSubscriptionStatus, user } = useAuth();
   const { isMobile, isTablet } = useResponsive();
   const navigate = useNavigate();
+  const [showOnlyPremium, setShowOnlyPremium] = useState(false);
 
   const unlockedAchievements = userStats.achievements.filter(a => a.unlocked);
   const totalAchievementPoints = unlockedAchievements.reduce((sum, a) => sum + a.points, 0);
+
+  // Charger la préférence de filtre depuis localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('showOnlyPremium');
+    if (saved !== null) {
+      setShowOnlyPremium(saved === 'true');
+    }
+  }, []);
+
+  // Sauvegarder et diffuser les changements
+  useEffect(() => {
+    localStorage.setItem('showOnlyPremium', String(showOnlyPremium));
+    window.dispatchEvent(new CustomEvent('premiumFilterChanged', { 
+      detail: { showOnlyPremium } 
+    }));
+  }, [showOnlyPremium]);
 
   const getSpacing = () => {
     if (isMobile) return 'space-y-4 pb-20';
@@ -60,6 +80,33 @@ export const ProfilePage: React.FC = () => {
       <div className="flex justify-end mb-4">
         <EditProfileForm />
       </div>
+
+      {/* Premium Content Filter */}
+      <Card className="bg-wood-800/60 border-wood-700">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Crown className="w-5 h-5 text-gold-400" />
+              <div>
+                <Label htmlFor="premium-filter" className="text-wood-100 font-semibold cursor-pointer">
+                  Afficher uniquement le contenu Premium
+                </Label>
+                <p className="text-wood-400 text-xs mt-1">
+                  {showOnlyPremium 
+                    ? "Seuls les contenus premium sont affichés"
+                    : "Tous les contenus sont affichés"}
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="premium-filter"
+              checked={showOnlyPremium}
+              onCheckedChange={setShowOnlyPremium}
+              className="data-[state=checked]:bg-gold-500"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Player Card */}
       <PlayerCard

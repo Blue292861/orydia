@@ -20,9 +20,31 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect })
   const [pacoChronicleAudiobooks, setPacoChronicleAudiobooks] = useState<Audiobook[]>([]);
   const [previewBook, setPreviewBook] = useState<Book | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showOnlyPremium, setShowOnlyPremium] = useState(false);
   
-  const successBooks = books.filter(b => b.isMonthSuccess);
-  const pacoBooks = books.filter(b => b.isPacoFavourite);
+  // Écouter les changements de filtre premium
+  useEffect(() => {
+    const saved = localStorage.getItem('showOnlyPremium');
+    if (saved !== null) {
+      setShowOnlyPremium(saved === 'true');
+    }
+    
+    const handleFilterChange = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setShowOnlyPremium(customEvent.detail.showOnlyPremium);
+    };
+    
+    window.addEventListener('premiumFilterChanged', handleFilterChange);
+    return () => window.removeEventListener('premiumFilterChanged', handleFilterChange);
+  }, []);
+
+  // Filtrer les livres selon la préférence premium
+  const filteredBooks = showOnlyPremium 
+    ? books.filter(b => b.isPremium) 
+    : books;
+  
+  const successBooks = filteredBooks.filter(b => b.isMonthSuccess);
+  const pacoBooks = filteredBooks.filter(b => b.isPacoFavourite);
 
   const handleBookPreview = (book: Book) => {
     setPreviewBook(book);
