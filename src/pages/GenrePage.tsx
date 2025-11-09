@@ -222,7 +222,7 @@ export const GenrePage: React.FC = () => {
 
           <TabsContent value="books">
             {filteredBooks.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3">
                 {filteredBooks.map((book) => (
                   <BookCard 
                     key={book.id} 
@@ -240,7 +240,7 @@ export const GenrePage: React.FC = () => {
 
           <TabsContent value="audiobooks">
             {filteredAudiobooks.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3">
                 {filteredAudiobooks.map((audiobook) => (
                   <AudiobookCard 
                     key={audiobook.id} 
@@ -258,7 +258,7 @@ export const GenrePage: React.FC = () => {
 
           <TabsContent value="games">
             {filteredGames.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3">
                 {filteredGames.map((game) => (
                   <GameCard 
                     key={game.id} 
