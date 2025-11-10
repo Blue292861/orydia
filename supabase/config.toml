@@ -9,6 +9,12 @@ verify_jwt = false
 [functions.translate-book-kickoff]
 verify_jwt = false
 
+[functions.translate-epub-content]
+verify_jwt = false
+
+[functions.translate-book-chapters]
+verify_jwt = false
+
 [functions.award-points]
 [functions.cancel-subscription]
 [functions.check-subscription]
@@ -18,5 +24,3 @@ verify_jwt = false
 [functions.customer-portal]
 [functions.get-user-stats]
 [functions.merge-epub-opf]
-[functions.translate-epub-content]
-[functions.translate-book-chapters]
