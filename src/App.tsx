@@ -21,6 +21,8 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserStatsProvider } from "./contexts/UserStatsContext";
 import { ContrastProvider } from "./contexts/ContrastContext";
 import { PlatformUtils } from "./utils/platformDetection";
+import { useServiceWorker } from "./hooks/useServiceWorker";
+import { AdScriptsManager } from "./components/AdScriptsManager";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,9 @@ const AppContent = () => {
   const location = useLocation();
   const [showSplash, setShowSplash] = useState(true);
   const isWeb = PlatformUtils.isWeb();
+  
+  // Activer le nettoyage et l'enregistrement du service worker
+  useServiceWorker();
 
   const handleSplashComplete = () => {
     setShowSplash(false);
@@ -103,6 +108,7 @@ const App = () => {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
+          <AdScriptsManager />
           <ContrastProvider>
             <AuthProvider>
               <UserStatsProvider>
