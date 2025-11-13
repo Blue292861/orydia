@@ -34,6 +34,7 @@ serve(async (req) => {
     const backgroundTask = async () => {
       try {
         console.log(`Background: Starting translation for book ${book_id}`);
+        console.log(`Background: About to invoke translate-book-chapters...`);
         
         const { data, error } = await supabaseAdmin.functions.invoke(
           'translate-book-chapters',
@@ -52,8 +53,12 @@ serve(async (req) => {
       }
     };
 
-    // Queue the background task
-    EdgeRuntime.waitUntil(backgroundTask());
+    // Queue the background task with fallback
+    if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
+      EdgeRuntime.waitUntil(backgroundTask());
+    } else {
+      backgroundTask();
+    }
 
     // Respond immediately
     return new Response(
