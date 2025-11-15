@@ -5,7 +5,7 @@ import { Type, Sun, Moon, Eye, Palette, Languages } from 'lucide-react';
 import { useContrast } from '@/contexts/ContrastContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -212,10 +212,13 @@ export const ChapterReadingControls: React.FC<ChapterReadingControlsProps> = ({
   }
 
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverContent className="w-72 p-4 z-[2147483646]" align="end">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-full max-w-md z-[2147483646]">
+        <DialogHeader>
+          <DialogTitle>Paramètres de lecture</DialogTitle>
+        </DialogHeader>
         <ControlsContent />
-      </PopoverContent>
-    </Popover>
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -939,6 +939,95 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_code_redemptions: {
+        Row: {
+          discount_applied: number
+          id: string
+          order_id: string | null
+          promo_code_id: string | null
+          redeemed_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          discount_applied: number
+          id?: string
+          order_id?: string | null
+          promo_code_id?: string | null
+          redeemed_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          discount_applied?: number
+          id?: string
+          order_id?: string | null
+          promo_code_id?: string | null
+          redeemed_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_code_redemptions_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promo_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          created_by: string | null
+          current_uses: number | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          expiration_date: string | null
+          id: string
+          is_active: boolean | null
+          is_single_use: boolean | null
+          max_uses: number | null
+          minimum_purchase_amount: number | null
+          start_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          expiration_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_single_use?: boolean | null
+          max_uses?: number | null
+          minimum_purchase_amount?: number | null
+          start_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expiration_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_single_use?: boolean | null
+          max_uses?: number | null
+          minimum_purchase_amount?: number | null
+          start_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       rate_limit_log: {
         Row: {
           action_type: string
@@ -1037,6 +1126,7 @@ export type Database = {
           name: string
           price: number
           product_id: string | null
+          related_book_ids: string[] | null
           required_level: number | null
           sale_price: number | null
           seller: string
@@ -1060,6 +1150,7 @@ export type Database = {
           name: string
           price: number
           product_id?: string | null
+          related_book_ids?: string[] | null
           required_level?: number | null
           sale_price?: number | null
           seller: string
@@ -1083,6 +1174,7 @@ export type Database = {
           name?: string
           price?: number
           product_id?: string | null
+          related_book_ids?: string[] | null
           required_level?: number | null
           sale_price?: number | null
           seller?: string
