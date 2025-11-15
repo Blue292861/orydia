@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChapterBannerAd } from '@/components/ChapterBannerAd';
 import { RewardAd } from '@/components/RewardAd';
+import { TranslationProgress } from '@/components/TranslationProgress';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw, Type, ShieldAlert } from 'lucide-react';
@@ -847,6 +848,13 @@ export const ChapterEpubReader: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Translation Progress */}
+      <TranslationProgress 
+        bookId={bookId} 
+        language={language} 
+        className="mx-auto max-w-4xl px-4 mt-2"
+      />
 
       {/* EPUB Reader with Navigation */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden pb-16 md:pb-14">
