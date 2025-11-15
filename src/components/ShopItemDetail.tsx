@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { AddressRequiredDialog } from '@/components/AddressRequiredDialog';
 import { AuthRequiredDialog } from '@/components/AuthRequiredDialog';
+import { AdInterstitial } from '@/components/AdInterstitial';
 
 interface ShopItemDetailProps {
   item: ShopItem;
@@ -18,10 +19,11 @@ interface ShopItemDetailProps {
 
 export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose }) => {
   const { userStats, spendPoints } = useUserStats();
-  const { session } = useAuth();
+  const { session, subscription } = useAuth();
   const { toast } = useToast();
   const [showAddressDialog, setShowAddressDialog] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [showAdInterstitial, setShowAdInterstitial] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
@@ -60,7 +62,17 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
       setShowAuthDialog(true);
       return;
     }
-    
+
+    // Afficher la publicité pour les utilisateurs freemium
+    if (!subscription?.isPremium) {
+      setShowAdInterstitial(true);
+      return;
+    }
+
+    processPurchase();
+  };
+
+  const processPurchase = async () => {
     // Vérifier si l'adresse est renseignée
     if (!userProfile?.address || !userProfile?.city || !userProfile?.country) {
       setShowAddressDialog(true);
@@ -114,7 +126,12 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
     setShowAddressDialog(false);
     
     // Relancer l'achat
-    handlePurchase();
+    processPurchase();
+  };
+
+  const handleAdWatched = () => {
+    setShowAdInterstitial(false);
+    processPurchase();
   };
 
   return (
@@ -201,6 +218,16 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
           </div>
         </div>
       </div>
+
+      {showAdInterstitial && (
+        <AdInterstitial
+          title="Publicité"
+          description="Regardez cette courte publicité pour continuer votre achat"
+          onClose={() => setShowAdInterstitial(false)}
+          onAdWatched={handleAdWatched}
+          autoCloseDelay={5000}
+        />
+      )}
 
       <AddressRequiredDialog
         open={showAddressDialog}

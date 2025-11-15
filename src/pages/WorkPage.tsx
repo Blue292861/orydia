@@ -1,4 +1,3 @@
-// src/pages/WorkPage.tsx
 import React, { useEffect, useState } from 'react';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { Book } from '@/types/Book';
@@ -17,6 +16,8 @@ import { ArrowLeft, Share2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { TextReader } from '@/components/TextReader';
 import { fetchBooksFromDB } from '@/services/bookService';
+import { AdInterstitial } from '@/components/AdInterstitial';
+import { useUserStats } from '@/contexts/UserStatsContext';
 
 /**
  * Page component for displaying individual books or audiobooks
@@ -26,11 +27,13 @@ const WorkPage: React.FC = () => {
   const { authorSlug, titleSlug } = useParams<{ authorSlug: string; titleSlug: string }>();
   const { books } = useBooks();
   const { subscription } = useAuth();
+  const { userStats } = useUserStats();
   const navigate = useNavigate();
   const [audiobooks, setAudiobooks] = useState<Audiobook[]>([]);
   const [foundWork, setFoundWork] = useState<Book | Audiobook | null>(null);
   const [workType, setWorkType] = useState<'book' | 'audiobook' | null>(null);
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
+  const [showAdInterstitial, setShowAdInterstitial] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -96,6 +99,22 @@ const WorkPage: React.FC = () => {
       setShowPremiumDialog(true);
       return;
     }
+
+    // Vérifier si c'est la première lecture (le livre n'est pas dans booksRead)
+    const bookId = foundWork.id;
+    const isFirstRead = workType === 'book' && !userStats.booksRead.includes(bookId);
+
+    // Afficher la publicité pour les utilisateurs freemium lors de la première lecture
+    if (!subscription.isPremium && isFirstRead) {
+      setShowAdInterstitial(true);
+      return;
+    }
+
+    proceedToReading();
+  };
+
+  const proceedToReading = () => {
+    if (!foundWork) return;
 
     navigate('/', { 
       state: { 
@@ -233,6 +252,19 @@ const WorkPage: React.FC = () => {
             )}
           </div>
         </main>
+
+        {showAdInterstitial && (
+          <AdInterstitial
+            title="Publicité"
+            description="Regardez cette courte publicité avant de commencer votre lecture"
+            onClose={() => setShowAdInterstitial(false)}
+            onAdWatched={() => {
+              setShowAdInterstitial(false);
+              proceedToReading();
+            }}
+            autoCloseDelay={5000}
+          />
+        )}
 
         <PremiumSelectionDialog 
           trigger={
