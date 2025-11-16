@@ -10,6 +10,7 @@ import { BookForm } from '@/components/BookForm';
 import { BookDetailAdmin } from '@/components/BookDetailAdmin';
 import { BookTranslationManager } from '@/components/BookTranslationManager';
 import { TranslationDashboard } from '@/components/TranslationDashboard';
+import { TranslationBudgetManager } from '@/components/TranslationBudgetManager';
 import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -193,7 +194,10 @@ export const AdminDashboard: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="monitoring">
-          <TranslationDashboard />
+          <div className="space-y-6">
+            <TranslationDashboard />
+            <TranslationBudgetManager />
+          </div>
         </TabsContent>
       </Tabs>
 

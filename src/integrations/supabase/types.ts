@@ -507,6 +507,7 @@ export type Database = {
       chapter_translations: {
         Row: {
           chapter_id: string
+          content_hash: string | null
           created_at: string
           error_message: string | null
           id: string
@@ -517,6 +518,7 @@ export type Database = {
         }
         Insert: {
           chapter_id: string
+          content_hash?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
@@ -527,6 +529,7 @@ export type Database = {
         }
         Update: {
           chapter_id?: string
+          content_hash?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
@@ -1300,6 +1303,39 @@ export type Database = {
         }
         Relationships: []
       }
+      translation_budget: {
+        Row: {
+          alert_threshold_pct: number
+          budget_usd: number
+          created_at: string
+          id: string
+          is_active: boolean
+          month_year: string
+          spent_usd: number
+          updated_at: string
+        }
+        Insert: {
+          alert_threshold_pct?: number
+          budget_usd?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          month_year: string
+          spent_usd?: number
+          updated_at?: string
+        }
+        Update: {
+          alert_threshold_pct?: number
+          budget_usd?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          month_year?: string
+          spent_usd?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       translation_jobs: {
         Row: {
           book_id: string
@@ -1898,6 +1934,18 @@ export type Database = {
         }
         Returns: string
       }
+      get_current_month_budget: {
+        Args: never
+        Returns: {
+          alert_threshold_pct: number
+          budget_usd: number
+          id: string
+          is_over_threshold: boolean
+          month_year: string
+          remaining_usd: number
+          spent_usd: number
+        }[]
+      }
       get_recommended_theme: {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["ui_theme"]
@@ -1946,6 +1994,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      update_translation_budget_spent: {
+        Args: { cost_amount: number }
+        Returns: boolean
       }
       user_has_role: {
         Args: {
