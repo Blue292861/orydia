@@ -50,12 +50,18 @@ serve(async (req) => {
     let failCount = 0;
     const failedChapters = [];
 
-    // Process in batches of 2 chapters to reduce concurrency
-    const batchSize = 2;
+    // PHASE 2 OPTIMIZATION: Increased batch size from 2 to 5
+    const batchSize = 5;
     for (let i = 0; i < chapters.length; i += batchSize) {
       const batch = chapters.slice(i, i + batchSize);
       
-      console.log(`Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(chapters.length / batchSize)}`);
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        level: 'info',
+        event: 'batch_started',
+        batch_number: Math.floor(i / batchSize) + 1,
+        total_batches: Math.ceil(chapters.length / batchSize),
+      }));
 
       // Process batch in parallel
       const batchPromises = batch.map(async (chapter) => {
@@ -92,10 +98,15 @@ serve(async (req) => {
 
       await Promise.all(batchPromises);
 
-      // Wait 5 seconds between batches to avoid rate limiting
+      // PHASE 2 OPTIMIZATION: Reduced delay from 5s to 2s
       if (i + batchSize < chapters.length) {
-        console.log(`  Waiting 5 seconds before next batch...`);
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        console.log(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: 'info',
+          event: 'batch_delay',
+          delay_ms: 2000,
+        }));
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
 
