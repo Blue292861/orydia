@@ -17,6 +17,27 @@ const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 const SUPPORTED_LANGUAGES = ['en', 'es', 'de', 'ru', 'zh', 'ja', 'ar', 'pt', 'it', 'nl', 'pl', 'tr', 'ko', 'hi'];
 
+// PHASE 4 OPTIMIZATION: Model selection and cost constants
+const MAX_TOKENS_PER_REQUEST = 12000;
+const CHARS_PER_TOKEN = 4;
+const MODEL_LITE_THRESHOLD_TOKENS = 5000;
+const MODEL_LITE = 'google/gemini-2.0-flash-lite';
+const MODEL_STANDARD = 'google/gemini-2.5-flash';
+
+// Rough cost estimates (USD per 1K tokens)
+const COST_PER_1K_TOKENS = {
+  [MODEL_LITE]: 0.0001,
+  [MODEL_STANDARD]: 0.0002,
+};
+
+// Helper function to calculate SHA-256 hash for caching
+async function calculateHash(content: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode(content);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -101,11 +122,109 @@ serve(async (req) => {
       `<section data-id="${s.id}">${s.html}</section>`
     ).join('\n');
 
+    // PHASE 4 OPTIMIZATION: Calculate content hash for caching
+    const contentHash = await calculateHash(combinedContent);
+    
+    // PHASE 4 OPTIMIZATION: Estimate tokens and select model
+    const estimatedTokens = Math.ceil(combinedContent.length / CHARS_PER_TOKEN);
+    const selectedModel = estimatedTokens < MODEL_LITE_THRESHOLD_TOKENS ? MODEL_LITE : MODEL_STANDARD;
+    
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level: 'info',
+      event: 'translation_prepared',
+      chapter_id,
+      sections_count: sections.length,
+      languages_count: validLanguages.length,
+      estimated_tokens: estimatedTokens,
+      selected_model: selectedModel,
+      content_hash: contentHash,
+    }));
+
+    // PHASE 4 OPTIMIZATION: Check budget before translating
+    const { data: budgetData, error: budgetError } = await supabaseAdmin
+      .rpc('get_current_month_budget');
+    
+    if (budgetError) {
+      console.error('Budget check error:', budgetError);
+    } else if (budgetData && budgetData.length > 0) {
+      const budget = budgetData[0];
+      if (budget.remaining_usd <= 0) {
+        return new Response(JSON.stringify({ 
+          error: 'Monthly translation budget exceeded',
+          budget_info: budget 
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      if (budget.is_over_threshold) {
+        console.warn(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: 'warn',
+          event: 'budget_threshold_exceeded',
+          budget_info: budget,
+        }));
+      }
+    }
+
     console.log(`Translating ${sections.length} sections into ${validLanguages.length} languages`);
 
     // Translate into each language with retry logic
     for (let langIndex = 0; langIndex < validLanguages.length; langIndex++) {
       const targetLanguage = validLanguages[langIndex];
+      const translationStartTime = Date.now();
+      
+      // PHASE 4 OPTIMIZATION: Check cache first
+      const { data: cachedTranslation } = await supabaseAdmin
+        .from('chapter_translations')
+        .select('*')
+        .eq('content_hash', contentHash)
+        .eq('language', targetLanguage)
+        .eq('status', 'completed')
+        .maybeSingle();
+      
+      if (cachedTranslation) {
+        console.log(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: 'info',
+          event: 'translation_cache_hit',
+          chapter_id,
+          language: targetLanguage,
+          content_hash: contentHash,
+        }));
+        
+        // Reuse cached translation with new chapter_id
+        await supabaseAdmin
+          .from('chapter_translations')
+          .upsert({
+            chapter_id,
+            language: targetLanguage,
+            translated_content: cachedTranslation.translated_content,
+            content_hash: contentHash,
+            status: 'completed',
+            error_message: null,
+          }, {
+            onConflict: 'chapter_id,language'
+          });
+        
+        // Record metrics for cache hit (no cost)
+        await supabaseAdmin
+          .from('translation_metrics')
+          .insert({
+            chapter_id,
+            language: targetLanguage,
+            duration_ms: Date.now() - translationStartTime,
+            tokens_used: 0,
+            cost_usd: 0,
+            retries: 0,
+            status: 'success',
+            metadata: { cache_hit: true },
+          });
+        
+        continue; // Skip to next language
+      }
       
       // Add 700ms delay between languages to reduce rate limiting
       if (langIndex > 0) {
@@ -125,20 +244,32 @@ serve(async (req) => {
             await new Promise(resolve => setTimeout(resolve, backoffMs));
           }
 
-          // Create pending record
+          // Create pending record with content hash
           await supabaseAdmin
             .from('chapter_translations')
             .upsert({
               chapter_id,
               language: targetLanguage,
               translated_content: { sections: [] },
+              content_hash: contentHash,
               status: 'processing',
               error_message: null,
             }, {
               onConflict: 'chapter_id,language'
             });
 
-          // Call Lovable AI for translation
+          // PHASE 4 OPTIMIZATION: Call Lovable AI with selected model
+          console.log(JSON.stringify({
+            timestamp: new Date().toISOString(),
+            level: 'info',
+            event: 'translation_api_call',
+            chapter_id,
+            language: targetLanguage,
+            model: selectedModel,
+            estimated_tokens: estimatedTokens,
+            attempt: attempt + 1,
+          }));
+
           const translationResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -146,7 +277,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
+            model: selectedModel, // PHASE 4: Use selected model based on content size
             messages: [
               {
                 role: 'system',
@@ -187,6 +318,10 @@ CRITICAL RULES:
         const translationData = await translationResponse.json();
         const translatedHTML = translationData.choices[0].message.content;
 
+        // PHASE 4 OPTIMIZATION: Calculate actual tokens used and cost
+        const tokensUsed = translationData.usage?.total_tokens || estimatedTokens;
+        const estimatedCost = (tokensUsed / 1000) * (COST_PER_1K_TOKENS[selectedModel] || 0.0002);
+
         // Parse translated sections
         const parser = new DOMParser();
         const translatedDoc = parser.parseFromString(translatedHTML, 'text/html');
@@ -203,7 +338,7 @@ CRITICAL RULES:
           }
         });
 
-        // Store completed translation
+        // Store completed translation with content hash
         await supabaseAdmin
           .from('chapter_translations')
           .update({
@@ -212,23 +347,71 @@ CRITICAL RULES:
               metadata: {
                 total_sections: translatedContent.length,
                 translated_at: new Date().toISOString(),
-                model: 'google/gemini-2.5-flash',
+                model: selectedModel,
+                tokens_used: tokensUsed,
+                cost_usd: estimatedCost,
               }
             },
+            content_hash: contentHash,
             status: 'completed',
             error_message: null,
           })
           .eq('chapter_id', chapter_id)
           .eq('language', targetLanguage);
 
-        console.log(`Successfully translated chapter ${chapter_id} to ${targetLanguage}`);
+        // PHASE 4 OPTIMIZATION: Record metrics and update budget
+        const translationDuration = Date.now() - translationStartTime;
+        
+        await supabaseAdmin
+          .from('translation_metrics')
+          .insert({
+            chapter_id,
+            language: targetLanguage,
+            duration_ms: translationDuration,
+            tokens_used: tokensUsed,
+            cost_usd: estimatedCost,
+            retries: attempt,
+            status: 'success',
+            metadata: {
+              model: selectedModel,
+              sections_count: translatedContent.length,
+            },
+          });
+
+        // Update budget
+        await supabaseAdmin.rpc('update_translation_budget_spent', {
+          cost_amount: estimatedCost,
+        });
+
+        console.log(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: 'info',
+          event: 'translation_completed',
+          chapter_id,
+          language: targetLanguage,
+          duration_ms: translationDuration,
+          tokens_used: tokensUsed,
+          cost_usd: estimatedCost,
+          model: selectedModel,
+        }));
+
         success = true;
       } catch (error) {
         attempt++;
-        console.error(`Failed to translate to ${targetLanguage} (attempt ${attempt}):`, error);
+        console.error(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: 'error',
+          event: 'translation_attempt_failed',
+          chapter_id,
+          language: targetLanguage,
+          attempt,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }));
         
-        // If we've exhausted retries, mark as failed
+        // If we've exhausted retries, mark as failed and record metrics
         if (attempt > maxRetries) {
+          const translationDuration = Date.now() - translationStartTime;
+          
           await supabaseAdmin
             .from('chapter_translations')
             .update({
@@ -237,6 +420,20 @@ CRITICAL RULES:
             })
             .eq('chapter_id', chapter_id)
             .eq('language', targetLanguage);
+
+          // PHASE 4 OPTIMIZATION: Record failed translation metrics
+          await supabaseAdmin
+            .from('translation_metrics')
+            .insert({
+              chapter_id,
+              language: targetLanguage,
+              duration_ms: translationDuration,
+              tokens_used: 0,
+              cost_usd: 0,
+              retries: attempt,
+              status: 'failed',
+              error_message: error instanceof Error ? error.message : 'Unknown error',
+            });
         }
       }
     }
