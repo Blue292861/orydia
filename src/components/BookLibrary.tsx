@@ -4,6 +4,7 @@ import { Book } from '@/types/Book';
 import { Audiobook } from '@/types/Audiobook';
 import { Info, Headphones } from 'lucide-react';
 import { BookCarousel } from './BookCarousel';
+import { MonthSuccessCarousel } from './MonthSuccessCarousel';
 import { BookPreviewDialog } from './BookPreviewDialog';
 import { audiobookService } from '@/services/audiobookService';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -87,12 +88,9 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({ books, onBookSelect })
   return (
     <div className={`max-w-full overflow-x-hidden ${getSpacing()}`}>
 
-      <BookCarousel
-        title="Succès du mois"
+      <MonthSuccessCarousel
         books={successBooks}
         onBookSelect={handleBookPreview}
-        large={true}
-        emptyMessage="Aucun livre dans cette catégorie pour le moment."
       />
 
       <BookCarousel
