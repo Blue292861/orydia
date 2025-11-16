@@ -1300,6 +1300,69 @@ export type Database = {
         }
         Relationships: []
       }
+      translation_jobs: {
+        Row: {
+          book_id: string
+          completed_at: string | null
+          completed_chapters: number | null
+          created_at: string
+          error_message: string | null
+          failed_chapters: number | null
+          id: string
+          metadata: Json | null
+          started_at: string | null
+          status: string
+          target_languages: string[]
+          total_chapters: number
+          updated_at: string
+        }
+        Insert: {
+          book_id: string
+          completed_at?: string | null
+          completed_chapters?: number | null
+          created_at?: string
+          error_message?: string | null
+          failed_chapters?: number | null
+          id?: string
+          metadata?: Json | null
+          started_at?: string | null
+          status?: string
+          target_languages: string[]
+          total_chapters: number
+          updated_at?: string
+        }
+        Update: {
+          book_id?: string
+          completed_at?: string | null
+          completed_chapters?: number | null
+          created_at?: string
+          error_message?: string | null
+          failed_chapters?: number | null
+          id?: string
+          metadata?: Json | null
+          started_at?: string | null
+          status?: string
+          target_languages?: string[]
+          total_chapters?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translation_jobs_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "book_translation_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "translation_jobs_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ui_themes: {
         Row: {
           accent_color: string
