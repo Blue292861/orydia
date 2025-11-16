@@ -101,7 +101,7 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
         setApi={setApi}
         className="w-full"
       >
-        <CarouselContent className="-ml-2 md:-ml-4">
+        <CarouselContent className="-ml-2 md:-ml-4 gap-4">
           {books.map((book, index) => {
             const isCenter = index === current;
             const isPrev = index === (current - 1 + books.length) % books.length;
@@ -120,9 +120,9 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
             } else if (isVisible) {
               // Livres latéraux : opacité réduite, taille réduite
               if (isMobile) {
-                contentClasses = 'opacity-20 scale-50 z-0';
+                contentClasses = 'opacity-30 scale-60 blur-[1px] z-0';
               } else {
-                contentClasses = 'opacity-40 scale-85 z-0 hover:opacity-60';
+                contentClasses = 'opacity-50 scale-75 z-0 hover:opacity-70 transition-all';
               }
               cardClasses = 'cursor-pointer';
             } else {
@@ -133,13 +133,13 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
             return (
               <CarouselItem 
                 key={book.id} 
-                className={`${itemClasses} basis-full md:basis-1/3`}
+                className={`${itemClasses} basis-2/3 sm:basis-1/2 md:basis-1/3 lg:basis-1/4`}
               >
                 <div 
                   className={`flex justify-center items-center ${contentClasses}`}
                   onClick={() => handleBookClick(book, index)}
                 >
-                  <div className={`w-full max-w-[280px] ${cardClasses}`}>
+                  <div className={`w-full max-w-[200px] sm:max-w-[220px] md:max-w-[240px] ${cardClasses}`}>
                     <BookCard
                       book={book}
                       onBookSelect={() => {}}
