@@ -1363,6 +1363,66 @@ export type Database = {
           },
         ]
       }
+      translation_metrics: {
+        Row: {
+          chapter_id: string | null
+          cost_usd: number | null
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          job_id: string | null
+          language: string
+          metadata: Json | null
+          retries: number | null
+          status: string
+          tokens_used: number | null
+        }
+        Insert: {
+          chapter_id?: string | null
+          cost_usd?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          job_id?: string | null
+          language: string
+          metadata?: Json | null
+          retries?: number | null
+          status: string
+          tokens_used?: number | null
+        }
+        Update: {
+          chapter_id?: string | null
+          cost_usd?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          job_id?: string | null
+          language?: string
+          metadata?: Json | null
+          retries?: number | null
+          status?: string
+          tokens_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translation_metrics_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "book_chapter_epubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "translation_metrics_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "translation_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ui_themes: {
         Row: {
           accent_color: string

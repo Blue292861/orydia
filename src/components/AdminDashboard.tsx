@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookForm } from '@/components/BookForm';
 import { BookDetailAdmin } from '@/components/BookDetailAdmin';
 import { BookTranslationManager } from '@/components/BookTranslationManager';
+import { TranslationDashboard } from '@/components/TranslationDashboard';
 import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -76,6 +77,7 @@ export const AdminDashboard: React.FC = () => {
         <TabsList>
           <TabsTrigger value="books">Livres</TabsTrigger>
           <TabsTrigger value="translations">Traductions</TabsTrigger>
+          <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
         </TabsList>
 
         <TabsContent value="books" className="space-y-6">
@@ -188,6 +190,10 @@ export const AdminDashboard: React.FC = () => {
 
         <TabsContent value="translations">
           <BookTranslationManager />
+        </TabsContent>
+
+        <TabsContent value="monitoring">
+          <TranslationDashboard />
         </TabsContent>
       </Tabs>
 
