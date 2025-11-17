@@ -1303,6 +1303,45 @@ export type Database = {
         }
         Relationships: []
       }
+      translation_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          id: string
+          is_resolved: boolean | null
+          message: string
+          metadata: Json | null
+          resolved_at: string | null
+          severity: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          message: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          message?: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       translation_budget: {
         Row: {
           alert_threshold_pct: number
@@ -1911,6 +1950,7 @@ export type Database = {
         }[]
       }
       calculate_level: { Args: { experience_points: number }; Returns: number }
+      check_and_create_budget_alert: { Args: never; Returns: undefined }
       check_rate_limit: {
         Args: {
           p_action_type: string

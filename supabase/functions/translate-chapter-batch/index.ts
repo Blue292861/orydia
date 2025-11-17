@@ -383,6 +383,9 @@ CRITICAL RULES:
           cost_amount: estimatedCost,
         });
 
+        // Check and create budget alerts
+        await supabaseAdmin.rpc('check_and_create_budget_alert');
+
         console.log(JSON.stringify({
           timestamp: new Date().toISOString(),
           level: 'info',
