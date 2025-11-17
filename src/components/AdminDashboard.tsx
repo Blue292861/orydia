@@ -11,6 +11,8 @@ import { BookDetailAdmin } from '@/components/BookDetailAdmin';
 import { BookTranslationManager } from '@/components/BookTranslationManager';
 import { TranslationDashboard } from '@/components/TranslationDashboard';
 import { TranslationBudgetManager } from '@/components/TranslationBudgetManager';
+import { TranslationAlerts } from '@/components/TranslationAlerts';
+import { TranslationJobsMonitor } from '@/components/TranslationJobsMonitor';
 import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -195,6 +197,8 @@ export const AdminDashboard: React.FC = () => {
 
         <TabsContent value="monitoring">
           <div className="space-y-6">
+            <TranslationAlerts />
+            <TranslationJobsMonitor />
             <TranslationDashboard />
             <TranslationBudgetManager />
           </div>

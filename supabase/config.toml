@@ -12,6 +12,9 @@ verify_jwt = false
 [functions.translate-epub-content]
 verify_jwt = false
 
+[functions.translation-recovery]
+verify_jwt = false
+
 [functions.translate-book-chapters]
 verify_jwt = false
 
