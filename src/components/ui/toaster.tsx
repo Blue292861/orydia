@@ -7,15 +7,16 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast"
+import { ToastProgress } from "@/components/ui/toast-progress"
 
 export function Toaster() {
   const { toasts } = useToast()
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+      {toasts.map(function ({ id, title, description, action, duration, ...props }) {
         return (
-          <Toast key={id} {...props}>
+          <Toast key={id} {...props} className="relative overflow-hidden">
             <div className="grid gap-1">
               {title && <ToastTitle>{title}</ToastTitle>}
               {description && (
@@ -24,6 +25,7 @@ export function Toaster() {
             </div>
             {action}
             <ToastClose />
+            <ToastProgress duration={duration} />
           </Toast>
         )
       })}

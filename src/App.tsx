@@ -23,6 +23,7 @@ import { ContrastProvider } from "./contexts/ContrastContext";
 import { PlatformUtils } from "./utils/platformDetection";
 import { useServiceWorker } from "./hooks/useServiceWorker";
 import { AdScriptsManager } from "./components/AdScriptsManager";
+import { useRouteToast } from "./hooks/use-route-toast";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,9 @@ const AppContent = () => {
   
   // Activer le nettoyage et l'enregistrement du service worker
   useServiceWorker();
+  
+  // Initialiser le système de toasts liés aux changements de route
+  useRouteToast();
 
   const handleSplashComplete = () => {
     setShowSplash(false);

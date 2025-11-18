@@ -552,3 +552,17 @@ body.high-contrast * {
   pointer-events: none !important;
   opacity: 0 !important;
 }
+
+/* Animation pour la barre de progression des toasts */
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-toast-progress {
+  animation: toast-progress linear forwards;
+}

@@ -21,6 +21,7 @@ const AD_SCRIPTS = [
 
 // Routes où les scripts publicitaires NE DOIVENT PAS être chargés
 const EXCLUDED_ROUTES = [
+  /^\/$/, // Page d'accueil (pas de pop-up à l'arrivée)
   /^\/book\/[^/]+\/chapter\/[^/]+$/, // Lecture de chapitre
   /^\/book\/[^/]+\/chapters$/, // Table des matières
   /^\/auth$/ // Page d'authentification
