@@ -69,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
   };
 
   return (
-    <header className="relative overflow-hidden">
+    <header className="relative overflow-hidden z-[95]">
       {/* Background with nature gradient and organic elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-forest-600 via-forest-700 to-forest-800"></div>
       <div className="absolute inset-0 wood-texture opacity-30"></div>
