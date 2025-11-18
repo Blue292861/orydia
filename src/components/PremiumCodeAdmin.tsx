@@ -186,9 +186,10 @@ export const PremiumCodeAdmin: React.FC = () => {
                   <Label htmlFor="custom_code">Code personnalisé (optionnel)</Label>
                   <Input
                     id="custom_code"
-                    placeholder="Laissez vide pour générer automatiquement"
+                    placeholder="20 caractères max"
                     value={formData.custom_code}
                     onChange={(e) => setFormData({ ...formData, custom_code: e.target.value.toUpperCase() })}
+                    maxLength={20}
                   />
                 </div>
 

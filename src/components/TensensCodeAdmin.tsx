@@ -171,8 +171,8 @@ export const TensensCodeAdmin: React.FC = () => {
                   id="custom_code"
                   value={formData.custom_code}
                   onChange={(e) => setFormData({ ...formData, custom_code: e.target.value.toUpperCase() })}
-                  placeholder="8 caractères max"
-                  maxLength={8}
+                  placeholder="20 caractères max"
+                  maxLength={20}
                 />
               </div>
 
