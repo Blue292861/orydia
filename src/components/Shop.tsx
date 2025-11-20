@@ -4,6 +4,8 @@ import { ShopHeader } from '@/components/ShopHeader';
 import { ShopFilters } from '@/components/ShopFilters';
 import { ShopItemGrid } from '@/components/ShopItemGrid';
 import { ShopItemDetail } from '@/components/ShopItemDetail';
+import { Button } from '@/components/ui/button';
+import { ShoppingBag } from 'lucide-react';
 
 interface ShopProps {
   shopItems: ShopItem[];
@@ -47,6 +49,18 @@ export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
   return (
     <div className="space-y-6">
       <ShopHeader />
+      
+      {/* Bouton Oryshop */}
+      <div className="px-4">
+        <Button
+          onClick={() => window.open('https://oryshop.neptune-group.fr/', '_blank', 'noopener,noreferrer')}
+          className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold py-6 px-8 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-3 text-lg"
+        >
+          <ShoppingBag className="w-6 h-6" />
+          <span>Ouvrir l'Oryshop</span>
+          <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Nouveau !</span>
+        </Button>
+      </div>
       
       <ShopFilters
         searchTerm={searchTerm}
