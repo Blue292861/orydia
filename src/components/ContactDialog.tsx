@@ -76,7 +76,7 @@ export const ContactDialog: React.FC = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
+        <Button className="gap-2 bg-amber-700 hover:bg-amber-600 text-white border-2 border-amber-600 font-semibold px-4 py-2.5 transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/30">
           <Mail className="w-4 h-4" />
           Nous contacter
         </Button>

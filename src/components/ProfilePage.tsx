@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Crown, ShoppingBag } from 'lucide-react';
+import { Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Achievement } from '@/types/UserStats';
 
@@ -142,16 +142,6 @@ export const ProfilePage: React.FC = () => {
         totalAchievementsCount={userStats.achievements.length}
         levelInfo={userStats.levelInfo}
       />
-
-      {/* Bouton Oryshop */}
-      <Button
-        onClick={() => window.open('https://oryshop.neptune-group.fr/', '_blank', 'noopener,noreferrer')}
-        className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold py-6 px-8 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-3 text-lg"
-      >
-        <ShoppingBag className="w-6 h-6" />
-        <span>Ouvrir l'Oryshop</span>
-        <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Nouveau !</span>
-      </Button>
 
       {/* Level Progress */}
       {userStats.levelInfo && (
