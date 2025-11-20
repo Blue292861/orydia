@@ -42,6 +42,9 @@ export const checkAndUnlockAchievements = (newStats: UserStats): UserStats => {
         // This would need tracking of premium duration - placeholder logic
         shouldUnlock = newStats.isPremium && newStats.booksRead.length >= 50;
         break;
+      case 'tutorial-completed':
+        shouldUnlock = newStats.tutorialsSeen.includes('guided-tutorial-complete');
+        break;
       case 'dedicated-reader':
       case 'speed-reader':
       case 'night-owl':

@@ -124,6 +124,16 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     }
   };
 
+  const completeTutorial = async () => {
+    if (!session?.user?.id) return;
+    
+    // Marquer le tutoriel comme complété
+    await markTutorialAsSeen('guided-tutorial-complete');
+    
+    // Recharger les stats pour déclencher le déblocage de l'achievement
+    await loadUserStats();
+  };
+
   // Charger les stats au montage et quand la session change
   useEffect(() => {
     loadUserStats();
@@ -289,7 +299,8 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
       applyPendingPremiumMonths,
       checkDailyAdLimit,
       recordAdView,
-      markTutorialAsSeen // Ajout de la nouvelle fonction
+      markTutorialAsSeen,
+      completeTutorial
     }}>
       {children}
     </UserStatsContext.Provider>

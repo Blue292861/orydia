@@ -4,7 +4,6 @@ import { ShopHeader } from '@/components/ShopHeader';
 import { ShopFilters } from '@/components/ShopFilters';
 import { ShopItemGrid } from '@/components/ShopItemGrid';
 import { ShopItemDetail } from '@/components/ShopItemDetail';
-import { TutorialPopup } from '@/components/TutorialPopup';
 
 interface ShopProps {
   shopItems: ShopItem[];
@@ -64,13 +63,6 @@ export const Shop: React.FC<ShopProps> = ({ shopItems }) => {
       {selectedItem && (
         <ShopItemDetail item={selectedItem} onClose={handleCloseDetail} />
       )}
-
-      {/* Pop-up du tutoriel de la boutique */}
-      <TutorialPopup 
-        tutorialId="shop"
-        title="Bienvenue dans l'emporium du marchand !"
-        description="Dépenses tes Tensens honorablement gagnés pour t'offrir de magnifiques cadeaux ou en faire don à une association !"
-      />
     </div>
   );
 };

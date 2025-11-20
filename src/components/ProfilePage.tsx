@@ -9,7 +9,6 @@ import { StatsSummary } from '@/components/StatsSummary';
 import { LevelProgressBar } from '@/components/LevelProgressBar';
 import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 import { useResponsive } from '@/hooks/useResponsive';
-import { TutorialPopup } from '@/components/TutorialPopup';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -146,13 +145,6 @@ export const ProfilePage: React.FC = () => {
           onSubscriptionUpdate={checkSubscriptionStatus}
         />
       )}
-
-      {/* Pop-up du tutoriel de profil */}
-      <TutorialPopup 
-        tutorialId="profile"
-        title="Tes statistiques, lecteur !"
-        description="Nous répertorions tes statistiques en cet endroit, lecteur. Plus tu liras, plus ta puissance de lecture augmentera ! Deviens un lecteur influant dans le monde d'Orydia pour gagner encore plus de récompenses ! Les lecteurs de Prestiges gagnent plus vite en puissance, ne l'oublie pas !"
-      />
     </div>
   );
 };
