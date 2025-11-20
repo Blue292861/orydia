@@ -13,5 +13,6 @@ export interface UserStatsContextType {
   applyPendingPremiumMonths: () => void;
   checkDailyAdLimit: () => Promise<boolean>;
   recordAdView: () => Promise<boolean>;
-  markTutorialAsSeen: (tutorialId: string) => void; // Ligne ajoutée
+  markTutorialAsSeen: (tutorialId: string) => void;
+  completeTutorial: () => Promise<void>;
 }

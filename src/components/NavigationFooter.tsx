@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { useResponsive } from '@/hooks/useResponsive';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthRequiredDialog } from './AuthRequiredDialog';
+import { cn } from '@/lib/utils';
 
 interface NavigationFooterProps {
   onNavigate: (page: 'library' | 'search' | 'shop' | 'profile') => void;
+  highlightedTab?: 'library' | 'search' | 'shop' | 'profile' | null;
 }
 
-export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }) => {
+export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate, highlightedTab }) => {
   const { isMobile, isTablet } = useResponsive();
   const { user } = useAuth();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -70,7 +72,10 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate }
                   variant="ghost"
                   size="sm"
                   onClick={() => handleNavigation(item.id)}
-                  className="group flex flex-col items-center justify-center gap-0.5 h-auto py-2 px-1 text-wood-100 hover:text-gold-300 hover:bg-forest-800/50 min-w-0 flex-1 max-w-none transition-all duration-300 rounded-lg relative overflow-hidden"
+                  className={cn(
+                    "group flex flex-col items-center justify-center gap-0.5 h-auto py-2 px-1 text-wood-100 hover:text-gold-300 hover:bg-forest-800/50 min-w-0 flex-1 max-w-none transition-all duration-300 rounded-lg relative overflow-hidden",
+                    highlightedTab === item.id && "ring-4 ring-gold-400 shadow-2xl scale-110 z-[10000] bg-forest-700/80"
+                  )}
                 >
                   {/* Hover effect background */}
                   <div className="absolute inset-0 bg-gradient-to-t from-gold-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

@@ -134,5 +134,16 @@ export const initialAchievements: Achievement[] = [
     unlocked: false,
     icon: '🏃‍♂️',
     rarity: 'legendary'
+  },
+  {
+    id: 'tutorial-completed',
+    name: 'Premier Pas en Orydia',
+    description: 'Compléter le tutoriel de bienvenue',
+    points: 50,
+    xpReward: 100,
+    unlocked: false,
+    icon: '🎓',
+    rarity: 'epic',
+    premiumMonths: 1
   }
 ];

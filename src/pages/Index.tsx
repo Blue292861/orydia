@@ -28,13 +28,14 @@ import { OrdersAdmin } from '@/components/OrdersAdmin';
 import { ReadingStatsAdmin } from '@/components/ReadingStatsAdmin';
 import { ReadingStatsExport } from '@/components/ReadingStatsExport';
 import { AdminStatsPage } from '@/pages/AdminStatsPage';
+import { WelcomeDialog } from '@/components/WelcomeDialog';
+import { GuidedTutorial } from '@/components/GuidedTutorial';
 
 import { VideoAd } from '@/components/VideoAd';
 import { useBooks } from '@/hooks/useBooks';
 import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
-import { TutorialPopup } from '@/components/TutorialPopup';
 import { AuthRequiredDialog } from '@/components/AuthRequiredDialog';
 
 type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'tensens-codes' | 'premium-admin' | 'premium-codes' | 'user-stats';
@@ -45,6 +46,8 @@ const AppContent = () => {
   const [currentPage, setCurrentPage] = useState<Page>('library');
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [bookForAd, setBookForAd] = useState<Book | null>(null);
+  const [showGuidedTutorial, setShowGuidedTutorial] = useState(false);
+  const [welcomeDialogClosed, setWelcomeDialogClosed] = useState(false);
   
   const { books } = useBooks();
   const { shopItems } = useShopItems('internal'); // Only load internal Orydia shop items
@@ -67,6 +70,34 @@ const AppContent = () => {
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
+
+  // Gérer l'affichage du tutoriel guidé après la fermeture du WelcomeDialog
+  useEffect(() => {
+    if (welcomeDialogClosed && user) {
+      const tutorialCompleted = userStats.achievements.find(
+        (a) => a.id === 'tutorial-completed'
+      )?.unlocked;
+
+      if (!tutorialCompleted) {
+        // Attendre un peu avant d'afficher le tutoriel guidé
+        setTimeout(() => {
+          setShowGuidedTutorial(true);
+        }, 500);
+      }
+    }
+  }, [welcomeDialogClosed, user, userStats.achievements]);
+
+  const handleWelcomeComplete = () => {
+    setWelcomeDialogClosed(true);
+  };
+
+  const handleTutorialComplete = () => {
+    setShowGuidedTutorial(false);
+  };
+
+  const handleTutorialSkip = () => {
+    setShowGuidedTutorial(false);
+  };
 
   const handleBookSelect = async (book: Book) => {
     // Vérifier si l'utilisateur est connecté
@@ -220,8 +251,13 @@ const AppContent = () => {
           {isAdminPage && <AdminNav currentPage={currentPage as AdminPage} onNavigate={setCurrentPage as any} />}
           {renderCurrentPage()}
         </main>
-        {currentPage !== 'reader' && currentPage !== 'video-ad' && <NavigationFooter onNavigate={setCurrentPage as any} />}
-        
+        {currentPage !== 'reader' && currentPage !== 'video-ad' && (
+          <NavigationFooter 
+            onNavigate={setCurrentPage as any}
+            highlightedTab={showGuidedTutorial && ['library', 'search', 'shop', 'profile'].includes(currentPage) ? currentPage as 'library' | 'search' | 'shop' | 'profile' : null}
+          />
+        )}
+
         {/* Panel de sélection premium */}
         <PremiumSelectionDialog 
           trigger={
@@ -238,12 +274,15 @@ const AppContent = () => {
         />
       </div>
       
-        {/* Pop-up du tutoriel d'accueil */}
-      {currentPage === 'library' && (
-        <TutorialPopup 
-          tutorialId="welcome"
-          title="Bienvenue en Orydia !"
-          description="Tu trouveras, en cette bibliothèque, de merveilleuses aventures !"
+      {/* Welcome Dialog */}
+      <WelcomeDialog onComplete={handleWelcomeComplete} />
+
+      {/* Guided Tutorial */}
+      {showGuidedTutorial && (
+        <GuidedTutorial 
+          onComplete={handleTutorialComplete}
+          onSkip={handleTutorialSkip}
+          currentPage={['library', 'search', 'shop', 'profile'].includes(currentPage) ? currentPage as 'library' | 'search' | 'shop' | 'profile' : 'library'}
         />
       )}
 
