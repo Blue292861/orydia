@@ -69,17 +69,27 @@ export const checkAndUnlockAchievements = (newStats: UserStats): UserStats => {
   const bonusXp = newlyUnlocked.reduce((total, ach) => total + (ach.xpReward || ach.points), 0);
   const bonusPremiumMonths = newlyUnlocked.reduce((total, ach) => total + (ach.premiumMonths || 0), 0);
 
-  // Play sound and show toast for new achievements
+  // Play sound and show toast for new achievements (only once per achievement)
   if (newlyUnlocked.length > 0) {
-    SoundEffects.playAchievement();
-    newlyUnlocked.forEach(achievement => {
-      const xpText = achievement.xpReward ? ` + ${achievement.xpReward} XP` : ` + ${achievement.points} XP`;
-      const premiumText = achievement.premiumMonths ? ` + ${achievement.premiumMonths} mois premium!` : '';
-      toast({
-        title: `🏆 Achievement Unlocked!`,
-        description: `${achievement.icon} ${achievement.name} - +${achievement.points} points${xpText}${premiumText}`,
+    // Vérifier si le toast a déjà été affiché
+    const shownToasts = JSON.parse(localStorage.getItem('orydia-achievement-toasts-shown') || '[]');
+    const newlyUnlockedToShow = newlyUnlocked.filter(ach => !shownToasts.includes(ach.id));
+
+    if (newlyUnlockedToShow.length > 0) {
+      SoundEffects.playAchievement();
+      newlyUnlockedToShow.forEach(achievement => {
+        const xpText = achievement.xpReward ? ` + ${achievement.xpReward} XP` : ` + ${achievement.points} XP`;
+        const premiumText = achievement.premiumMonths ? ` + ${achievement.premiumMonths} mois premium!` : '';
+        toast({
+          title: `🏆 Succès Débloqué!`,
+          description: `${achievement.icon} ${achievement.name} - +${achievement.points} points${xpText}${premiumText}`,
+        });
       });
-    });
+      
+      // Enregistrer les IDs dans localStorage
+      const updatedShownToasts = [...shownToasts, ...newlyUnlockedToShow.map(a => a.id)];
+      localStorage.setItem('orydia-achievement-toasts-shown', JSON.stringify(updatedShownToasts));
+    }
   }
 
   // Calculate level and experience with new XP system

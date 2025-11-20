@@ -2,8 +2,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Trophy, Zap, Crown } from 'lucide-react';
 import { useResponsive } from '@/hooks/useResponsive';
+import { calculateAchievementProgress } from '@/utils/achievementProgress';
+import { UserStats } from '@/types/UserStats';
 
 interface Achievement {
   id: string;
@@ -19,11 +22,15 @@ interface Achievement {
 interface AchievementInventoryProps {
   achievements: Achievement[];
   totalAchievementPoints: number;
+  recentlyUnlockedIds?: string[];
+  userStats: UserStats;
 }
 
 export const AchievementInventory: React.FC<AchievementInventoryProps> = ({
   achievements,
-  totalAchievementPoints
+  totalAchievementPoints,
+  recentlyUnlockedIds = [],
+  userStats
 }) => {
   const { isMobile, isTablet } = useResponsive();
 
@@ -78,7 +85,11 @@ export const AchievementInventory: React.FC<AchievementInventoryProps> = ({
       </CardHeader>
       <CardContent>
         <div className={`grid gap-4 ${getAchievementGridCols()}`}>
-          {achievements.map((achievement) => (
+          {achievements.map((achievement) => {
+            const progress = !achievement.unlocked ? calculateAchievementProgress(achievement.id, userStats) : null;
+            const isRecentlyUnlocked = recentlyUnlockedIds.includes(achievement.id);
+            
+            return (
             <div
               key={achievement.id}
               className={`
@@ -91,6 +102,7 @@ export const AchievementInventory: React.FC<AchievementInventoryProps> = ({
                     }` 
                   : 'border-slate-600 bg-slate-900/50 opacity-50'
                 }
+                ${isRecentlyUnlocked ? 'ring-4 ring-yellow-400 animate-pulse shadow-2xl shadow-yellow-500/50' : ''}
               `}
             >
               {achievement.unlocked && (
@@ -164,9 +176,18 @@ export const AchievementInventory: React.FC<AchievementInventoryProps> = ({
                     achievement.rarity
                   )}
                 </Badge>
+
+                {/* Progress Bar for locked achievements */}
+                {!achievement.unlocked && progress && (
+                  <div className="mt-3 space-y-1">
+                    <Progress value={progress.percentage} className="h-2" />
+                    <p className="text-xs text-slate-400 text-center font-medium">{progress.label}</p>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>
