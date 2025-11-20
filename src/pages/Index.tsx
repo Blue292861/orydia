@@ -48,6 +48,7 @@ const AppContent = () => {
   const [bookForAd, setBookForAd] = useState<Book | null>(null);
   const [showGuidedTutorial, setShowGuidedTutorial] = useState(false);
   const [welcomeDialogClosed, setWelcomeDialogClosed] = useState(false);
+  const tutorialShownRef = React.useRef(false);
   
   const { books } = useBooks();
   const { shopItems } = useShopItems('internal'); // Only load internal Orydia shop items
@@ -73,19 +74,24 @@ const AppContent = () => {
 
   // Gérer l'affichage du tutoriel guidé après la fermeture du WelcomeDialog
   useEffect(() => {
+    // Protection : ne montrer qu'une seule fois
+    if (tutorialShownRef.current) return;
+    
+    // Attendre que welcomeDialogClosed soit true ET que l'utilisateur soit connecté
     if (welcomeDialogClosed && user) {
       const tutorialCompleted = userStats.achievements.find(
         (a) => a.id === 'tutorial-completed'
       )?.unlocked;
 
+      // Afficher uniquement si le tutoriel n'est pas complété
       if (!tutorialCompleted) {
-        // Attendre un peu avant d'afficher le tutoriel guidé
+        tutorialShownRef.current = true;
         setTimeout(() => {
           setShowGuidedTutorial(true);
         }, 500);
       }
     }
-  }, [welcomeDialogClosed, user, userStats.achievements]);
+  }, [welcomeDialogClosed, user?.id, userStats.achievements.length]);
 
   const handleWelcomeComplete = () => {
     setWelcomeDialogClosed(true);
