@@ -3,6 +3,9 @@ project_id = "aotzivwzoxmnnawcxioo"
 [functions.send-unsubscribe-request]
 verify_jwt = false
 
+[functions.send-contact-email]
+verify_jwt = false
+
 [functions.translate-chapter-batch]
 verify_jwt = false
 

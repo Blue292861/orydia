@@ -8,6 +8,7 @@ import { AchievementInventory } from '@/components/AchievementInventory';
 import { StatsSummary } from '@/components/StatsSummary';
 import { LevelProgressBar } from '@/components/LevelProgressBar';
 import { SubscriptionManagement } from '@/components/SubscriptionManagement';
+import { ProfileFooter } from '@/components/ProfileFooter';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -145,6 +146,9 @@ export const ProfilePage: React.FC = () => {
           onSubscriptionUpdate={checkSubscriptionStatus}
         />
       )}
+
+      {/* Footer avec contact et réseaux sociaux */}
+      <ProfileFooter />
     </div>
   );
 };
