@@ -6,6 +6,7 @@ import { Audiobook } from '@/types/Audiobook';
 import { Game } from '@/types/Game';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BookOpen, Headphones, Gamepad2, ArrowRight, Search } from 'lucide-react';
 import { BookCard } from './BookCard';
@@ -395,6 +396,27 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
                           </p>
                         )}
                       </div>
+                    </div>
+                  )}
+                  
+                  {/* Bouton "Voir tous les résultats" */}
+                  {(filteredResults.books.length > 5 || 
+                    filteredResults.audiobooks.length > 5 || 
+                    filteredResults.games.length > 5) && (
+                    <div className="pt-3 border-t border-wood-700">
+                      <Button
+                        onClick={() => {
+                          navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+                          setShowResults(false);
+                        }}
+                        className="w-full bg-amber-700 hover:bg-amber-600 text-white font-semibold"
+                      >
+                        Voir tous les résultats ({
+                          filteredResults.books.length + 
+                          filteredResults.audiobooks.length + 
+                          filteredResults.games.length
+                        })
+                      </Button>
                     </div>
                   )}
                 </div>

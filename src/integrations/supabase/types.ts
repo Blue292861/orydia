@@ -1134,6 +1134,7 @@ export type Database = {
           sale_price: number | null
           seller: string
           shop_type: Database["public"]["Enums"]["shop_type"]
+          slug: string
           tags: string[] | null
           updated_at: string
         }
@@ -1158,6 +1159,7 @@ export type Database = {
           sale_price?: number | null
           seller: string
           shop_type?: Database["public"]["Enums"]["shop_type"]
+          slug: string
           tags?: string[] | null
           updated_at?: string
         }
@@ -1182,6 +1184,7 @@ export type Database = {
           sale_price?: number | null
           seller?: string
           shop_type?: Database["public"]["Enums"]["shop_type"]
+          slug?: string
           tags?: string[] | null
           updated_at?: string
         }

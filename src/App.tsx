@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import Index from "./pages/Index";
+import SearchResultsPage from "./pages/SearchResultsPage";
 import AuthPage from "./pages/AuthPage";
 import EmailConfirmationPage from "./pages/EmailConfirmationPage";
 import WorkPage from "./pages/WorkPage";
@@ -97,6 +98,7 @@ const AppContent = () => {
       <Route path="/auth" element={<Navigate to="/" replace />} />
       <Route path="/email-confirmation" element={<EmailConfirmationPage />} />
       <Route path="/admin/stats" element={<AdminStatsPage />} />
+      <Route path="/search" element={<SearchResultsPage />} />
       <Route path="/genre/:genre" element={<GenrePage />} />
       <Route path="/désinscription" element={<UnsubscribePage />} />
       <Route path="/book/:bookId/chapters" element={<BookTableOfContents />} />
