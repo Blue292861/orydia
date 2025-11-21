@@ -37,10 +37,13 @@ export const fetchShopItemsFromDB = async (shopType?: 'internal' | 'external'): 
 };
 
 export const addShopItemToDB = async (item: ShopItem): Promise<void> => {
+  const slug = item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  
   const { error } = await supabase
     .from('shop_items')
     .insert({
       name: item.name,
+      slug: slug,
       description: item.description,
       content: item.content,
       price: item.price,
@@ -58,10 +61,13 @@ export const addShopItemToDB = async (item: ShopItem): Promise<void> => {
 };
 
 export const updateShopItemInDB = async (item: ShopItem): Promise<void> => {
+  const slug = item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  
   const { error } = await supabase
     .from('shop_items')
     .update({
       name: item.name,
+      slug: slug,
       description: item.description,
       content: item.content,
       price: item.price,
