@@ -34,7 +34,7 @@ export const MonthSuccessCarouselItem: React.FC<MonthSuccessCarouselItemProps> =
       }`}
     >
       {/* Desktop/Tablet: Horizontal Layout */}
-      <div className="hidden md:flex w-full h-full gap-8 lg:gap-12 items-center px-4 lg:px-12">
+      <div className="hidden md:flex w-full min-h-[350px] lg:min-h-[400px] gap-8 lg:gap-12 items-center px-4 lg:px-12 py-4">
         {/* Cover - Left Side */}
         <div className="w-[35%] lg:w-[30%] flex-shrink-0">
           <div
@@ -110,7 +110,7 @@ export const MonthSuccessCarouselItem: React.FC<MonthSuccessCarouselItemProps> =
       </div>
 
       {/* Mobile: Vertical Layout */}
-      <div className="flex md:hidden flex-col items-center w-full h-full px-4 py-6 space-y-4">
+      <div className="flex md:hidden flex-col items-center w-full min-h-[400px] px-4 py-6 space-y-4">
         {/* Cover - Top */}
         <div className="w-[60%] max-w-[240px]">
           <div

@@ -66,7 +66,7 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
         <h2 className={`font-cursive text-foreground mb-6 ${getTitleSize()}`}>
           Succès du mois
         </h2>
-        <div className="w-full h-[500px] md:h-[400px] lg:h-[450px]">
+        <div className="w-full min-h-[400px] md:min-h-[350px] lg:min-h-[400px]">
           <MonthSuccessCarouselItem
             book={books[0]}
             isActive={true}
@@ -94,7 +94,7 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
           setApi={setApi}
           className="w-full"
         >
-          <CarouselContent className="h-[500px] md:h-[400px] lg:h-[450px]">
+          <CarouselContent className="min-h-[400px] md:min-h-[350px] lg:min-h-[400px]">
             {books.map((book, index) => {
               const isActive = index === current;
 
