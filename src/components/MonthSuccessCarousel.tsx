@@ -48,7 +48,7 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
   if (books.length === 0) {
     return (
       <div className="px-2 mb-8">
-        <h2 className={`font-cursive text-foreground mb-4 ${
+        <h2 className={`font-cursive text-wood-300 mb-4 ${
           isMobile ? 'text-lg' : isTablet ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'
         }`}>
           Succès du mois
@@ -63,7 +63,7 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
   if (books.length === 1) {
     return (
       <div className="px-2 mb-8">
-        <h2 className={`font-cursive text-foreground mb-6 ${getTitleSize()}`}>
+        <h2 className={`font-cursive text-wood-300 mb-6 ${getTitleSize()}`}>
           Succès du mois
         </h2>
         <div className="w-full min-h-[400px] md:min-h-[350px] lg:min-h-[400px]">
@@ -79,7 +79,7 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
 
   return (
     <div className="px-2 mb-8">
-      <h2 className={`font-cursive text-foreground mb-6 ${getTitleSize()}`}>
+      <h2 className={`font-cursive text-wood-300 mb-6 ${getTitleSize()}`}>
         Succès du mois
       </h2>
       
