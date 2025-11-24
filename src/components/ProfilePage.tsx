@@ -9,12 +9,14 @@ import { StatsSummary } from '@/components/StatsSummary';
 import { LevelProgressBar } from '@/components/LevelProgressBar';
 import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 import { ProfileFooter } from '@/components/ProfileFooter';
+import { InventoryPage } from '@/components/InventoryPage';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Crown } from 'lucide-react';
+import { Crown, User, Gift } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Achievement } from '@/types/UserStats';
 
@@ -107,76 +109,95 @@ export const ProfilePage: React.FC = () => {
         <EditProfileForm />
       </div>
 
-      {/* Premium Content Filter */}
-      <Card className="bg-wood-800/60 border-wood-700">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Crown className="w-5 h-5 text-gold-400" />
-              <div>
-                <Label htmlFor="premium-filter" className="text-wood-100 font-semibold cursor-pointer">
-                  Afficher uniquement le contenu Premium
-                </Label>
-                <p className="text-wood-400 text-xs mt-1">
-                  {showOnlyPremium 
-                    ? "Seuls les contenus premium sont affichés"
-                    : "Tous les contenus sont affichés"}
-                </p>
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="profile" className="flex items-center space-x-2">
+            <User className="w-4 h-4" />
+            <span>Profil</span>
+          </TabsTrigger>
+          <TabsTrigger value="inventory" className="flex items-center space-x-2">
+            <Gift className="w-4 h-4" />
+            <span>Inventaire</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profile" className="space-y-4">
+          {/* Premium Content Filter */}
+          <Card className="bg-wood-800/60 border-wood-700">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Crown className="w-5 h-5 text-gold-400" />
+                  <div>
+                    <Label htmlFor="premium-filter" className="text-wood-100 font-semibold cursor-pointer">
+                      Afficher uniquement le contenu Premium
+                    </Label>
+                    <p className="text-wood-400 text-xs mt-1">
+                      {showOnlyPremium 
+                        ? "Seuls les contenus premium sont affichés"
+                        : "Tous les contenus sont affichés"}
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  id="premium-filter"
+                  checked={showOnlyPremium}
+                  onCheckedChange={setShowOnlyPremium}
+                  className="data-[state=checked]:bg-gold-500"
+                />
               </div>
-            </div>
-            <Switch
-              id="premium-filter"
-              checked={showOnlyPremium}
-              onCheckedChange={setShowOnlyPremium}
-              className="data-[state=checked]:bg-gold-500"
+            </CardContent>
+          </Card>
+
+          {/* Player Card */}
+          <PlayerCard
+            totalPoints={userStats.totalPoints}
+            booksReadCount={userStats.booksRead.length}
+            unlockedAchievementsCount={unlockedAchievements.length}
+            totalAchievementsCount={userStats.achievements.length}
+            levelInfo={userStats.levelInfo}
+          />
+
+          {/* Level Progress */}
+          {userStats.levelInfo && (
+            <LevelProgressBar levelInfo={userStats.levelInfo} />
+          )}
+
+          {/* Premium Status */}
+          <PremiumStatusCard isPremium={userStats.isPremium} />
+
+          {/* Achievements Inventory */}
+          <AchievementInventory
+            achievements={userStats.achievements}
+            totalAchievementPoints={totalAchievementPoints}
+            recentlyUnlockedIds={recentlyUnlockedIds}
+            userStats={userStats}
+          />
+
+          {/* Stats Summary */}
+          <StatsSummary
+            totalPoints={userStats.totalPoints}
+            totalAchievementPoints={totalAchievementPoints}
+            unlockedAchievementsCount={unlockedAchievements.length}
+            playerLevel={userStats.levelInfo?.level || 1}
+          />
+
+          {/* Subscription Management - Only for Premium Users */}
+          {subscription.isPremium && (
+            <SubscriptionManagement 
+              subscription={subscription}
+              onSubscriptionUpdate={checkSubscriptionStatus}
             />
-          </div>
-        </CardContent>
-      </Card>
+          )}
 
-      {/* Player Card */}
-      <PlayerCard
-        totalPoints={userStats.totalPoints}
-        booksReadCount={userStats.booksRead.length}
-        unlockedAchievementsCount={unlockedAchievements.length}
-        totalAchievementsCount={userStats.achievements.length}
-        levelInfo={userStats.levelInfo}
-      />
+          {/* Footer avec contact et réseaux sociaux */}
+          <ProfileFooter />
+        </TabsContent>
 
-      {/* Level Progress */}
-      {userStats.levelInfo && (
-        <LevelProgressBar levelInfo={userStats.levelInfo} />
-      )}
-
-      {/* Premium Status */}
-      <PremiumStatusCard isPremium={userStats.isPremium} />
-
-      {/* Achievements Inventory */}
-      <AchievementInventory
-        achievements={userStats.achievements}
-        totalAchievementPoints={totalAchievementPoints}
-        recentlyUnlockedIds={recentlyUnlockedIds}
-        userStats={userStats}
-      />
-
-      {/* Stats Summary */}
-      <StatsSummary
-        totalPoints={userStats.totalPoints}
-        totalAchievementPoints={totalAchievementPoints}
-        unlockedAchievementsCount={unlockedAchievements.length}
-        playerLevel={userStats.levelInfo?.level || 1}
-      />
-
-      {/* Subscription Management - Only for Premium Users */}
-      {subscription.isPremium && (
-        <SubscriptionManagement 
-          subscription={subscription}
-          onSubscriptionUpdate={checkSubscriptionStatus}
-        />
-      )}
-
-      {/* Footer avec contact et réseaux sociaux */}
-      <ProfileFooter />
+        <TabsContent value="inventory">
+          <InventoryPage />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
