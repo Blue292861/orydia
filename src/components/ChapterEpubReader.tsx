@@ -24,6 +24,7 @@ export const ChapterEpubReader: React.FC = () => {
   const { bookId, chapterId } = useParams<{ bookId: string; chapterId: string }>();
   const navigate = useNavigate();
   const { user, subscription } = useAuth();
+  const { openChestForBook } = useUserStats();
   
   // Chapter data
   const [chapter, setChapter] = useState<ChapterEpub | null>(null);
