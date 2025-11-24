@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Book } from '@/types/Book';
-import { BookCard } from './BookCard';
+import { MonthSuccessCarouselItem } from './MonthSuccessCarouselItem';
 import { 
   Carousel, 
   CarouselContent, 
@@ -34,15 +34,15 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
     });
   }, [api]);
 
-  const handleBookClick = useCallback((book: Book, index: number) => {
-    if (index === current) {
-      // Si c'est le livre central, ouvrir la prévisualisation
-      onBookSelect(book);
-    } else {
-      // Si c'est un livre latéral, naviguer vers ce livre
-      api?.scrollTo(index);
-    }
-  }, [current, onBookSelect, api]);
+  const handleBookClick = useCallback((book: Book) => {
+    onBookSelect(book);
+  }, [onBookSelect]);
+
+  const getTitleSize = () => {
+    if (isMobile) return 'text-lg';
+    if (isTablet) return 'text-xl';
+    return 'text-2xl sm:text-3xl lg:text-4xl';
+  };
 
   // Cas limites
   if (books.length === 0) {
@@ -63,29 +63,19 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
   if (books.length === 1) {
     return (
       <div className="px-2 mb-8">
-        <h2 className={`font-cursive text-foreground mb-4 ${
-          isMobile ? 'text-lg' : isTablet ? 'text-xl' : 'text-2xl sm:text-3xl lg:text-4xl'
-        }`}>
+        <h2 className={`font-cursive text-foreground mb-6 ${getTitleSize()}`}>
           Succès du mois
         </h2>
-        <div className="flex justify-center">
-          <div className="w-full max-w-[280px]">
-            <BookCard
-              book={books[0]}
-              onBookSelect={onBookSelect}
-              large={true}
-            />
-          </div>
+        <div className="w-full h-[500px] md:h-[400px] lg:h-[450px]">
+          <MonthSuccessCarouselItem
+            book={books[0]}
+            isActive={true}
+            onBookSelect={onBookSelect}
+          />
         </div>
       </div>
     );
   }
-
-  const getTitleSize = () => {
-    if (isMobile) return 'text-lg';
-    if (isTablet) return 'text-xl';
-    return 'text-2xl sm:text-3xl lg:text-4xl';
-  };
 
   return (
     <div className="px-2 mb-8">
@@ -93,78 +83,69 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
         Succès du mois
       </h2>
       
-      <Carousel
-        opts={{
-          align: 'center',
-          loop: true,
-        }}
-        setApi={setApi}
-        className="w-full"
-      >
-        <CarouselContent className="-ml-2 md:-ml-4 gap-4">
-          {books.map((book, index) => {
-            const isCenter = index === current;
-            const isPrev = index === (current - 1 + books.length) % books.length;
-            const isNext = index === (current + 1) % books.length;
-            const isVisible = isCenter || isPrev || isNext;
+      <div className="relative">
+        <Carousel
+          opts={{
+            align: 'start',
+            loop: true,
+            skipSnaps: false,
+            dragFree: false,
+          }}
+          setApi={setApi}
+          className="w-full"
+        >
+          <CarouselContent className="h-[500px] md:h-[400px] lg:h-[450px]">
+            {books.map((book, index) => {
+              const isActive = index === current;
 
-            // Styles conditionnels selon la position
-            let itemClasses = 'transition-all duration-500 ease-in-out pl-2 md:pl-4';
-            let contentClasses = '';
-            let cardClasses = '';
-
-            if (isCenter) {
-              // Livre central : pleine opacité, pleine taille, z-index élevé
-              contentClasses = 'opacity-100 scale-100 z-10';
-              cardClasses = 'cursor-pointer';
-            } else if (isVisible) {
-              // Livres latéraux : opacité réduite, taille réduite
-              if (isMobile) {
-                contentClasses = 'opacity-30 scale-60 blur-[1px] z-0';
-              } else {
-                contentClasses = 'opacity-50 scale-75 z-0 hover:opacity-70 transition-all';
-              }
-              cardClasses = 'cursor-pointer';
-            } else {
-              // Livres non visibles : masqués
-              contentClasses = 'opacity-0 scale-75 z-0';
-            }
-
-            return (
-              <CarouselItem 
-                key={book.id} 
-                className={`${itemClasses} basis-2/3 sm:basis-1/2 md:basis-1/3 lg:basis-1/4`}
-              >
-                <div 
-                  className={`flex justify-center items-center ${contentClasses}`}
-                  onClick={() => handleBookClick(book, index)}
+              return (
+                <CarouselItem 
+                  key={book.id} 
+                  className="basis-full"
                 >
-                  <div className={`w-full max-w-[200px] sm:max-w-[220px] md:max-w-[240px] ${cardClasses}`}>
-                    <BookCard
-                      book={book}
-                      onBookSelect={() => {}}
-                      large={true}
-                    />
-                  </div>
-                </div>
-              </CarouselItem>
-            );
-          })}
-        </CarouselContent>
-        
-        <div className="hidden md:block">
-          <CarouselPrevious className="-left-12 bg-card/80 hover:bg-card border-border" />
-          <CarouselNext className="-right-12 bg-card/80 hover:bg-card border-border" />
-        </div>
-        
-        {/* Navigation mobile : afficher les flèches à l'intérieur */}
-        {isMobile && (
-          <>
-            <CarouselPrevious className="left-2 bg-card/80 hover:bg-card border-border" />
-            <CarouselNext className="right-2 bg-card/80 hover:bg-card border-border" />
-          </>
+                  <MonthSuccessCarouselItem
+                    book={book}
+                    isActive={isActive}
+                    onBookSelect={handleBookClick}
+                  />
+                </CarouselItem>
+              );
+            })}
+          </CarouselContent>
+          
+          {/* Navigation Arrows */}
+          <div className="hidden md:block">
+            <CarouselPrevious className="-left-12 lg:-left-16 bg-card/90 hover:bg-card border-border shadow-lg" />
+            <CarouselNext className="-right-12 lg:-right-16 bg-card/90 hover:bg-card border-border shadow-lg" />
+          </div>
+          
+          {/* Navigation mobile : flèches à l'intérieur */}
+          {isMobile && (
+            <>
+              <CarouselPrevious className="left-2 bg-card/90 hover:bg-card border-border shadow-lg" />
+              <CarouselNext className="right-2 bg-card/90 hover:bg-card border-border shadow-lg" />
+            </>
+          )}
+        </Carousel>
+
+        {/* Pagination Dots */}
+        {books.length > 1 && (
+          <div className="flex justify-center gap-2 mt-6">
+            {books.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => api?.scrollTo(index)}
+                className={`transition-all duration-300 rounded-full ${
+                  index === current
+                    ? 'w-8 h-2 bg-primary'
+                    : 'w-2 h-2 bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                }`}
+                aria-label={`Aller au livre ${index + 1}`}
+              />
+            ))}
+          </div>
         )}
-      </Carousel>
+      </div>
     </div>
   );
 };
