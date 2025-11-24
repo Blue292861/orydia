@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useResponsive } from '@/hooks/useResponsive';
 import { BookOpen, BarChart, Package, Trophy, ShoppingCart, Headphones, Coins, Key, Palette, Gift, Users } from 'lucide-react';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'theme-preview' | 'orydors-codes' | 'premium-admin' | 'premium-codes' | 'user-stats';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'theme-preview' | 'orydors-codes' | 'premium-admin' | 'premium-codes' | 'user-stats' | 'reward-types' | 'loot-tables';
 
 interface AdminNavProps {
   currentPage: AdminPage;
@@ -24,6 +24,8 @@ const navItems: { id: AdminPage; label: string; shortLabel?: string }[] = [
   { id: 'premium-admin', label: 'Gestion Premium', shortLabel: 'Premium' },
   { id: 'orydors-codes', label: 'Codes Orydors', shortLabel: 'Orydors' },
   { id: 'premium-codes', label: 'Codes Premium', shortLabel: 'Premium' },
+  { id: 'reward-types', label: 'Types de Récompenses', shortLabel: 'Récompenses' },
+  { id: 'loot-tables', label: 'Tables de Loot', shortLabel: 'Loot' },
   { id: 'api-keys-admin', label: 'Clés API', shortLabel: 'API' },
   { id: 'theme-preview', label: 'Aperçu Thèmes', shortLabel: 'Thèmes' },
 ];

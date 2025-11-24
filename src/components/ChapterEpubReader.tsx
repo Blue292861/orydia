@@ -10,6 +10,7 @@ import { ChapterBannerAd } from '@/components/ChapterBannerAd';
 import { RewardAd } from '@/components/RewardAd';
 import { TranslationProgress } from '@/components/TranslationProgress';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserStats } from '@/contexts/UserStatsContext';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw, Type, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
@@ -734,41 +735,27 @@ export const ChapterEpubReader: React.FC = () => {
     const pointsToAward = subscription.isPremium ? basePoints * 2 : basePoints;
     
     try {
-      // 1. Call award-points edge function
-      const { error: pointsError } = await supabase.functions.invoke('award-points', {
-        body: {
-          user_id: user.id,
-          points: pointsToAward,
-          transaction_type: 'book_completion',
-          reference_id: bookId,
-          description: `Livre terminé: ${book.title}${subscription.isPremium ? ' (Premium x2)' : ''}`
-        }
+      // Open chest for rewards
+      const rewards = await openChestForBook(bookId, book.title);
+      
+      if (rewards) {
+        // TODO: Show ChestOpeningDialog with rewards
+        toast.success('Coffre ouvert ! Vous avez reçu vos récompenses.');
+      }
+      
+      // Record book completion
+      const { error } = await supabase.from('book_completions').insert({
+        user_id: user.id,
+        book_id: bookId,
       });
       
-      if (pointsError) throw pointsError;
+      if (error) throw error;
       
-      // 2. Record book completion
-      const { error: completionError } = await supabase
-        .from('book_completions')
-        .insert({
-          user_id: user.id,
-          book_id: bookId
-        });
-      
-      if (completionError) throw completionError;
-      
-      // 3. Update state and notify user
       setHasClaimedReward(true);
-      toast.success(`${pointsToAward} Tensens ajoutés à votre compte !`);
-      
-      // 4. Navigate back to chapters after brief delay
-      setTimeout(() => {
-        navigate(`/book/${bookId}/chapters`);
-      }, 1500);
       
     } catch (error) {
       console.error('Error awarding points:', error);
-      toast.error("Une erreur est survenue lors de l'attribution des points");
+      toast.error('Erreur lors de l\'attribution des récompenses');
     }
   };
 
