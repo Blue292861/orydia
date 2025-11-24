@@ -661,3 +661,32 @@ body.high-contrast * {
 .animate-particle {
   animation: particle 3s ease-out infinite;
 }
+
+/* Month Success Carousel Animations */
+@keyframes slide-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes cover-parallax {
+  from {
+    transform: scale(1.1);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.month-success-item-active {
+  animation: slide-fade-in 0.6s ease-out;
+}
+
+.month-success-cover-active {
+  animation: cover-parallax 0.8s ease-out;
+}
