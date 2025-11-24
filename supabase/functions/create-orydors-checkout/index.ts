@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -25,7 +24,7 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
 
-    const { pack_id, pack_name, tensens_amount, price } = await req.json();
+    const { pack_id, pack_name, orydors_amount, price } = await req.json();
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",
@@ -46,7 +45,7 @@ serve(async (req) => {
             currency: "eur",
             product_data: {
               name: pack_name,
-              description: `${tensens_amount} Tensens`,
+              description: `${orydors_amount} Orydors`,
             },
             unit_amount: price,
           },
@@ -54,12 +53,12 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/tensens-success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${req.headers.get("origin")}/orydors-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/`,
       metadata: {
         user_id: user.id,
         pack_id: pack_id,
-        tensens_amount: tensens_amount.toString(),
+        orydors_amount: orydors_amount.toString(),
       },
     });
 
