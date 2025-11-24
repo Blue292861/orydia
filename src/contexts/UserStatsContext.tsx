@@ -241,6 +241,46 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     }
   };
 
+  // New function for opening chest (replaces direct point attribution)
+  const openChestForBook = async (bookId: string, bookTitle: string): Promise<any> => {
+    if (!session?.user?.id) {
+      throw new Error('User not authenticated');
+    }
+    
+    // Check if already read
+    if (userStats.booksRead.includes(bookId)) {
+      return null;
+    }
+    
+    try {
+      // Call open-chest edge function
+      const { data, error } = await supabase.functions.invoke('open-chest', {
+        body: { bookId }
+      });
+      
+      if (error) throw error;
+      
+      // Update local stats
+      setUserStats(prev => ({
+        ...prev,
+        booksRead: [...prev.booksRead, bookId]
+      }));
+
+      // Reload complete stats from DB
+      await loadUserStats();
+      
+      return data;
+    } catch (error) {
+      console.error('Error opening chest:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'ouvrir le coffre. Veuillez réessayer.',
+        variant: 'destructive'
+      });
+      throw error;
+    }
+  };
+
   const spendPoints = (amount: number) => {
     setUserStats(prev => ({
       ...prev,
@@ -291,7 +331,8 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     <UserStatsContext.Provider value={{ 
       userStats, 
       loadUserStats,
-      addPointsForBook, 
+      addPointsForBook,
+      openChestForBook,
       spendPoints, 
       addAchievement,
       updateAchievement,

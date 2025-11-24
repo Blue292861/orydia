@@ -8,6 +8,7 @@ import { RewardAd } from '@/components/RewardAd';
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { RatingDialog } from './RatingDialog';
 import { CopyrightWarning } from '@/components/CopyrightWarning';
+import { ChestOpeningDialog } from '@/components/ChestOpeningDialog';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,7 +21,7 @@ interface BookReaderProps {
 }
 
 export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
-  const { userStats, addPointsForBook } = useUserStats();
+  const { userStats, openChestForBook } = useUserStats();
   const { session, subscription, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -33,6 +34,8 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   const [showRewardAd, setShowRewardAd] = useState(false);
   const [showAgeVerification, setShowAgeVerification] = useState(book.isAdultContent);
   const [ageVerified, setAgeVerified] = useState(false);
+  const [showChestDialog, setShowChestDialog] = useState(false);
+  const [chestRewards, setChestRewards] = useState<any>(null);
   const readingStartTime = useRef<number>(Date.now());
 
   const isAlreadyRead = userStats.booksRead.includes(book.id);
@@ -120,32 +123,26 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
         return;
       }
       
-      await grantReward();
+      await openChest();
     }
   };
 
-  const grantReward = async () => {
-    addPointsForBook(book.id, pointsToWin);
-
-    const { error } = await supabase.from('book_completions').insert({
-      user_id: session!.user.id,
-      book_id: book.id,
-    });
-    
-    if (error) {
-      console.error("Erreur lors de l'enregistrement de la lecture:", error);
+  const openChest = async () => {
+    try {
+      const rewards = await openChestForBook(book.id, book.title);
+      if (rewards) {
+        setChestRewards(rewards);
+        setShowChestDialog(true);
+        setHasFinished(true);
+      }
+    } catch (error) {
+      console.error('Error opening chest:', error);
     }
-
-    setHasFinished(true);
-    toast({
-      title: "Livre terminé !",
-      description: `Vous avez gagné ${pointsToWin} Tensens pour avoir lu "${book.title}"`,
-    });
   };
 
   const handleAdCompleted = async () => {
     setShowRewardAd(false);
-    await grantReward();
+    await openChest();
   };
 
   const handleAdClosed = () => {
@@ -188,6 +185,18 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           onAdClosed={handleAdClosed}
         />
       )}
+
+      {chestRewards && (
+        <ChestOpeningDialog
+          isOpen={showChestDialog}
+          onClose={() => setShowChestDialog(false)}
+          chestType={chestRewards.chestType}
+          orydors={chestRewards.orydors}
+          orydorsVariation={chestRewards.orydorsVariation}
+          additionalRewards={chestRewards.additionalRewards}
+          bookTitle={book.title}
+        />
+      )}
       
       <div className="w-full max-w-none mx-auto pb-10">
         <div className="flex justify-between items-center mb-6">
@@ -200,8 +209,8 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
             <h2 className="font-bold">{book.title}</h2>
             <p className="text-sm text-muted-foreground">{book.author}</p>
             <div className="flex items-center justify-center gap-1 mt-1">
-              <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-4 w-4" />
-              <span className="text-sm font-medium">{book.points} Tensens</span>
+              <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Orydors Icon" className="h-4 w-4" />
+              <span className="text-sm font-medium">{book.points} Orydors</span>
               {isPremium && (
                 <div className="flex items-center gap-1 text-yellow-500 ml-2 px-2 py-1 rounded-full bg-yellow-500/10 text-xs font-semibold">
                   <Star className="h-3 w-3 fill-current" />
@@ -248,13 +257,13 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
           <div className="mt-8 pt-6 border-t flex justify-center">
             {isAlreadyRead ? (
               <div className={`${highContrast ? 'text-gray-300' : 'text-muted-foreground'} text-center`}>
-                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-6 w-6 mx-auto mb-2" />
-                <p>Vous avez déjà gagné des Tensens pour ce livre</p>
+                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Orydors" className="h-6 w-6 mx-auto mb-2" />
+                <p>Vous avez déjà gagné un coffre pour ce livre</p>
               </div>
             ) : hasFinished ? (
               <div className="text-center text-green-600">
-                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-6 w-6 mx-auto mb-2" />
-                <p>Tensens accordés ! Bien joué !</p>
+                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Orydors" className="h-6 w-6 mx-auto mb-2" />
+                <p>Coffre ouvert ! Félicitations !</p>
               </div>
             ) : (
               <Button 
@@ -262,10 +271,10 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
                 className="flex items-center gap-2"
                 disabled={false}
               >
-                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-4 w-4" />
+                <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Orydors" className="h-4 w-4" />
                 {isPremium ? 
-                  `Terminer la lecture & Gagner ${pointsToWin} Tensens` :
-                  `Regarder une publicité & Gagner ${pointsToWin} Tensens`
+                  `Terminer & Ouvrir le Coffre Doré` :
+                  `Regarder une publicité & Ouvrir le Coffre`
                 }
               </Button>
             )}

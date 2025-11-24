@@ -10,6 +10,8 @@ import { AchievementAdmin } from '@/components/AchievementAdmin';
 import { AudiobookAdmin } from '@/components/AudiobookAdmin';
 import { PointsAdmin } from '@/components/PointsAdmin';
 import { ApiKeysAdmin } from '@/components/ApiKeysAdmin';
+import { RewardTypesAdmin } from '@/components/RewardTypesAdmin';
+import { LootTableEditor } from '@/components/LootTableEditor';
 import { Shop } from '@/components/Shop';
 import { SearchPage } from '@/components/SearchPage';
 import { ProfilePage } from '@/components/ProfilePage';
@@ -38,7 +40,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthRequiredDialog } from '@/components/AuthRequiredDialog';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'orydors-codes' | 'premium-admin' | 'premium-codes' | 'user-stats';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'orydors-codes' | 'premium-admin' | 'premium-codes' | 'user-stats' | 'reward-types' | 'loot-tables';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
 
 const AppContent = () => {
@@ -186,6 +188,10 @@ const AppContent = () => {
         return <OrydorsCodeAdmin />;
       case 'premium-codes':
         return <PremiumCodeAdmin />;
+      case 'reward-types':
+        return <RewardTypesAdmin />;
+      case 'loot-tables':
+        return <LootTableEditor />;
       case 'api-keys-admin':
         return <ApiKeysAdmin />;
       case 'shop':
@@ -203,7 +209,7 @@ const AppContent = () => {
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
   
-  const isAdminPage = (['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'reading-stats-export', 'user-stats', 'audiobook-admin', 'points-admin', 'premium-admin', 'orydors-codes', 'premium-codes', 'api-keys-admin'] as const).includes(currentPage as any);
+  const isAdminPage = (['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'reading-stats-export', 'user-stats', 'audiobook-admin', 'points-admin', 'premium-admin', 'orydors-codes', 'premium-codes', 'api-keys-admin', 'reward-types', 'loot-tables'] as const).includes(currentPage as any);
 
   const getMainPadding = () => {
     if (isMobile) {

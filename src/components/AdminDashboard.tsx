@@ -13,6 +13,8 @@ import { TranslationDashboard } from '@/components/TranslationDashboard';
 import { TranslationBudgetManager } from '@/components/TranslationBudgetManager';
 import { TranslationAlerts } from '@/components/TranslationAlerts';
 import { TranslationJobsMonitor } from '@/components/TranslationJobsMonitor';
+import { RewardTypesAdmin } from '@/components/RewardTypesAdmin';
+import { LootTableEditor } from '@/components/LootTableEditor';
 import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
 import { useResponsive } from '@/hooks/useResponsive';
