@@ -548,6 +548,48 @@ export type Database = {
           },
         ]
       }
+      chest_openings: {
+        Row: {
+          book_id: string | null
+          chest_type: string
+          id: string
+          opened_at: string | null
+          rewards_obtained: Json
+          user_id: string
+        }
+        Insert: {
+          book_id?: string | null
+          chest_type: string
+          id?: string
+          opened_at?: string | null
+          rewards_obtained: Json
+          user_id: string
+        }
+        Update: {
+          book_id?: string | null
+          chest_type?: string
+          id?: string
+          opened_at?: string | null
+          rewards_obtained?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chest_openings_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "book_translation_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chest_openings_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       epub_reading_progress: {
         Row: {
           book_id: string
@@ -706,6 +748,33 @@ export type Database = {
         }
         Relationships: []
       }
+      gem_fragments: {
+        Row: {
+          created_at: string | null
+          fragment_count: number | null
+          id: string
+          premium_months_claimed: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          fragment_count?: number | null
+          id?: string
+          premium_months_claimed?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          fragment_count?: number | null
+          id?: string
+          premium_months_claimed?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       interactive_choices: {
         Row: {
           chapter_id: string
@@ -747,6 +816,61 @@ export type Database = {
             columns: ["next_chapter_id"]
             isOneToOne: false
             referencedRelation: "book_chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loot_tables: {
+        Row: {
+          book_id: string | null
+          chest_type: string
+          created_at: string | null
+          drop_chance_percentage: number
+          id: string
+          max_quantity: number | null
+          min_quantity: number | null
+          reward_type_id: string | null
+        }
+        Insert: {
+          book_id?: string | null
+          chest_type: string
+          created_at?: string | null
+          drop_chance_percentage: number
+          id?: string
+          max_quantity?: number | null
+          min_quantity?: number | null
+          reward_type_id?: string | null
+        }
+        Update: {
+          book_id?: string | null
+          chest_type?: string
+          created_at?: string | null
+          drop_chance_percentage?: number
+          id?: string
+          max_quantity?: number | null
+          min_quantity?: number | null
+          reward_type_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loot_tables_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "book_translation_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loot_tables_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loot_tables_reward_type_id_fkey"
+            columns: ["reward_type_id"]
+            isOneToOne: false
+            referencedRelation: "reward_types"
             referencedColumns: ["id"]
           },
         ]
@@ -1052,6 +1176,45 @@ export type Database = {
           id?: string
           ip_address?: unknown
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      reward_types: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          metadata: Json | null
+          name: string
+          rarity: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          name: string
+          rarity: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          name?: string
+          rarity?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1751,6 +1914,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_inventory: {
+        Row: {
+          acquired_at: string | null
+          id: string
+          quantity: number | null
+          reward_type_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string | null
+          id?: string
+          quantity?: number | null
+          reward_type_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string | null
+          id?: string
+          quantity?: number | null
+          reward_type_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_inventory_reward_type_id_fkey"
+            columns: ["reward_type_id"]
+            isOneToOne: false
+            referencedRelation: "reward_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_level_info: {
         Row: {
