@@ -60,15 +60,15 @@ export const MonthSuccessCarouselItem: React.FC<MonthSuccessCarouselItemProps> =
         {/* Description - Right Side */}
         <div className="flex-1 flex flex-col justify-center space-y-4 lg:space-y-6 pr-8">
           <div>
-            <h3 className="font-cursive text-3xl lg:text-4xl xl:text-5xl text-background mb-2 leading-tight">
+            <h3 className="font-cursive text-3xl lg:text-4xl xl:text-5xl text-foreground mb-2 leading-tight">
               {book.title}
             </h3>
-            <p className="font-display text-lg lg:text-xl text-background/90">
+            <p className="font-display text-lg lg:text-xl text-muted-foreground">
               par {book.author}
             </p>
           </div>
 
-          <p className="font-sans text-sm lg:text-base text-background/85 leading-relaxed line-clamp-4 lg:line-clamp-5">
+          <p className="font-sans text-sm lg:text-base text-foreground/80 leading-relaxed line-clamp-4 lg:line-clamp-5">
             {getSummary()}
           </p>
 
@@ -81,7 +81,7 @@ export const MonthSuccessCarouselItem: React.FC<MonthSuccessCarouselItemProps> =
                   <Badge
                     key={genre}
                     variant="outline"
-                    className={`${genreStyle?.borderColor || 'border-border'} bg-background/50 text-card`}
+                    className={`${genreStyle?.borderColor || 'border-border'} bg-background/50 text-foreground`}
                   >
                     {genreStyle?.ornament} {genre}
                   </Badge>
@@ -91,7 +91,7 @@ export const MonthSuccessCarouselItem: React.FC<MonthSuccessCarouselItemProps> =
           )}
 
           {/* Points */}
-          <div className="flex items-center gap-2 text-sm text-background/80">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <BookOpen className="w-4 h-4" />
             <span className="font-semibold">{book.points} Orydors</span>
           </div>
@@ -136,15 +136,15 @@ export const MonthSuccessCarouselItem: React.FC<MonthSuccessCarouselItemProps> =
         {/* Description - Bottom */}
         <div className="flex flex-col items-center text-center space-y-3 w-full">
           <div>
-            <h3 className="font-cursive text-xl text-background mb-1 leading-tight">
+            <h3 className="font-cursive text-xl text-foreground mb-1 leading-tight">
               {book.title}
             </h3>
-            <p className="font-display text-sm text-background/90">
+            <p className="font-display text-sm text-muted-foreground">
               par {book.author}
             </p>
           </div>
 
-          <p className="font-sans text-xs text-background/85 leading-relaxed line-clamp-3">
+          <p className="font-sans text-xs text-foreground/80 leading-relaxed line-clamp-3">
             {truncateText(getSummary(), 150)}
           </p>
 
@@ -157,7 +157,7 @@ export const MonthSuccessCarouselItem: React.FC<MonthSuccessCarouselItemProps> =
                   <Badge
                     key={genre}
                     variant="outline"
-                    className={`text-xs ${genreStyle?.borderColor || 'border-border'} bg-background/50 text-card`}
+                    className={`text-xs ${genreStyle?.borderColor || 'border-border'} bg-background/50 text-foreground`}
                   >
                     {genreStyle?.ornament} {genre}
                   </Badge>
@@ -167,7 +167,7 @@ export const MonthSuccessCarouselItem: React.FC<MonthSuccessCarouselItemProps> =
           )}
 
           {/* Points */}
-          <div className="flex items-center gap-1.5 text-xs text-background/80">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <BookOpen className="w-3 h-3" />
             <span className="font-semibold">{book.points} Orydors</span>
           </div>
