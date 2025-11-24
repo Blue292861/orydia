@@ -6,12 +6,12 @@ import { useUserStats } from '@/contexts/UserStatsContext';
 import { useToast } from '@/hooks/use-toast';
 import { ExternalAd } from '@/components/ExternalAd';
 
-interface AdForTensensProps {
+interface AdForOrydorsProps {
   onAdCompleted: () => void;
   onAdClosed: () => void;
 }
 
-export const AdForTensens: React.FC<AdForTensensProps> = ({ 
+export const AdForOrydors: React.FC<AdForOrydorsProps> = ({ 
   onAdCompleted, 
   onAdClosed 
 }) => {
@@ -40,8 +40,8 @@ export const AdForTensens: React.FC<AdForTensensProps> = ({
   const handleClaimReward = () => {
     onAdCompleted();
     toast({
-      title: "Tensens gratuits !",
-      description: "Vous avez gagné 10 Tensens en regardant la publicité !",
+      title: "Orydors gratuits !",
+      description: "Vous avez gagné 10 Orydors en regardant la publicité !",
     });
   };
 
@@ -60,7 +60,7 @@ export const AdForTensens: React.FC<AdForTensensProps> = ({
         <div>
           <h2 className="text-2xl md:text-3xl font-bold mb-2">Publicité</h2>
           <p className="text-muted-foreground">
-            Regardez cette courte publicité pour obtenir 10 Tensens gratuits
+            Regardez cette courte publicité pour obtenir 10 Orydors gratuits
           </p>
         </div>
 
@@ -78,15 +78,15 @@ export const AdForTensens: React.FC<AdForTensensProps> = ({
       
       <div className="text-center space-y-4">
         <h3 className="text-xl font-bold">
-          Gagnez des Tensens gratuits !
+          Gagnez des Orydors gratuits !
         </h3>
         <div className="flex items-center justify-center gap-2">
           <img 
             src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" 
-            alt="Tensens Icon" 
+            alt="Orydors Icon" 
             className="h-6 w-6" 
           />
-          <span className="text-2xl font-bold text-yellow-400">+10 Tensens</span>
+          <span className="text-2xl font-bold text-yellow-400">+10 Orydors</span>
         </div>
         
         {canClaim ? (
@@ -96,7 +96,7 @@ export const AdForTensens: React.FC<AdForTensensProps> = ({
             className="bg-green-600 hover:bg-green-700 text-white font-bold"
           >
             <Gift className="mr-2 h-4 w-4" />
-            Réclamer mes Tensens !
+            Réclamer mes Orydors !
           </Button>
         ) : (
           <Button size="lg" variant="secondary" disabled>

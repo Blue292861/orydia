@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Gift, Sparkles } from 'lucide-react';
-import { tensensCodeService } from "@/services/tensensCodeService";
+import { orydorsCodeService } from "@/services/orydorsCodeService";
 import { useToast } from "@/hooks/use-toast";
 import { useUserStats } from "@/contexts/UserStatsContext";
 
-export const TensensCodeRedemption: React.FC = () => {
+export const OrydorsCodeRedemption: React.FC = () => {
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -27,7 +27,7 @@ export const TensensCodeRedemption: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await tensensCodeService.redeemCode({ code: code.trim() });
+      const response = await orydorsCodeService.redeemCode({ code: code.trim() });
       
       if (response.success) {
         toast({
@@ -35,7 +35,7 @@ export const TensensCodeRedemption: React.FC = () => {
           description: response.message,
         });
         setCode('');
-        // Recharger les stats pour mettre à jour le compteur de Tensens
+        // Recharger les stats pour mettre à jour le compteur d'Orydors
         await loadUserStats();
       } else {
         toast({
@@ -71,10 +71,10 @@ export const TensensCodeRedemption: React.FC = () => {
         </div>
         <CardTitle className="flex items-center justify-center gap-2">
           <Sparkles className="w-5 h-5 text-yellow-500" />
-          Code Tensens
+          Code Orydors
         </CardTitle>
         <CardDescription>
-          Saisissez votre code pour obtenir des points Tensens
+          Saisissez votre code pour obtenir des points Orydors
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

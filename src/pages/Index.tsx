@@ -21,7 +21,7 @@ import { SecurityHeaders } from '@/components/SecurityHeaders';
 import { UserStatsProvider, useUserStats } from '@/contexts/UserStatsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { AdminNav } from '@/components/AdminNav';
-import { TensensCodeAdmin } from '@/components/TensensCodeAdmin';
+import { OrydorsCodeAdmin } from '@/components/OrydorsCodeAdmin';
 import { PremiumAdmin } from '@/components/PremiumAdmin';
 import { PremiumCodeAdmin } from '@/components/PremiumCodeAdmin';
 import { OrdersAdmin } from '@/components/OrdersAdmin';
@@ -38,7 +38,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthRequiredDialog } from '@/components/AuthRequiredDialog';
 
-type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'tensens-codes' | 'premium-admin' | 'premium-codes' | 'user-stats';
+type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'orydors-codes' | 'premium-admin' | 'premium-codes' | 'user-stats';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
 
 const AppContent = () => {
@@ -182,8 +182,8 @@ const AppContent = () => {
         return <PointsAdmin />;
       case 'premium-admin':
         return <PremiumAdmin />;
-      case 'tensens-codes':
-        return <TensensCodeAdmin />;
+      case 'orydors-codes':
+        return <OrydorsCodeAdmin />;
       case 'premium-codes':
         return <PremiumCodeAdmin />;
       case 'api-keys-admin':
@@ -203,7 +203,7 @@ const AppContent = () => {
 
   const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
   
-  const isAdminPage = (['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'reading-stats-export', 'user-stats', 'audiobook-admin', 'points-admin', 'premium-admin', 'tensens-codes', 'premium-codes', 'api-keys-admin'] as const).includes(currentPage as any);
+  const isAdminPage = (['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'reading-stats-export', 'user-stats', 'audiobook-admin', 'points-admin', 'premium-admin', 'orydors-codes', 'premium-codes', 'api-keys-admin'] as const).includes(currentPage as any);
 
   const getMainPadding = () => {
     if (isMobile) {
