@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { TensensCode, TensensCodeRedemption, CreateTensensCodeRequest, RedeemCodeRequest, RedeemCodeResponse } from "@/types/TensensCode";
+import { OrydorsCode, OrydorsCodeRedemption, CreateOrydorsCodeRequest, RedeemCodeRequest, RedeemCodeResponse } from "@/types/OrydorsCode";
 
 // Generate random 8-character code
 const generateRandomCode = (): string => {
@@ -11,9 +11,9 @@ const generateRandomCode = (): string => {
   return result;
 };
 
-export const tensensCodeService = {
+export const orydorsCodeService = {
   // Admin: Generate codes
-  async generateCodes(request: CreateTensensCodeRequest): Promise<TensensCode[]> {
+  async generateCodes(request: CreateOrydorsCodeRequest): Promise<OrydorsCode[]> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
@@ -49,7 +49,7 @@ export const tensensCodeService = {
   },
 
   // Admin: Get all codes
-  async getAllCodes(): Promise<TensensCode[]> {
+  async getAllCodes(): Promise<OrydorsCode[]> {
     const { data, error } = await supabase
       .from('tensens_codes')
       .select('*')
@@ -150,7 +150,7 @@ export const tensensCodeService = {
           points: codeData.points_value,
           transaction_type: 'code_redemption',
           reference_id: codeData.id,
-          description: `Code Tensens utilisé: ${codeData.code}`,
+          description: `Code Orydors utilisé: ${codeData.code}`,
           source_app: 'main_app'
         }
       });
@@ -160,7 +160,7 @@ export const tensensCodeService = {
       return {
         success: true,
         points_awarded: codeData.points_value,
-        message: `Félicitations ! Vous avez gagné ${codeData.points_value} Tensens !`
+        message: `Félicitations ! Vous avez gagné ${codeData.points_value} Orydors !`
       };
 
     } catch (error: any) {
@@ -172,7 +172,7 @@ export const tensensCodeService = {
   },
 
   // Get user's redemption history
-  async getUserRedemptions(userId: string): Promise<TensensCodeRedemption[]> {
+  async getUserRedemptions(userId: string): Promise<OrydorsCodeRedemption[]> {
     const { data, error } = await supabase
       .from('tensens_code_redemptions')
       .select(`

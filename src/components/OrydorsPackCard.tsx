@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Coins } from 'lucide-react';
-import { TensensPack } from '@/types/TensensPack';
+import { OrydorsPack } from '@/types/OrydorsPack';
 
-interface TensensPackCardProps {
-  pack: TensensPack;
+interface OrydorsPackCardProps {
+  pack: OrydorsPack;
   loading: boolean;
-  onPurchase: (pack: TensensPack) => void;
+  onPurchase: (pack: OrydorsPack) => void;
 }
 
-export const TensensPackCard: React.FC<TensensPackCardProps> = ({
+export const OrydorsPackCard: React.FC<OrydorsPackCardProps> = ({
   pack,
   loading,
   onPurchase,
@@ -33,8 +33,8 @@ export const TensensPackCard: React.FC<TensensPackCardProps> = ({
           </div>
           <CardTitle className="text-lg font-medieval">{pack.name}</CardTitle>
           <div className="flex items-center justify-center gap-2 mt-2">
-            <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens" className="h-6 w-6" />
-            <span className="text-2xl font-bold text-gold-300">{pack.tensens.toLocaleString()}</span>
+            <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Orydors" className="h-6 w-6" />
+            <span className="text-2xl font-bold text-gold-300">{pack.orydors.toLocaleString()}</span>
           </div>
         </div>
       </CardHeader>

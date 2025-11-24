@@ -222,7 +222,7 @@ export const AudiobookForm: React.FC<AudiobookFormProps> = ({ initialAudiobook, 
       </div>
 
       <div>
-        <Label htmlFor="points">Points (Tensens)</Label>
+        <Label htmlFor="points">Points (Orydors)</Label>
         <Input
           id="points"
           type="number"

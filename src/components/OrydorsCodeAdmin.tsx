@@ -8,14 +8,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Plus, Copy } from 'lucide-react';
-import { tensensCodeService } from "@/services/tensensCodeService";
-import { TensensCode } from "@/types/TensensCode";
+import { orydorsCodeService } from "@/services/orydorsCodeService";
+import { OrydorsCode } from "@/types/OrydorsCode";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-export const TensensCodeAdmin: React.FC = () => {
-  const [codes, setCodes] = useState<TensensCode[]>([]);
+export const OrydorsCodeAdmin: React.FC = () => {
+  const [codes, setCodes] = useState<OrydorsCode[]>([]);
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -32,7 +32,7 @@ export const TensensCodeAdmin: React.FC = () => {
 
   const loadCodes = async () => {
     try {
-      const data = await tensensCodeService.getAllCodes();
+      const data = await orydorsCodeService.getAllCodes();
       setCodes(data);
     } catch (error: any) {
       toast({
@@ -78,7 +78,7 @@ export const TensensCodeAdmin: React.FC = () => {
         quantity: formData.custom_code ? 1 : formData.quantity
       };
 
-      await tensensCodeService.generateCodes(request);
+      await orydorsCodeService.generateCodes(request);
       
       toast({
         title: "Succès",
@@ -110,7 +110,7 @@ export const TensensCodeAdmin: React.FC = () => {
 
   const handleDeleteCode = async (codeId: string) => {
     try {
-      await tensensCodeService.deleteCode(codeId);
+      await orydorsCodeService.deleteCode(codeId);
       toast({
         title: "Succès",
         description: "Code supprimé",
@@ -133,7 +133,7 @@ export const TensensCodeAdmin: React.FC = () => {
     });
   };
 
-  const getCodeStatus = (code: TensensCode) => {
+  const getCodeStatus = (code: OrydorsCode) => {
     if (code.expires_at && new Date(code.expires_at) < new Date()) {
       return <Badge variant="destructive">Expiré</Badge>;
     }
@@ -147,9 +147,9 @@ export const TensensCodeAdmin: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Codes Tensens</h2>
+          <h2 className="text-2xl font-bold">Codes Orydors</h2>
           <p className="text-muted-foreground">
-            Gérez les codes promo pour distribuer des points Tensens
+            Gérez les codes promo pour distribuer des points Orydors
           </p>
         </div>
         
@@ -162,7 +162,7 @@ export const TensensCodeAdmin: React.FC = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Générer des codes Tensens</DialogTitle>
+              <DialogTitle>Générer des codes Orydors</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -243,7 +243,7 @@ export const TensensCodeAdmin: React.FC = () => {
         <CardHeader>
           <CardTitle>Codes générés ({codes.length})</CardTitle>
           <CardDescription>
-            Liste de tous les codes Tensens créés
+            Liste de tous les codes Orydors créés
           </CardDescription>
         </CardHeader>
         <CardContent>

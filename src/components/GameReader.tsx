@@ -61,7 +61,7 @@ export function GameReader({ game, onBack }: GameReaderProps) {
       if (choice.points_reward > 0) {
         await awardPoints(choice.points_reward, 'game_choice');
         setTotalPointsEarned(prev => prev + choice.points_reward);
-        toast.success(`+${choice.points_reward} Tensens!`);
+        toast.success(`+${choice.points_reward} Orydors!`);
       }
 
       // Mark current chapter as completed
@@ -89,7 +89,7 @@ export function GameReader({ game, onBack }: GameReaderProps) {
       if (currentChapter?.is_ending && currentChapter.ending_reward_points) {
         await awardPoints(currentChapter.ending_reward_points, 'game_completion');
         setTotalPointsEarned(prev => prev + currentChapter.ending_reward_points!);
-        toast.success(`Jeu terminé! +${currentChapter.ending_reward_points} Tensens de bonus!`);
+        toast.success(`Jeu terminé! +${currentChapter.ending_reward_points} Orydors de bonus!`);
       }
       
       // Could add game completion logic here
@@ -237,7 +237,7 @@ export function GameReader({ game, onBack }: GameReaderProps) {
                   Vous avez terminé "{game.name}" avec succès !
                 </p>
                 <p className="text-lg font-semibold text-primary mb-4">
-                  Total des points gagnés: {totalPointsEarned} Tensens
+                  Total des points gagnés: {totalPointsEarned} Orydors
                 </p>
                 <Button onClick={onBack} size="lg">
                   Retour à la bibliothèque

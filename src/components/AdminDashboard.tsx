@@ -121,8 +121,8 @@ export const AdminDashboard: React.FC = () => {
                   {book.author}
                 </p>
                 <div className={`flex items-center gap-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                  <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Tensens Icon" className="h-4 w-4" />
-                  <span className="font-medium">{book.points} Tensens</span>
+                  <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Orydors Icon" className="h-4 w-4" />
+                  <span className="font-medium">{book.points} Orydors</span>
                 </div>
               </CardHeader>
             </div>

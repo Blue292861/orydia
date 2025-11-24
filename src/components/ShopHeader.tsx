@@ -25,13 +25,13 @@ export const ShopHeader: React.FC = () => {
         <p className={`text-amber-100 ${
           isMobile ? 'text-sm' : isTablet ? 'text-base' : 'text-lg'
         }`}>
-          Échangez vos Tensens durement gagnés contre des objets légendaires !
+          Échangez vos Orydors durement gagnés contre des objets légendaires !
         </p>
         
         <div className={`mt-4 inline-flex items-center gap-2 bg-black/40 rounded-full border border-amber-600 ${
           isMobile ? 'px-4 py-2' : 'px-6 py-3'
         }`}>
-          <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className={`${
+          <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Orydors" className={`${
             isMobile ? 'h-4 w-4' : 'h-6 w-6'
           }`} />
           <span className={`font-bold text-amber-200 ${
@@ -42,7 +42,7 @@ export const ShopHeader: React.FC = () => {
           <span className={`text-amber-300 ${
             isMobile ? 'text-sm' : 'text-base'
           }`}>
-            Tensens
+            Orydors
           </span>
         </div>
       </div>

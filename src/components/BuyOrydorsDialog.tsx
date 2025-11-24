@@ -5,25 +5,25 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Coins, Play, Clock } from 'lucide-react';
-import { TENSENS_PACKS } from '@/data/tensensPacksData';
-import { TensensPack } from '@/types/TensensPack';
-import { TensensPackGrid } from './TensensPackGrid';
-import { TensensDialogHeader } from './TensensDialogHeader';
-import { TensensDialogFooter } from './TensensDialogFooter';
-import { AdForTensens } from './AdForTensens';
-import { TensensCodeRedemption } from './TensensCodeRedemption';
+import { ORYDORS_PACKS } from '@/data/orydorsPacksData';
+import { OrydorsPack } from '@/types/OrydorsPack';
+import { OrydorsPackGrid } from './OrydorsPackGrid';
+import { OrydorsDialogHeader } from './OrydorsDialogHeader';
+import { OrydorsDialogFooter } from './OrydorsDialogFooter';
+import { AdForOrydors } from './AdForOrydors';
+import { OrydorsCodeRedemption } from './OrydorsCodeRedemption';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthRequiredDialog } from './AuthRequiredDialog';
 
-interface BuyTensensDialogProps {
+interface BuyOrydorsDialogProps {
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   showTrigger?: boolean;
 }
 
-export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, open, onOpenChange, showTrigger = true }) => {
+export const BuyOrydorsDialog: React.FC<BuyOrydorsDialogProps> = ({ trigger, open, onOpenChange, showTrigger = true }) => {
   const [loading, setLoading] = useState<string | null>(null);
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = typeof open === 'boolean';
@@ -59,7 +59,7 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
         .from('ad_views')
         .select('id')
         .eq('user_id', data.user.id)
-        .eq('ad_type', 'tensens')
+        .eq('ad_type', 'orydors')
         .gte('viewed_at', today.toISOString())
         .lt('viewed_at', tomorrow.toISOString());
 
@@ -67,9 +67,9 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
     }
   };
 
-  const handlePurchase = async (pack: TensensPack) => {
+  const handlePurchase = async (pack: OrydorsPack) => {
     if (!user) {
-      setAuthMessage("Pour acheter des Tensens, vous devez vous connecter.");
+      setAuthMessage("Pour acheter des Orydors, vous devez vous connecter.");
       setShowAuthDialog(true);
       setOpenState(false);
       return;
@@ -79,11 +79,11 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
     
     try {
 
-      const { data, error } = await supabase.functions.invoke('create-tensens-checkout', {
+      const { data, error } = await supabase.functions.invoke('create-orydors-checkout', {
         body: {
           pack_id: pack.id,
           pack_name: pack.name,
-          tensens_amount: pack.tensens,
+          orydors_amount: pack.orydors,
           price: pack.price
         }
       });
@@ -106,7 +106,7 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
 
   const handleWatchAd = async () => {
     if (!user) {
-      setAuthMessage("Pour regarder une publicité et gagner des Tensens gratuits, vous devez vous connecter.");
+      setAuthMessage("Pour regarder une publicité et gagner des Orydors gratuits, vous devez vous connecter.");
       setShowAuthDialog(true);
       setOpenState(false);
       return;
@@ -127,7 +127,7 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
   const handleAdCompleted = async () => {
     const success = await recordAdView();
     if (success) {
-      // Add 10 Tensens to user's account
+      // Add 10 Orydors to user's account
       addPointsForBook('ad-reward-' + Date.now(), 10);
       setShowAd(false);
       setOpenState(false);
@@ -146,14 +146,14 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
     setShowAd(false);
     toast({
       title: "Publicité fermée",
-      description: "Vous devez regarder la publicité complètement pour obtenir vos Tensens gratuits.",
+      description: "Vous devez regarder la publicité complètement pour obtenir vos Orydors gratuits.",
       variant: "destructive"
     });
   };
 
   if (showAd) {
     return (
-      <AdForTensens 
+      <AdForOrydors 
         onAdCompleted={handleAdCompleted}
         onAdClosed={handleAdClosed}
       />
@@ -167,22 +167,22 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
           {trigger || (
             <Button variant="outline" size="sm" className="ml-2">
               <Coins className="h-4 w-4 mr-1" />
-              Acheter des Tensens
+              Acheter des Orydors
             </Button>
           )}
         </DialogTrigger>
       )}
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-b from-wood-50 via-wood-100 to-wood-200 border-2 border-gold-400 shadow-2xl">
-        <TensensDialogHeader onClose={() => setOpenState(false)} />
+        <OrydorsDialogHeader onClose={() => setOpenState(false)} />
         
-        {/* Free Tensens section */}
+        {/* Free Orydors section */}
         <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 rounded-lg">
           <div className="text-center">
             <h3 className="text-base font-bold text-green-800 mb-1">
-              🎁 Tensens Gratuits !
+              🎁 Orydors Gratuits !
             </h3>
             <p className="text-green-700 text-sm mb-2">
-              Regardez une courte publicité et obtenez 10 Tensens gratuits
+              Regardez une courte publicité et obtenez 10 Orydors gratuits
             </p>
             {canWatchAd ? (
               <div>
@@ -191,7 +191,7 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
                   className="bg-green-600 hover:bg-green-700 text-white font-medieval"
                 >
                   <Play className="mr-2 h-4 w-4" />
-                  Regarder une publicité (+10 Tensens)
+                  Regarder une publicité (+10 Orydors)
                 </Button>
                 <p className="text-xs text-green-600 mt-2">
                   {remainingAds} publicité{remainingAds > 1 ? 's' : ''} restante{remainingAds > 1 ? 's' : ''} aujourd'hui
@@ -216,16 +216,16 @@ export const BuyTensensDialog: React.FC<BuyTensensDialogProps> = ({ trigger, ope
         
         {/* Code redemption section */}
         <div className="mb-4">
-          <TensensCodeRedemption />
+          <OrydorsCodeRedemption />
         </div>
         
-        <TensensPackGrid
-          packs={TENSENS_PACKS}
+        <OrydorsPackGrid
+          packs={ORYDORS_PACKS}
           loading={loading}
           onPurchase={handlePurchase}
         />
         
-        <TensensDialogFooter />
+        <OrydorsDialogFooter />
       </DialogContent>
 
       {/* Dialog d'authentification requise */}
