@@ -7,8 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trash2, Plus, Sparkles } from 'lucide-react';
+import { Trash2, Plus, Sparkles, Check, ChevronsUpDown } from 'lucide-react';
 import { RewardType, LootTable } from '@/types/RewardType';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 export const LootTableEditor: React.FC = () => {
   const [books, setBooks] = useState<any[]>([]);
@@ -17,6 +20,7 @@ export const LootTableEditor: React.FC = () => {
   const [silverLoot, setSilverLoot] = useState<LootTable[]>([]);
   const [goldLoot, setGoldLoot] = useState<LootTable[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bookComboOpen, setBookComboOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -292,18 +296,52 @@ export const LootTableEditor: React.FC = () => {
 
       <div className="max-w-md">
         <Label>Sélectionner un livre</Label>
-        <Select value={selectedBookId} onValueChange={setSelectedBookId}>
-          <SelectTrigger>
-            <SelectValue placeholder="Choisir un livre..." />
-          </SelectTrigger>
-          <SelectContent>
-            {books.map(book => (
-              <SelectItem key={book.id} value={book.id}>
-                {book.title} - {book.author}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover open={bookComboOpen} onOpenChange={setBookComboOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={bookComboOpen}
+              className="w-full justify-between"
+            >
+              {selectedBookId
+                ? books.find((book) => book.id === selectedBookId)?.title
+                : "Rechercher un livre..."}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[500px] p-0 bg-popover z-[100]">
+            <Command>
+              <CommandInput placeholder="Rechercher par titre ou auteur..." />
+              <CommandList>
+                <CommandEmpty>Aucun livre trouvé.</CommandEmpty>
+                <CommandGroup>
+                  {books.map((book) => (
+                    <CommandItem
+                      key={book.id}
+                      value={`${book.title} ${book.author}`}
+                      onSelect={() => {
+                        setSelectedBookId(book.id);
+                        setBookComboOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedBookId === book.id ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium">{book.title}</span>
+                        <span className="text-sm text-muted-foreground">{book.author}</span>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {selectedBookId && (
