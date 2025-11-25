@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChapterBannerAd } from '@/components/ChapterBannerAd';
 import { RewardAd } from '@/components/RewardAd';
+import { ChestOpeningDialog } from '@/components/ChestOpeningDialog';
 import { TranslationProgress } from '@/components/TranslationProgress';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserStats } from '@/contexts/UserStatsContext';
@@ -51,6 +52,10 @@ export const ChapterEpubReader: React.FC = () => {
   const [hasClaimedReward, setHasClaimedReward] = useState(false);
   const [allChaptersCompleted, setAllChaptersCompleted] = useState(false);
   const [markingComplete, setMarkingComplete] = useState(false);
+  
+  // Chest dialog state
+  const [showChestDialog, setShowChestDialog] = useState(false);
+  const [chestRewards, setChestRewards] = useState<any>(null);
   
   // Copyright warning state
   const [showCopyrightWarning, setShowCopyrightWarning] = useState(true);
@@ -783,8 +788,8 @@ export const ChapterEpubReader: React.FC = () => {
       const rewards = await openChestForBook(bookId, book.title);
       
       if (rewards) {
-        // TODO: Show ChestOpeningDialog with rewards
-        toast.success('Coffre ouvert ! Vous avez reçu vos récompenses.');
+        setChestRewards(rewards);
+        setShowChestDialog(true);
       }
       
       // Record book completion
@@ -1167,6 +1172,21 @@ export const ChapterEpubReader: React.FC = () => {
           </filter>
         </defs>
       </svg>
+
+      {chestRewards && (
+        <ChestOpeningDialog
+          isOpen={showChestDialog}
+          onClose={() => {
+            setShowChestDialog(false);
+            setHasClaimedReward(true);
+          }}
+          chestType={chestRewards.chestType}
+          orydors={chestRewards.orydors}
+          orydorsVariation={chestRewards.orydorsVariation}
+          additionalRewards={chestRewards.additionalRewards}
+          bookTitle={book?.title || 'Livre'}
+        />
+      )}
     </div>
   );
 };
