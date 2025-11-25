@@ -266,12 +266,41 @@ export const ChapterEpubReader: React.FC = () => {
               },
             });
             const timeout = new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error('OPF merge timeout')), 1000)
+              setTimeout(() => reject(new Error('OPF merge timeout')), 5000)
             );
             const res: any = await Promise.race([mergePromise, timeout]);
-            if (res?.data instanceof Blob) {
-              epubUrl = URL.createObjectURL(res.data);
-              console.log('OPF merge succeeded within timeout');
+            
+            // Log response type for debugging
+            console.log('Merge response type:', typeof res?.data, res?.data?.constructor?.name);
+            
+            // Handle different binary response types
+            const responseData = res?.data;
+            if (responseData) {
+              let blob: Blob | null = null;
+              
+              if (responseData instanceof Blob) {
+                blob = responseData;
+                console.log('Response is Blob, using directly');
+              } else if (responseData instanceof ArrayBuffer) {
+                blob = new Blob([responseData], { type: 'application/epub+zip' });
+                console.log('Response is ArrayBuffer, converted to Blob');
+              } else if (responseData instanceof Uint8Array) {
+                // Create a new Uint8Array copy to avoid buffer type issues
+                const uint8Copy = new Uint8Array(responseData);
+                blob = new Blob([uint8Copy], { type: 'application/epub+zip' });
+                console.log('Response is Uint8Array, converted to Blob');
+              } else {
+                console.warn('Unknown response data type:', typeof responseData);
+              }
+              
+              if (blob) {
+                epubUrl = URL.createObjectURL(blob);
+                console.log('OPF merge succeeded, EPUB URL created');
+              } else {
+                console.warn('Could not create Blob from response data');
+              }
+            } else {
+              console.warn('No response data received from merge function');
             }
           } catch (error) {
             console.warn('OPF merge skipped (timeout or error). Using original EPUB:', error);
