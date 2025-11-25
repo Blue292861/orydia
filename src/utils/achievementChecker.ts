@@ -60,7 +60,7 @@ export const checkAndUnlockAchievements = (newStats: UserStats): UserStats => {
     return achievement;
   });
 
-  // Calculate bonus points, XP and premium months from newly unlocked achievements
+  // Calculate bonus points, XP, premium months and items from newly unlocked achievements
   const newlyUnlocked = updatedAchievements.filter((ach, index) => 
     ach.unlocked && !newStats.achievements[index].unlocked
   );
@@ -68,6 +68,9 @@ export const checkAndUnlockAchievements = (newStats: UserStats): UserStats => {
   const bonusPoints = newlyUnlocked.reduce((total, ach) => total + ach.points, 0);
   const bonusXp = newlyUnlocked.reduce((total, ach) => total + (ach.xpReward || ach.points), 0);
   const bonusPremiumMonths = newlyUnlocked.reduce((total, ach) => total + (ach.premiumMonths || 0), 0);
+  
+  // Collect all item rewards from newly unlocked achievements
+  const itemRewards = newlyUnlocked.flatMap(ach => ach.itemRewards || []);
 
   // Play sound and show toast for new achievements (only once per achievement)
   if (newlyUnlocked.length > 0) {
@@ -80,9 +83,12 @@ export const checkAndUnlockAchievements = (newStats: UserStats): UserStats => {
       newlyUnlockedToShow.forEach(achievement => {
         const xpText = achievement.xpReward ? ` + ${achievement.xpReward} XP` : ` + ${achievement.points} XP`;
         const premiumText = achievement.premiumMonths ? ` + ${achievement.premiumMonths} mois premium!` : '';
+        const itemText = achievement.itemRewards && achievement.itemRewards.length > 0 
+          ? ` + ${achievement.itemRewards.map(r => `${r.quantity}x item`).join(', ')}`
+          : '';
         toast({
           title: `🏆 Succès Débloqué!`,
-          description: `${achievement.icon} ${achievement.name} - +${achievement.points} points${xpText}${premiumText}`,
+          description: `${achievement.icon} ${achievement.name} - +${achievement.points} points${xpText}${premiumText}${itemText}`,
         });
       });
       
@@ -97,6 +103,30 @@ export const checkAndUnlockAchievements = (newStats: UserStats): UserStats => {
   const newExperiencePoints = newStats.experiencePoints + bonusXp;
   const levelInfo = calculateLevelInfo(newExperiencePoints);
   const pendingPremiumMonths = (newStats.pendingPremiumMonths || 0) + bonusPremiumMonths;
+
+  // Add item rewards to inventory if any
+  if (itemRewards.length > 0 && typeof window !== 'undefined') {
+    // Import dynamically to avoid circular dependencies
+    import('@/integrations/supabase/client').then(async ({ supabase }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        for (const itemReward of itemRewards) {
+          await supabase
+            .from('user_inventory')
+            .upsert({
+              user_id: user.id,
+              reward_type_id: itemReward.rewardTypeId,
+              quantity: itemReward.quantity
+            }, {
+              onConflict: 'user_id,reward_type_id'
+            })
+            .then(({ error }) => {
+              if (error) console.error('Error adding item reward:', error);
+            });
+        }
+      }
+    });
+  }
 
   return {
     ...newStats,

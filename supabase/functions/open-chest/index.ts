@@ -47,22 +47,53 @@ serve(async (req) => {
     }
 
     const userId = userData.user.id;
-    const { bookId } = await req.json();
+    const { bookId, useChestKey } = await req.json();
 
     if (!bookId) {
       throw new Error("Missing bookId");
     }
 
-    // Check if chest already opened for this book
+    // Get current month-year for monthly reclaim system
+    const currentMonthYear = new Date().toISOString().slice(0, 7); // "2025-11"
+
+    // Check if chest already opened for this book this month
     const { data: existingChest } = await supabaseClient
       .from('chest_openings')
       .select('id')
       .eq('user_id', userId)
       .eq('book_id', bookId)
+      .eq('month_year', currentMonthYear)
       .single();
 
+    // If chest already opened this month, check if user wants to use a Chest Key
     if (existingChest) {
-      throw new Error("Chest already opened for this book");
+      if (useChestKey) {
+        const CHEST_KEY_ID = '550e8400-e29b-41d4-a716-446655440000';
+        
+        // Check if user has a Chest Key
+        const { data: keyItem } = await supabaseClient
+          .from('user_inventory')
+          .select('quantity')
+          .eq('user_id', userId)
+          .eq('reward_type_id', CHEST_KEY_ID)
+          .single();
+
+        if (!keyItem || keyItem.quantity <= 0) {
+          throw new Error("Vous n'avez pas de Clé de Coffre Magique");
+        }
+
+        // Consume one key
+        await supabaseClient
+          .from('user_inventory')
+          .update({ quantity: keyItem.quantity - 1 })
+          .eq('user_id', userId)
+          .eq('reward_type_id', CHEST_KEY_ID);
+        
+        console.log('Chest key consumed, allowing chest to be re-opened');
+        // Allow the chest opening to proceed
+      } else {
+        throw new Error("Chest already opened this month");
+      }
     }
 
     // Get book points
@@ -146,13 +177,14 @@ serve(async (req) => {
       additionalRewards
     };
 
-    // Save chest opening
+    // Save chest opening with month_year
     const { error: chestError } = await supabaseClient
       .from('chest_openings')
       .insert({
         user_id: userId,
         book_id: bookId,
         chest_type: chestType,
+        month_year: currentMonthYear,
         rewards_obtained: [...additionalRewards, {
           type: 'currency',
           name: 'Orydors',
