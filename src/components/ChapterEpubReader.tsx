@@ -164,14 +164,23 @@ export const ChapterEpubReader: React.FC = () => {
     const checkBookCompletion = async () => {
       if (!user || !bookId) return;
       
-      const { data } = await supabase
-        .from('book_completions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('book_id', bookId)
-        .maybeSingle();
+      // Check both book_completions AND chest_openings to be consistent with edge function
+      const [completionCheck, chestCheck] = await Promise.all([
+        supabase
+          .from('book_completions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('book_id', bookId)
+          .maybeSingle(),
+        supabase
+          .from('chest_openings')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('book_id', bookId)
+          .maybeSingle()
+      ]);
       
-      if (data) {
+      if (completionCheck.data || chestCheck.data) {
         setHasClaimedReward(true);
       }
     };
@@ -828,17 +837,31 @@ export const ChapterEpubReader: React.FC = () => {
     setMarkingComplete(true);
     
     try {
-      // 1. Mark current chapter as completed
+      // 1. Check if reward already claimed (double-check before proceeding)
+      const { data: chestCheck } = await supabase
+        .from('chest_openings')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('book_id', bookId)
+        .maybeSingle();
+      
+      if (chestCheck) {
+        toast.error('Vous avez déjà réclamé vos Orydors pour ce livre');
+        setHasClaimedReward(true);
+        return;
+      }
+      
+      // 2. Mark current chapter as completed
       await markEpubChapterCompleted(chapter.id, bookId);
       
-      // 2. Reload progression data
+      // 3. Reload progression data
       const { data } = await supabase
         .from('user_epub_chapter_progress')
         .select('chapter_id, is_completed')
         .eq('user_id', user.id)
         .eq('book_id', bookId);
       
-      // 3. Check if all chapters are now completed
+      // 4. Check if all chapters are now completed
       const completedCount = data?.filter(p => p.is_completed).length || 0;
       const allCompleted = completedCount >= allChapters.length;
       
@@ -846,7 +869,7 @@ export const ChapterEpubReader: React.FC = () => {
         setAllChaptersCompleted(true);
         toast.success('Tous les chapitres terminés !');
         
-        // 4. Automatically trigger reward claiming (chest opening)
+        // 5. Automatically trigger reward claiming (chest opening)
         await handleClaimReward();
       } else {
         toast.info(`${completedCount}/${allChapters.length} chapitres terminés`);
