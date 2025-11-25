@@ -128,4 +128,66 @@ export const chapterEpubService = {
 
     return urlData.publicUrl;
   },
+
+  async uploadMergedEpub(blob: Blob, bookId: string, chapterNumber: number): Promise<string> {
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(7);
+    const filePath = `${bookId}/chapter-${chapterNumber}-merged-${timestamp}-${randomString}.epub`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('epubs')
+      .upload(filePath, blob, {
+        contentType: 'application/epub+zip',
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabase.storage
+      .from('epubs')
+      .getPublicUrl(filePath);
+
+    return urlData.publicUrl;
+  },
+
+  async uploadAndMergeChapter(
+    epubFile: File, 
+    opfFile: File | null, 
+    bookId: string, 
+    chapterNumber: number
+  ): Promise<{ epub_url: string; opf_url: string | null; merged_epub_url: string | null }> {
+    const epub_url = await this.uploadChapterEpub(epubFile, bookId, chapterNumber);
+    
+    let opf_url: string | null = null;
+    let merged_epub_url: string | null = null;
+    
+    if (opfFile) {
+      opf_url = await this.uploadChapterOPF(opfFile, bookId, chapterNumber);
+      
+      try {
+        const SUPABASE_URL = "https://aotzivwzoxmnnawcxioo.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvdHppdnd6b3htbm5hd2N4aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5OTEwODYsImV4cCI6MjA2NTU2NzA4Nn0.n-S4MY36dvh2C8f8hRV3AH98VI5gtu3TN_Szb9G_ZQA";
+        
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/merge-epub-opf`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'apikey': SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ epubUrl: epub_url, opfUrl: opf_url }),
+        });
+        
+        if (response.ok) {
+          const mergedBlob = await response.blob();
+          merged_epub_url = await this.uploadMergedEpub(mergedBlob, bookId, chapterNumber);
+          console.log('✅ EPUB merged and uploaded successfully');
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to merge EPUB during upload, will merge on-demand:', error);
+      }
+    }
+    
+    return { epub_url, opf_url, merged_epub_url };
+  },
 };

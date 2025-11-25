@@ -117,11 +117,23 @@ export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
       let epub_url = chapter?.epub_url || '';
       let illustration_url = chapter?.illustration_url || '';
       let opf_url = chapter?.opf_url || '';
+      let merged_epub_url = chapter?.merged_epub_url || '';
 
-      // Upload EPUB if provided
+      // Upload and merge EPUB if new file provided
       if (epubFile) {
-        epub_url = await chapterEpubService.uploadChapterEpub(
+        const result = await chapterEpubService.uploadAndMergeChapter(
           epubFile,
+          opfFile,
+          bookId,
+          formData.chapter_number
+        );
+        epub_url = result.epub_url;
+        opf_url = result.opf_url || '';
+        merged_epub_url = result.merged_epub_url || '';
+      } else if (opfFile) {
+        // If only OPF changed, upload it
+        opf_url = await chapterEpubService.uploadChapterOPF(
+          opfFile,
           bookId,
           formData.chapter_number
         );
@@ -132,15 +144,6 @@ export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
         illustration_url = await chapterEpubService.uploadChapterIllustration(illustrationFile);
       }
 
-      // Upload OPF if provided
-      if (opfFile) {
-        opf_url = await chapterEpubService.uploadChapterOPF(
-          opfFile,
-          bookId,
-          formData.chapter_number
-        );
-      }
-
       const chapterData = {
         book_id: bookId,
         chapter_number: formData.chapter_number,
@@ -149,6 +152,7 @@ export const ChapterEpubForm: React.FC<ChapterEpubFormProps> = ({
         epub_url,
         illustration_url: illustration_url || undefined,
         opf_url: opf_url || undefined,
+        merged_epub_url: merged_epub_url || undefined,
         position: formData.position,
       };
 
