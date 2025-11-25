@@ -7,6 +7,7 @@ export interface ChapterEpub {
   illustration_url?: string;
   epub_url: string;
   opf_url?: string;
+  merged_epub_url?: string;
   position: number;
   created_at: string;
   updated_at: string;

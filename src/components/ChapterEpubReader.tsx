@@ -251,13 +251,18 @@ export const ChapterEpubReader: React.FC = () => {
         // If custom OPF exists, try merging quickly but don't block initial render
         let epubUrl = chapter.epub_url;
         
-        // Check if we have a preloaded Blob for this chapter
-        const cachedBlob = preloadCacheRef.current.get(chapter.id);
-        if (cachedBlob) {
+        // Use pre-merged EPUB if available (instant load)
+        if (chapter.merged_epub_url) {
+          console.log('✅ Using pre-merged EPUB (instant load)');
+          epubUrl = chapter.merged_epub_url;
+        } else if (preloadCacheRef.current.has(chapter.id)) {
           console.log('Using preloaded EPUB from cache');
-          epubUrl = URL.createObjectURL(cachedBlob);
+          const cachedBlob = preloadCacheRef.current.get(chapter.id);
+          if (cachedBlob) {
+            epubUrl = URL.createObjectURL(cachedBlob);
+          }
         } else if (chapter.opf_url) {
-          console.log('Custom OPF detected, attempting quick merge...');
+          console.log('⚠️ No pre-merged EPUB, merging on-demand (slower)...');
           try {
             const SUPABASE_URL = "https://aotzivwzoxmnnawcxioo.supabase.co";
             const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvdHppdnd6b3htbm5hd2N4aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5OTEwODYsImV4cCI6MjA2NTU2NzA4Nn0.n-S4MY36dvh2C8f8hRV3AH98VI5gtu3TN_Szb9G_ZQA";
