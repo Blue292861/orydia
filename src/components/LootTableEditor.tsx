@@ -35,7 +35,7 @@ export const LootTableEditor: React.FC = () => {
       const { data, error } = await supabase
         .from('books')
         .select('id, title, author')
-        .order('title');
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setBooks(data || []);
