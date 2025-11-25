@@ -3,8 +3,9 @@ import { ChapterEpub } from '@/types/ChapterEpub';
 import { chapterEpubService } from '@/services/chapterEpubService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Edit, Trash2, GripVertical } from 'lucide-react';
+import { Edit, Trash2, GripVertical, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,7 @@ export const ChapterEpubList: React.FC<ChapterEpubListProps> = ({ bookId, onEdit
   const [chapters, setChapters] = useState<ChapterEpub[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteChapter, setDeleteChapter] = useState<ChapterEpub | null>(null);
+  const [migrating, setMigrating] = useState(false);
 
   const loadChapters = async () => {
     try {
@@ -58,6 +60,55 @@ export const ChapterEpubList: React.FC<ChapterEpubListProps> = ({ bookId, onEdit
     }
   };
 
+  const handleMigrateChapters = async () => {
+    setMigrating(true);
+    const chaptersToMigrate = chapters.filter(ch => ch.opf_url && !ch.merged_epub_url);
+    
+    if (chaptersToMigrate.length === 0) {
+      toast.info('Tous les chapitres sont déjà migrés');
+      setMigrating(false);
+      return;
+    }
+
+    toast.info(`Migration de ${chaptersToMigrate.length} chapitre(s)...`);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const chapter of chaptersToMigrate) {
+      try {
+        // Call merge function
+        const { data, error } = await supabase.functions.invoke('merge-epub-opf', {
+          body: { epubUrl: chapter.epub_url, opfUrl: chapter.opf_url }
+        });
+
+        if (error) throw error;
+
+        // Upload merged EPUB
+        const blob = data instanceof Blob ? data : new Blob([data]);
+        const mergedUrl = await chapterEpubService.uploadMergedEpub(blob, chapter.book_id, chapter.chapter_number);
+        
+        // Update chapter
+        await chapterEpubService.updateChapter(chapter.id, { merged_epub_url: mergedUrl });
+        
+        successCount++;
+        console.log(`✅ Migrated chapter ${chapter.chapter_number}`);
+      } catch (error) {
+        console.error(`❌ Failed to migrate chapter ${chapter.chapter_number}:`, error);
+        failCount++;
+      }
+    }
+
+    setMigrating(false);
+    loadChapters();
+    
+    if (successCount > 0) {
+      toast.success(`${successCount} chapitre(s) migré(s) avec succès`);
+    }
+    if (failCount > 0) {
+      toast.error(`${failCount} chapitre(s) en erreur`);
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-4">Chargement...</div>;
   }
@@ -70,8 +121,24 @@ export const ChapterEpubList: React.FC<ChapterEpubListProps> = ({ bookId, onEdit
     );
   }
 
+  const needsMigration = chapters.some(ch => ch.opf_url && !ch.merged_epub_url);
+
   return (
     <>
+      {needsMigration && (
+        <div className="mb-4">
+          <Button
+            onClick={handleMigrateChapters}
+            disabled={migrating}
+            variant="outline"
+            className="w-full"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${migrating ? 'animate-spin' : ''}`} />
+            {migrating ? 'Migration en cours...' : 'Pré-fusionner les EPUBs'}
+          </Button>
+        </div>
+      )}
+      
       <div className="space-y-2">
         {chapters.map((chapter) => (
           <Card key={chapter.id}>

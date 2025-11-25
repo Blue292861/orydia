@@ -292,10 +292,22 @@ export const ChapterEpubReader: React.FC = () => {
             );
             
             const blob = await Promise.race([mergePromise, timeout]);
-            epubUrl = URL.createObjectURL(blob);
-            console.log('OPF merge succeeded, EPUB URL created');
+            console.log('📦 Merged EPUB size:', blob.size, 'bytes');
+            
+            // Auto-upload merged EPUB for future instant loading
+            try {
+              console.log('📤 Auto-uploading merged EPUB to storage...');
+              const mergedUrl = await chapterEpubService.uploadMergedEpub(blob, chapter.book_id, chapter.chapter_number);
+              await chapterEpubService.updateChapter(chapter.id, { merged_epub_url: mergedUrl });
+              epubUrl = mergedUrl;
+              console.log('✅ Merged EPUB saved, future loads will be instant');
+            } catch (uploadError) {
+              console.warn('⚠️ Could not save merged EPUB, using blob URL:', uploadError);
+              epubUrl = URL.createObjectURL(blob);
+            }
           } catch (error) {
-            console.warn('OPF merge skipped (timeout or error). Using original EPUB:', error);
+            console.warn('⚠️ OPF merge failed, falling back to original EPUB:', error);
+            epubUrl = chapter.epub_url;
           }
         }
 
