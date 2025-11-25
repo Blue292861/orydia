@@ -3,7 +3,10 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChestReward } from "@/types/RewardType";
 import { RewardCardDisplay } from "./RewardCardDisplay";
-import { Sparkles, Gift } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import coffreArgent from "@/assets/coffre-argent.png";
+import coffreOr from "@/assets/coffre-or.png";
+import carteOrydors from "@/assets/carte-orydors.png";
 
 interface ChestOpeningDialogProps {
   isOpen: boolean;
@@ -85,8 +88,12 @@ export function ChestOpeningDialog({
               <div className={`absolute inset-0 bg-gradient-to-r ${chestColor} rounded-full blur-3xl opacity-60 animate-pulse-slow scale-150`} />
               
               {/* Chest */}
-              <div className={`relative w-48 h-48 bg-gradient-to-br ${chestColor} rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-300 chest-appear flex items-center justify-center`}>
-                <Gift className="w-24 h-24 text-white/90" />
+              <div className="relative transform hover:scale-105 transition-transform duration-300 chest-appear">
+                <img 
+                  src={chestType === 'gold' ? coffreOr : coffreArgent}
+                  alt={`Coffre ${chestType === 'gold' ? 'd\'or' : 'd\'argent'}`}
+                  className="w-48 h-48 object-contain drop-shadow-2xl"
+                />
               </div>
             </div>
 
@@ -107,8 +114,12 @@ export function ChestOpeningDialog({
 
         {phase === 'chest-opening' && (
           <div className="flex items-center justify-center py-12">
-            <div className={`w-48 h-48 bg-gradient-to-br ${chestColor} rounded-2xl shadow-2xl chest-opening flex items-center justify-center`}>
-              <Gift className="w-24 h-24 text-white/90 animate-bounce" />
+            <div className="chest-opening">
+              <img 
+                src={chestType === 'gold' ? coffreOr : coffreArgent}
+                alt={`Coffre ${chestType === 'gold' ? 'd\'or' : 'd\'argent'}`}
+                className="w-48 h-48 object-contain drop-shadow-2xl animate-bounce"
+              />
             </div>
           </div>
         )}
@@ -122,7 +133,7 @@ export function ChestOpeningDialog({
                 type: 'currency',
                 name: 'Orydors',
                 quantity: orydors,
-                imageUrl: '/lovable-uploads/c831f469-03da-458d-8428-2f156b930e87.png',
+                imageUrl: carteOrydors,
                 rarity: 'common',
                 rewardTypeId: 'orydors'
               }}
@@ -186,7 +197,7 @@ export function ChestOpeningDialog({
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-96 overflow-y-auto w-full p-4">
               <div className="flex flex-col items-center space-y-2 p-4 bg-muted rounded-lg">
                 <img 
-                  src="/lovable-uploads/c831f469-03da-458d-8428-2f156b930e87.png" 
+                  src={carteOrydors} 
                   alt="Orydors"
                   className="w-16 h-16 object-contain"
                 />
