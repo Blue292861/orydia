@@ -12,7 +12,7 @@ import { TranslationProgress } from '@/components/TranslationProgress';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw, Type, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw, Type, ShieldAlert, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Book } from '@/types/Book';
 
@@ -50,6 +50,7 @@ export const ChapterEpubReader: React.FC = () => {
   const [showRewardAd, setShowRewardAd] = useState(false);
   const [hasClaimedReward, setHasClaimedReward] = useState(false);
   const [allChaptersCompleted, setAllChaptersCompleted] = useState(false);
+  const [markingComplete, setMarkingComplete] = useState(false);
   
   // Copyright warning state
   const [showCopyrightWarning, setShowCopyrightWarning] = useState(true);
@@ -795,7 +796,7 @@ export const ChapterEpubReader: React.FC = () => {
 
   const handleClaimReward = async () => {
     if (!user) {
-      toast.error("Vous devez être connecté pour réclamer vos Tensens");
+      toast.error("Vous devez être connecté pour réclamer vos Orydors");
       return;
     }
     
@@ -808,7 +809,7 @@ export const ChapterEpubReader: React.FC = () => {
       .maybeSingle();
     
     if (existingCompletion) {
-      toast.error("Vous avez déjà réclamé vos Tensens pour ce livre");
+      toast.error("Vous avez déjà réclamé vos Orydors pour ce livre");
       return;
     }
     
@@ -818,6 +819,43 @@ export const ChapterEpubReader: React.FC = () => {
     } else {
       // If premium: award points directly
       await awardPointsAndComplete();
+    }
+  };
+
+  const handleMarkLastChapterComplete = async () => {
+    if (!user || !chapter || !bookId) return;
+    
+    setMarkingComplete(true);
+    
+    try {
+      // 1. Mark current chapter as completed
+      await markEpubChapterCompleted(chapter.id, bookId);
+      
+      // 2. Reload progression data
+      const { data } = await supabase
+        .from('user_epub_chapter_progress')
+        .select('chapter_id, is_completed')
+        .eq('user_id', user.id)
+        .eq('book_id', bookId);
+      
+      // 3. Check if all chapters are now completed
+      const completedCount = data?.filter(p => p.is_completed).length || 0;
+      const allCompleted = completedCount >= allChapters.length;
+      
+      if (allCompleted) {
+        setAllChaptersCompleted(true);
+        toast.success('Tous les chapitres terminés !');
+        
+        // 4. Automatically trigger reward claiming (chest opening)
+        await handleClaimReward();
+      } else {
+        toast.info(`${completedCount}/${allChapters.length} chapitres terminés`);
+      }
+    } catch (error) {
+      console.error('Error marking chapter complete:', error);
+      toast.error('Erreur lors du marquage');
+    } finally {
+      setMarkingComplete(false);
     }
   };
 
@@ -984,7 +1022,7 @@ export const ChapterEpubReader: React.FC = () => {
               hasClaimedReward ? (
                 <Button disabled className="w-full h-9">
                   <Gift className="mr-2 h-4 w-4" />
-                  <span className="text-sm">Tensens déjà réclamés ✓</span>
+                  <span className="text-sm">Orydors déjà réclamés ✓</span>
                 </Button>
               ) : allChaptersCompleted ? (
                 <Button
@@ -993,11 +1031,26 @@ export const ChapterEpubReader: React.FC = () => {
                   variant="default"
                 >
                   <Gift className="mr-2 h-4 w-4" />
-                  <span className="text-sm">Réclamer vos Tensens</span>
+                  <span className="text-sm">Réclamer vos Orydors</span>
                 </Button>
               ) : (
-                <Button disabled className="w-full h-9" variant="outline">
-                  <span className="text-sm">Terminez tous les chapitres pour réclamer</span>
+                <Button 
+                  onClick={handleMarkLastChapterComplete}
+                  disabled={markingComplete}
+                  className="w-full h-9"
+                  variant="default"
+                >
+                  {markingComplete ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      <span className="text-sm">Vérification...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      <span className="text-sm">Terminer et réclamer mes Orydors</span>
+                    </>
+                  )}
                 </Button>
               )
             ) : nextChapter ? (
@@ -1043,7 +1096,7 @@ export const ChapterEpubReader: React.FC = () => {
       {/* Ad Banner for non-premium users */}
       <ChapterBannerAd />
 
-      {/* Reward Ad for claiming tensens */}
+      {/* Reward Ad for claiming orydors */}
       {showRewardAd && book && (
         <RewardAd
           book={book}
@@ -1054,7 +1107,7 @@ export const ChapterEpubReader: React.FC = () => {
           }}
           onAdClosed={() => {
             setShowRewardAd(false);
-            toast.info("Publicité fermée. Recommencez pour réclamer vos Tensens.");
+            toast.info("Publicité fermée. Recommencez pour réclamer vos Orydors.");
           }}
         />
       )}
