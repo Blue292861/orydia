@@ -81,7 +81,7 @@ export const MonthSuccessCarouselItem: React.FC<MonthSuccessCarouselItemProps> =
                   <Badge
                     key={genre}
                     variant="outline"
-                    className={`${genreStyle?.borderColor || 'border-border'} bg-background/50 text-wood-300`}
+                    className={`${genreStyle?.borderColor || 'border-border'} text-wood-300`}
                   >
                     {genreStyle?.ornament} {genre}
                   </Badge>
@@ -157,7 +157,7 @@ export const MonthSuccessCarouselItem: React.FC<MonthSuccessCarouselItemProps> =
                   <Badge
                     key={genre}
                     variant="outline"
-                    className={`text-[10px] py-0 ${genreStyle?.borderColor || 'border-border'} bg-background/50 text-wood-300`}
+                    className={`text-[10px] py-0 ${genreStyle?.borderColor || 'border-border'} text-wood-300`}
                   >
                     {genreStyle?.ornament} {genre}
                   </Badge>
