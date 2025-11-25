@@ -259,49 +259,36 @@ export const ChapterEpubReader: React.FC = () => {
         } else if (chapter.opf_url) {
           console.log('Custom OPF detected, attempting quick merge...');
           try {
-            const mergePromise = supabase.functions.invoke('merge-epub-opf', {
-              body: {
+            const SUPABASE_URL = "https://aotzivwzoxmnnawcxioo.supabase.co";
+            const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvdHppdnd6b3htbm5hd2N4aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5OTEwODYsImV4cCI6MjA2NTU2NzA4Nn0.n-S4MY36dvh2C8f8hRV3AH98VI5gtu3TN_Szb9G_ZQA";
+            
+            const mergePromise = fetch(`${SUPABASE_URL}/functions/v1/merge-epub-opf`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'apikey': SUPABASE_ANON_KEY,
+              },
+              body: JSON.stringify({
                 epubUrl: chapter.epub_url,
                 opfUrl: chapter.opf_url,
-              },
+              }),
+            }).then(async (response) => {
+              if (!response.ok) {
+                throw new Error(`Merge failed: ${response.statusText}`);
+              }
+              const blob = await response.blob();
+              console.log('Received blob from merge function:', blob.size, 'bytes');
+              return blob;
             });
+            
             const timeout = new Promise<never>((_, reject) =>
               setTimeout(() => reject(new Error('OPF merge timeout')), 5000)
             );
-            const res: any = await Promise.race([mergePromise, timeout]);
             
-            // Log response type for debugging
-            console.log('Merge response type:', typeof res?.data, res?.data?.constructor?.name);
-            
-            // Handle different binary response types
-            const responseData = res?.data;
-            if (responseData) {
-              let blob: Blob | null = null;
-              
-              if (responseData instanceof Blob) {
-                blob = responseData;
-                console.log('Response is Blob, using directly');
-              } else if (responseData instanceof ArrayBuffer) {
-                blob = new Blob([responseData], { type: 'application/epub+zip' });
-                console.log('Response is ArrayBuffer, converted to Blob');
-              } else if (responseData instanceof Uint8Array) {
-                // Create a new Uint8Array copy to avoid buffer type issues
-                const uint8Copy = new Uint8Array(responseData);
-                blob = new Blob([uint8Copy], { type: 'application/epub+zip' });
-                console.log('Response is Uint8Array, converted to Blob');
-              } else {
-                console.warn('Unknown response data type:', typeof responseData);
-              }
-              
-              if (blob) {
-                epubUrl = URL.createObjectURL(blob);
-                console.log('OPF merge succeeded, EPUB URL created');
-              } else {
-                console.warn('Could not create Blob from response data');
-              }
-            } else {
-              console.warn('No response data received from merge function');
-            }
+            const blob = await Promise.race([mergePromise, timeout]);
+            epubUrl = URL.createObjectURL(blob);
+            console.log('OPF merge succeeded, EPUB URL created');
           } catch (error) {
             console.warn('OPF merge skipped (timeout or error). Using original EPUB:', error);
           }
