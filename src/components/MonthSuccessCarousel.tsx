@@ -39,9 +39,9 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
   }, [onBookSelect]);
 
   const getTitleSize = () => {
-    if (isMobile) return 'text-lg';
-    if (isTablet) return 'text-xl';
-    return 'text-2xl sm:text-3xl lg:text-4xl';
+    if (isMobile) return 'text-base';
+    if (isTablet) return 'text-lg';
+    return 'text-xl sm:text-2xl lg:text-3xl';
   };
 
   // Cas limites
@@ -66,7 +66,7 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
         <h2 className={`font-cursive text-wood-300 mb-6 ${getTitleSize()}`}>
           Succès du mois
         </h2>
-        <div className="w-full min-h-[400px] md:min-h-[350px] lg:min-h-[400px]">
+        <div className="w-full min-h-[280px] md:min-h-[260px] lg:min-h-[300px]">
           <MonthSuccessCarouselItem
             book={books[0]}
             isActive={true}
@@ -94,7 +94,7 @@ export const MonthSuccessCarousel: React.FC<MonthSuccessCarouselProps> = ({
           setApi={setApi}
           className="w-full"
         >
-          <CarouselContent className="min-h-[400px] md:min-h-[350px] lg:min-h-[400px]">
+          <CarouselContent className="min-h-[280px] md:min-h-[260px] lg:min-h-[300px]">
             {books.map((book, index) => {
               const isActive = index === current;
 
