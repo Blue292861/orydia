@@ -52,6 +52,8 @@ export const ChapterEpubReader: React.FC = () => {
   const [hasClaimedReward, setHasClaimedReward] = useState(false);
   const [allChaptersCompleted, setAllChaptersCompleted] = useState(false);
   const [markingComplete, setMarkingComplete] = useState(false);
+  const [hasChestKey, setHasChestKey] = useState(false);
+  const [chestKeyCount, setChestKeyCount] = useState(0);
   
   // Chest dialog state
   const [showChestDialog, setShowChestDialog] = useState(false);
@@ -169,24 +171,38 @@ export const ChapterEpubReader: React.FC = () => {
     const checkBookCompletion = async () => {
       if (!user || !bookId) return;
       
-      // Check both book_completions AND chest_openings to be consistent with edge function
-      const [completionCheck, chestCheck] = await Promise.all([
-        supabase
-          .from('book_completions')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('book_id', bookId)
-          .maybeSingle(),
-        supabase
-          .from('chest_openings')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('book_id', bookId)
-          .maybeSingle()
-      ]);
+      const currentMonthYear = new Date().toISOString().slice(0, 7);
       
-      if (completionCheck.data || chestCheck.data) {
+      // Check if chest was opened this month
+      const { data: chestCheck } = await supabase
+        .from('chest_openings')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('book_id', bookId)
+        .eq('month_year', currentMonthYear)
+        .maybeSingle();
+      
+      if (chestCheck) {
         setHasClaimedReward(true);
+      } else {
+        setHasClaimedReward(false);
+      }
+      
+      // Check if user has Chest Keys
+      const CHEST_KEY_ID = '550e8400-e29b-41d4-a716-446655440000';
+      const { data: keyData } = await supabase
+        .from('user_inventory')
+        .select('quantity')
+        .eq('user_id', user.id)
+        .eq('reward_type_id', CHEST_KEY_ID)
+        .maybeSingle();
+      
+      if (keyData && keyData.quantity > 0) {
+        setHasChestKey(true);
+        setChestKeyCount(keyData.quantity);
+      } else {
+        setHasChestKey(false);
+        setChestKeyCount(0);
       }
     };
     
@@ -887,6 +903,48 @@ export const ChapterEpubReader: React.FC = () => {
     }
   };
 
+  // Handle using a chest key to re-open an already claimed chest
+  const handleUseChestKey = async () => {
+    if (!user || !bookId || !book || !hasChestKey) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Non authentifié');
+
+      const { data, error } = await supabase.functions.invoke('open-chest', {
+        body: { bookId, useChestKey: true },
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      });
+
+      if (error) throw error;
+
+      setChestRewards(data);
+      setShowChestDialog(true);
+      setHasClaimedReward(true);
+      
+      // Refresh chest key count
+      const CHEST_KEY_ID = '550e8400-e29b-41d4-a716-446655440000';
+      const { data: keyData } = await supabase
+        .from('user_inventory')
+        .select('quantity')
+        .eq('user_id', user.id)
+        .eq('reward_type_id', CHEST_KEY_ID)
+        .maybeSingle();
+      
+      if (keyData && keyData.quantity > 0) {
+        setChestKeyCount(keyData.quantity);
+      } else {
+        setHasChestKey(false);
+        setChestKeyCount(0);
+      }
+
+      toast.success('Clé de Coffre utilisée ! Coffre ouvert à nouveau.');
+    } catch (error: any) {
+      console.error('Error using chest key:', error);
+      toast.error(error.message || 'Erreur lors de l\'utilisation de la clé');
+    }
+  };
+
   const themeColors = {
     light: { background: '#ffffff', color: '#000000' },
     dark: { background: '#1a1a1a', color: '#ffffff' },
@@ -1048,10 +1106,21 @@ export const ChapterEpubReader: React.FC = () => {
           <div className="flex-1">
             {isLastChapter() ? (
               hasClaimedReward ? (
-                <Button disabled className="w-full h-9">
-                  <Gift className="mr-2 h-4 w-4" />
-                  <span className="text-sm">Orydors déjà réclamés ✓</span>
-                </Button>
+                hasChestKey ? (
+                  <Button
+                    onClick={handleUseChestKey}
+                    className="w-full h-9 bg-amber-600 hover:bg-amber-700"
+                    variant="default"
+                  >
+                    <Gift className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Utiliser une Clé ({chestKeyCount})</span>
+                  </Button>
+                ) : (
+                  <Button disabled className="w-full h-9">
+                    <Gift className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Orydors déjà réclamés ✓</span>
+                  </Button>
+                )
               ) : allChaptersCompleted ? (
                 <Button
                   onClick={handleClaimReward}

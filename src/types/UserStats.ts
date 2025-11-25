@@ -1,3 +1,8 @@
+export interface ItemReward {
+  rewardTypeId: string;  // ID du reward_type dans la table
+  quantity: number;
+}
+
 export interface Achievement {
   id: string;
   name: string;
@@ -8,6 +13,7 @@ export interface Achievement {
   icon: string;
   rarity: 'common' | 'rare' | 'epic' | 'legendary' | 'ultra-legendary';
   premiumMonths?: number; // Number of premium months offered as reward
+  itemRewards?: ItemReward[]; // Items donnés en récompense
 }
 
 export interface LevelInfo {

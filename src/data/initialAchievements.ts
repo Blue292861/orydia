@@ -40,7 +40,10 @@ export const initialAchievements: Achievement[] = [
     xpReward: 750,
     unlocked: false,
     icon: '👑',
-    rarity: 'legendary'
+    rarity: 'legendary',
+    itemRewards: [
+      { rewardTypeId: '550e8400-e29b-41d4-a716-446655440000', quantity: 1 } // Clé de Coffre Magique
+    ]
   },
   {
     id: 'ultimate-scholar',
@@ -51,7 +54,10 @@ export const initialAchievements: Achievement[] = [
     unlocked: false,
     icon: '🌟',
     rarity: 'ultra-legendary',
-    premiumMonths: 3
+    premiumMonths: 3,
+    itemRewards: [
+      { rewardTypeId: '550e8400-e29b-41d4-a716-446655440000', quantity: 3 } // 3 Clés de Coffre Magiques
+    ]
   },
   {
     id: 'point-collector',

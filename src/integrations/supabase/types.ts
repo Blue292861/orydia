@@ -556,6 +556,7 @@ export type Database = {
           book_id: string | null
           chest_type: string
           id: string
+          month_year: string | null
           opened_at: string | null
           rewards_obtained: Json
           user_id: string
@@ -564,6 +565,7 @@ export type Database = {
           book_id?: string | null
           chest_type: string
           id?: string
+          month_year?: string | null
           opened_at?: string | null
           rewards_obtained: Json
           user_id: string
@@ -572,6 +574,7 @@ export type Database = {
           book_id?: string | null
           chest_type?: string
           id?: string
+          month_year?: string | null
           opened_at?: string | null
           rewards_obtained?: Json
           user_id?: string

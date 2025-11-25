@@ -10,6 +10,7 @@ import { LevelProgressBar } from '@/components/LevelProgressBar';
 import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 import { ProfileFooter } from '@/components/ProfileFooter';
 import { InventoryPage } from '@/components/InventoryPage';
+import { CardCollectionButton } from '@/components/CardCollectionButton';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,6 +19,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Crown, User, Gift } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import type { Achievement } from '@/types/UserStats';
 
 export const ProfilePage: React.FC = () => {
@@ -27,10 +29,36 @@ export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const [showOnlyPremium, setShowOnlyPremium] = useState(false);
   const [recentlyUnlockedIds, setRecentlyUnlockedIds] = useState<string[]>([]);
+  const [cardCount, setCardCount] = useState(0);
+  const [activeTab, setActiveTab] = useState('profile');
   const prevAchievements = useRef<Achievement[]>([]);
 
   const unlockedAchievements = userStats.achievements.filter(a => a.unlocked);
   const totalAchievementPoints = unlockedAchievements.reduce((sum, a) => sum + a.points, 0);
+
+  // Load card count
+  useEffect(() => {
+    const loadCardCount = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_inventory')
+          .select('quantity, reward_types(category)')
+          .eq('user_id', user.id)
+          .eq('reward_types.category', 'card');
+        
+        if (error) throw error;
+        
+        const total = data?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
+        setCardCount(total);
+      } catch (error) {
+        console.error('Error loading card count:', error);
+      }
+    };
+    
+    loadCardCount();
+  }, [user]);
 
   // Charger la préférence de filtre depuis localStorage
   useEffect(() => {
@@ -109,7 +137,7 @@ export const ProfilePage: React.FC = () => {
         <EditProfileForm />
       </div>
 
-      <Tabs defaultValue="profile" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="profile" className="flex items-center space-x-2">
             <User className="w-4 h-4" />
@@ -162,6 +190,12 @@ export const ProfilePage: React.FC = () => {
           {userStats.levelInfo && (
             <LevelProgressBar levelInfo={userStats.levelInfo} />
           )}
+
+          {/* Card Collection Button */}
+          <CardCollectionButton 
+            cardCount={cardCount}
+            onClick={() => setActiveTab('inventory')}
+          />
 
           {/* Premium Status */}
           <PremiumStatusCard isPremium={userStats.isPremium} />
