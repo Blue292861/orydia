@@ -149,7 +149,8 @@ export const ShopAdmin: React.FC = () => {
               imageUrl: '',
               category: '',
               seller: '',
-              shopType: 'internal' as const
+              shopType: 'internal' as const,
+              paymentType: 'orydors' as const
             }}
             onSubmit={handleSubmit}
           />

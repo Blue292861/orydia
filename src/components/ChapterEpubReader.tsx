@@ -938,7 +938,7 @@ export const ChapterEpubReader: React.FC = () => {
         setChestKeyCount(0);
       }
 
-      toast.success('Clé de Coffre utilisée ! Coffre ouvert à nouveau.');
+      toast.success('Clé d\'Aildor utilisée ! Coffre ouvert à nouveau.');
     } catch (error: any) {
       console.error('Error using chest key:', error);
       toast.error(error.message || 'Erreur lors de l\'utilisation de la clé');

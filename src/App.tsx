@@ -16,6 +16,7 @@ import { AdminStatsPage } from "./pages/AdminStatsPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import { BookTableOfContents } from "./pages/BookTableOfContents";
 import { ChapterEpubReader } from "./components/ChapterEpubReader";
+import { ItemPurchaseSuccess } from "./pages/ItemPurchaseSuccess";
 
 import SplashScreen from "./components/SplashScreen";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -103,6 +104,7 @@ const AppContent = () => {
       <Route path="/désinscription" element={<UnsubscribePage />} />
       <Route path="/book/:bookId/chapters" element={<BookTableOfContents />} />
       <Route path="/book/:bookId/chapter/:chapterId" element={<ChapterEpubReader />} />
+      <Route path="/item-purchase-success" element={<ItemPurchaseSuccess />} />
       <Route path="/:authorSlug/:titleSlug" element={<WorkPage />} />
       <Route path="/*" element={<Index />} />
     </Routes>

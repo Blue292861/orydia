@@ -1,5 +1,6 @@
 
 export type ShopType = 'internal' | 'external';
+export type PaymentType = 'orydors' | 'real_money';
 
 export interface ShopItem {
   id: string;
@@ -7,9 +8,12 @@ export interface ShopItem {
   description: string;
   content?: string;
   price: number;
+  realPriceCents?: number;
+  paymentType: PaymentType;
+  rewardTypeId?: string;
   imageUrl: string;
   category: string;
   seller: string;
-  requiredLevel?: number; // Niveau minimum requis pour acheter l'article
-  shopType: ShopType; // Type de boutique : 'internal' (Orydia) ou 'external' (Oryshop)
+  requiredLevel?: number;
+  shopType: ShopType;
 }

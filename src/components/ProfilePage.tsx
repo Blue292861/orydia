@@ -11,6 +11,7 @@ import { SubscriptionManagement } from '@/components/SubscriptionManagement';
 import { ProfileFooter } from '@/components/ProfileFooter';
 import { InventoryPage } from '@/components/InventoryPage';
 import { CardCollectionButton } from '@/components/CardCollectionButton';
+import { AildorKeyStock } from '@/components/AildorKeyStock';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -195,6 +196,13 @@ export const ProfilePage: React.FC = () => {
           <CardCollectionButton 
             cardCount={cardCount}
             onClick={() => setActiveTab('inventory')}
+          />
+
+          {/* Aildor Key Stock */}
+          <AildorKeyStock 
+            onNavigateToShop={() => {
+              window.dispatchEvent(new CustomEvent('navigateToTab', { detail: { tab: 'shop' } }));
+            }}
           />
 
           {/* Premium Status */}

@@ -42,7 +42,7 @@ export const initialAchievements: Achievement[] = [
     icon: '👑',
     rarity: 'legendary',
     itemRewards: [
-      { rewardTypeId: '550e8400-e29b-41d4-a716-446655440000', quantity: 1 } // Clé de Coffre Magique
+      { rewardTypeId: '550e8400-e29b-41d4-a716-446655440000', quantity: 1 } // Clé d'Aildor le dragon
     ]
   },
   {
@@ -56,7 +56,7 @@ export const initialAchievements: Achievement[] = [
     rarity: 'ultra-legendary',
     premiumMonths: 3,
     itemRewards: [
-      { rewardTypeId: '550e8400-e29b-41d4-a716-446655440000', quantity: 3 } // 3 Clés de Coffre Magiques
+      { rewardTypeId: '550e8400-e29b-41d4-a716-446655440000', quantity: 3 } // 3 Clés d'Aildor le dragon
     ]
   },
   {
