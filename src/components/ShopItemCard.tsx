@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ShopItemLevelGuard } from '@/components/ShopItemLevelGuard';
-import { Sword, Shield, Sparkles, Star, User } from 'lucide-react';
+import { Sword, Shield, Sparkles, Star, User, CreditCard, Coins } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { SoundEffects } from '@/utils/soundEffects';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,6 +26,7 @@ export const ShopItemCard: React.FC<ShopItemCardProps> = ({ item, onItemClick })
 
   const requiredLevel = item.requiredLevel || 1;
   const userLevel = userStats.level || 1;
+  const isRealMoney = item.paymentType === 'real_money';
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {
@@ -144,33 +145,43 @@ export const ShopItemCard: React.FC<ShopItemCardProps> = ({ item, onItemClick })
         </p>
         
         <div className="flex items-center justify-between mt-auto">
-          <div className={`flex items-center gap-2 bg-amber-900/30 rounded-lg border border-amber-600/50 ${
-            isMobile ? 'px-2 py-1' : 'px-3 py-2'
-          }`}>
-            <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className={`${
-              isMobile ? 'h-4 w-4' : 'h-5 w-5'
-            }`} />
-            <span className={`font-bold text-amber-200 ${
+          <div className={`flex items-center gap-2 rounded-lg border ${
+            isRealMoney 
+              ? 'bg-green-900/30 border-green-600/50' 
+              : 'bg-amber-900/30 border-amber-600/50'
+          } ${isMobile ? 'px-2 py-1' : 'px-3 py-2'}`}>
+            {isRealMoney ? (
+              <CreditCard className={`text-green-400 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+            ) : (
+              <Coins className={`text-amber-400 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+            )}
+            <span className={`font-bold ${isRealMoney ? 'text-green-200' : 'text-amber-200'} ${
               isMobile ? 'text-base' : 'text-lg'
             }`}>
-              {item.price}
+              {isRealMoney && item.realPriceCents 
+                ? `${(item.realPriceCents / 100).toFixed(2)}€` 
+                : item.price}
             </span>
           </div>
           
           <Button 
             onClick={handlePurchase}
-            disabled={userStats.totalPoints < item.price || userLevel < requiredLevel}
+            disabled={!isRealMoney && (userStats.totalPoints < item.price || userLevel < requiredLevel)}
             className={`font-semibold transition-all duration-200 ${
-              userStats.totalPoints >= item.price && userLevel >= requiredLevel
-                ? 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-black border-2 border-amber-400 hover:border-amber-300 shadow-lg hover:shadow-amber-400/50' 
-                : 'bg-slate-600 text-slate-400 cursor-not-allowed border-2 border-slate-500'
+              isRealMoney
+                ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white border-2 border-green-400 hover:border-green-300 shadow-lg hover:shadow-green-400/50'
+                : userStats.totalPoints >= item.price && userLevel >= requiredLevel
+                  ? 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-black border-2 border-amber-400 hover:border-amber-300 shadow-lg hover:shadow-amber-400/50' 
+                  : 'bg-slate-600 text-slate-400 cursor-not-allowed border-2 border-slate-500'
             } ${isMobile ? 'px-2 py-1 text-xs' : 'px-4 py-2 text-sm'}`}
           >
-            {userLevel < requiredLevel 
+            {userLevel < requiredLevel && !isRealMoney
               ? `🔒 Niveau ${requiredLevel}` 
-              : userStats.totalPoints >= item.price 
-                ? '⚔️ Acheter' 
-                : '💰 Insuffisant'}
+              : isRealMoney 
+                ? '💳 Acheter'
+                : userStats.totalPoints >= item.price 
+                  ? '⚔️ Acheter' 
+                  : '💰 Insuffisant'}
           </Button>
         </div>
         
