@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ShopItem } from '@/types/ShopItem';
+import { ShopItem, PaymentType } from '@/types/ShopItem';
 
 export const fetchShopItemsFromDB = async (shopType?: 'internal' | 'external'): Promise<ShopItem[]> => {
   let query = supabase
@@ -26,6 +26,9 @@ export const fetchShopItemsFromDB = async (shopType?: 'internal' | 'external'): 
     description: item.description,
     content: item.content || '',
     price: item.price,
+    realPriceCents: item.real_price_cents || undefined,
+    paymentType: (item.payment_type as PaymentType) || 'orydors',
+    rewardTypeId: item.reward_type_id || undefined,
     imageUrl: item.image_url,
     category: item.category,
     seller: item.seller,
@@ -47,6 +50,9 @@ export const addShopItemToDB = async (item: ShopItem): Promise<void> => {
       description: item.description,
       content: item.content,
       price: item.price,
+      real_price_cents: item.realPriceCents,
+      payment_type: item.paymentType,
+      reward_type_id: item.rewardTypeId,
       image_url: item.imageUrl,
       category: item.category,
       seller: item.seller,
@@ -71,6 +77,9 @@ export const updateShopItemInDB = async (item: ShopItem): Promise<void> => {
       description: item.description,
       content: item.content,
       price: item.price,
+      real_price_cents: item.realPriceCents,
+      payment_type: item.paymentType,
+      reward_type_id: item.rewardTypeId,
       image_url: item.imageUrl,
       category: item.category,
       seller: item.seller,

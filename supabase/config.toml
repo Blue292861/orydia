@@ -21,12 +21,16 @@ verify_jwt = false
 [functions.translate-book-chapters]
 verify_jwt = false
 
+[functions.complete-item-purchase]
+verify_jwt = false
+
 [functions.award-points]
 [functions.cancel-subscription]
 [functions.check-subscription]
 [functions.create-api-key]
 [functions.create-checkout]
 [functions.create-orydors-checkout]
+[functions.create-item-checkout]
 [functions.customer-portal]
 [functions.get-user-stats]
 [functions.merge-epub-opf]

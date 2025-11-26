@@ -3,7 +3,7 @@ import { ShopItem } from '@/types/ShopItem';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sword, Shield, Sparkles, Star, User, X } from 'lucide-react';
+import { Sword, Shield, Sparkles, Star, User, X, CreditCard, Coins, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { SoundEffects } from '@/utils/soundEffects';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,6 +25,9 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showAdInterstitial, setShowAdInterstitial] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const isRealMoney = item.paymentType === 'real_money';
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -63,17 +66,60 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
       return;
     }
 
-    // Afficher la publicité pour les utilisateurs freemium
-    if (!subscription?.isPremium) {
-      setShowAdInterstitial(true);
-      return;
+    if (isRealMoney) {
+      // Achat avec Stripe
+      await processRealMoneyPurchase();
+    } else {
+      // Afficher la publicité pour les utilisateurs freemium
+      if (!subscription?.isPremium) {
+        setShowAdInterstitial(true);
+        return;
+      }
+      processPurchase();
     }
+  };
 
-    processPurchase();
+  const processRealMoneyPurchase = async () => {
+    setIsProcessing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-item-checkout', {
+        body: {
+          item_id: item.id,
+          item_name: item.name,
+          item_description: item.description,
+          real_price_cents: item.realPriceCents,
+          reward_type_id: item.rewardTypeId,
+          quantity: 1
+        }
+      });
+
+      if (error) {
+        console.error('Error creating checkout:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de créer la session de paiement",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      toast({
+        title: "Erreur",
+        description: "Une erreur inattendue s'est produite",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const processPurchase = async () => {
-    // Vérifier si l'adresse est renseignée
+    // Vérifier si l'adresse est renseignée (seulement pour les articles physiques)
     if (!userProfile?.address || !userProfile?.city || !userProfile?.country) {
       setShowAddressDialog(true);
       return;
@@ -102,13 +148,13 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
       SoundEffects.playPurchase();
       toast({
         title: "⚔️ Achat Réussi !",
-        description: `Vous avez acquis ${item.name} pour ${item.price} Tensens !`,
+        description: `Vous avez acquis ${item.name} pour ${item.price} Orydors !`,
       });
       onClose();
     } else {
       toast({
-        title: "💰 Tensens insuffisants",
-        description: `Il vous manque ${item.price - userStats.totalPoints} Tensens pour acheter cet objet.`,
+        title: "💰 Orydors insuffisants",
+        description: `Il vous manque ${item.price - userStats.totalPoints} Orydors pour acheter cet objet.`,
         variant: "destructive",
       });
     }
@@ -132,6 +178,18 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
   const handleAdWatched = () => {
     setShowAdInterstitial(false);
     processPurchase();
+  };
+
+  const formatPrice = () => {
+    if (isRealMoney && item.realPriceCents) {
+      return `${(item.realPriceCents / 100).toFixed(2)}€`;
+    }
+    return `${item.price} Orydors`;
+  };
+
+  const canPurchase = () => {
+    if (isRealMoney) return true;
+    return userStats.totalPoints >= item.price;
   };
 
   return (
@@ -163,6 +221,13 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
               {item.category}
             </span>
           </Badge>
+
+          {isRealMoney && (
+            <Badge className="absolute top-2 left-24 bg-green-900/80 text-green-200 border border-green-600">
+              <CreditCard className="h-3 w-3 mr-1" />
+              <span className="font-semibold text-xs">Paiement réel</span>
+            </Badge>
+          )}
         </div>
 
         {/* Content */}
@@ -197,23 +262,42 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
         {/* Footer */}
         <div className="p-6 border-t border-slate-600 bg-slate-900/50">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 bg-amber-900/30 rounded-lg border border-amber-600/50 px-3 py-2">
-              <img src="/lovable-uploads/4a891ef6-ff72-4b5a-b33c-0dc33dd3aa26.png" alt="Icône Tensens" className="h-5 w-5" />
-              <span className="font-bold text-amber-200 text-lg">
-                {item.price}
+            <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${
+              isRealMoney 
+                ? 'bg-green-900/30 border-green-600/50' 
+                : 'bg-amber-900/30 border-amber-600/50'
+            }`}>
+              {isRealMoney ? (
+                <CreditCard className="h-5 w-5 text-green-400" />
+              ) : (
+                <Coins className="h-5 w-5 text-amber-400" />
+              )}
+              <span className={`font-bold text-lg ${isRealMoney ? 'text-green-200' : 'text-amber-200'}`}>
+                {formatPrice()}
               </span>
             </div>
             
             <Button 
               onClick={handlePurchase}
-              disabled={userStats.totalPoints < item.price}
+              disabled={!canPurchase() || isProcessing}
               className={`font-semibold transition-all duration-200 px-6 py-2 ${
-                userStats.totalPoints >= item.price 
-                  ? 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-black border-2 border-amber-400 hover:border-amber-300 shadow-lg hover:shadow-amber-400/50' 
+                canPurchase() 
+                  ? isRealMoney
+                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white border-2 border-green-400 hover:border-green-300 shadow-lg hover:shadow-green-400/50'
+                    : 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-black border-2 border-amber-400 hover:border-amber-300 shadow-lg hover:shadow-amber-400/50' 
                   : 'bg-slate-600 text-slate-400 cursor-not-allowed border-2 border-slate-500'
               }`}
             >
-              {userStats.totalPoints >= item.price ? '⚔️ Acheter' : '🔒 Verrouillé'}
+              {isProcessing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Chargement...
+                </>
+              ) : canPurchase() ? (
+                isRealMoney ? '💳 Acheter' : '⚔️ Acheter'
+              ) : (
+                '🔒 Verrouillé'
+              )}
             </Button>
           </div>
         </div>

@@ -1296,10 +1296,13 @@ export type Database = {
           is_on_sale: boolean
           is_temporary: boolean | null
           name: string
+          payment_type: string | null
           price: number
           product_id: string | null
+          real_price_cents: number | null
           related_book_ids: string[] | null
           required_level: number | null
+          reward_type_id: string | null
           sale_price: number | null
           seller: string
           shop_type: Database["public"]["Enums"]["shop_type"]
@@ -1321,10 +1324,13 @@ export type Database = {
           is_on_sale?: boolean
           is_temporary?: boolean | null
           name: string
+          payment_type?: string | null
           price: number
           product_id?: string | null
+          real_price_cents?: number | null
           related_book_ids?: string[] | null
           required_level?: number | null
+          reward_type_id?: string | null
           sale_price?: number | null
           seller: string
           shop_type?: Database["public"]["Enums"]["shop_type"]
@@ -1346,10 +1352,13 @@ export type Database = {
           is_on_sale?: boolean
           is_temporary?: boolean | null
           name?: string
+          payment_type?: string | null
           price?: number
           product_id?: string | null
+          real_price_cents?: number | null
           related_book_ids?: string[] | null
           required_level?: number | null
+          reward_type_id?: string | null
           sale_price?: number | null
           seller?: string
           shop_type?: Database["public"]["Enums"]["shop_type"]
@@ -1357,7 +1366,15 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "shop_items_reward_type_id_fkey"
+            columns: ["reward_type_id"]
+            isOneToOne: false
+            referencedRelation: "reward_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscribers: {
         Row: {
