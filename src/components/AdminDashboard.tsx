@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import { TranslationAlerts } from '@/components/TranslationAlerts';
 import { TranslationJobsMonitor } from '@/components/TranslationJobsMonitor';
 import { RewardTypesAdmin } from '@/components/RewardTypesAdmin';
 import { LootTableEditor } from '@/components/LootTableEditor';
+import ChallengeAdmin from '@/components/ChallengeAdmin';
 import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -79,8 +79,9 @@ export const AdminDashboard: React.FC = () => {
       </h2>
 
       <Tabs defaultValue="books" className="space-y-6">
-        <TabsList>
+        <TabsList className="flex flex-wrap">
           <TabsTrigger value="books">Livres</TabsTrigger>
+          <TabsTrigger value="challenges">Défis</TabsTrigger>
           <TabsTrigger value="translations">Traductions</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
         </TabsList>
@@ -191,6 +192,10 @@ export const AdminDashboard: React.FC = () => {
               </p>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="challenges">
+          <ChallengeAdmin />
         </TabsContent>
 
         <TabsContent value="translations">
