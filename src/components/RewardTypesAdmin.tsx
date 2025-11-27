@@ -8,14 +8,86 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { RewardType } from '@/types/RewardType';
-import { Trash2, Edit, Plus, Upload } from 'lucide-react';
+import { Trash2, Edit, Plus, Upload, HelpCircle, ChevronDown, ChevronUp, Copy } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
+// Guide des métadonnées par catégorie
+const METADATA_GUIDES: Record<string, { description: string; fields: { name: string; type: string; description: string; required?: boolean }[]; example: object }> = {
+  currency: {
+    description: "Les métadonnées pour les monnaies définissent le comportement et l'affichage de la devise.",
+    fields: [
+      { name: "multiplier", type: "number", description: "Multiplicateur de base (ex: 1.5 pour +50%)", required: false },
+      { name: "icon", type: "string", description: "Nom de l'icône à afficher", required: false },
+      { name: "color", type: "string", description: "Couleur d'affichage (hex ou nom)", required: false },
+    ],
+    example: {
+      multiplier: 1,
+      icon: "coins",
+      color: "#FFD700"
+    }
+  },
+  fragment: {
+    description: "Les fragments sont des morceaux collectables qui peuvent être combinés pour obtenir une récompense.",
+    fields: [
+      { name: "fragmentsRequired", type: "number", description: "Nombre de fragments nécessaires pour compléter", required: true },
+      { name: "rewardOnComplete", type: "string", description: "Type de récompense obtenue (ex: 'premium_month')", required: true },
+      { name: "glowEffect", type: "boolean", description: "Activer l'effet lumineux", required: false },
+    ],
+    example: {
+      fragmentsRequired: 12,
+      rewardOnComplete: "premium_month",
+      glowEffect: true
+    }
+  },
+  card: {
+    description: "Les cartes collectables représentent des personnages, auteurs ou éléments de l'univers.",
+    fields: [
+      { name: "collection", type: "string", description: "Nom de la collection (ex: 'Auteurs', 'Personnages')", required: true },
+      { name: "series", type: "string", description: "Série ou édition de la carte", required: false },
+      { name: "bookId", type: "string (UUID)", description: "ID du livre associé", required: false },
+      { name: "authorName", type: "string", description: "Nom de l'auteur représenté", required: false },
+      { name: "quote", type: "string", description: "Citation ou texte affiché sur la carte", required: false },
+      { name: "stats", type: "object", description: "Statistiques de la carte (force, sagesse, etc.)", required: false },
+    ],
+    example: {
+      collection: "Auteurs Légendaires",
+      series: "Édition Fondateur",
+      authorName: "Maxime Laugé",
+      quote: "Les mots sont des clés vers d'autres mondes.",
+      stats: {
+        creativity: 95,
+        influence: 88,
+        legacy: 92
+      }
+    }
+  },
+  item: {
+    description: "Les objets sont des items utilisables ou consommables avec des effets spécifiques.",
+    fields: [
+      { name: "consumable", type: "boolean", description: "L'objet est-il consommable (disparaît après usage)", required: true },
+      { name: "effect", type: "string", description: "Type d'effet (ex: 'unlock_chest', 'bonus_xp', 'cosmetic')", required: true },
+      { name: "effectValue", type: "number", description: "Valeur de l'effet (ex: multiplicateur, durée)", required: false },
+      { name: "stackable", type: "boolean", description: "Peut-on empiler plusieurs exemplaires", required: false },
+      { name: "maxStack", type: "number", description: "Nombre maximum dans une pile", required: false },
+      { name: "usageLimit", type: "number", description: "Nombre d'utilisations avant épuisement", required: false },
+    ],
+    example: {
+      consumable: true,
+      effect: "unlock_chest",
+      effectValue: 1,
+      stackable: true,
+      maxStack: 99
+    }
+  }
+};
 
 export const RewardTypesAdmin: React.FC = () => {
   const [rewardTypes, setRewardTypes] = useState<RewardType[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingReward, setEditingReward] = useState<RewardType | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -161,6 +233,7 @@ export const RewardTypesAdmin: React.FC = () => {
 
   const resetForm = () => {
     setEditingReward(null);
+    setIsGuideOpen(false);
     setFormData({
       name: '',
       description: '',
@@ -269,13 +342,83 @@ export const RewardTypesAdmin: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <Label>Métadonnées (JSON)</Label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Métadonnées (JSON)</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsGuideOpen(!isGuideOpen)}
+                    className="text-xs gap-1"
+                  >
+                    <HelpCircle className="w-3 h-3" />
+                    Guide
+                    {isGuideOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </Button>
+                </div>
+
+                <Collapsible open={isGuideOpen} onOpenChange={setIsGuideOpen}>
+                  <CollapsibleContent>
+                    {METADATA_GUIDES[formData.category] && (
+                      <div className="bg-muted/50 border rounded-lg p-3 mb-2 text-xs space-y-3">
+                        <p className="text-muted-foreground italic">
+                          {METADATA_GUIDES[formData.category].description}
+                        </p>
+                        
+                        <div>
+                          <h4 className="font-semibold mb-2">Champs disponibles :</h4>
+                          <div className="space-y-1.5">
+                            {METADATA_GUIDES[formData.category].fields.map((field) => (
+                              <div key={field.name} className="flex flex-col gap-0.5 bg-background/50 rounded p-1.5">
+                                <div className="flex items-center gap-2">
+                                  <code className="text-amber-600 font-mono text-[11px]">{field.name}</code>
+                                  <span className="text-muted-foreground text-[10px]">({field.type})</span>
+                                  {field.required && (
+                                    <span className="text-red-500 text-[10px]">*requis</span>
+                                  )}
+                                </div>
+                                <span className="text-muted-foreground text-[10px]">{field.description}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-semibold">Exemple :</h4>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-[10px] gap-1"
+                              onClick={() => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  metadata: JSON.stringify(METADATA_GUIDES[formData.category].example, null, 2)
+                                }));
+                                toast({ title: "Exemple copié", description: "L'exemple a été appliqué aux métadonnées" });
+                              }}
+                            >
+                              <Copy className="w-3 h-3" />
+                              Utiliser cet exemple
+                            </Button>
+                          </div>
+                          <pre className="bg-background/80 rounded p-2 overflow-x-auto font-mono text-[10px]">
+                            {JSON.stringify(METADATA_GUIDES[formData.category].example, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    )}
+                  </CollapsibleContent>
+                </Collapsible>
+
                 <Textarea
                   value={formData.metadata}
                   onChange={(e) => setFormData(prev => ({ ...prev, metadata: e.target.value }))}
                   rows={4}
                   placeholder='{"key": "value"}'
+                  className="font-mono text-xs"
                 />
               </div>
 
