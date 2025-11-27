@@ -507,6 +507,125 @@ export type Database = {
         }
         Relationships: []
       }
+      challenge_objectives: {
+        Row: {
+          challenge_id: string | null
+          created_at: string | null
+          id: string
+          objective_name: string
+          objective_type: string
+          position: number | null
+          target_book_id: string | null
+          target_count: number | null
+          target_genre: string | null
+          target_reward_type_id: string | null
+        }
+        Insert: {
+          challenge_id?: string | null
+          created_at?: string | null
+          id?: string
+          objective_name: string
+          objective_type: string
+          position?: number | null
+          target_book_id?: string | null
+          target_count?: number | null
+          target_genre?: string | null
+          target_reward_type_id?: string | null
+        }
+        Update: {
+          challenge_id?: string | null
+          created_at?: string | null
+          id?: string
+          objective_name?: string
+          objective_type?: string
+          position?: number | null
+          target_book_id?: string | null
+          target_count?: number | null
+          target_genre?: string | null
+          target_reward_type_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_objectives_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_objectives_target_book_id_fkey"
+            columns: ["target_book_id"]
+            isOneToOne: false
+            referencedRelation: "book_translation_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_objectives_target_book_id_fkey"
+            columns: ["target_book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_objectives_target_reward_type_id_fkey"
+            columns: ["target_reward_type_id"]
+            isOneToOne: false
+            referencedRelation: "reward_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenges: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string
+          end_date: string
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          item_rewards: Json | null
+          name: string
+          orydors_reward: number | null
+          premium_months_reward: number | null
+          start_date: string
+          updated_at: string | null
+          xp_reward: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          end_date: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_rewards?: Json | null
+          name: string
+          orydors_reward?: number | null
+          premium_months_reward?: number | null
+          start_date: string
+          updated_at?: string | null
+          xp_reward?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          end_date?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_rewards?: Json | null
+          name?: string
+          orydors_reward?: number | null
+          premium_months_reward?: number | null
+          start_date?: string
+          updated_at?: string | null
+          xp_reward?: number | null
+        }
+        Relationships: []
+      }
       chapter_translations: {
         Row: {
           chapter_id: string
@@ -1773,6 +1892,121 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_challenge_completions: {
+        Row: {
+          challenge_id: string | null
+          completed_at: string | null
+          id: string
+          rewards_claimed: boolean | null
+          rewards_claimed_at: string | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id?: string | null
+          completed_at?: string | null
+          id?: string
+          rewards_claimed?: boolean | null
+          rewards_claimed_at?: string | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string | null
+          completed_at?: string | null
+          id?: string
+          rewards_claimed?: boolean | null
+          rewards_claimed_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenge_completions_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_challenge_notifications: {
+        Row: {
+          challenge_id: string | null
+          id: string
+          seen_at: string | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id?: string | null
+          id?: string
+          seen_at?: string | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string | null
+          id?: string
+          seen_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenge_notifications_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_challenge_progress: {
+        Row: {
+          challenge_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          current_progress: number | null
+          id: string
+          is_completed: boolean | null
+          objective_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_progress?: number | null
+          id?: string
+          is_completed?: boolean | null
+          objective_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_progress?: number | null
+          id?: string
+          is_completed?: boolean | null
+          objective_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenge_progress_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_challenge_progress_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "challenge_objectives"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_chapter_progress: {
         Row: {

@@ -12,13 +12,14 @@ import { ProfileFooter } from '@/components/ProfileFooter';
 import { InventoryPage } from '@/components/InventoryPage';
 import { CardCollectionButton } from '@/components/CardCollectionButton';
 import { AildorKeyStock } from '@/components/AildorKeyStock';
+import ChallengesSection from '@/components/ChallengesSection';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Crown, User, Gift } from 'lucide-react';
+import { Crown, User, Gift, Target } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import type { Achievement } from '@/types/UserStats';
@@ -139,10 +140,14 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="profile" className="flex items-center space-x-2">
             <User className="w-4 h-4" />
             <span>Profil</span>
+          </TabsTrigger>
+          <TabsTrigger value="challenges" className="flex items-center space-x-2">
+            <Target className="w-4 h-4" />
+            <span>Défis</span>
           </TabsTrigger>
           <TabsTrigger value="inventory" className="flex items-center space-x-2">
             <Gift className="w-4 h-4" />
@@ -234,6 +239,10 @@ export const ProfilePage: React.FC = () => {
 
           {/* Footer avec contact et réseaux sociaux */}
           <ProfileFooter />
+        </TabsContent>
+
+        <TabsContent value="challenges">
+          <ChallengesSection />
         </TabsContent>
 
         <TabsContent value="inventory">
