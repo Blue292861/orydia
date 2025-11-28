@@ -4,6 +4,7 @@ import ePub from 'epubjs';
 import { ChapterEpub } from '@/types/ChapterEpub';
 import { chapterEpubService } from '@/services/chapterEpubService';
 import { startReadingEpubChapter, markEpubChapterCompleted } from '@/services/chapterService';
+import { updateProgressOnBookCompletion } from '@/services/challengeService';
 import { Button } from '@/components/ui/button';
 import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChapterBannerAd } from '@/components/ChapterBannerAd';
@@ -817,6 +818,9 @@ export const ChapterEpubReader: React.FC = () => {
       if (error) throw error;
       
       setHasClaimedReward(true);
+      
+      // Update challenge progress for book completion
+      await updateProgressOnBookCompletion(user.id, bookId, book.genres || []);
       
     } catch (error) {
       console.error('Error awarding points:', error);

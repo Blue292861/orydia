@@ -244,6 +244,75 @@ serve(async (req) => {
       }
     });
 
+    // Update challenge progress for collected items
+    for (const reward of additionalRewards) {
+      if (reward.rewardTypeId) {
+        // Get active challenges with collect_item objectives for this reward type
+        const { data: objectives } = await supabaseClient
+          .from('challenge_objectives')
+          .select(`
+            id,
+            challenge_id,
+            challenges!inner (
+              id,
+              is_active,
+              start_date,
+              end_date
+            )
+          `)
+          .eq('objective_type', 'collect_item')
+          .eq('target_reward_type_id', reward.rewardTypeId);
+
+        if (objectives) {
+          const now = new Date().toISOString();
+          for (const obj of objectives) {
+            const challenge = (obj as any).challenges;
+            if (challenge?.is_active && challenge.start_date <= now && challenge.end_date >= now) {
+              // Check/update user progress
+              const { data: existingProgress } = await supabaseClient
+                .from('user_challenge_progress')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('objective_id', obj.id)
+                .single();
+
+              const { data: objective } = await supabaseClient
+                .from('challenge_objectives')
+                .select('target_count')
+                .eq('id', obj.id)
+                .single();
+
+              const targetCount = objective?.target_count || 1;
+              const newProgress = (existingProgress?.current_progress || 0) + reward.quantity;
+              const isCompleted = newProgress >= targetCount;
+
+              if (existingProgress) {
+                await supabaseClient
+                  .from('user_challenge_progress')
+                  .update({
+                    current_progress: Math.min(newProgress, targetCount),
+                    is_completed: isCompleted,
+                    completed_at: isCompleted && !existingProgress.is_completed ? now : existingProgress.completed_at,
+                  })
+                  .eq('id', existingProgress.id);
+              } else {
+                await supabaseClient
+                  .from('user_challenge_progress')
+                  .insert({
+                    user_id: userId,
+                    challenge_id: obj.challenge_id,
+                    objective_id: obj.id,
+                    current_progress: Math.min(newProgress, targetCount),
+                    is_completed: isCompleted,
+                    completed_at: isCompleted ? now : null,
+                  });
+              }
+            }
+          }
+        }
+      }
+    }
+
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

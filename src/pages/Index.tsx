@@ -34,6 +34,7 @@ import { WelcomeDialog } from '@/components/WelcomeDialog';
 import { GuidedTutorial } from '@/components/GuidedTutorial';
 
 import { VideoAd } from '@/components/VideoAd';
+import NewChallengePopup from '@/components/NewChallengePopup';
 import { useBooks } from '@/hooks/useBooks';
 import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -304,6 +305,9 @@ const AppContent = () => {
         onOpenChange={setShowAuthDialog}
         message={authDialogMessage}
       />
+
+      {/* Popup nouveaux défis */}
+      <NewChallengePopup onNavigateToProfile={() => setCurrentPage('profile')} />
     </>
   );
 };

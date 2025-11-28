@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { updateProgressOnBookCompletion } from '@/services/challengeService';
 
 interface BookReaderProps {
   book: Book;
@@ -134,6 +135,11 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
         setChestRewards(rewards);
         setShowChestDialog(true);
         setHasFinished(true);
+        
+        // Update challenge progress for book completion
+        if (user) {
+          await updateProgressOnBookCompletion(user.id, book.id, book.genres || []);
+        }
       }
     } catch (error) {
       console.error('Error opening chest:', error);
