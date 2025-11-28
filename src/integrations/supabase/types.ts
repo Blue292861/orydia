@@ -670,6 +670,65 @@ export type Database = {
           },
         ]
       }
+      chapter_waypoints: {
+        Row: {
+          cfi_range: string
+          chapter_id: string
+          content_audio_url: string | null
+          content_image_url: string | null
+          content_link_label: string | null
+          content_link_url: string | null
+          content_text: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          updated_at: string
+          waypoint_type: string
+          word_index: number | null
+          word_text: string
+        }
+        Insert: {
+          cfi_range: string
+          chapter_id: string
+          content_audio_url?: string | null
+          content_image_url?: string | null
+          content_link_label?: string | null
+          content_link_url?: string | null
+          content_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          updated_at?: string
+          waypoint_type: string
+          word_index?: number | null
+          word_text: string
+        }
+        Update: {
+          cfi_range?: string
+          chapter_id?: string
+          content_audio_url?: string | null
+          content_image_url?: string | null
+          content_link_label?: string | null
+          content_link_url?: string | null
+          content_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          updated_at?: string
+          waypoint_type?: string
+          word_index?: number | null
+          word_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapter_waypoints_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "book_chapter_epubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chest_openings: {
         Row: {
           book_id: string | null
