@@ -3,7 +3,7 @@ import { ChapterEpub } from '@/types/ChapterEpub';
 import { chapterEpubService } from '@/services/chapterEpubService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Edit, Trash2, GripVertical, RefreshCw } from 'lucide-react';
+import { Edit, Trash2, GripVertical, RefreshCw, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -16,6 +16,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+} from '@/components/ui/dialog';
+import WaypointManager from './WaypointManager';
 
 interface ChapterEpubListProps {
   bookId: string;
@@ -28,6 +33,7 @@ export const ChapterEpubList: React.FC<ChapterEpubListProps> = ({ bookId, onEdit
   const [loading, setLoading] = useState(true);
   const [deleteChapter, setDeleteChapter] = useState<ChapterEpub | null>(null);
   const [migrating, setMigrating] = useState(false);
+  const [waypointChapter, setWaypointChapter] = useState<ChapterEpub | null>(null);
 
   const loadChapters = async () => {
     try {
@@ -169,6 +175,15 @@ export const ChapterEpubList: React.FC<ChapterEpubListProps> = ({ bookId, onEdit
                 <Button
                   size="icon"
                   variant="outline"
+                  onClick={() => setWaypointChapter(chapter)}
+                  title="Gérer les waypoints"
+                  className="text-amber-500 hover:text-amber-600 hover:border-amber-500"
+                >
+                  <MapPin className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
                   onClick={() => onEdit(chapter)}
                 >
                   <Edit className="h-4 w-4" />
@@ -200,6 +215,18 @@ export const ChapterEpubList: React.FC<ChapterEpubListProps> = ({ bookId, onEdit
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Waypoint Manager Dialog */}
+      <Dialog open={!!waypointChapter} onOpenChange={() => setWaypointChapter(null)}>
+        <DialogContent className="max-w-6xl h-[85vh] p-0 overflow-hidden">
+          {waypointChapter && (
+            <WaypointManager
+              chapter={waypointChapter}
+              onClose={() => setWaypointChapter(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

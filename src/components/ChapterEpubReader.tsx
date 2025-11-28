@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ePub from 'epubjs';
 import { ChapterEpub } from '@/types/ChapterEpub';
+import { Waypoint } from '@/types/Waypoint';
 import { chapterEpubService } from '@/services/chapterEpubService';
+import { getWaypointsByChapterId } from '@/services/waypointService';
 import { startReadingEpubChapter, markEpubChapterCompleted } from '@/services/chapterService';
 import { updateProgressOnBookCompletion } from '@/services/challengeService';
 import { Button } from '@/components/ui/button';
@@ -11,6 +13,7 @@ import { ChapterBannerAd } from '@/components/ChapterBannerAd';
 import { RewardAd } from '@/components/RewardAd';
 import { ChestOpeningDialog } from '@/components/ChestOpeningDialog';
 import { TranslationProgress } from '@/components/TranslationProgress';
+import WaypointPopup from '@/components/WaypointPopup';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,6 +66,11 @@ export const ChapterEpubReader: React.FC = () => {
   // Copyright warning state
   const [showCopyrightWarning, setShowCopyrightWarning] = useState(true);
   
+  // Waypoint state
+  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
+  const [activeWaypoint, setActiveWaypoint] = useState<Waypoint | null>(null);
+  const [showWaypointPopup, setShowWaypointPopup] = useState(false);
+  
   // EPUB refs (not states!)
   const bookRef = useRef<any>(null);
   const renditionRef = useRef<any>(null);
@@ -76,6 +84,55 @@ export const ChapterEpubReader: React.FC = () => {
   const translationCacheRef = useRef<Map<string, string>>(new Map());
   const originalContentRef = useRef<string>('');
   const preloadCacheRef = useRef<Map<string, Blob>>(new Map());
+
+  // Helper function to highlight waypoint words in EPUB content
+  const highlightWaypointInDocument = (
+    doc: Document, 
+    waypoint: Waypoint, 
+    colors: { color: string; bg: string }
+  ) => {
+    const walker = doc.createTreeWalker(
+      doc.body,
+      NodeFilter.SHOW_TEXT,
+      null
+    );
+
+    let node: Text | null;
+    let found = false;
+    while ((node = walker.nextNode() as Text | null) && !found) {
+      const text = node.textContent || '';
+      const wordRegex = new RegExp(`\\b${waypoint.word_text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+      const match = wordRegex.exec(text);
+      
+      if (match) {
+        const index = match.index;
+        try {
+          const range = doc.createRange();
+          range.setStart(node, index);
+          range.setEnd(node, index + waypoint.word_text.length);
+
+          const span = doc.createElement('span');
+          span.className = 'orydia-waypoint';
+          span.dataset.waypointId = waypoint.id;
+          span.style.cssText = `
+            font-weight: bold;
+            color: ${colors.color};
+            cursor: pointer;
+            text-decoration: underline dotted;
+            text-underline-offset: 3px;
+            background-color: ${colors.bg};
+            padding: 1px 2px;
+            border-radius: 2px;
+          `;
+
+          range.surroundContents(span);
+          found = true;
+        } catch (e) {
+          console.warn('Could not highlight waypoint:', waypoint.word_text, e);
+        }
+      }
+    }
+  };
 
   // Load chapter data and settings
   useEffect(() => {
@@ -96,6 +153,14 @@ export const ChapterEpubReader: React.FC = () => {
 
         setChapter(chapterData);
         setAllChapters(chaptersData);
+        
+        // Load waypoints for this chapter
+        try {
+          const waypointsData = await getWaypointsByChapterId(chapterData.id);
+          setWaypoints(waypointsData);
+        } catch (error) {
+          console.error('Error loading waypoints:', error);
+        }
 
         // Mark book as started when user opens first chapter
       if (user && bookId && chapterData) {
@@ -435,19 +500,50 @@ export const ChapterEpubReader: React.FC = () => {
         rendition.on('rendered', onRendered);
         rendition.on('relocated', onRelocated);
 
-        // Register hook to apply pre-translated content
+        // Register hook to apply pre-translated content and waypoints
         rendition.hooks.content.register((contents: any) => {
           const doc = contents.document;
-          if (!doc || language === 'fr') return;
-
-          // Get section ID
-          const section = contents.section;
-          const sectionId = section?.idref;
+          if (!doc) return;
           
-          if (sectionId && translationCacheRef.current.has(sectionId)) {
-            const translatedHTML = translationCacheRef.current.get(sectionId);
-            if (doc.body && translatedHTML) {
-              doc.body.innerHTML = translatedHTML;
+          // Apply translations if not French
+          if (language !== 'fr') {
+            const section = contents.section;
+            const sectionId = section?.idref;
+            
+            if (sectionId && translationCacheRef.current.has(sectionId)) {
+              const translatedHTML = translationCacheRef.current.get(sectionId);
+              if (doc.body && translatedHTML) {
+                doc.body.innerHTML = translatedHTML;
+              }
+            }
+          }
+          
+          // Apply waypoint highlighting
+          if (waypoints.length > 0) {
+            const themeColors = {
+              light: { color: '#d97706', bg: 'rgba(251, 191, 36, 0.2)' },
+              dark: { color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.2)' },
+              sepia: { color: '#b45309', bg: 'rgba(251, 191, 36, 0.2)' },
+            };
+            const colors = themeColors[theme] || themeColors.light;
+            
+            waypoints.forEach(waypoint => {
+              highlightWaypointInDocument(doc, waypoint, colors);
+            });
+          }
+        });
+        
+        // Handle clicks on waypoints
+        rendition.on('click', (event: MouseEvent) => {
+          const target = event.target as HTMLElement;
+          if (target.classList.contains('orydia-waypoint')) {
+            event.preventDefault();
+            event.stopPropagation();
+            const waypointId = target.dataset.waypointId;
+            const wp = waypoints.find(w => w.id === waypointId);
+            if (wp) {
+              setActiveWaypoint(wp);
+              setShowWaypointPopup(true);
             }
           }
         });
@@ -1260,6 +1356,16 @@ export const ChapterEpubReader: React.FC = () => {
           bookTitle={book?.title || 'Livre'}
         />
       )}
+
+      {/* Waypoint Popup */}
+      <WaypointPopup
+        waypoint={activeWaypoint}
+        isOpen={showWaypointPopup}
+        onClose={() => {
+          setShowWaypointPopup(false);
+          setActiveWaypoint(null);
+        }}
+      />
     </div>
   );
 };
