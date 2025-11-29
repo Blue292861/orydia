@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ePub, { Book, Rendition } from 'epubjs';
-import { MapPin, FileText, Image, Volume2, ExternalLink, Trash2, Edit, Loader2 } from 'lucide-react';
+import { MapPin, FileText, Image, Volume2, ExternalLink, Trash2, Edit, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ChapterEpub } from '@/types/ChapterEpub';
 import { Waypoint, WaypointFormData } from '@/types/Waypoint';
 import { getWaypointsByChapterId, createWaypoint, updateWaypoint, deleteWaypoint } from '@/services/waypointService';
@@ -21,6 +21,8 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
   const [editingWaypoint, setEditingWaypoint] = useState<Waypoint | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
   
   const viewerRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<Book | null>(null);
@@ -71,6 +73,12 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
       }
     });
 
+    // Track navigation position
+    rendition.on('relocated', (location: any) => {
+      setAtStart(location.atStart);
+      setAtEnd(location.atEnd);
+    });
+
     return () => {
       if (bookRef.current) {
         bookRef.current.destroy();
@@ -102,6 +110,14 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleNextPage = () => {
+    renditionRef.current?.next();
+  };
+
+  const handlePrevPage = () => {
+    renditionRef.current?.prev();
   };
 
   const highlightWaypointInDocument = (doc: Document, waypoint: Waypoint) => {
@@ -203,11 +219,35 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* EPUB Viewer */}
-        <div className="flex-1 border-r border-border">
+        <div className="flex-1 border-r border-border flex flex-col">
           <div className="p-2 bg-muted/30 border-b border-border text-xs text-muted-foreground">
             Sélectionnez un mot pour créer un waypoint
           </div>
-          <div ref={viewerRef} className="h-[calc(100%-32px)] bg-white" />
+          <div ref={viewerRef} className="flex-1 bg-white" />
+          {/* Navigation bar */}
+          <div className="p-2 bg-muted/30 border-t border-border flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevPage}
+              disabled={atStart}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Précédent
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              Naviguez pour sélectionner des mots
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={atEnd}
+            >
+              Suivant
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
         </div>
 
         {/* Right panel */}
