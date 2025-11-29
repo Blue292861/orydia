@@ -554,34 +554,70 @@ export const ChapterEpubReader: React.FC = () => {
         const savedLocation = typeof savedCFI === 'string' ? savedCFI : undefined;
 
         const spineItems: any[] = ((book.spine as any).items || []) as any[];
+        
+        // More precise cover detection - avoid false positives
         const isCoverLike = (item: any) => {
           const href = String(item?.href || '').toLowerCase();
           const idref = String(item?.idref || '').toLowerCase();
           const props = String(item?.properties || '').toLowerCase();
-          const looksLike = /cover|title|front|copyright|nav|toc/.test(href) ||
-            /cover|title|front|copyright|nav|toc/.test(idref) ||
-            props.includes('cover') || props.includes('nav');
+          
+          // More specific patterns to avoid blocking real content
+          const coverPatterns = /^cover\.|_cover\.|cover-image|cover\.x?html|titlepage|frontmatter|copyright-page|nav\.x?html$|toc\.x?html$/;
+          const looksLike = coverPatterns.test(href) || coverPatterns.test(idref) ||
+            props.includes('cover-image') || props === 'nav';
           const nonLinear = String(item?.linear || '').toLowerCase() === 'no';
           return looksLike || nonLinear;
         };
-        const firstReadable = spineItems.find((it) => !isCoverLike(it)) || spineItems[1] || spineItems[0];
-        const readingHref = firstReadable?.href;
+        
+        // Debug logging
+        console.log('🔍 EPUB spine items:', spineItems.map(it => ({
+          href: it.href,
+          idref: it.idref,
+          isCoverLike: isCoverLike(it)
+        })));
+        
+        // Find first readable, fallback to first item if all are flagged
+        const firstReadable = spineItems.find((it) => !isCoverLike(it));
+        const targetItem = firstReadable || spineItems[0];
+        const readingHref = targetItem?.href;
+        
+        console.log('📖 Target item for display:', readingHref);
         
         const tryDisplay = async (target?: any) => {
           try {
             await rendition.display(target);
           } catch (err) {
-            console.warn('Display failed, retrying with first readable if possible:', err);
+            console.warn('Display failed (attempt 1):', err);
             if (cfiKey) localStorage.removeItem(cfiKey);
-            if (readingHref) {
-              await rendition.display(readingHref);
-            } else {
-              await rendition.display();
+            
+            // Attempt 2: try with readingHref
+            try {
+              if (readingHref) {
+                await rendition.display(readingHref);
+              } else {
+                throw new Error('No readingHref available');
+              }
+            } catch (err2) {
+              console.warn('Display failed (attempt 2):', err2);
+              
+              // Attempt 3: let epub.js decide
+              try {
+                await rendition.display();
+              } catch (err3) {
+                console.warn('Display failed (attempt 3):', err3);
+                
+                // Last resort: force first spine item
+                if (spineItems[0]?.href) {
+                  await rendition.display(spineItems[0].href);
+                }
+              }
             }
           }
         };
 
         const initialTarget = savedLocation || readingHref;
+        console.log('🚀 Initial display target:', initialTarget);
+        
         const displayPromise = tryDisplay(initialTarget).then(() => {
           if (!cancelled && !epubReady) setEpubReady(true);
         });
