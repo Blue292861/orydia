@@ -583,42 +583,54 @@ export const ChapterEpubReader: React.FC = () => {
         
         console.log('📖 Target item for display:', readingHref);
         
-        const tryDisplay = async (target?: any) => {
+        // Check if we had a loading failure before for this chapter
+        const failureKey = `chapter_load_failed_${chapterId}`;
+        const hadPreviousFailure = localStorage.getItem(failureKey);
+        
+        // If we had a failure before, clear saved location to start fresh
+        if (hadPreviousFailure && cfiKey) {
+          console.log('🔄 Previous load failure detected, clearing saved location');
+          localStorage.removeItem(cfiKey);
+          localStorage.removeItem(failureKey);
+        }
+        
+        // Re-check saved location after potential clear
+        const effectiveSavedLocation = hadPreviousFailure ? undefined : (typeof savedCFI === 'string' ? savedCFI : undefined);
+        
+        const tryDisplay = async (target?: any, attemptNumber: number = 1) => {
+          console.log(`🎯 Display attempt ${attemptNumber}:`, target);
           try {
             await rendition.display(target);
+            console.log(`✅ Display attempt ${attemptNumber} succeeded`);
           } catch (err) {
-            console.warn('Display failed (attempt 1):', err);
-            if (cfiKey) localStorage.removeItem(cfiKey);
+            console.warn(`Display failed (attempt ${attemptNumber}):`, err);
             
-            // Attempt 2: try with readingHref
-            try {
-              if (readingHref) {
-                await rendition.display(readingHref);
-              } else {
-                throw new Error('No readingHref available');
-              }
-            } catch (err2) {
-              console.warn('Display failed (attempt 2):', err2);
-              
+            // Mark failure and clear saved location
+            if (cfiKey) {
+              localStorage.setItem(failureKey, 'true');
+              localStorage.removeItem(cfiKey);
+            }
+            
+            if (attemptNumber === 1) {
+              // Attempt 2: try with readingHref (no saved location)
+              return tryDisplay(readingHref, 2);
+            } else if (attemptNumber === 2) {
               // Attempt 3: let epub.js decide
-              try {
-                await rendition.display();
-              } catch (err3) {
-                console.warn('Display failed (attempt 3):', err3);
-                
-                // Last resort: force first spine item
-                if (spineItems[0]?.href) {
-                  await rendition.display(spineItems[0].href);
-                }
-              }
+              return tryDisplay(undefined, 3);
+            } else if (attemptNumber === 3 && spineItems[0]?.href) {
+              // Last resort: force first spine item
+              console.log('🔧 Last resort: forcing first spine item');
+              await rendition.display(spineItems[0].href);
             }
           }
         };
 
-        const initialTarget = savedLocation || readingHref;
-        console.log('🚀 Initial display target:', initialTarget);
+        // Prefer readingHref over saved location if saved location looks like a CFI
+        const isCFI = effectiveSavedLocation && effectiveSavedLocation.startsWith('epubcfi(');
+        const initialTarget = isCFI ? readingHref : (effectiveSavedLocation || readingHref);
+        console.log('🚀 Initial display target:', initialTarget, '(savedCFI bypassed:', isCFI, ')');
         
-        const displayPromise = tryDisplay(initialTarget).then(() => {
+        const displayPromise = tryDisplay(initialTarget, 1).then(() => {
           if (!cancelled && !epubReady) setEpubReady(true);
         });
 
