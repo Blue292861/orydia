@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ePub, { Book, Rendition } from 'epubjs';
-import { MapPin, FileText, Image, Volume2, ExternalLink, Trash2, Edit, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, FileText, Image, Volume2, ExternalLink, Trash2, Edit, Loader2, ChevronLeft, ChevronRight, List, BookOpen, X } from 'lucide-react';
 import { ChapterEpub } from '@/types/ChapterEpub';
 import { Waypoint, WaypointFormData } from '@/types/Waypoint';
 import { getWaypointsByChapterId, createWaypoint, updateWaypoint, deleteWaypoint } from '@/services/waypointService';
@@ -8,6 +8,7 @@ import WaypointForm from './WaypointForm';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface WaypointManagerProps {
   chapter: ChapterEpub;
@@ -23,7 +24,9 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
   const [showForm, setShowForm] = useState(false);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
+  const [mobileView, setMobileView] = useState<'epub' | 'panel'>('epub');
   
+  const isMobile = useIsMobile();
   const viewerRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<Book | null>(null);
   const renditionRef = useRef<Rendition | null>(null);
@@ -70,6 +73,10 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
         setSelectedCfi(cfiRange);
         setEditingWaypoint(null);
         setShowForm(true);
+        // On mobile, switch to panel view when word is selected
+        if (isMobile) {
+          setMobileView('panel');
+        }
       }
     });
 
@@ -84,7 +91,7 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
         bookRef.current.destroy();
       }
     };
-  }, [chapter]);
+  }, [chapter, isMobile]);
 
   // Highlight existing waypoints in the EPUB
   useEffect(() => {
@@ -203,39 +210,163 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
     }
   };
 
+  // Mobile view toggle buttons
+  const MobileViewToggle = () => (
+    <div className="flex items-center gap-1 p-2 border-b border-border bg-muted/30 md:hidden">
+      <Button
+        variant={mobileView === 'epub' ? 'default' : 'outline'}
+        size="sm"
+        className="flex-1"
+        onClick={() => setMobileView('epub')}
+      >
+        <BookOpen className="h-4 w-4 mr-1" />
+        EPUB
+      </Button>
+      <Button
+        variant={mobileView === 'panel' ? 'default' : 'outline'}
+        size="sm"
+        className="flex-1"
+        onClick={() => setMobileView('panel')}
+      >
+        <List className="h-4 w-4 mr-1" />
+        Waypoints ({waypoints.length})
+      </Button>
+    </div>
+  );
+
+  // Right panel content (waypoints list or form)
+  const PanelContent = () => (
+    <>
+      {showForm ? (
+        <ScrollArea className="flex-1 p-4">
+          <WaypointForm
+            chapterId={chapter.id}
+            selectedWord={selectedWord}
+            selectedCfi={selectedCfi}
+            existingWaypoint={editingWaypoint}
+            onSave={handleSaveWaypoint}
+            onCancel={() => {
+              setShowForm(false);
+              setEditingWaypoint(null);
+            }}
+            onDelete={editingWaypoint ? () => handleDeleteWaypoint(editingWaypoint.id) : undefined}
+          />
+        </ScrollArea>
+      ) : (
+        <>
+          {/* Waypoints list header - hide on mobile as we have toggle */}
+          <div className="p-3 border-b border-border bg-muted/30 hidden md:block">
+            <span className="text-sm font-medium">
+              Waypoints existants ({waypoints.length})
+            </span>
+          </div>
+          <ScrollArea className="flex-1">
+            {isLoading ? (
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : waypoints.length === 0 ? (
+              <div className="p-4 text-center text-muted-foreground text-sm">
+                Aucun waypoint pour ce chapitre.
+                <br />
+                Sélectionnez un mot dans l'aperçu pour en créer un.
+              </div>
+            ) : (
+              <div className="p-2 space-y-2">
+                {waypoints.map(waypoint => (
+                  <div
+                    key={waypoint.id}
+                    className="p-3 bg-card border border-border rounded-lg hover:border-amber-500/50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-amber-500 shrink-0">
+                          {getTypeIcon(waypoint.waypoint_type)}
+                        </span>
+                        <span className="font-medium truncate">
+                          {waypoint.word_text}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleEditWaypoint(waypoint)}
+                        >
+                          <Edit className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteWaypoint(waypoint.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    {waypoint.content_text && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        {waypoint.content_text}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </>
+      )}
+    </>
+  );
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full max-h-[90vh] md:max-h-[85vh]">
       {/* Header */}
-      <div className="p-4 border-b border-border bg-muted/50">
-        <div className="flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-amber-500" />
-          <h2 className="font-semibold">Gestion des Waypoints</h2>
+      <div className="p-3 md:p-4 border-b border-border bg-muted/50 shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <MapPin className="h-5 w-5 text-amber-500 shrink-0" />
+            <h2 className="font-semibold truncate">Gestion des Waypoints</h2>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 md:hidden"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-xs md:text-sm text-muted-foreground mt-1 truncate">
           {chapter.title} - Chapitre {chapter.chapter_number}
         </p>
       </div>
 
+      {/* Mobile view toggle */}
+      <MobileViewToggle />
+
       {/* Main content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* EPUB Viewer */}
-        <div className="flex-1 border-r border-border flex flex-col">
-          <div className="p-2 bg-muted/30 border-b border-border text-xs text-muted-foreground">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
+        {/* EPUB Viewer - full width on mobile when active, hidden otherwise */}
+        <div className={`flex-1 border-r border-border flex flex-col ${isMobile && mobileView !== 'epub' ? 'hidden' : ''}`}>
+          <div className="p-2 bg-muted/30 border-b border-border text-xs text-muted-foreground shrink-0">
             Sélectionnez un mot pour créer un waypoint
           </div>
-          <div ref={viewerRef} className="flex-1 bg-white" />
+          <div ref={viewerRef} className="flex-1 bg-white min-h-[200px]" />
           {/* Navigation bar */}
-          <div className="p-2 bg-muted/30 border-t border-border flex items-center justify-between">
+          <div className="p-2 bg-muted/30 border-t border-border flex items-center justify-between shrink-0">
             <Button
               variant="outline"
               size="sm"
               onClick={handlePrevPage}
               disabled={atStart}
             >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Précédent
+              <ChevronLeft className="h-4 w-4 md:mr-1" />
+              <span className="hidden md:inline">Précédent</span>
             </Button>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground hidden sm:block">
               Naviguez pour sélectionner des mots
             </span>
             <Button
@@ -244,100 +375,20 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
               onClick={handleNextPage}
               disabled={atEnd}
             >
-              Suivant
-              <ChevronRight className="h-4 w-4 ml-1" />
+              <span className="hidden md:inline">Suivant</span>
+              <ChevronRight className="h-4 w-4 md:ml-1" />
             </Button>
           </div>
         </div>
 
-        {/* Right panel */}
-        <div className="w-80 flex flex-col">
-          {showForm ? (
-            <ScrollArea className="flex-1 p-4">
-              <WaypointForm
-                chapterId={chapter.id}
-                selectedWord={selectedWord}
-                selectedCfi={selectedCfi}
-                existingWaypoint={editingWaypoint}
-                onSave={handleSaveWaypoint}
-                onCancel={() => {
-                  setShowForm(false);
-                  setEditingWaypoint(null);
-                }}
-                onDelete={editingWaypoint ? () => handleDeleteWaypoint(editingWaypoint.id) : undefined}
-              />
-            </ScrollArea>
-          ) : (
-            <>
-              {/* Waypoints list */}
-              <div className="p-3 border-b border-border bg-muted/30">
-                <span className="text-sm font-medium">
-                  Waypoints existants ({waypoints.length})
-                </span>
-              </div>
-              <ScrollArea className="flex-1">
-                {isLoading ? (
-                  <div className="flex items-center justify-center p-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                  </div>
-                ) : waypoints.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground text-sm">
-                    Aucun waypoint pour ce chapitre.
-                    <br />
-                    Sélectionnez un mot dans l'aperçu pour en créer un.
-                  </div>
-                ) : (
-                  <div className="p-2 space-y-2">
-                    {waypoints.map(waypoint => (
-                      <div
-                        key={waypoint.id}
-                        className="p-3 bg-card border border-border rounded-lg hover:border-amber-500/50 transition-colors"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-amber-500">
-                              {getTypeIcon(waypoint.waypoint_type)}
-                            </span>
-                            <span className="font-medium truncate">
-                              {waypoint.word_text}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={() => handleEditWaypoint(waypoint)}
-                            >
-                              <Edit className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-destructive hover:text-destructive"
-                              onClick={() => handleDeleteWaypoint(waypoint.id)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                        {waypoint.content_text && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                            {waypoint.content_text}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </>
-          )}
+        {/* Right panel - full width on mobile when active */}
+        <div className={`w-full md:w-80 lg:w-96 flex flex-col shrink-0 ${isMobile && mobileView !== 'panel' ? 'hidden' : ''}`}>
+          <PanelContent />
         </div>
       </div>
 
       {/* Footer */}
-      <div className="p-3 border-t border-border bg-muted/30 flex justify-end">
+      <div className="p-3 border-t border-border bg-muted/30 flex justify-end shrink-0">
         <Button variant="outline" onClick={onClose}>
           Fermer
         </Button>
