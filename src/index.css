@@ -690,3 +690,14 @@ body.high-contrast * {
 .month-success-cover-active {
   animation: cover-parallax 0.8s ease-out;
 }
+
+/* EPUB viewer iframe constraints */
+.epub-viewer-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.epub-viewer-container iframe {
+  max-width: 100% !important;
+  width: 100% !important;
+}
