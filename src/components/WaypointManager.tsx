@@ -349,12 +349,12 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
 
       {/* Main content */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
-        {/* EPUB Viewer - full width on mobile when active, hidden otherwise */}
-        <div className={`flex-1 border-r border-border flex flex-col ${isMobile && mobileView !== 'epub' ? 'hidden' : ''}`}>
+        {/* EPUB Viewer - calculated width on desktop to leave space for panel */}
+        <div className={`w-full md:w-[calc(100%-320px)] lg:w-[calc(100%-384px)] border-r border-border flex flex-col overflow-hidden ${isMobile && mobileView !== 'epub' ? 'hidden' : ''}`}>
           <div className="p-2 bg-muted/30 border-b border-border text-xs text-muted-foreground shrink-0">
             Sélectionnez un mot pour créer un waypoint
           </div>
-          <div ref={viewerRef} className="flex-1 bg-white min-h-[200px]" />
+          <div ref={viewerRef} className="flex-1 bg-white min-h-[200px] overflow-hidden" />
           {/* Navigation bar */}
           <div className="p-2 bg-muted/30 border-t border-border flex items-center justify-between shrink-0">
             <Button
@@ -381,8 +381,8 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
           </div>
         </div>
 
-        {/* Right panel - full width on mobile when active */}
-        <div className={`w-full md:w-80 lg:w-96 flex flex-col shrink-0 ${isMobile && mobileView !== 'panel' ? 'hidden' : ''}`}>
+        {/* Right panel - fixed width on desktop */}
+        <div className={`w-full md:w-80 lg:w-96 flex flex-col shrink-0 overflow-hidden ${isMobile && mobileView !== 'panel' ? 'hidden' : ''}`}>
           <PanelContent />
         </div>
       </div>
