@@ -218,7 +218,7 @@ export const ChapterEpubList: React.FC<ChapterEpubListProps> = ({ bookId, onEdit
 
       {/* Waypoint Manager Dialog */}
       <Dialog open={!!waypointChapter} onOpenChange={() => setWaypointChapter(null)}>
-        <DialogContent className="max-w-6xl h-[85vh] p-0 overflow-hidden">
+        <DialogContent className="w-[95vw] max-w-6xl h-[90vh] md:h-[85vh] p-0 overflow-hidden">
           {waypointChapter && (
             <WaypointManager
               chapter={waypointChapter}
