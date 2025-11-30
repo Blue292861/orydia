@@ -19,7 +19,10 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import WaypointManager from './WaypointManager';
 
 interface ChapterEpubListProps {
@@ -219,6 +222,12 @@ export const ChapterEpubList: React.FC<ChapterEpubListProps> = ({ bookId, onEdit
       {/* Waypoint Manager Dialog */}
       <Dialog open={!!waypointChapter} onOpenChange={() => setWaypointChapter(null)}>
         <DialogContent className="w-[95vw] max-w-6xl h-[90vh] md:h-[85vh] p-0 overflow-hidden">
+          <VisuallyHidden>
+            <DialogTitle>Gestion des Waypoints</DialogTitle>
+            <DialogDescription>
+              Gérer les waypoints du chapitre {waypointChapter?.title}
+            </DialogDescription>
+          </VisuallyHidden>
           {waypointChapter && (
             <WaypointManager
               chapter={waypointChapter}
