@@ -44,10 +44,15 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
     const book = ePub(epubUrl);
     bookRef.current = book;
 
+    // Get container dimensions and use explicit pixel values
+    const containerWidth = viewerRef.current.clientWidth || 500;
+    const containerHeight = viewerRef.current.clientHeight || 400;
+
     const rendition = book.renderTo(viewerRef.current, {
-      width: '100%',
-      height: '100%',
-      spread: 'none'
+      width: containerWidth,
+      height: containerHeight,
+      spread: 'none',
+      flow: 'paginated'
     });
 
     renditionRef.current = rendition;
@@ -347,14 +352,18 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
       {/* Mobile view toggle */}
       <MobileViewToggle />
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
-        {/* EPUB Viewer - calculated width on desktop to leave space for panel */}
-        <div className={`w-full md:w-[calc(100%-320px)] lg:w-[calc(100%-384px)] border-r border-border flex flex-col overflow-hidden ${isMobile && mobileView !== 'epub' ? 'hidden' : ''}`}>
+      {/* Main content - CSS Grid for strict column sizing */}
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_320px] lg:grid-cols-[1fr_384px] overflow-hidden min-h-0">
+        {/* EPUB Viewer */}
+        <div className={`border-r border-border flex flex-col overflow-hidden min-w-0 ${isMobile && mobileView !== 'epub' ? 'hidden' : ''}`}>
           <div className="p-2 bg-muted/30 border-b border-border text-xs text-muted-foreground shrink-0">
             Sélectionnez un mot pour créer un waypoint
           </div>
-          <div ref={viewerRef} className="flex-1 bg-white min-h-[200px] overflow-hidden" />
+          <div 
+            ref={viewerRef} 
+            className="epub-viewer-container flex-1 bg-white min-h-[200px] overflow-hidden relative"
+            style={{ maxWidth: '100%' }}
+          />
           {/* Navigation bar */}
           <div className="p-2 bg-muted/30 border-t border-border flex items-center justify-between shrink-0">
             <Button
@@ -381,8 +390,8 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
           </div>
         </div>
 
-        {/* Right panel - fixed width on desktop */}
-        <div className={`w-full md:w-80 lg:w-96 flex flex-col shrink-0 overflow-hidden ${isMobile && mobileView !== 'panel' ? 'hidden' : ''}`}>
+        {/* Right panel - fixed width via grid */}
+        <div className={`flex flex-col overflow-hidden ${isMobile && mobileView !== 'panel' ? 'hidden' : ''}`}>
           <PanelContent />
         </div>
       </div>
