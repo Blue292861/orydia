@@ -359,11 +359,14 @@ export const ChapterEpubReader: React.FC = () => {
             epubUrl = URL.createObjectURL(cachedBlob);
           }
         } else if (chapter.opf_url) {
-          console.log('⚠️ No pre-merged EPUB, merging on-demand (slower)...');
+          console.log('⚠️ No pre-merged EPUB, merging on-demand...');
+          console.log('📋 EPUB URL:', chapter.epub_url);
+          console.log('📋 OPF URL:', chapter.opf_url);
           try {
             const SUPABASE_URL = "https://aotzivwzoxmnnawcxioo.supabase.co";
             const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFvdHppdnd6b3htbm5hd2N4aW9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5OTEwODYsImV4cCI6MjA2NTU2NzA4Nn0.n-S4MY36dvh2C8f8hRV3AH98VI5gtu3TN_Szb9G_ZQA";
             
+            console.log('🔄 Calling merge-epub-opf edge function...');
             const mergePromise = fetch(`${SUPABASE_URL}/functions/v1/merge-epub-opf`, {
               method: 'POST',
               headers: {
@@ -376,16 +379,20 @@ export const ChapterEpubReader: React.FC = () => {
                 opfUrl: chapter.opf_url,
               }),
             }).then(async (response) => {
+              console.log('📡 Merge response status:', response.status, response.statusText);
               if (!response.ok) {
-                throw new Error(`Merge failed: ${response.statusText}`);
+                const errorText = await response.text();
+                console.error('❌ Merge response error:', errorText);
+                throw new Error(`Merge failed: ${response.status} ${response.statusText}`);
               }
               const blob = await response.blob();
-              console.log('Received blob from merge function:', blob.size, 'bytes');
+              console.log('✅ Received merged blob:', blob.size, 'bytes, type:', blob.type);
               return blob;
             });
             
+            // Reduced timeout from 5s to 3s for better UX
             const timeout = new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error('OPF merge timeout')), 5000)
+              setTimeout(() => reject(new Error('OPF merge timeout (3s)')), 3000)
             );
             
             const blob = await Promise.race([mergePromise, timeout]);
@@ -403,7 +410,8 @@ export const ChapterEpubReader: React.FC = () => {
               epubUrl = URL.createObjectURL(blob);
             }
           } catch (error) {
-            console.warn('⚠️ OPF merge failed, falling back to original EPUB:', error);
+            console.error('❌ OPF merge error:', error);
+            console.log('🔄 Falling back to original EPUB:', chapter.epub_url);
             epubUrl = chapter.epub_url;
           }
         }
