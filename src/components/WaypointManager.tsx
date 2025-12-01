@@ -25,73 +25,129 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const [mobileView, setMobileView] = useState<'epub' | 'panel'>('epub');
+  const [epubLoading, setEpubLoading] = useState(true);
+  const [epubError, setEpubError] = useState<string | null>(null);
   
   const isMobile = useIsMobile();
   const viewerRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<Book | null>(null);
   const renditionRef = useRef<Rendition | null>(null);
+  const initAttemptedRef = useRef(false);
 
   // Load waypoints
   useEffect(() => {
     loadWaypoints();
   }, [chapter.id]);
 
-  // Initialize EPUB viewer
+  // Initialize EPUB viewer with proper error handling and dimension checking
   useEffect(() => {
-    if (!viewerRef.current) return;
-
-    const epubUrl = chapter.merged_epub_url || chapter.epub_url;
-    const book = ePub(epubUrl);
-    bookRef.current = book;
-
-    // Get container dimensions and use explicit pixel values
-    const containerWidth = viewerRef.current.clientWidth || 500;
-    const containerHeight = viewerRef.current.clientHeight || 400;
-
-    const rendition = book.renderTo(viewerRef.current, {
-      width: containerWidth,
-      height: containerHeight,
-      spread: 'none',
-      flow: 'paginated'
-    });
-
-    renditionRef.current = rendition;
-
-    rendition.themes.default({
-      body: {
-        'font-family': 'Georgia, serif',
-        'font-size': '14px',
-        'line-height': '1.6',
-        'padding': '10px'
-      }
-    });
-
-    rendition.display();
-
-    // Handle text selection
-    rendition.on('selected', (cfiRange: string, contents: any) => {
-      const selection = contents.window.getSelection();
-      const text = selection?.toString().trim();
-      
-      if (text && text.length > 0 && text.length < 100) {
-        setSelectedWord(text);
-        setSelectedCfi(cfiRange);
-        setEditingWaypoint(null);
-        setShowForm(true);
-        // On mobile, switch to panel view when word is selected
-        if (isMobile) {
-          setMobileView('panel');
+    if (!viewerRef.current || initAttemptedRef.current) return;
+    
+    let cancelled = false;
+    initAttemptedRef.current = true;
+    
+    const initializeEpub = async () => {
+      // Wait for container to have valid dimensions
+      const checkAndInit = async () => {
+        if (!viewerRef.current || cancelled) return;
+        
+        const containerWidth = viewerRef.current.clientWidth;
+        const containerHeight = viewerRef.current.clientHeight;
+        
+        console.log('📐 WaypointManager container dimensions:', containerWidth, 'x', containerHeight);
+        
+        if (containerWidth < 50 || containerHeight < 50) {
+          // Dimensions not ready yet, retry
+          console.log('⏳ Waiting for valid dimensions...');
+          requestAnimationFrame(() => {
+            if (!cancelled) checkAndInit();
+          });
+          return;
         }
-      }
-    });
+        
+        try {
+          setEpubLoading(true);
+          setEpubError(null);
+          
+          const epubUrl = chapter.merged_epub_url || chapter.epub_url;
+          console.log('📚 WaypointManager loading EPUB:', epubUrl);
+          
+          const book = ePub(epubUrl);
+          bookRef.current = book;
+          
+          // IMPORTANT: Wait for book to be ready before rendering
+          console.log('⏳ Waiting for book.ready...');
+          await book.ready;
+          console.log('✅ Book ready');
+          
+          if (cancelled) {
+            book.destroy();
+            return;
+          }
 
-    // Track navigation position
-    rendition.on('relocated', (location: any) => {
-      setAtStart(location.atStart);
-      setAtEnd(location.atEnd);
-    });
+          const rendition = book.renderTo(viewerRef.current!, {
+            width: containerWidth,
+            height: containerHeight,
+            spread: 'none',
+            flow: 'paginated'
+          });
+
+          renditionRef.current = rendition;
+
+          rendition.themes.default({
+            body: {
+              'font-family': 'Georgia, serif',
+              'font-size': '14px',
+              'line-height': '1.6',
+              'padding': '10px'
+            }
+          });
+
+          await rendition.display();
+          console.log('✅ EPUB displayed in WaypointManager');
+          
+          setEpubLoading(false);
+
+          // Handle text selection
+          rendition.on('selected', (cfiRange: string, contents: any) => {
+            const selection = contents.window.getSelection();
+            const text = selection?.toString().trim();
+            
+            if (text && text.length > 0 && text.length < 100) {
+              setSelectedWord(text);
+              setSelectedCfi(cfiRange);
+              setEditingWaypoint(null);
+              setShowForm(true);
+              // On mobile, switch to panel view when word is selected
+              if (isMobile) {
+                setMobileView('panel');
+              }
+            }
+          });
+
+          // Track navigation position
+          rendition.on('relocated', (location: any) => {
+            setAtStart(location.atStart);
+            setAtEnd(location.atEnd);
+          });
+        } catch (error) {
+          console.error('❌ WaypointManager EPUB loading error:', error);
+          if (!cancelled) {
+            setEpubError('Erreur lors du chargement de l\'EPUB');
+            setEpubLoading(false);
+            toast.error('Erreur lors du chargement de l\'aperçu EPUB');
+          }
+        }
+      };
+      
+      checkAndInit();
+    };
+    
+    initializeEpub();
 
     return () => {
+      cancelled = true;
+      initAttemptedRef.current = false;
       if (bookRef.current) {
         bookRef.current.destroy();
       }
@@ -363,7 +419,18 @@ const WaypointManager: React.FC<WaypointManagerProps> = ({ chapter, onClose }) =
             ref={viewerRef} 
             className="epub-viewer-container flex-1 bg-white min-h-[200px] overflow-hidden relative"
             style={{ maxWidth: '100%' }}
-          />
+          >
+            {epubLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+              </div>
+            )}
+            {epubError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80 text-destructive text-sm text-center p-4">
+                {epubError}
+              </div>
+            )}
+          </div>
           {/* Navigation bar */}
           <div className="p-2 bg-muted/30 border-t border-border flex items-center justify-between shrink-0">
             <Button

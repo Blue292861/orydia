@@ -650,13 +650,14 @@ export const ChapterEpubReader: React.FC = () => {
           }
         }, 1500);
 
-        // Fatal timeout: after 5s, show error if nothing displayed
+        // Fatal timeout: after 10s, show error if nothing displayed (increased for large files)
         if (fatalLoadTimerRef.current) window.clearTimeout(fatalLoadTimerRef.current);
         fatalLoadTimerRef.current = window.setTimeout(() => {
           if (!cancelled && !epubReady && !epubRootRef.current?.querySelector('iframe')) {
-            setEpubError('Erreur lors du chargement du chapitre');
+            console.error('❌ Fatal timeout: EPUB failed to load after 10s');
+            setEpubError('Le chapitre met trop de temps à charger. Veuillez réessayer.');
           }
-        }, 5000);
+        }, 10000);
 
         // Setup window resize listeners to handle viewport changes
         const onViewportResize = () => {
