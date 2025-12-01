@@ -24,6 +24,9 @@ verify_jwt = false
 [functions.complete-item-purchase]
 verify_jwt = false
 
+[functions.merge-epub-opf]
+verify_jwt = false
+
 [functions.award-points]
 [functions.cancel-subscription]
 [functions.check-subscription]
@@ -33,5 +36,4 @@ verify_jwt = false
 [functions.create-item-checkout]
 [functions.customer-portal]
 [functions.get-user-stats]
-[functions.merge-epub-opf]
 [functions.open-chest]
