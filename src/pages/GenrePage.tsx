@@ -51,13 +51,13 @@ export const GenrePage: React.FC = () => {
         gameService.getAllGames()
       ]);
 
-      // Filter by genre using the genres field directly or fallback to tags
+      // Filter by genre using the genres field directly or fallback to tags, and exclude rare books
       const filteredBooks = booksData.filter(book => {
         // Prioritize the genres field, fallback to extracting from tags
         const bookGenres = (book.genres && book.genres.length > 0) 
           ? book.genres 
           : genreAnalyticsService.extractGenresFromTags(book.tags || []);
-        return bookGenres.includes(currentGenre);
+        return !book.isRare && bookGenres.includes(currentGenre);
       });
 
       const filteredAudiobooks = audiobooksData.filter(audiobook => {

@@ -12,6 +12,7 @@ import { ProfileFooter } from '@/components/ProfileFooter';
 import { InventoryPage } from '@/components/InventoryPage';
 import { CardCollectionButton } from '@/components/CardCollectionButton';
 import { AildorKeyStock } from '@/components/AildorKeyStock';
+import { RareBooksCollection } from '@/components/RareBooksCollection';
 import ChallengesSection from '@/components/ChallengesSection';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -209,6 +210,9 @@ export const ProfilePage: React.FC = () => {
               window.dispatchEvent(new CustomEvent('navigateToTab', { detail: { tab: 'shop' } }));
             }}
           />
+
+          {/* Rare Books Collection */}
+          {user && <RareBooksCollection userId={user.id} />}
 
           {/* Premium Status */}
           <PremiumStatusCard isPremium={userStats.isPremium} />

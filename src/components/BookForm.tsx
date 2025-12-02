@@ -281,6 +281,25 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
             </Label>
           </div>
 
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="isRare"
+              checked={book.isRare}
+              onCheckedChange={(checked) => setBook(prev => ({ ...prev, isRare: checked }))}
+            />
+            <Label htmlFor="isRare" className="cursor-pointer">
+              💎 Livre Rare (accessible uniquement via lien)
+            </Label>
+          </div>
+          
+          {book.isRare && (
+            <Alert className="bg-amber-900/20 border-amber-700">
+              <AlertDescription className="text-amber-200">
+                ⚠️ Ce livre ne sera visible que via son lien personnalisé. Il n'apparaîtra pas dans les recherches ni les listes de genres.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid gap-2">
             <GenreSelector
               selectedGenres={selectedGenres}

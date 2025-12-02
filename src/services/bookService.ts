@@ -29,6 +29,7 @@ export const fetchBooksFromDB = async (): Promise<Book[]> => {
     hasChapters: book.has_chapters || false,
     isInteractive: book.is_interactive || false,
     isAdultContent: book.is_adult_content || false,
+    isRare: book.is_rare || false,
   }));
 
   return mappedBooks;
@@ -52,6 +53,7 @@ export const addBookToDB = async (book: Book): Promise<void> => {
       has_chapters: book.hasChapters,
       is_interactive: book.isInteractive,
       is_adult_content: book.isAdultContent,
+      is_rare: book.isRare,
     });
 
   if (error) {
@@ -78,6 +80,7 @@ export const updateBookInDB = async (book: Book): Promise<void> => {
       has_chapters: book.hasChapters,
       is_interactive: book.isInteractive,
       is_adult_content: book.isAdultContent,
+      is_rare: book.isRare,
     })
     .eq('id', book.id);
 
