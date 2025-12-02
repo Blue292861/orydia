@@ -75,10 +75,11 @@ export default function SearchResultsPage() {
 
     const filteredBooks = filterByPremium(books).filter(
       (book) =>
-        matchesQuery(book.title) ||
+        !book.isRare && // Exclure les livres rares
+        (matchesQuery(book.title) ||
         matchesQuery(book.author) ||
         book.tags?.some((tag) => matchesQuery(tag)) ||
-        book.genres?.some((genre) => matchesQuery(genre))
+        book.genres?.some((genre) => matchesQuery(genre)))
     );
 
     const filteredAudiobooks = filterByPremium(audiobooks).filter(

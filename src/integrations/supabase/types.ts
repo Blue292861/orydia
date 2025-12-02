@@ -428,6 +428,7 @@ export type Database = {
           is_month_success: boolean
           is_paco_favourite: boolean
           is_premium: boolean
+          is_rare: boolean
           points: number
           summary: string | null
           tags: string[] | null
@@ -447,6 +448,7 @@ export type Database = {
           is_month_success?: boolean
           is_paco_favourite?: boolean
           is_premium?: boolean
+          is_rare?: boolean
           points?: number
           summary?: string | null
           tags?: string[] | null
@@ -466,6 +468,7 @@ export type Database = {
           is_month_success?: boolean
           is_paco_favourite?: boolean
           is_premium?: boolean
+          is_rare?: boolean
           points?: number
           summary?: string | null
           tags?: string[] | null
@@ -2301,6 +2304,42 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_rare_books: {
+        Row: {
+          book_id: string
+          discovered_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          discovered_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          discovered_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_rare_books_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "book_translation_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_rare_books_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

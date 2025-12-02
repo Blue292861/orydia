@@ -82,10 +82,10 @@ export const SearchPage: React.FC<SearchPageProps> = ({ books, onBookSelect }) =
     }
   };
 
-  // Filtrer le contenu selon la préférence premium
+  // Filtrer le contenu selon la préférence premium et exclure les livres rares
   const filteredBooks = showOnlyPremium 
-    ? books.filter(b => b.isPremium) 
-    : books;
+    ? books.filter(b => b.isPremium && !b.isRare) 
+    : books.filter(b => !b.isRare);
   
   const filteredAudiobooks = showOnlyPremium
     ? audiobooks.filter(a => a.is_premium)

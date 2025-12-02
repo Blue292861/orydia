@@ -221,7 +221,8 @@ export const ChapterEpubReader: React.FC = () => {
             isPacoFavourite: bookData.is_paco_favourite,
             hasChapters: bookData.has_chapters,
             isInteractive: bookData.is_interactive,
-            isAdultContent: bookData.is_adult_content
+            isAdultContent: bookData.is_adult_content,
+            isRare: bookData.is_rare || false
           });
         }
       } catch (error) {

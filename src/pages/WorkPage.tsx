@@ -18,6 +18,7 @@ import { TextReader } from '@/components/TextReader';
 import { fetchBooksFromDB } from '@/services/bookService';
 import { AdInterstitial } from '@/components/AdInterstitial';
 import { useUserStats } from '@/contexts/UserStatsContext';
+import { hasUserDiscoveredRareBook, addRareBookToCollection } from '@/services/rareBookService';
 
 /**
  * Page component for displaying individual books or audiobooks
@@ -26,7 +27,7 @@ import { useUserStats } from '@/contexts/UserStatsContext';
 const WorkPage: React.FC = () => {
   const { authorSlug, titleSlug } = useParams<{ authorSlug: string; titleSlug: string }>();
   const { books } = useBooks();
-  const { subscription } = useAuth();
+  const { subscription, user } = useAuth();
   const { userStats } = useUserStats();
   const navigate = useNavigate();
   const [audiobooks, setAudiobooks] = useState<Audiobook[]>([]);
@@ -60,6 +61,23 @@ const WorkPage: React.FC = () => {
       if (foundBook) {
         setFoundWork(foundBook);
         setWorkType('book');
+        
+        // Si c'est un livre rare et que l'utilisateur est connecté, l'ajouter à sa collection
+        if (foundBook.isRare && user) {
+          const alreadyDiscovered = await hasUserDiscoveredRareBook(user.id, foundBook.id);
+          if (!alreadyDiscovered) {
+            try {
+              await addRareBookToCollection(user.id, foundBook.id);
+              toast({
+                title: "💎 Livre rare découvert !",
+                description: `"${foundBook.title}" a été ajouté à votre collection de livres rares.`,
+              });
+            } catch (error) {
+              console.error('Error adding rare book:', error);
+            }
+          }
+        }
+        
         setLoading(false);
         return;
       }
@@ -79,6 +97,25 @@ const WorkPage: React.FC = () => {
       if (foundBook) {
         setFoundWork(foundBook);
         setWorkType('book');
+        
+        // Si c'est un livre rare et que l'utilisateur est connecté, l'ajouter à sa collection
+        const checkAndAddRareBook = async () => {
+          if (foundBook.isRare && user) {
+            const alreadyDiscovered = await hasUserDiscoveredRareBook(user.id, foundBook.id);
+            if (!alreadyDiscovered) {
+              try {
+                await addRareBookToCollection(user.id, foundBook.id);
+                toast({
+                  title: "💎 Livre rare découvert !",
+                  description: `"${foundBook.title}" a été ajouté à votre collection de livres rares.`,
+                });
+              } catch (error) {
+                console.error('Error adding rare book:', error);
+              }
+            }
+          }
+        };
+        checkAndAddRareBook();
       } else {
         const foundAudiobook = findWorkBySlug(audiobooks, authorSlug, titleSlug);
         if (foundAudiobook) {
@@ -88,7 +125,7 @@ const WorkPage: React.FC = () => {
       }
       setLoading(false);
     }
-  }, [authorSlug, titleSlug, books, audiobooks]);
+  }, [authorSlug, titleSlug, books, audiobooks, user]);
 
   const handleStartReading = () => {
     if (!foundWork) return;

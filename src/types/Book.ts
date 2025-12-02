@@ -15,6 +15,7 @@ export interface Book {
   hasChapters: boolean;
   isInteractive: boolean;
   isAdultContent: boolean;
+  isRare: boolean;
 }
 
 export interface Chapter {

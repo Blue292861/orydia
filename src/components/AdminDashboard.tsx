@@ -235,6 +235,7 @@ export const AdminDashboard: React.FC = () => {
               hasChapters: true,
               isInteractive: false,
               isAdultContent: false,
+              isRare: false,
             }}
             onSubmit={handleSubmit}
           />
