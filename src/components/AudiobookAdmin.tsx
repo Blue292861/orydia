@@ -348,6 +348,7 @@ export const AudiobookAdmin: React.FC = () => {
               is_paco_favourite: false,
               is_paco_chronicle: false,
               is_featured: false,
+              is_interactive: false,
             }}
             onSubmit={handleSubmit}
           />

@@ -14,6 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { sanitizeText, sanitizeImageUrl, sanitizeTextWithSpaces, sanitizeHtml, validateTextLength, validateImageUrl, validatePoints } from '@/utils/security';
 import { useToast } from '@/hooks/use-toast';
+import { BookOpen, Zap } from 'lucide-react';
 
 interface BookFormProps {
   initialBook: Book;
@@ -104,6 +105,15 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     setBook(prev => ({ ...prev, coverUrl: coverData }));
   };
 
+  const handleInteractiveChange = (isInteractive: boolean) => {
+    setBook(prev => ({ 
+      ...prev, 
+      isInteractive,
+      // Reset points to 0 for interactive books (rewards defined per ending chapter)
+      points: isInteractive ? 0 : prev.points
+    }));
+  };
+
   const validateForm = (): boolean => {
     if (!book.title?.trim()) {
       toast({
@@ -168,6 +178,40 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
     <ScrollArea className="h-full max-h-[80vh]">
       <div className="pr-4">
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Type selector: Classic vs Interactive */}
+          <div className="grid gap-2">
+            <Label>Type de livre</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={!book.isInteractive ? "default" : "outline"}
+                onClick={() => handleInteractiveChange(false)}
+                className="flex-1"
+              >
+                <BookOpen className="h-4 w-4 mr-2" />
+                Classique
+              </Button>
+              <Button
+                type="button"
+                variant={book.isInteractive ? "default" : "outline"}
+                onClick={() => handleInteractiveChange(true)}
+                className="flex-1"
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Interactif
+              </Button>
+            </div>
+          </div>
+
+          {book.isInteractive && (
+            <Alert className="bg-primary/10 border-primary">
+              <Zap className="h-4 w-4" />
+              <AlertDescription>
+                Mode interactif : Les récompenses en Orydors seront définies pour chaque chapitre de fin dans l'éditeur de chapitres.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid gap-2">
             <Label htmlFor="title">Titre du livre</Label>
             <Input
@@ -222,20 +266,23 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
             </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="points">Récompense en points</Label>
-            <Input
-              id="points"
-              name="points"
-              type="number"
-              value={book.points}
-              onChange={handlePointsChange}
-              placeholder="Points gagnés pour la lecture de ce livre"
-              min="0"
-              max="100000"
-              required
-            />
-          </div>
+          {/* Only show points for classic books */}
+          {!book.isInteractive && (
+            <div className="grid gap-2">
+              <Label htmlFor="points">Récompense en Orydors</Label>
+              <Input
+                id="points"
+                name="points"
+                type="number"
+                value={book.points}
+                onChange={handlePointsChange}
+                placeholder="Orydors gagnés pour la lecture de ce livre"
+                min="0"
+                max="100000"
+                required
+              />
+            </div>
+          )}
 
           <div className="flex items-center space-x-2">
             <Switch
@@ -314,7 +361,9 @@ export const BookForm: React.FC<BookFormProps> = ({ initialBook, onSubmit }) => 
 
           <Alert>
             <AlertDescription>
-              Le contenu du livre sera géré via le système de chapitres. Après avoir créé le livre, vous pourrez ajouter les chapitres en cliquant sur "Gérer les chapitres".
+              {book.isInteractive 
+                ? "Les chapitres interactifs avec choix multiples et les chapitres de fin seront gérés dans l'éditeur de chapitres."
+                : "Le contenu du livre sera géré via le système de chapitres. Après avoir créé le livre, vous pourrez ajouter les chapitres en cliquant sur \"Gérer les chapitres\"."}
             </AlertDescription>
           </Alert>
 

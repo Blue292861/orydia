@@ -140,7 +140,10 @@ export type Database = {
           chapter_number: number
           created_at: string
           duration_seconds: number | null
+          ending_reward_points: number | null
           id: string
+          is_ending: boolean
+          is_interactive: boolean
           title: string
           updated_at: string
         }
@@ -150,7 +153,10 @@ export type Database = {
           chapter_number: number
           created_at?: string
           duration_seconds?: number | null
+          ending_reward_points?: number | null
           id?: string
+          is_ending?: boolean
+          is_interactive?: boolean
           title: string
           updated_at?: string
         }
@@ -160,7 +166,10 @@ export type Database = {
           chapter_number?: number
           created_at?: string
           duration_seconds?: number | null
+          ending_reward_points?: number | null
           id?: string
+          is_ending?: boolean
+          is_interactive?: boolean
           title?: string
           updated_at?: string
         }
@@ -236,6 +245,7 @@ export type Database = {
           genres: string[]
           id: string
           is_featured: boolean
+          is_interactive: boolean
           is_month_success: boolean
           is_paco_chronicle: boolean
           is_paco_favourite: boolean
@@ -255,6 +265,7 @@ export type Database = {
           genres?: string[]
           id?: string
           is_featured?: boolean
+          is_interactive?: boolean
           is_month_success?: boolean
           is_paco_chronicle?: boolean
           is_paco_favourite?: boolean
@@ -274,6 +285,7 @@ export type Database = {
           genres?: string[]
           id?: string
           is_featured?: boolean
+          is_interactive?: boolean
           is_month_success?: boolean
           is_paco_chronicle?: boolean
           is_paco_favourite?: boolean
@@ -351,7 +363,9 @@ export type Database = {
           chapter_number: number
           content: string
           created_at: string
+          ending_reward_points: number | null
           id: string
+          is_ending: boolean
           is_interactive: boolean
           title: string
           updated_at: string
@@ -361,7 +375,9 @@ export type Database = {
           chapter_number: number
           content: string
           created_at?: string
+          ending_reward_points?: number | null
           id?: string
+          is_ending?: boolean
           is_interactive?: boolean
           title: string
           updated_at?: string
@@ -371,7 +387,9 @@ export type Database = {
           chapter_number?: number
           content?: string
           created_at?: string
+          ending_reward_points?: number | null
           id?: string
+          is_ending?: boolean
           is_interactive?: boolean
           title?: string
           updated_at?: string

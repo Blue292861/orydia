@@ -25,6 +25,8 @@ export interface Chapter {
   title: string;
   content: string;
   isInteractive: boolean;
+  isEnding: boolean;
+  endingRewardPoints: number;
   createdAt: string;
   updatedAt: string;
   choices?: InteractiveChoice[];
