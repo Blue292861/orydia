@@ -15,6 +15,7 @@ export interface Audiobook {
   is_paco_favourite: boolean;
   is_paco_chronicle: boolean;
   is_featured: boolean;
+  is_interactive: boolean;
   created_at?: string;
   updated_at?: string;
 }

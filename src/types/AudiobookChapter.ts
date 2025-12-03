@@ -5,6 +5,9 @@ export interface AudiobookChapter {
   audio_url: string;
   chapter_number: number;
   duration_seconds: number;
+  is_interactive: boolean;
+  is_ending: boolean;
+  ending_reward_points: number;
   created_at?: string;
   updated_at?: string;
 }

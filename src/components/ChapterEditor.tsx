@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { BookOpen, Zap, Plus, Trash2, Eye, Edit } from 'lucide-react';
+import { BookOpen, Zap, Plus, Trash2, Eye, Edit, Flag, Coins } from 'lucide-react';
 import { fetchChaptersByBookId, extractChaptersFromContent, addInteractiveChoice } from '@/services/chapterService';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface ChapterEditorProps {
@@ -27,6 +28,7 @@ export const ChapterEditor: React.FC<ChapterEditorProps> = ({ book, onClose }) =
   });
   const [loading, setLoading] = useState(true);
   const [extracting, setExtracting] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadChapters();
@@ -90,6 +92,35 @@ export const ChapterEditor: React.FC<ChapterEditorProps> = ({ book, onClose }) =
     }
   };
 
+  const handleSaveChapter = async () => {
+    if (!editingChapter) return;
+    
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('book_chapters')
+        .update({
+          title: editingChapter.title,
+          content: editingChapter.content,
+          is_interactive: editingChapter.isInteractive,
+          is_ending: editingChapter.isEnding,
+          ending_reward_points: editingChapter.endingRewardPoints,
+        })
+        .eq('id', editingChapter.id);
+
+      if (error) throw error;
+
+      toast.success('Chapitre sauvegardé avec succès');
+      setEditingChapter(null);
+      await loadChapters();
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      toast.error('Erreur lors de la sauvegarde du chapitre');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -108,6 +139,12 @@ export const ChapterEditor: React.FC<ChapterEditorProps> = ({ book, onClose }) =
         <div>
           <h2 className="text-2xl font-bold">Éditeur de chapitres</h2>
           <p className="text-muted-foreground">{book.title}</p>
+          {book.isInteractive && (
+            <Badge variant="secondary" className="mt-1">
+              <Zap className="h-3 w-3 mr-1" />
+              Livre interactif
+            </Badge>
+          )}
         </div>
         <Button variant="outline" onClick={onClose}>
           Fermer
@@ -165,11 +202,16 @@ export const ChapterEditor: React.FC<ChapterEditorProps> = ({ book, onClose }) =
               <Badge variant="outline">
                 {chapters.filter(c => c.isInteractive).length} interactifs
               </Badge>
+              {book.isInteractive && (
+                <Badge variant="secondary">
+                  {chapters.filter(c => c.isEnding).length} fins
+                </Badge>
+              )}
             </div>
           </div>
 
           {chapters.map((chapter, index) => (
-            <Card key={chapter.id}>
+            <Card key={chapter.id} className={chapter.isEnding ? 'border-amber-500/50' : ''}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
@@ -181,12 +223,22 @@ export const ChapterEditor: React.FC<ChapterEditorProps> = ({ book, onClose }) =
                         Interactif
                       </Badge>
                     )}
+                    {chapter.isEnding && (
+                      <Badge className="bg-amber-500/20 text-amber-500 hover:bg-amber-500/30">
+                        <Flag className="h-3 w-3 mr-1" />
+                        Fin ({chapter.endingRewardPoints} Orydors)
+                      </Badge>
+                    )}
                   </CardTitle>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => setEditingChapter(chapter)}
+                      onClick={() => setEditingChapter({
+                        ...chapter,
+                        isEnding: chapter.isEnding || false,
+                        endingRewardPoints: chapter.endingRewardPoints || 0
+                      })}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -223,7 +275,7 @@ export const ChapterEditor: React.FC<ChapterEditorProps> = ({ book, onClose }) =
                                 )}
                                 {choice.pointsModifier !== 0 && (
                                   <Badge variant="secondary" className="mt-1">
-                                    {choice.pointsModifier > 0 ? '+' : ''}{choice.pointsModifier} Tensens
+                                    {choice.pointsModifier > 0 ? '+' : ''}{choice.pointsModifier} Orydors
                                   </Badge>
                                 )}
                               </div>
@@ -308,12 +360,62 @@ export const ChapterEditor: React.FC<ChapterEditorProps> = ({ book, onClose }) =
               />
               <Label htmlFor="interactive-mode">Chapitre interactif</Label>
             </div>
+
+            {/* Ending chapter options - only for interactive books */}
+            {book.isInteractive && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="ending-mode"
+                      checked={editingChapter.isEnding}
+                      onCheckedChange={(checked) => setEditingChapter({ 
+                        ...editingChapter, 
+                        isEnding: checked,
+                        endingRewardPoints: checked ? editingChapter.endingRewardPoints : 0
+                      })}
+                    />
+                    <Label htmlFor="ending-mode" className="flex items-center gap-2">
+                      <Flag className="h-4 w-4 text-amber-500" />
+                      Chapitre de fin
+                    </Label>
+                  </div>
+
+                  {editingChapter.isEnding && (
+                    <div>
+                      <Label htmlFor="ending-reward" className="flex items-center gap-2">
+                        <Coins className="h-4 w-4" />
+                        Récompense Orydors de cette fin
+                      </Label>
+                      <Input
+                        id="ending-reward"
+                        type="number"
+                        min="0"
+                        max="100000"
+                        value={editingChapter.endingRewardPoints}
+                        onChange={(e) => setEditingChapter({ 
+                          ...editingChapter, 
+                          endingRewardPoints: parseInt(e.target.value) || 0 
+                        })}
+                        placeholder="Ex: 100"
+                        className="mt-1"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        L'utilisateur recevra ces Orydors lorsqu'il atteindra cette fin.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
             <div className="flex gap-2">
               <Button onClick={() => setEditingChapter(null)} variant="outline">
                 Annuler
               </Button>
-              <Button>
-                Sauvegarder
+              <Button onClick={handleSaveChapter} disabled={saving}>
+                {saving ? 'Sauvegarde...' : 'Sauvegarder'}
               </Button>
             </div>
           </CardContent>

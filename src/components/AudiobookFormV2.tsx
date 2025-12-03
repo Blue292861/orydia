@@ -9,7 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { TagInput } from '@/components/TagInput';
 import { FileImport } from '@/components/FileImport';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trash2, Plus, Upload } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Trash2, Plus, Headphones, Zap, Flag } from 'lucide-react';
 import { sanitizeText, sanitizeTextWithSpaces, validateTextLength, validateUrl, validatePoints } from '@/utils/security';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,10 +24,16 @@ interface ChapterFormData {
   audio_url: string;
   chapter_number: number;
   duration_seconds: number;
+  is_interactive: boolean;
+  is_ending: boolean;
+  ending_reward_points: number;
 }
 
 export const AudiobookFormV2: React.FC<AudiobookFormV2Props> = ({ initialAudiobook, onSubmit }) => {
-  const [formData, setFormData] = useState<Audiobook>(initialAudiobook);
+  const [formData, setFormData] = useState<Audiobook>({
+    ...initialAudiobook,
+    is_interactive: initialAudiobook.is_interactive || false
+  });
   const [chapters, setChapters] = useState<ChapterFormData[]>([]);
   const { toast } = useToast();
 
@@ -80,12 +87,24 @@ export const AudiobookFormV2: React.FC<AudiobookFormV2Props> = ({ initialAudiobo
     }));
   };
 
+  const handleInteractiveChange = (isInteractive: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      is_interactive: isInteractive,
+      // Reset points to 0 for interactive audiobooks
+      points: isInteractive ? 0 : prev.points
+    }));
+  };
+
   const addChapter = () => {
     setChapters(prev => [...prev, {
       title: `Chapitre ${prev.length + 1}`,
       audio_url: '',
       chapter_number: prev.length + 1,
-      duration_seconds: 0
+      duration_seconds: 0,
+      is_interactive: false,
+      is_ending: false,
+      ending_reward_points: 0
     }]);
   };
 
@@ -97,9 +116,16 @@ export const AudiobookFormV2: React.FC<AudiobookFormV2Props> = ({ initialAudiobo
   };
 
   const updateChapter = (index: number, field: keyof ChapterFormData, value: any) => {
-    setChapters(prev => prev.map((chapter, i) => 
-      i === index ? { ...chapter, [field]: value } : chapter
-    ));
+    setChapters(prev => prev.map((chapter, i) => {
+      if (i !== index) return chapter;
+      
+      // If setting is_ending to false, reset ending_reward_points
+      if (field === 'is_ending' && !value) {
+        return { ...chapter, [field]: value, ending_reward_points: 0 };
+      }
+      
+      return { ...chapter, [field]: value };
+    }));
   };
 
   const validateForm = (): boolean => {
@@ -183,7 +209,10 @@ export const AudiobookFormV2: React.FC<AudiobookFormV2Props> = ({ initialAudiobo
       title: sanitizeTextWithSpaces(chapter.title),
       audio_url: sanitizeText(chapter.audio_url),
       chapter_number: chapter.chapter_number,
-      duration_seconds: chapter.duration_seconds
+      duration_seconds: chapter.duration_seconds,
+      is_interactive: chapter.is_interactive,
+      is_ending: chapter.is_ending,
+      ending_reward_points: chapter.ending_reward_points
     }));
 
     onSubmit(sanitizedData, sanitizedChapters);
@@ -198,6 +227,40 @@ export const AudiobookFormV2: React.FC<AudiobookFormV2Props> = ({ initialAudiobo
             <CardTitle>Informations générales</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Type selector: Classic vs Interactive */}
+            <div className="grid gap-2">
+              <Label>Type d'audiobook</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={!formData.is_interactive ? "default" : "outline"}
+                  onClick={() => handleInteractiveChange(false)}
+                  className="flex-1"
+                >
+                  <Headphones className="h-4 w-4 mr-2" />
+                  Classique
+                </Button>
+                <Button
+                  type="button"
+                  variant={formData.is_interactive ? "default" : "outline"}
+                  onClick={() => handleInteractiveChange(true)}
+                  className="flex-1"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Interactif
+                </Button>
+              </div>
+            </div>
+
+            {formData.is_interactive && (
+              <Alert className="bg-primary/10 border-primary">
+                <Zap className="h-4 w-4" />
+                <AlertDescription>
+                  Mode interactif : Les récompenses en Orydors seront définies pour chaque chapitre de fin.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div>
               <Label htmlFor="name">Nom de l'audiobook</Label>
               <Input
@@ -268,18 +331,21 @@ export const AudiobookFormV2: React.FC<AudiobookFormV2Props> = ({ initialAudiobo
               />
             </div>
 
-            <div>
-              <Label htmlFor="points">Points (Orydors)</Label>
-              <Input
-                id="points"
-                type="number"
-                min="0"
-                max="100000"
-                value={formData.points}
-                onChange={(e) => handleChange('points', parseInt(e.target.value) || 0)}
-                required
-              />
-            </div>
+            {/* Only show points for classic audiobooks */}
+            {!formData.is_interactive && (
+              <div>
+                <Label htmlFor="points">Points (Orydors)</Label>
+                <Input
+                  id="points"
+                  type="number"
+                  min="0"
+                  max="100000"
+                  value={formData.points}
+                  onChange={(e) => handleChange('points', parseInt(e.target.value) || 0)}
+                  required
+                />
+              </div>
+            )}
 
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
@@ -347,9 +413,16 @@ export const AudiobookFormV2: React.FC<AudiobookFormV2Props> = ({ initialAudiobo
             )}
 
             {chapters.map((chapter, index) => (
-              <Card key={index} className="border-l-4 border-l-primary">
+              <Card key={index} className={`border-l-4 ${chapter.is_ending ? 'border-l-amber-500' : 'border-l-primary'}`}>
                 <CardHeader className="flex flex-row items-center justify-between pb-3">
-                  <h4 className="text-sm font-medium">Chapitre {chapter.chapter_number}</h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-medium">Chapitre {chapter.chapter_number}</h4>
+                    {chapter.is_ending && (
+                      <span className="text-xs bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded">
+                        🏁 Fin
+                      </span>
+                    )}
+                  </div>
                   <Button 
                     type="button" 
                     onClick={() => removeChapter(index)}
@@ -392,6 +465,50 @@ export const AudiobookFormV2: React.FC<AudiobookFormV2Props> = ({ initialAudiobo
                       </audio>
                     )}
                   </div>
+
+                  {/* Interactive options - only show for interactive audiobooks */}
+                  {formData.is_interactive && (
+                    <div className="space-y-3 border-t pt-3 mt-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`chapter-interactive-${index}`}
+                          checked={chapter.is_interactive}
+                          onCheckedChange={(checked) => updateChapter(index, 'is_interactive', !!checked)}
+                        />
+                        <Label htmlFor={`chapter-interactive-${index}`} className="flex items-center gap-1">
+                          <Zap className="h-3 w-3" />
+                          Chapitre avec choix
+                        </Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`chapter-ending-${index}`}
+                          checked={chapter.is_ending}
+                          onCheckedChange={(checked) => updateChapter(index, 'is_ending', !!checked)}
+                        />
+                        <Label htmlFor={`chapter-ending-${index}`} className="flex items-center gap-1">
+                          <Flag className="h-3 w-3" />
+                          Chapitre de fin
+                        </Label>
+                      </div>
+
+                      {chapter.is_ending && (
+                        <div>
+                          <Label htmlFor={`chapter-reward-${index}`}>Récompense Orydors de cette fin</Label>
+                          <Input
+                            id={`chapter-reward-${index}`}
+                            type="number"
+                            min="0"
+                            max="100000"
+                            value={chapter.ending_reward_points}
+                            onChange={(e) => updateChapter(index, 'ending_reward_points', parseInt(e.target.value) || 0)}
+                            placeholder="Ex: 100"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

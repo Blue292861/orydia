@@ -20,6 +20,8 @@ export const fetchChaptersByBookId = async (bookId: string): Promise<Chapter[]> 
     title: chapter.title,
     content: chapter.content,
     isInteractive: chapter.is_interactive,
+    isEnding: chapter.is_ending || false,
+    endingRewardPoints: chapter.ending_reward_points || 0,
     createdAt: chapter.created_at,
     updatedAt: chapter.updated_at,
     choices: chapter.interactive_choices?.map((choice: any) => ({
