@@ -62,12 +62,28 @@ export function rollAdditionalRewards(
 
 /**
  * Fetch loot table for a specific book and chest type
+ * Merges GLOBAL items (book_id = null) with BOOK-SPECIFIC items
  */
 export async function fetchLootTable(
   bookId: string,
   chestType: 'silver' | 'gold'
 ): Promise<any[]> {
-  const { data, error } = await supabase
+  // Fetch GLOBAL items (book_id IS NULL)
+  const { data: globalLoot, error: globalError } = await supabase
+    .from('loot_tables')
+    .select(`
+      *,
+      reward_types (*)
+    `)
+    .is('book_id', null)
+    .eq('chest_type', chestType);
+  
+  if (globalError) {
+    console.error('Error fetching global loot table:', globalError);
+  }
+
+  // Fetch BOOK-SPECIFIC items
+  const { data: bookLoot, error: bookError } = await supabase
     .from('loot_tables')
     .select(`
       *,
@@ -76,12 +92,12 @@ export async function fetchLootTable(
     .eq('book_id', bookId)
     .eq('chest_type', chestType);
   
-  if (error) {
-    console.error('Error fetching loot table:', error);
-    return [];
+  if (bookError) {
+    console.error('Error fetching book loot table:', bookError);
   }
   
-  return data || [];
+  // Merge global and book-specific items
+  return [...(globalLoot || []), ...(bookLoot || [])];
 }
 
 /**

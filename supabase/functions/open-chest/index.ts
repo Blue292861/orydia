@@ -136,8 +136,18 @@ serve(async (req) => {
     
     const orydors = Math.floor((basePoints * selectedVariation) / 100);
 
-    // Fetch loot table
-    const { data: lootTable } = await supabaseClient
+    // Fetch GLOBAL loot table (book_id IS NULL)
+    const { data: globalLoot } = await supabaseClient
+      .from('loot_tables')
+      .select(`
+        *,
+        reward_types (*)
+      `)
+      .is('book_id', null)
+      .eq('chest_type', chestType);
+
+    // Fetch BOOK-SPECIFIC loot table
+    const { data: bookLoot } = await supabaseClient
       .from('loot_tables')
       .select(`
         *,
@@ -145,6 +155,9 @@ serve(async (req) => {
       `)
       .eq('book_id', bookId)
       .eq('chest_type', chestType);
+
+    // Merge global and book-specific items
+    const lootTable = [...(globalLoot || []), ...(bookLoot || [])];
 
     // Roll additional rewards
     const additionalRewards: ChestReward[] = [];

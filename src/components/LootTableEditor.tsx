@@ -7,13 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trash2, Plus, Sparkles, Check, ChevronsUpDown } from 'lucide-react';
+import { Trash2, Plus, Sparkles, Check, ChevronsUpDown, Globe, BookOpen } from 'lucide-react';
 import { RewardType, LootTable } from '@/types/RewardType';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
+type LootMode = 'global' | 'book';
+
 export const LootTableEditor: React.FC = () => {
+  const [lootMode, setLootMode] = useState<LootMode>('global');
   const [books, setBooks] = useState<any[]>([]);
   const [rewardTypes, setRewardTypes] = useState<RewardType[]>([]);
   const [selectedBookId, setSelectedBookId] = useState<string>('');
@@ -28,11 +31,17 @@ export const LootTableEditor: React.FC = () => {
     fetchRewardTypes();
   }, []);
 
+  // Fetch loot tables when mode or selected book changes
   useEffect(() => {
-    if (selectedBookId) {
-      fetchLootTables(selectedBookId);
+    if (lootMode === 'global') {
+      fetchGlobalLootTables();
+    } else if (selectedBookId) {
+      fetchBookLootTables(selectedBookId);
+    } else {
+      setSilverLoot([]);
+      setGoldLoot([]);
     }
-  }, [selectedBookId]);
+  }, [lootMode, selectedBookId]);
 
   const fetchBooks = async () => {
     try {
@@ -66,7 +75,26 @@ export const LootTableEditor: React.FC = () => {
     }
   };
 
-  const fetchLootTables = async (bookId: string) => {
+  // Fetch GLOBAL items (book_id IS NULL)
+  const fetchGlobalLootTables = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('loot_tables')
+        .select('*')
+        .is('book_id', null);
+
+      if (error) throw error;
+
+      setSilverLoot((data?.filter(l => l.chest_type === 'silver') || []) as LootTable[]);
+      setGoldLoot((data?.filter(l => l.chest_type === 'gold') || []) as LootTable[]);
+    } catch (error) {
+      console.error('Error fetching global loot tables:', error);
+      toast({ title: "Erreur", description: "Impossible de charger les items globaux", variant: "destructive" });
+    }
+  };
+
+  // Fetch BOOK-SPECIFIC items
+  const fetchBookLootTables = async (bookId: string) => {
     try {
       const { data, error } = await supabase
         .from('loot_tables')
@@ -78,14 +106,14 @@ export const LootTableEditor: React.FC = () => {
       setSilverLoot((data?.filter(l => l.chest_type === 'silver') || []) as LootTable[]);
       setGoldLoot((data?.filter(l => l.chest_type === 'gold') || []) as LootTable[]);
     } catch (error) {
-      console.error('Error fetching loot tables:', error);
+      console.error('Error fetching book loot tables:', error);
       toast({ title: "Erreur", description: "Impossible de charger les tables de loot", variant: "destructive" });
     }
   };
 
   const addLootEntry = (chestType: 'silver' | 'gold') => {
     const newEntry: Partial<LootTable> = {
-      book_id: selectedBookId,
+      book_id: lootMode === 'global' ? null : selectedBookId,
       chest_type: chestType,
       reward_type_id: rewardTypes[0]?.id || '',
       drop_chance_percentage: 10,
@@ -123,21 +151,31 @@ export const LootTableEditor: React.FC = () => {
     try {
       const lootList = chestType === 'silver' ? silverLoot : goldLoot;
 
-      // Delete existing entries for this book and chest type
-      const { error: deleteError } = await supabase
-        .from('loot_tables')
-        .delete()
-        .eq('book_id', selectedBookId)
-        .eq('chest_type', chestType);
+      // Delete existing entries based on mode
+      if (lootMode === 'global') {
+        const { error: deleteError } = await supabase
+          .from('loot_tables')
+          .delete()
+          .is('book_id', null)
+          .eq('chest_type', chestType);
 
-      if (deleteError) throw deleteError;
+        if (deleteError) throw deleteError;
+      } else {
+        const { error: deleteError } = await supabase
+          .from('loot_tables')
+          .delete()
+          .eq('book_id', selectedBookId)
+          .eq('chest_type', chestType);
+
+        if (deleteError) throw deleteError;
+      }
 
       // Insert new entries
       if (lootList.length > 0) {
         const { error: insertError } = await supabase
           .from('loot_tables')
           .insert(lootList.map(l => ({
-            book_id: l.book_id,
+            book_id: lootMode === 'global' ? null : l.book_id,
             chest_type: l.chest_type,
             reward_type_id: l.reward_type_id,
             drop_chance_percentage: l.drop_chance_percentage,
@@ -148,46 +186,44 @@ export const LootTableEditor: React.FC = () => {
         if (insertError) throw insertError;
       }
 
-      toast({ title: "Succès", description: `Table de loot ${chestType === 'silver' ? 'argentée' : 'dorée'} sauvegardée` });
+      toast({ 
+        title: "Succès", 
+        description: `Table de loot ${chestType === 'silver' ? 'argentée' : 'dorée'} ${lootMode === 'global' ? 'globale' : 'du livre'} sauvegardée` 
+      });
     } catch (error) {
       console.error('Error saving loot tables:', error);
       toast({ title: "Erreur", description: "Impossible de sauvegarder", variant: "destructive" });
     }
   };
 
-  const calculateTotalDropRate = (lootList: LootTable[]) => {
-    return lootList.reduce((sum, item) => sum + (item.drop_chance_percentage || 0), 0);
-  };
-
   const simulateDrops = (lootList: LootTable[], rolls: number = 100) => {
     const results: Record<string, number> = {};
+    let emptyChests = 0;
 
     for (let i = 0; i < rolls; i++) {
+      let gotSomething = false;
       lootList.forEach(entry => {
         const roll = Math.random() * 100;
         if (roll <= entry.drop_chance_percentage) {
           const rewardName = rewardTypes.find(r => r.id === entry.reward_type_id)?.name || 'Unknown';
           results[rewardName] = (results[rewardName] || 0) + 1;
+          gotSomething = true;
         }
       });
+      if (!gotSomething) emptyChests++;
     }
 
-    return results;
+    return { results, emptyChests };
   };
 
   const renderLootTable = (chestType: 'silver' | 'gold', lootList: LootTable[]) => {
-    const totalDropRate = calculateTotalDropRate(lootList);
-    const simulation = simulateDrops(lootList);
+    const { results: simulation, emptyChests } = simulateDrops(lootList);
 
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <div className="text-sm">
-            <span className="font-medium">Total des chances: </span>
-            <span className={totalDropRate > 100 ? 'text-red-500 font-bold' : 'text-green-500'}>
-              {totalDropRate.toFixed(2)}%
-            </span>
-            {totalDropRate > 100 && <span className="text-red-500 ml-2">⚠️ Dépasse 100%</span>}
+          <div className="text-sm text-muted-foreground">
+            Chaque item a sa propre chance d'apparition (cumulative)
           </div>
           <Button onClick={() => addLootEntry(chestType)}>
             <Plus className="w-4 h-4 mr-2" />
@@ -220,12 +256,11 @@ export const LootTableEditor: React.FC = () => {
                   </div>
 
                   <div>
-                    <Label>Drop %</Label>
+                    <Label>Chance %</Label>
                     <Input
                       type="number"
                       step="0.01"
                       min="0"
-                      max="100"
                       value={entry.drop_chance_percentage}
                       onChange={(e) => updateLootEntry(chestType, index, 'drop_chance_percentage', parseFloat(e.target.value))}
                     />
@@ -265,7 +300,7 @@ export const LootTableEditor: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
-                Simulation (100 rolls)
+                Simulation (100 ouvertures)
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -273,9 +308,13 @@ export const LootTableEditor: React.FC = () => {
                 {Object.entries(simulation).map(([name, count]) => (
                   <div key={name} className="p-2 bg-muted rounded">
                     <div className="font-medium">{name}</div>
-                    <div className="text-muted-foreground">{count} fois</div>
+                    <div className="text-muted-foreground">~{count} fois</div>
                   </div>
                 ))}
+                <div className="p-2 bg-muted/50 rounded border border-dashed">
+                  <div className="font-medium">Coffres vides</div>
+                  <div className="text-muted-foreground">~{emptyChests} fois (Orydors seuls)</div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -294,72 +333,125 @@ export const LootTableEditor: React.FC = () => {
     <div className="p-4 space-y-6">
       <h2 className="text-2xl font-bold">Éditeur de Tables de Loot</h2>
 
-      <div className="max-w-md">
-        <Label>Sélectionner un livre</Label>
-        <Popover open={bookComboOpen} onOpenChange={setBookComboOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={bookComboOpen}
-              className="w-full justify-between"
-            >
-              {selectedBookId
-                ? books.find((book) => book.id === selectedBookId)?.title
-                : "Rechercher un livre..."}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[500px] p-0 bg-popover z-[100]">
-            <Command>
-              <CommandInput placeholder="Rechercher par titre ou auteur..." />
-              <CommandList>
-                <CommandEmpty>Aucun livre trouvé.</CommandEmpty>
-                <CommandGroup>
-                  {books.map((book) => (
-                    <CommandItem
-                      key={book.id}
-                      value={`${book.title} ${book.author}`}
-                      onSelect={() => {
-                        setSelectedBookId(book.id);
-                        setBookComboOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          selectedBookId === book.id ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      <div className="flex flex-col">
-                        <span className="font-medium">{book.title}</span>
-                        <span className="text-sm text-muted-foreground">{book.author}</span>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
+      {/* Mode selector: Global vs Book-specific */}
+      <Tabs value={lootMode} onValueChange={(v) => setLootMode(v as LootMode)}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="global" className="flex items-center gap-2">
+            <Globe className="w-4 h-4" />
+            Items Globaux
+          </TabsTrigger>
+          <TabsTrigger value="book" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            Items par Livre
+          </TabsTrigger>
+        </TabsList>
 
-      {selectedBookId && (
-        <Tabs defaultValue="silver">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="silver">Coffre Argenté (Freemium)</TabsTrigger>
-            <TabsTrigger value="gold">Coffre Doré (Premium)</TabsTrigger>
-          </TabsList>
+        <TabsContent value="global" className="mt-4">
+          <Card className="mb-4">
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground">
+                🌍 Ces items apparaîtront dans <strong>TOUS les coffres</strong>, peu importe le livre terminé.
+              </p>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="silver">
-            {renderLootTable('silver', silverLoot)}
-          </TabsContent>
+          <Tabs defaultValue="silver">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="silver">Coffre Argenté (Freemium)</TabsTrigger>
+              <TabsTrigger value="gold">Coffre Doré (Premium)</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="gold">
-            {renderLootTable('gold', goldLoot)}
-          </TabsContent>
-        </Tabs>
-      )}
+            <TabsContent value="silver">
+              {renderLootTable('silver', silverLoot)}
+            </TabsContent>
+
+            <TabsContent value="gold">
+              {renderLootTable('gold', goldLoot)}
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="book" className="mt-4">
+          <Card className="mb-4">
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                📖 Ces items n'apparaîtront <strong>QUE dans le coffre du livre sélectionné</strong> (en plus des items globaux).
+              </p>
+
+              <Label>Sélectionner un livre</Label>
+              <Popover open={bookComboOpen} onOpenChange={setBookComboOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={bookComboOpen}
+                    className="w-full justify-between"
+                  >
+                    {selectedBookId
+                      ? books.find((book) => book.id === selectedBookId)?.title
+                      : "Rechercher un livre..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[500px] p-0 bg-popover z-[100]">
+                  <Command>
+                    <CommandInput placeholder="Rechercher par titre ou auteur..." />
+                    <CommandList>
+                      <CommandEmpty>Aucun livre trouvé.</CommandEmpty>
+                      <CommandGroup>
+                        {books.map((book) => (
+                          <CommandItem
+                            key={book.id}
+                            value={`${book.title} ${book.author}`}
+                            onSelect={() => {
+                              setSelectedBookId(book.id);
+                              setBookComboOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedBookId === book.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <div className="flex flex-col">
+                              <span className="font-medium">{book.title}</span>
+                              <span className="text-sm text-muted-foreground">{book.author}</span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </CardContent>
+          </Card>
+
+          {selectedBookId && (
+            <Tabs defaultValue="silver">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="silver">Coffre Argenté (Freemium)</TabsTrigger>
+                <TabsTrigger value="gold">Coffre Doré (Premium)</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="silver">
+                {renderLootTable('silver', silverLoot)}
+              </TabsContent>
+
+              <TabsContent value="gold">
+                {renderLootTable('gold', goldLoot)}
+              </TabsContent>
+            </Tabs>
+          )}
+
+          {!selectedBookId && (
+            <div className="text-center py-8 text-muted-foreground">
+              Sélectionnez un livre pour configurer ses items spécifiques
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
