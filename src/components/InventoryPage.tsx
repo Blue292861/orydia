@@ -1,19 +1,25 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserInventory, claimPremiumFromFragments, getChestHistory } from "@/services/inventoryService";
+import { getUserCollectionProgress } from "@/services/collectionService";
+import { UserCollectionProgress } from "@/types/Collection";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Gem, Gift, History, Sparkles, Crown } from "lucide-react";
+import { Gem, Gift, History, Sparkles, Crown, Layers } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CollectionCard } from "./CollectionCard";
+import { CollectionDetailDialog } from "./CollectionDetailDialog";
 
 export function InventoryPage() {
   const { user } = useAuth();
   const [inventory, setInventory] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [collections, setCollections] = useState<UserCollectionProgress[]>([]);
+  const [selectedCollection, setSelectedCollection] = useState<UserCollectionProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
 
@@ -21,6 +27,7 @@ export function InventoryPage() {
     if (user?.id) {
       loadInventory();
       loadHistory();
+      loadCollections();
     }
   }, [user]);
 
@@ -44,6 +51,16 @@ export function InventoryPage() {
       setHistory(data);
     } catch (error) {
       console.error('Error loading history:', error);
+    }
+  };
+
+  const loadCollections = async () => {
+    if (!user?.id) return;
+    try {
+      const data = await getUserCollectionProgress(user.id);
+      setCollections(data);
+    } catch (error) {
+      console.error('Error loading collections:', error);
     }
   };
 
@@ -131,8 +148,12 @@ export function InventoryPage() {
       </Card>
 
       {/* Tabs for different inventory sections */}
-      <Tabs defaultValue="cards" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="collections" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="collections">
+            <Layers className="w-4 h-4 mr-2" />
+            Collections
+          </TabsTrigger>
           <TabsTrigger value="cards">
             Cartes ({cards.length})
           </TabsTrigger>
@@ -144,6 +165,28 @@ export function InventoryPage() {
             Historique
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="collections" className="mt-6">
+          {collections.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center text-muted-foreground">
+                <Layers className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Aucune collection disponible</p>
+                <p className="text-sm mt-2">Les collections apparaîtront ici quand elles seront créées</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {collections.map((progress) => (
+                <CollectionCard
+                  key={progress.collection.id}
+                  progress={progress}
+                  onClick={() => setSelectedCollection(progress)}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
 
         <TabsContent value="cards" className="mt-6">
           {cards.length === 0 ? (
@@ -256,6 +299,18 @@ export function InventoryPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Collection Detail Dialog */}
+      <CollectionDetailDialog
+        progress={selectedCollection}
+        open={!!selectedCollection}
+        onOpenChange={(open) => !open && setSelectedCollection(null)}
+        onRewardClaimed={() => {
+          setSelectedCollection(null);
+          loadCollections();
+          loadInventory();
+        }}
+      />
     </div>
   );
 }

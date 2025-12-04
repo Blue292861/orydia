@@ -84,6 +84,7 @@ const METADATA_GUIDES: Record<string, { description: string; fields: { name: str
 
 export const RewardTypesAdmin: React.FC = () => {
   const [rewardTypes, setRewardTypes] = useState<RewardType[]>([]);
+  const [collections, setCollections] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingReward, setEditingReward] = useState<RewardType | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -96,11 +97,13 @@ export const RewardTypesAdmin: React.FC = () => {
     category: 'card' as 'currency' | 'fragment' | 'card' | 'item',
     rarity: 'common' as 'common' | 'rare' | 'epic' | 'legendary',
     image_url: '',
-    metadata: '{}'
+    metadata: '{}',
+    collection_id: null as string | null
   });
 
   useEffect(() => {
     fetchRewardTypes();
+    fetchCollections();
   }, []);
 
   const fetchRewardTypes = async () => {
@@ -117,6 +120,21 @@ export const RewardTypesAdmin: React.FC = () => {
       toast({ title: "Erreur", description: "Impossible de charger les types de récompenses", variant: "destructive" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCollections = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('collections')
+        .select('id, name')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setCollections(data || []);
+    } catch (error) {
+      console.error('Error fetching collections:', error);
     }
   };
 
@@ -169,6 +187,7 @@ export const RewardTypesAdmin: React.FC = () => {
             rarity: formData.rarity,
             image_url: formData.image_url,
             metadata: metadataObj,
+            collection_id: formData.category === 'card' ? formData.collection_id : null,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingReward.id);
@@ -184,7 +203,8 @@ export const RewardTypesAdmin: React.FC = () => {
             category: formData.category,
             rarity: formData.rarity,
             image_url: formData.image_url,
-            metadata: metadataObj
+            metadata: metadataObj,
+            collection_id: formData.category === 'card' ? formData.collection_id : null
           });
 
         if (error) throw error;
@@ -208,7 +228,8 @@ export const RewardTypesAdmin: React.FC = () => {
       category: reward.category,
       rarity: reward.rarity,
       image_url: reward.image_url,
-      metadata: JSON.stringify(reward.metadata, null, 2)
+      metadata: JSON.stringify(reward.metadata, null, 2),
+      collection_id: (reward as any).collection_id || null
     });
     setIsDialogOpen(true);
   };
@@ -240,7 +261,8 @@ export const RewardTypesAdmin: React.FC = () => {
       category: 'card',
       rarity: 'common',
       image_url: '',
-      metadata: '{}'
+      metadata: '{}',
+      collection_id: null
     });
   };
 
@@ -327,6 +349,35 @@ export const RewardTypesAdmin: React.FC = () => {
                   </Select>
                 </div>
               </div>
+
+              {/* Collection dropdown for cards */}
+              {formData.category === 'card' && (
+                <div>
+                  <Label>Collection (optionnel)</Label>
+                  <Select
+                    value={formData.collection_id || 'none'}
+                    onValueChange={(value) => setFormData(prev => ({ 
+                      ...prev, 
+                      collection_id: value === 'none' ? null : value 
+                    }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Aucune collection" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Aucune collection</SelectItem>
+                      {collections.map(c => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Associer cette carte à une collection pour le système de collection
+                  </p>
+                </div>
+              )}
 
               <div>
                 <Label>Image</Label>

@@ -795,6 +795,81 @@ export type Database = {
           },
         ]
       }
+      collection_item_rewards: {
+        Row: {
+          collection_id: string
+          created_at: string | null
+          id: string
+          quantity: number | null
+          reward_type_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string | null
+          id?: string
+          quantity?: number | null
+          reward_type_id: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string | null
+          id?: string
+          quantity?: number | null
+          reward_type_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_item_rewards_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_item_rewards_reward_type_id_fkey"
+            columns: ["reward_type_id"]
+            isOneToOne: false
+            referencedRelation: "reward_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon_url: string
+          id: string
+          is_active: boolean | null
+          name: string
+          orydors_reward: number | null
+          updated_at: string | null
+          xp_reward: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon_url: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          orydors_reward?: number | null
+          updated_at?: string | null
+          xp_reward?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon_url?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          orydors_reward?: number | null
+          updated_at?: string | null
+          xp_reward?: number | null
+        }
+        Relationships: []
+      }
       epub_reading_progress: {
         Row: {
           book_id: string
@@ -1387,6 +1462,7 @@ export type Database = {
       reward_types: {
         Row: {
           category: string
+          collection_id: string | null
           created_at: string | null
           description: string | null
           id: string
@@ -1399,6 +1475,7 @@ export type Database = {
         }
         Insert: {
           category: string
+          collection_id?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -1411,6 +1488,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          collection_id?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -1421,7 +1499,15 @@ export type Database = {
           rarity?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reward_types_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       security_audit_log: {
         Row: {
@@ -2136,6 +2222,41 @@ export type Database = {
             columns: ["chapter_id"]
             isOneToOne: false
             referencedRelation: "book_chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_collection_completions: {
+        Row: {
+          chest_claimed: boolean | null
+          claimed_at: string | null
+          collection_id: string
+          completed_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          chest_claimed?: boolean | null
+          claimed_at?: string | null
+          collection_id: string
+          completed_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          chest_claimed?: boolean | null
+          claimed_at?: string | null
+          collection_id?: string
+          completed_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_collection_completions_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
             referencedColumns: ["id"]
           },
         ]
