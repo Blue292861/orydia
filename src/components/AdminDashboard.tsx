@@ -14,6 +14,7 @@ import { TranslationAlerts } from '@/components/TranslationAlerts';
 import { TranslationJobsMonitor } from '@/components/TranslationJobsMonitor';
 import { RewardTypesAdmin } from '@/components/RewardTypesAdmin';
 import { LootTableEditor } from '@/components/LootTableEditor';
+import { CollectionsAdmin } from '@/components/CollectionsAdmin';
 import ChallengeAdmin from '@/components/ChallengeAdmin';
 import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
@@ -82,6 +83,7 @@ export const AdminDashboard: React.FC = () => {
         <TabsList className="flex flex-wrap">
           <TabsTrigger value="books">Livres</TabsTrigger>
           <TabsTrigger value="challenges">Défis</TabsTrigger>
+          <TabsTrigger value="collections">Collections</TabsTrigger>
           <TabsTrigger value="translations">Traductions</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
         </TabsList>
@@ -196,6 +198,10 @@ export const AdminDashboard: React.FC = () => {
 
         <TabsContent value="challenges">
           <ChallengeAdmin />
+        </TabsContent>
+
+        <TabsContent value="collections">
+          <CollectionsAdmin />
         </TabsContent>
 
         <TabsContent value="translations">
