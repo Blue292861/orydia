@@ -12,6 +12,7 @@ import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChapterBannerAd } from '@/components/ChapterBannerAd';
 import { RewardAd } from '@/components/RewardAd';
 import { ChestOpeningDialog } from '@/components/ChestOpeningDialog';
+import { ChapterCompletionAnimation } from '@/components/ChapterCompletionAnimation';
 import { TranslationProgress } from '@/components/TranslationProgress';
 import WaypointPopup from '@/components/WaypointPopup';
 import { useAuth } from '@/contexts/AuthContext';
@@ -65,6 +66,10 @@ export const ChapterEpubReader: React.FC = () => {
   
   // Copyright warning state
   const [showCopyrightWarning, setShowCopyrightWarning] = useState(true);
+  
+  // Chapter completion animation state
+  const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
+  const [pendingNextChapterId, setPendingNextChapterId] = useState<string | null>(null);
   
   // Waypoint state
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
@@ -1318,7 +1323,9 @@ export const ChapterEpubReader: React.FC = () => {
                       console.error('Error marking chapter completed:', error);
                     }
                   }
-                  navigate(`/book/${bookId}/chapter/${nextChapter.id}`);
+                  // Show completion animation instead of navigating directly
+                  setPendingNextChapterId(nextChapter.id);
+                  setShowCompletionAnimation(true);
                 }}
                 className="w-full h-9"
               >
@@ -1422,6 +1429,21 @@ export const ChapterEpubReader: React.FC = () => {
         onClose={() => {
           setShowWaypointPopup(false);
           setActiveWaypoint(null);
+        }}
+      />
+
+      {/* Chapter Completion Animation */}
+      <ChapterCompletionAnimation
+        isOpen={showCompletionAnimation}
+        currentChapter={allChapters.findIndex(ch => ch.id === chapter?.id) + 1}
+        totalChapters={allChapters.length}
+        bookTitle={book?.title || ''}
+        onContinue={() => {
+          setShowCompletionAnimation(false);
+          if (pendingNextChapterId && bookId) {
+            navigate(`/book/${bookId}/chapter/${pendingNextChapterId}`);
+            setPendingNextChapterId(null);
+          }
         }}
       />
     </div>
