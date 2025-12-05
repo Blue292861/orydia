@@ -11,6 +11,7 @@ import { fetchChaptersByBookId, markChapterCompleted, saveUserChoice, getUserCho
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ChapterCompletionAnimation } from '@/components/ChapterCompletionAnimation';
 
 interface InteractiveBookReaderProps {
   book: Book;
@@ -27,6 +28,8 @@ export const InteractiveBookReader: React.FC<InteractiveBookReaderProps> = ({ bo
   const [showEndingReward, setShowEndingReward] = useState(false);
   const [endingReward, setEndingReward] = useState(0);
   const [rewardClaimed, setRewardClaimed] = useState(false);
+  const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
+  const [pendingNextChapterIndex, setPendingNextChapterIndex] = useState<number | null>(null);
   const { user } = useAuth();
 
   const currentChapter = chapters[currentChapterIndex];
@@ -58,7 +61,17 @@ export const InteractiveBookReader: React.FC<InteractiveBookReaderProps> = ({ bo
     }
     
     if (currentChapterIndex < chapters.length - 1) {
-      setCurrentChapterIndex(currentChapterIndex + 1);
+      // Show completion animation instead of navigating directly
+      setPendingNextChapterIndex(currentChapterIndex + 1);
+      setShowCompletionAnimation(true);
+    }
+  };
+
+  const handleContinueAfterAnimation = () => {
+    setShowCompletionAnimation(false);
+    if (pendingNextChapterIndex !== null) {
+      setCurrentChapterIndex(pendingNextChapterIndex);
+      setPendingNextChapterIndex(null);
     }
   };
 
@@ -389,6 +402,15 @@ export const InteractiveBookReader: React.FC<InteractiveBookReaderProps> = ({ bo
             </Button>
           </div>
         )}
+
+        {/* Chapter Completion Animation */}
+        <ChapterCompletionAnimation
+          isOpen={showCompletionAnimation}
+          currentChapter={currentChapterIndex + 1}
+          totalChapters={chapters.length}
+          bookTitle={book.title}
+          onContinue={handleContinueAfterAnimation}
+        />
       </div>
     </div>
   );
