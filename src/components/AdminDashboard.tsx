@@ -15,6 +15,7 @@ import { TranslationJobsMonitor } from '@/components/TranslationJobsMonitor';
 import { RewardTypesAdmin } from '@/components/RewardTypesAdmin';
 import { LootTableEditor } from '@/components/LootTableEditor';
 import { CollectionsAdmin } from '@/components/CollectionsAdmin';
+import { TestEnvironmentAdmin } from '@/components/TestEnvironmentAdmin';
 import ChallengeAdmin from '@/components/ChallengeAdmin';
 import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
@@ -86,6 +87,7 @@ export const AdminDashboard: React.FC = () => {
           <TabsTrigger value="collections">Collections</TabsTrigger>
           <TabsTrigger value="translations">Traductions</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+          <TabsTrigger value="test">🧪 Test</TabsTrigger>
         </TabsList>
 
         <TabsContent value="books" className="space-y-6">
@@ -215,6 +217,10 @@ export const AdminDashboard: React.FC = () => {
             <TranslationDashboard />
             <TranslationBudgetManager />
           </div>
+        </TabsContent>
+
+        <TabsContent value="test">
+          <TestEnvironmentAdmin />
         </TabsContent>
       </Tabs>
 
