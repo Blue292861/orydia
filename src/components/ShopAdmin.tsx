@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ShopItemForm } from '@/components/shop/ShopItemForm';
-import { Plus, Pencil, Trash2, Coins, User } from 'lucide-react';
+import { Plus, Pencil, Trash2, Coins, User, CreditCard } from 'lucide-react';
 import { useShopItems } from '@/hooks/useShopItems';
 import { ShopItem } from '@/types/ShopItem';
 import { useResponsive } from '@/hooks/useResponsive';
+import { Badge } from '@/components/ui/badge';
 
 export const ShopAdmin: React.FC = () => {
   const { shopItems, loading, addShopItem, updateShopItem, deleteShopItem } = useShopItems('internal'); // Only manage internal Orydia shop items
@@ -46,6 +47,13 @@ export const ShopAdmin: React.FC = () => {
     }
   };
 
+  const formatPrice = (item: ShopItem) => {
+    if (item.paymentType === 'real_money' && item.realPriceCents) {
+      return `${(item.realPriceCents / 100).toFixed(2)}€`;
+    }
+    return `${item.price} Orydors`;
+  };
+
   if (loading) {
     return <div className="text-center py-12">Chargement...</div>;
   }
@@ -74,12 +82,27 @@ export const ShopAdmin: React.FC = () => {
       }`}>
         {shopItems.map((item) => (
           <Card key={item.id} className="overflow-hidden">
-            <div className={`aspect-square overflow-hidden ${isMobile ? 'h-48' : ''}`}>
+            <div className={`aspect-square overflow-hidden relative ${isMobile ? 'h-48' : ''}`}>
               <img 
                 src={item.imageUrl} 
                 alt={item.name}
                 className="w-full h-full object-cover" 
               />
+              {/* Payment type badge */}
+              <Badge 
+                variant={item.paymentType === 'real_money' ? 'default' : 'secondary'}
+                className={`absolute top-2 right-2 ${
+                  item.paymentType === 'real_money' 
+                    ? 'bg-green-600 hover:bg-green-700' 
+                    : 'bg-amber-600 hover:bg-amber-700'
+                }`}
+              >
+                {item.paymentType === 'real_money' ? (
+                  <><CreditCard className="h-3 w-3 mr-1" /> EUR</>
+                ) : (
+                  <><Coins className="h-3 w-3 mr-1" /> Orydors</>
+                )}
+              </Badge>
             </div>
             <CardHeader className={`${isMobile ? 'pb-2 px-4 pt-4' : 'pb-2'}`}>
               <CardTitle className={`${isMobile ? 'text-base' : 'text-lg'} line-clamp-2`}>
@@ -98,8 +121,12 @@ export const ShopAdmin: React.FC = () => {
                 <span className="font-medium truncate">{item.seller}</span>
               </div>
               <div className={`flex items-center gap-1 ${isMobile ? 'text-sm' : ''}`}>
-                <Coins className="h-4 w-4 text-primary flex-shrink-0" />
-                <span className="font-medium">{item.price} points</span>
+                {item.paymentType === 'real_money' ? (
+                  <CreditCard className="h-4 w-4 text-green-500 flex-shrink-0" />
+                ) : (
+                  <Coins className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                )}
+                <span className="font-medium">{formatPrice(item)}</span>
               </div>
               <div className={`flex ${isMobile ? 'flex-col gap-2' : 'justify-end gap-2'}`}>
                 <Button 

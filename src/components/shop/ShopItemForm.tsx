@@ -18,7 +18,7 @@ export const ShopItemForm: React.FC<ShopItemFormProps> = ({ initialItem, onSubmi
   const [formData, setFormData] = useState<ShopItem>(initialItem);
   const { toast } = useToast();
 
-  const handleChange = (field: keyof ShopItem, value: string | number) => {
+  const handleChange = (field: keyof ShopItem, value: string | number | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

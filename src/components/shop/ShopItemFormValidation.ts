@@ -56,12 +56,34 @@ export const validateShopItemForm = (formData: ShopItem): ValidationError[] => {
     }
   }
 
-  // Validate price
-  if (typeof formData.price === 'number') {
-    if (!validatePrice(formData.price)) {
+  // Validate price based on payment type
+  if (formData.paymentType === 'real_money') {
+    // For real money, validate realPriceCents
+    if (!formData.realPriceCents || formData.realPriceCents <= 0) {
+      errors.push({
+        field: 'realPriceCents',
+        message: 'Le prix en centimes est requis pour les articles en argent réel.'
+      });
+    } else if (formData.realPriceCents > 100000) {
+      errors.push({
+        field: 'realPriceCents',
+        message: 'Le prix ne peut pas dépasser 1000€ (100000 centimes).'
+      });
+    }
+  } else {
+    // For orydors, validate price
+    if (typeof formData.price === 'number') {
+      if (!validatePrice(formData.price)) {
+        errors.push({
+          field: 'price',
+          message: 'Le prix doit être un nombre entier positif jusqu\'à 1,000,000.'
+        });
+      }
+    }
+    if (formData.price <= 0) {
       errors.push({
         field: 'price',
-        message: 'Le prix doit être un nombre entier positif jusqu\'à 1,000,000.'
+        message: 'Le prix en Orydors doit être supérieur à 0.'
       });
     }
   }
@@ -109,13 +131,6 @@ export const validateShopItemForm = (formData: ShopItem): ValidationError[] => {
     errors.push({
       field: 'imageUrl',
       message: 'L\'URL de l\'image est requise.'
-    });
-  }
-
-  if (formData.price <= 0) {
-    errors.push({
-      field: 'price',
-      message: 'Le prix doit être supérieur à 0.'
     });
   }
 
