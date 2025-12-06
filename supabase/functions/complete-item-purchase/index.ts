@@ -61,59 +61,116 @@ serve(async (req) => {
       }
     );
 
-    // Check if user already has this item in inventory
-    const { data: existingItem, error: fetchError } = await supabaseAdmin
-      .from("user_inventory")
-      .select("id, quantity")
-      .eq("user_id", user_id)
-      .eq("reward_type_id", reward_type_id)
-      .maybeSingle();
-
-    if (fetchError) {
-      console.error("Error fetching inventory:", fetchError);
-      throw new Error("Failed to check inventory");
-    }
-
-    if (existingItem) {
-      // Update existing quantity
-      const { error: updateError } = await supabaseAdmin
-        .from("user_inventory")
-        .update({ 
-          quantity: existingItem.quantity + itemQuantity,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", existingItem.id);
-
-      if (updateError) {
-        console.error("Error updating inventory:", updateError);
-        throw new Error("Failed to update inventory");
-      }
-
-      console.log("Updated inventory item, new quantity:", existingItem.quantity + itemQuantity);
-    } else {
-      // Insert new inventory item
-      const { error: insertError } = await supabaseAdmin
-        .from("user_inventory")
-        .insert({
-          user_id: user_id,
-          reward_type_id: reward_type_id,
-          quantity: itemQuantity,
-        });
-
-      if (insertError) {
-        console.error("Error inserting inventory:", insertError);
-        throw new Error("Failed to add to inventory");
-      }
-
-      console.log("Created new inventory item with quantity:", itemQuantity);
-    }
-
-    // Get item details for response
-    const { data: rewardType } = await supabaseAdmin
+    // Get reward type details to check if it's a fragment
+    const { data: rewardType, error: rewardError } = await supabaseAdmin
       .from("reward_types")
-      .select("name, image_url")
+      .select("id, name, image_url, category")
       .eq("id", reward_type_id)
       .single();
+
+    if (rewardError) {
+      console.error("Error fetching reward type:", rewardError);
+      throw new Error("Failed to fetch reward type");
+    }
+
+    // Check if this is a gem fragment purchase
+    if (rewardType?.category === 'fragment') {
+      console.log("Processing gem fragment purchase for user:", user_id);
+      
+      // Check if user already has gem fragments record
+      const { data: existingFragments, error: fragmentFetchError } = await supabaseAdmin
+        .from("gem_fragments")
+        .select("id, fragment_count")
+        .eq("user_id", user_id)
+        .maybeSingle();
+
+      if (fragmentFetchError) {
+        console.error("Error fetching gem fragments:", fragmentFetchError);
+        throw new Error("Failed to check gem fragments");
+      }
+
+      if (existingFragments) {
+        // Update existing fragment count
+        const newCount = existingFragments.fragment_count + itemQuantity;
+        const { error: updateError } = await supabaseAdmin
+          .from("gem_fragments")
+          .update({ 
+            fragment_count: newCount,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", existingFragments.id);
+
+        if (updateError) {
+          console.error("Error updating gem fragments:", updateError);
+          throw new Error("Failed to update gem fragments");
+        }
+
+        console.log("Updated gem fragments, new count:", newCount);
+      } else {
+        // Insert new gem fragments record
+        const { error: insertError } = await supabaseAdmin
+          .from("gem_fragments")
+          .insert({
+            user_id: user_id,
+            fragment_count: itemQuantity,
+          });
+
+        if (insertError) {
+          console.error("Error inserting gem fragments:", insertError);
+          throw new Error("Failed to add gem fragments");
+        }
+
+        console.log("Created new gem fragments record with count:", itemQuantity);
+      }
+    } else {
+      // Regular item: add to user_inventory
+      // Check if user already has this item in inventory
+      const { data: existingItem, error: fetchError } = await supabaseAdmin
+        .from("user_inventory")
+        .select("id, quantity")
+        .eq("user_id", user_id)
+        .eq("reward_type_id", reward_type_id)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error("Error fetching inventory:", fetchError);
+        throw new Error("Failed to check inventory");
+      }
+
+      if (existingItem) {
+        // Update existing quantity
+        const { error: updateError } = await supabaseAdmin
+          .from("user_inventory")
+          .update({ 
+            quantity: existingItem.quantity + itemQuantity,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", existingItem.id);
+
+        if (updateError) {
+          console.error("Error updating inventory:", updateError);
+          throw new Error("Failed to update inventory");
+        }
+
+        console.log("Updated inventory item, new quantity:", existingItem.quantity + itemQuantity);
+      } else {
+        // Insert new inventory item
+        const { error: insertError } = await supabaseAdmin
+          .from("user_inventory")
+          .insert({
+            user_id: user_id,
+            reward_type_id: reward_type_id,
+            quantity: itemQuantity,
+          });
+
+        if (insertError) {
+          console.error("Error inserting inventory:", insertError);
+          throw new Error("Failed to add to inventory");
+        }
+
+        console.log("Created new inventory item with quantity:", itemQuantity);
+      }
+    }
 
     return new Response(
       JSON.stringify({ 
