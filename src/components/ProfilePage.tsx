@@ -20,7 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Crown, User, Gift, Target } from 'lucide-react';
+import { Crown, User, Gift, Target, Trophy, BookMarked } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import type { Achievement } from '@/types/UserStats';
@@ -141,18 +141,26 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="profile" className="flex items-center space-x-2">
+        <TabsList className="grid w-full grid-cols-5 mb-6">
+          <TabsTrigger value="profile" className="flex items-center space-x-1 text-xs sm:text-sm">
             <User className="w-4 h-4" />
-            <span>Profil</span>
+            <span className="hidden sm:inline">Profil</span>
           </TabsTrigger>
-          <TabsTrigger value="challenges" className="flex items-center space-x-2">
+          <TabsTrigger value="achievements" className="flex items-center space-x-1 text-xs sm:text-sm">
+            <Trophy className="w-4 h-4" />
+            <span className="hidden sm:inline">Succès</span>
+          </TabsTrigger>
+          <TabsTrigger value="rarebooks" className="flex items-center space-x-1 text-xs sm:text-sm">
+            <BookMarked className="w-4 h-4" />
+            <span className="hidden sm:inline">Rares</span>
+          </TabsTrigger>
+          <TabsTrigger value="challenges" className="flex items-center space-x-1 text-xs sm:text-sm">
             <Target className="w-4 h-4" />
-            <span>Défis</span>
+            <span className="hidden sm:inline">Défis</span>
           </TabsTrigger>
-          <TabsTrigger value="inventory" className="flex items-center space-x-2">
+          <TabsTrigger value="inventory" className="flex items-center space-x-1 text-xs sm:text-sm">
             <Gift className="w-4 h-4" />
-            <span>Inventaire</span>
+            <span className="hidden sm:inline">Items</span>
           </TabsTrigger>
         </TabsList>
 
@@ -211,19 +219,8 @@ export const ProfilePage: React.FC = () => {
             }}
           />
 
-          {/* Rare Books Collection */}
-          {user && <RareBooksCollection userId={user.id} />}
-
           {/* Premium Status */}
           <PremiumStatusCard isPremium={userStats.isPremium} />
-
-          {/* Achievements Inventory */}
-          <AchievementInventory
-            achievements={userStats.achievements}
-            totalAchievementPoints={totalAchievementPoints}
-            recentlyUnlockedIds={recentlyUnlockedIds}
-            userStats={userStats}
-          />
 
           {/* Stats Summary */}
           <StatsSummary
@@ -243,6 +240,19 @@ export const ProfilePage: React.FC = () => {
 
           {/* Footer avec contact et réseaux sociaux */}
           <ProfileFooter />
+        </TabsContent>
+
+        <TabsContent value="achievements" className="space-y-4">
+          <AchievementInventory
+            achievements={userStats.achievements}
+            totalAchievementPoints={totalAchievementPoints}
+            recentlyUnlockedIds={recentlyUnlockedIds}
+            userStats={userStats}
+          />
+        </TabsContent>
+
+        <TabsContent value="rarebooks" className="space-y-4">
+          {user && <RareBooksCollection userId={user.id} />}
         </TabsContent>
 
         <TabsContent value="challenges">
