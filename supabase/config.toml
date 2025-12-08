@@ -37,3 +37,4 @@ verify_jwt = false
 [functions.customer-portal]
 [functions.get-user-stats]
 [functions.open-chest]
+[functions.claim-gift]
