@@ -114,12 +114,18 @@ export function ChestOpeningDialog({
 
         {phase === 'chest-opening' && (
           <div className="flex items-center justify-center py-12">
-            <div className="chest-opening">
-              <img 
-                src={chestType === 'gold' ? coffreOr : coffreArgent}
-                alt={`Coffre ${chestType === 'gold' ? 'd\'or' : 'd\'argent'}`}
-                className="w-48 h-48 object-contain drop-shadow-2xl animate-bounce"
-              />
+            <div className="relative">
+              {/* Halo lumineux qui explose */}
+              <div className={`absolute inset-0 bg-gradient-to-r ${chestColor} rounded-full blur-3xl chest-halo-burst`} />
+              
+              {/* Coffre figé qui disparaît dans la lumière */}
+              <div className="relative chest-opening">
+                <img 
+                  src={chestType === 'gold' ? coffreOr : coffreArgent}
+                  alt={`Coffre ${chestType === 'gold' ? 'd\'or' : 'd\'argent'}`}
+                  className="w-48 h-48 object-contain drop-shadow-2xl"
+                />
+              </div>
             </div>
           </div>
         )}
