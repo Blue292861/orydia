@@ -682,10 +682,36 @@ body.high-contrast * {
 
 @keyframes chest-opening {
   0% {
-    transform: rotateX(0deg);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.5);
+  }
+  80% {
+    opacity: 1;
+    filter: brightness(3);
   }
   100% {
-    transform: rotateX(-120deg);
+    opacity: 0;
+    filter: brightness(5);
+    transform: scale(1.1);
+  }
+}
+
+@keyframes chest-halo-burst {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
   }
 }
 
@@ -734,7 +760,10 @@ body.high-contrast * {
 
 .chest-opening {
   animation: chest-opening 1.5s ease-out forwards;
-  transform-style: preserve-3d;
+}
+
+.chest-halo-burst {
+  animation: chest-halo-burst 1.5s ease-out forwards;
 }
 
 .card-flip {
