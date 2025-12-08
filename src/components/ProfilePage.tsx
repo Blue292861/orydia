@@ -14,6 +14,7 @@ import { CardCollectionButton } from '@/components/CardCollectionButton';
 import { AildorKeyStock } from '@/components/AildorKeyStock';
 import { RareBooksCollection } from '@/components/RareBooksCollection';
 import ChallengesSection from '@/components/ChallengesSection';
+import GiftsTab from '@/components/GiftsTab';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -141,7 +142,7 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 mb-6">
+        <TabsList className="grid w-full grid-cols-6 mb-6">
           <TabsTrigger value="profile" className="flex items-center space-x-1 text-xs sm:text-sm">
             <User className="w-4 h-4" />
             <span className="hidden sm:inline">Profil</span>
@@ -161,6 +162,10 @@ export const ProfilePage: React.FC = () => {
           <TabsTrigger value="inventory" className="flex items-center space-x-1 text-xs sm:text-sm">
             <Gift className="w-4 h-4" />
             <span className="hidden sm:inline">Items</span>
+          </TabsTrigger>
+          <TabsTrigger value="gifts" className="flex items-center space-x-1 text-xs sm:text-sm">
+            <Gift className="w-4 h-4" />
+            <span className="hidden sm:inline">Cadeaux</span>
           </TabsTrigger>
         </TabsList>
 
@@ -261,6 +266,10 @@ export const ProfilePage: React.FC = () => {
 
         <TabsContent value="inventory">
           <InventoryPage />
+        </TabsContent>
+
+        <TabsContent value="gifts">
+          <GiftsTab />
         </TabsContent>
       </Tabs>
     </div>

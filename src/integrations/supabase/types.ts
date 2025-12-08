@@ -38,6 +38,42 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_gifts: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          expires_at: string
+          id: string
+          message: string
+          recipient_type: string
+          recipient_user_ids: string[] | null
+          rewards: Json
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at: string
+          id?: string
+          message: string
+          recipient_type: string
+          recipient_user_ids?: string[] | null
+          rewards?: Json
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          message?: string
+          recipient_type?: string
+          recipient_user_ids?: string[] | null
+          rewards?: Json
+          title?: string
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           app_name: string
@@ -2372,6 +2408,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_gift_claims: {
+        Row: {
+          claimed_at: string | null
+          gift_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          gift_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          gift_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_gift_claims_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
+            referencedRelation: "admin_gifts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_inventory: {
         Row: {
