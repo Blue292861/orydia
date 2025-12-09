@@ -14,7 +14,7 @@ import { AdminGift, GiftRewards, GiftRewardItem } from '@/types/Gift';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { EmailAutocomplete } from './EmailAutocomplete';
+
 
 interface RewardType {
   id: string;
@@ -331,10 +331,12 @@ const GiftAdmin: React.FC = () => {
 
               {recipientType === 'specific' && (
                 <div className="space-y-2">
-                  <Label className="text-amber-200">Emails des destinataires</Label>
-                  <EmailAutocomplete
-                    selectedEmails={specificEmails}
-                    onEmailsChange={setSpecificEmails}
+                  <Label className="text-amber-200">Emails des destinataires (séparés par des virgules)</Label>
+                  <Input
+                    value={specificEmails.join(', ')}
+                    onChange={(e) => setSpecificEmails(e.target.value.split(',').map(email => email.trim()).filter(Boolean))}
+                    placeholder="user1@email.com, user2@email.com"
+                    className="bg-amber-950/50 border-amber-700/50 text-amber-100"
                   />
                 </div>
               )}
