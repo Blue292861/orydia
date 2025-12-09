@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Gift, Trash2, Plus, Users, Crown, User, X } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Gift, Trash2, Plus, Users, Crown, User, X, Sparkles } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { createGift, getAllGifts, deleteGift, getGiftClaimStats } from '@/services/giftService';
 import { AdminGift, GiftRewards, GiftRewardItem } from '@/types/Gift';
@@ -39,6 +40,7 @@ const GiftAdmin: React.FC = () => {
   const [recipientType, setRecipientType] = useState<'all' | 'premium' | 'specific'>('all');
   const [specificEmails, setSpecificEmails] = useState<string[]>([]);
   const [expiresAt, setExpiresAt] = useState('');
+  const [isPersistent, setIsPersistent] = useState(false);
 
   useEffect(() => {
     loadGifts();
@@ -101,7 +103,7 @@ const GiftAdmin: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim() || !message.trim() || !expiresAt) {
+    if (!title.trim() || !message.trim() || (!isPersistent && !expiresAt)) {
       toast({ title: "Erreur", description: "Veuillez remplir tous les champs obligatoires", variant: "destructive" });
       return;
     }
@@ -130,7 +132,8 @@ const GiftAdmin: React.FC = () => {
         rewards,
         recipient_type: recipientType,
         recipient_user_ids: recipientUserIds,
-        expires_at: new Date(expiresAt).toISOString()
+        expires_at: isPersistent ? null : new Date(expiresAt).toISOString(),
+        is_persistent: isPersistent
       });
 
       toast({ title: "Succès", description: "Cadeau créé avec succès !" });
@@ -144,6 +147,7 @@ const GiftAdmin: React.FC = () => {
       setRecipientType('all');
       setSpecificEmails([]);
       setExpiresAt('');
+      setIsPersistent(false);
       setShowForm(false);
       
       loadGifts();
@@ -220,6 +224,18 @@ const GiftAdmin: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-purple-950/30 rounded-lg border border-purple-800/30">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      <Label className="text-purple-200">Cadeau persistant</Label>
+                    </div>
+                    <Switch checked={isPersistent} onCheckedChange={setIsPersistent} />
+                  </div>
+                </div>
+              </div>
+
+              {!isPersistent && (
+                <div className="space-y-2">
                   <Label className="text-amber-200">Date d'expiration *</Label>
                   <Input
                     type="datetime-local"
@@ -228,7 +244,7 @@ const GiftAdmin: React.FC = () => {
                     className="bg-amber-950/50 border-amber-700/50"
                   />
                 </div>
-              </div>
+              )}
 
               <div className="space-y-2">
                 <Label className="text-amber-200">Message *</Label>
@@ -363,7 +379,7 @@ const GiftAdmin: React.FC = () => {
           </Card>
         ) : (
           gifts.map((gift) => {
-            const isExpired = new Date(gift.expires_at) < new Date();
+            const isExpired = !gift.is_persistent && gift.expires_at && new Date(gift.expires_at) < new Date();
             
             return (
               <Card 
@@ -375,6 +391,9 @@ const GiftAdmin: React.FC = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="font-semibold text-amber-100">{gift.title}</h3>
+                        {gift.is_persistent && (
+                          <Badge className="bg-purple-500/20 text-purple-300 text-xs"><Sparkles className="w-3 h-3 mr-1" />Persistant</Badge>
+                        )}
                         {isExpired && (
                           <Badge variant="destructive" className="text-xs">Expiré</Badge>
                         )}
@@ -401,10 +420,10 @@ const GiftAdmin: React.FC = () => {
                           {getRecipientIcon(gift.recipient_type)}
                           {getRecipientLabel(gift.recipient_type)}
                         </span>
-                        <span>
-                          Expire: {format(new Date(gift.expires_at), 'dd MMM yyyy HH:mm', { locale: fr })}
-                        </span>
-                        <span>
+                        {gift.expires_at && (
+                          <span>Expire: {format(new Date(gift.expires_at), 'dd MMM yyyy HH:mm', { locale: fr })}</span>
+                        )}
+                        <span
                           {claimCounts[gift.id] || 0} réclamé(s)
                         </span>
                       </div>

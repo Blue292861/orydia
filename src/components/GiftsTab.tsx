@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Gift, Clock, Mail, MailOpen } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Gift, Clock, Mail, MailOpen, History, CheckCircle, Sparkles } from 'lucide-react';
 import { getAvailableGifts } from '@/services/giftService';
-import { AdminGift } from '@/types/Gift';
+import { GiftWithClaimStatus } from '@/types/Gift';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import GiftDetailDialog from './GiftDetailDialog';
@@ -12,9 +13,9 @@ interface GiftsTabProps {
 }
 
 const GiftsTab: React.FC<GiftsTabProps> = ({ onGiftClaimed }) => {
-  const [gifts, setGifts] = useState<AdminGift[]>([]);
+  const [gifts, setGifts] = useState<GiftWithClaimStatus[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedGift, setSelectedGift] = useState<AdminGift | null>(null);
+  const [selectedGift, setSelectedGift] = useState<GiftWithClaimStatus | null>(null);
 
   useEffect(() => {
     loadGifts();
@@ -32,11 +33,14 @@ const GiftsTab: React.FC<GiftsTabProps> = ({ onGiftClaimed }) => {
     }
   };
 
-  const handleGiftClaimed = (giftId: string) => {
-    setGifts(gifts.filter(g => g.id !== giftId));
+  const handleGiftClaimed = () => {
+    loadGifts();
     setSelectedGift(null);
     onGiftClaimed?.();
   };
+
+  const unclaimedGifts = gifts.filter(g => !g.is_claimed);
+  const claimedPersistentGifts = gifts.filter(g => g.is_claimed && g.is_persistent);
 
   if (loading) {
     return (
@@ -47,64 +51,83 @@ const GiftsTab: React.FC<GiftsTabProps> = ({ onGiftClaimed }) => {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Gift className="w-5 h-5 text-amber-400" />
-        <h2 className="text-xl font-semibold text-amber-100">Mes Cadeaux</h2>
-        {gifts.length > 0 && (
-          <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-            {gifts.length}
-          </span>
-        )}
-      </div>
+    <div className="space-y-6">
+      {/* À réclamer */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-amber-200">
+          <Mail className="w-5 h-5" />
+          <h3 className="font-medium">À réclamer ({unclaimedGifts.length})</h3>
+        </div>
 
-      {gifts.length === 0 ? (
-        <Card className="bg-amber-950/20 border-amber-700/30">
-          <CardContent className="py-12 text-center">
-            <MailOpen className="w-12 h-12 mx-auto mb-4 text-amber-700/50" />
-            <p className="text-amber-400">Aucun cadeau en attente</p>
-            <p className="text-sm text-amber-600 mt-1">
-              Vos cadeaux apparaîtront ici lorsque vous en recevrez
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-2">
-          {gifts.map((gift) => (
-            <Card 
-              key={gift.id}
-              className="bg-amber-950/30 border-amber-700/30 hover:border-amber-500/50 transition-colors cursor-pointer"
-              onClick={() => setSelectedGift(gift)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0">
+        {unclaimedGifts.length === 0 ? (
+          <Card className="bg-amber-950/20 border-amber-700/30">
+            <CardContent className="py-8 text-center">
+              <MailOpen className="w-12 h-12 mx-auto mb-4 text-amber-700/50" />
+              <p className="text-amber-400">Aucun cadeau en attente</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {unclaimedGifts.map((gift) => (
+              <Card 
+                key={gift.id}
+                className="bg-amber-950/30 border-amber-700/30 hover:border-amber-500/50 transition-colors cursor-pointer"
+                onClick={() => setSelectedGift(gift)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-amber-600/20 flex items-center justify-center">
                       <Mail className="w-5 h-5 text-amber-400" />
                     </div>
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-amber-100 truncate">
-                      {gift.title}
-                    </h3>
-                    <p className="text-sm text-amber-400 truncate">
-                      {gift.message.substring(0, 50)}...
-                    </p>
-                  </div>
-                  
-                  <div className="flex-shrink-0 text-right">
-                    <div className="flex items-center gap-1 text-xs text-amber-500">
-                      <Clock className="w-3 h-3" />
-                      <span>
-                        Expire le {format(new Date(gift.expires_at), 'dd MMM', { locale: fr })}
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium text-amber-100 truncate">{gift.title}</h3>
+                        {gift.is_persistent && (
+                          <Badge className="bg-purple-500/20 text-purple-300 text-xs">
+                            <Sparkles className="w-3 h-3 mr-1" />Persistant
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-amber-400 truncate">{gift.message.substring(0, 50)}...</p>
                     </div>
+                    {gift.expires_at && (
+                      <div className="text-xs text-amber-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {format(new Date(gift.expires_at), 'dd MMM', { locale: fr })}
+                      </div>
+                    )}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Historique */}
+      {claimedPersistentGifts.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-amber-200/70">
+            <History className="w-5 h-5" />
+            <h3 className="font-medium">Historique</h3>
+          </div>
+          <div className="space-y-2">
+            {claimedPersistentGifts.map((gift) => (
+              <Card 
+                key={gift.id}
+                className="bg-amber-950/20 border-amber-800/20 cursor-pointer hover:border-amber-700/40"
+                onClick={() => setSelectedGift(gift)}
+              >
+                <CardContent className="p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <span className="text-amber-200/80 text-sm">{gift.title}</span>
+                  </div>
+                  <Badge variant="outline" className="border-green-500/30 text-green-400/70 text-xs">Réclamé</Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
@@ -113,7 +136,8 @@ const GiftsTab: React.FC<GiftsTabProps> = ({ onGiftClaimed }) => {
           gift={selectedGift}
           open={!!selectedGift}
           onClose={() => setSelectedGift(null)}
-          onClaimed={() => handleGiftClaimed(selectedGift.id)}
+          onClaimed={handleGiftClaimed}
+          isClaimed={selectedGift.is_claimed}
         />
       )}
     </div>

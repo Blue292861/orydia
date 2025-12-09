@@ -16,13 +16,15 @@ interface GiftDetailDialogProps {
   open: boolean;
   onClose: () => void;
   onClaimed: () => void;
+  isClaimed?: boolean;
 }
 
 const GiftDetailDialog: React.FC<GiftDetailDialogProps> = ({
   gift,
   open,
   onClose,
-  onClaimed
+  onClaimed,
+  isClaimed = false
 }) => {
   const [claiming, setClaiming] = useState(false);
   const [showChestAnimation, setShowChestAnimation] = useState(false);
@@ -98,35 +100,51 @@ const GiftDetailDialog: React.FC<GiftDetailDialogProps> = ({
               <p className="text-amber-200 whitespace-pre-wrap">{gift.message}</p>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-amber-300 flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                Contenu du cadeau
-              </h4>
-              
-              <div className="bg-amber-900/30 rounded-lg p-3 border border-amber-700/30">
-                <div className="flex flex-wrap gap-2">
-                  {gift.rewards.orydors && gift.rewards.orydors > 0 && (
-                    <Badge className="bg-amber-600/80"><Coins className="w-3 h-3 mr-1" />{gift.rewards.orydors} Orydors</Badge>
-                  )}
-                  {gift.rewards.xp && gift.rewards.xp > 0 && (
-                    <Badge className="bg-blue-600/80"><Sparkles className="w-3 h-3 mr-1" />{gift.rewards.xp} XP</Badge>
-                  )}
-                  {gift.rewards.items?.map((item, index) => (
-                    <Badge key={index} className="bg-purple-600/80"><Package className="w-3 h-3 mr-1" />{item.name || 'Item'} x{item.quantity}</Badge>
-                  ))}
+            {!isClaimed && (
+              <>
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-amber-300 flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    Contenu du cadeau
+                  </h4>
+                  
+                  <div className="bg-amber-900/30 rounded-lg p-3 border border-amber-700/30">
+                    <div className="flex flex-wrap gap-2">
+                      {gift.rewards.orydors && gift.rewards.orydors > 0 && (
+                        <Badge className="bg-amber-600/80"><Coins className="w-3 h-3 mr-1" />{gift.rewards.orydors} Orydors</Badge>
+                      )}
+                      {gift.rewards.xp && gift.rewards.xp > 0 && (
+                        <Badge className="bg-blue-600/80"><Sparkles className="w-3 h-3 mr-1" />{gift.rewards.xp} XP</Badge>
+                      )}
+                      {gift.rewards.items?.map((item, index) => (
+                        <Badge key={index} className="bg-purple-600/80"><Package className="w-3 h-3 mr-1" />{item.name || 'Item'} x{item.quantity}</Badge>
+                      ))}
+                    </div>
+                  </div>
                 </div>
+
+                {gift.expires_at && (
+                  <div className="flex items-center gap-2 text-sm text-amber-400">
+                    <Clock className="w-4 h-4" />
+                    <span>Expire le {format(new Date(gift.expires_at), "d MMMM yyyy", { locale: fr })}</span>
+                  </div>
+                )}
+
+                <Button onClick={handleClaim} disabled={claiming} className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500">
+                  {claiming ? 'Récupération...' : <><Gift className="w-4 h-4 mr-2" />Récupérer les récompenses</>}
+                </Button>
+              </>
+            )}
+
+            {isClaimed && (
+              <div className="text-center py-4">
+                <div className="w-12 h-12 mx-auto mb-3 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <Gift className="w-6 h-6 text-green-400" />
+                </div>
+                <p className="text-green-300 font-medium">Ce cadeau a déjà été réclamé</p>
+                <p className="text-amber-400/60 text-sm mt-1">Vous pouvez toujours relire le message</p>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2 text-sm text-amber-400">
-              <Clock className="w-4 h-4" />
-              <span>Expire le {format(new Date(gift.expires_at), "d MMMM yyyy", { locale: fr })}</span>
-            </div>
-
-            <Button onClick={handleClaim} disabled={claiming} className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500">
-              {claiming ? 'Récupération...' : <><Gift className="w-4 h-4 mr-2" />Récupérer les récompenses</>}
-            </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

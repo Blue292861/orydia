@@ -1,12 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
-import { AdminGift, GiftRewards } from "@/types/Gift";
+import { AdminGift, GiftRewards, GiftWithClaimStatus } from "@/types/Gift";
 import { Json } from "@/integrations/supabase/types";
 
 /**
- * Get all available gifts for the current user (not expired, not claimed)
+ * Get all available gifts for the current user with claim status
  */
-export async function getAvailableGifts(): Promise<AdminGift[]> {
-  const { data, error } = await supabase
+export async function getAvailableGifts(): Promise<GiftWithClaimStatus[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const { data: gifts, error } = await supabase
     .from('admin_gifts')
     .select('*')
     .order('created_at', { ascending: false });
@@ -16,10 +18,23 @@ export async function getAvailableGifts(): Promise<AdminGift[]> {
     throw error;
   }
 
-  return (data || []).map(gift => ({
+  // Get user's claims to determine claimed status
+  let claimedIds = new Set<string>();
+  if (user) {
+    const { data: claims } = await supabase
+      .from('user_gift_claims')
+      .select('gift_id')
+      .eq('user_id', user.id);
+    
+    claimedIds = new Set(claims?.map(c => c.gift_id) || []);
+  }
+
+  return (gifts || []).map(gift => ({
     ...gift,
     rewards: gift.rewards as GiftRewards,
-    recipient_type: gift.recipient_type as 'all' | 'premium' | 'specific'
+    recipient_type: gift.recipient_type as 'all' | 'premium' | 'specific',
+    is_persistent: gift.is_persistent ?? false,
+    is_claimed: claimedIds.has(gift.id)
   }));
 }
 
@@ -27,17 +42,8 @@ export async function getAvailableGifts(): Promise<AdminGift[]> {
  * Check if user has unclaimed gifts
  */
 export async function hasUnclaimedGifts(): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('admin_gifts')
-    .select('id')
-    .limit(1);
-
-  if (error) {
-    console.error('Error checking unclaimed gifts:', error);
-    return false;
-  }
-
-  return (data?.length || 0) > 0;
+  const gifts = await getAvailableGifts();
+  return gifts.some(g => !g.is_claimed);
 }
 
 /**
@@ -69,7 +75,8 @@ export async function createGift(gift: {
   rewards: GiftRewards;
   recipient_type: 'all' | 'premium' | 'specific';
   recipient_user_ids?: string[];
-  expires_at: string;
+  expires_at?: string | null;
+  is_persistent?: boolean;
 }): Promise<AdminGift> {
   const { data: { user } } = await supabase.auth.getUser();
   
@@ -85,7 +92,8 @@ export async function createGift(gift: {
       rewards: gift.rewards as unknown as Json,
       recipient_type: gift.recipient_type,
       recipient_user_ids: gift.recipient_user_ids || [],
-      expires_at: gift.expires_at,
+      expires_at: gift.is_persistent ? null : gift.expires_at,
+      is_persistent: gift.is_persistent || false,
       created_by: user.id
     }])
     .select()
@@ -99,7 +107,8 @@ export async function createGift(gift: {
   return {
     ...data,
     rewards: data.rewards as GiftRewards,
-    recipient_type: data.recipient_type as 'all' | 'premium' | 'specific'
+    recipient_type: data.recipient_type as 'all' | 'premium' | 'specific',
+    is_persistent: data.is_persistent ?? false
   };
 }
 
@@ -124,7 +133,8 @@ export async function getAllGifts(): Promise<AdminGift[]> {
   return (data || []).map(gift => ({
     ...gift,
     rewards: gift.rewards as GiftRewards,
-    recipient_type: gift.recipient_type as 'all' | 'premium' | 'specific'
+    recipient_type: gift.recipient_type as 'all' | 'premium' | 'specific',
+    is_persistent: gift.is_persistent ?? false
   }));
 }
 
