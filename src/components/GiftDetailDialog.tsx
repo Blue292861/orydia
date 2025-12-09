@@ -131,7 +131,7 @@ const GiftDetailDialog: React.FC<GiftDetailDialogProps> = ({
         </DialogContent>
       </Dialog>
 
-      <ChestOpeningDialog open={showChestAnimation} onClose={handleChestClose} chestType="silver" orydors={orydorsReward} orydorsVariation={0} additionalRewards={chestRewards} bookTitle={gift.title} />
+      <ChestOpeningDialog isOpen={showChestAnimation} onClose={handleChestClose} chestType="silver" orydors={orydorsReward} orydorsVariation={100} additionalRewards={chestRewards} bookTitle={gift.title} />
     </>
   );
 };

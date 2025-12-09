@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { AdminGift, GiftRewards } from "@/types/Gift";
+import { Json } from "@/integrations/supabase/types";
 
 /**
  * Get all available gifts for the current user (not expired, not claimed)
@@ -78,15 +79,15 @@ export async function createGift(gift: {
 
   const { data, error } = await supabase
     .from('admin_gifts')
-    .insert({
+    .insert([{
       title: gift.title,
       message: gift.message,
-      rewards: gift.rewards,
+      rewards: gift.rewards as unknown as Json,
       recipient_type: gift.recipient_type,
       recipient_user_ids: gift.recipient_user_ids || [],
       expires_at: gift.expires_at,
       created_by: user.id
-    })
+    }])
     .select()
     .single();
 
