@@ -18,9 +18,14 @@ export interface AdminGift {
   rewards: GiftRewards;
   recipient_type: 'all' | 'premium' | 'specific';
   recipient_user_ids: string[];
-  expires_at: string;
+  expires_at: string | null;
+  is_persistent: boolean;
   created_by?: string;
   created_at: string;
+}
+
+export interface GiftWithClaimStatus extends AdminGift {
+  is_claimed: boolean;
 }
 
 export interface UserGiftClaim {

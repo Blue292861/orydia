@@ -75,8 +75,8 @@ serve(async (req) => {
       );
     }
 
-    // Check if gift is expired
-    if (new Date(gift.expires_at) < new Date()) {
+    // Check if gift is expired (skip for persistent gifts)
+    if (!gift.is_persistent && gift.expires_at && new Date(gift.expires_at) < new Date()) {
       return new Response(
         JSON.stringify({ success: false, error: 'Gift has expired' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

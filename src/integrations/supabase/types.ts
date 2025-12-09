@@ -42,8 +42,9 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
-          expires_at: string
+          expires_at: string | null
           id: string
+          is_persistent: boolean
           message: string
           recipient_type: string
           recipient_user_ids: string[] | null
@@ -53,8 +54,9 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
-          expires_at: string
+          expires_at?: string | null
           id?: string
+          is_persistent?: boolean
           message: string
           recipient_type: string
           recipient_user_ids?: string[] | null
@@ -64,8 +66,9 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
-          expires_at?: string
+          expires_at?: string | null
           id?: string
+          is_persistent?: boolean
           message?: string
           recipient_type?: string
           recipient_user_ids?: string[] | null
