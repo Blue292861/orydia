@@ -244,6 +244,13 @@ export async function updateProgressOnBookCompletion(
       if (objective.objectiveType === 'read_any_books') {
         await updateChallengeProgress(userId, objective.id, challenge.id, 1);
       }
+      
+      // Objectif: lire un livre d'une saga (au choix parmi plusieurs)
+      if (objective.objectiveType === 'read_saga_book' && objective.targetBookIds) {
+        if (objective.targetBookIds.includes(bookId)) {
+          await updateChallengeProgress(userId, objective.id, challenge.id, 1);
+        }
+      }
     }
   }
 }

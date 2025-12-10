@@ -87,7 +87,7 @@ const GiftDetailDialog: React.FC<GiftDetailDialogProps> = ({
   return (
     <>
       <Dialog open={open && !showChestAnimation} onOpenChange={onClose}>
-        <DialogContent className="bg-gradient-to-br from-amber-950 to-orange-950 border-amber-700/50 max-w-md">
+        <DialogContent className="bg-gradient-to-br from-amber-950 to-orange-950 border-amber-700/50 max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-amber-100">
               <Gift className="w-5 h-5 text-amber-400" />
