@@ -146,7 +146,7 @@ export async function getUserCollectionProgress(userId: string): Promise<UserCol
     const cards = await getCardsInCollection(collection.id);
     const totalCards = cards.length;
     
-    if (totalCards === 0) continue; // Skip empty collections
+    // Show all collections even if they have no cards yet
 
     const collectionCards = cards.map(card => ({
       card,

@@ -576,6 +576,7 @@ export type Database = {
           objective_type: string
           position: number | null
           target_book_id: string | null
+          target_book_ids: string[] | null
           target_count: number | null
           target_genre: string | null
           target_reward_type_id: string | null
@@ -588,6 +589,7 @@ export type Database = {
           objective_type: string
           position?: number | null
           target_book_id?: string | null
+          target_book_ids?: string[] | null
           target_count?: number | null
           target_genre?: string | null
           target_reward_type_id?: string | null
@@ -600,6 +602,7 @@ export type Database = {
           objective_type?: string
           position?: number | null
           target_book_id?: string | null
+          target_book_ids?: string[] | null
           target_count?: number | null
           target_genre?: string | null
           target_reward_type_id?: string | null

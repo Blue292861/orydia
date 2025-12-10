@@ -294,7 +294,7 @@ export const CollectionsAdmin: React.FC = () => {
                           <SelectValue placeholder="Sélectionner un item" />
                         </SelectTrigger>
                         <SelectContent>
-                          {allRewardTypes.filter(r => r.category === 'item').map(item => (
+                          {allRewardTypes.filter(r => r.category === 'item' || r.category === 'fragment').map(item => (
                             <SelectItem key={item.id} value={item.id}>
                               {item.name}
                             </SelectItem>

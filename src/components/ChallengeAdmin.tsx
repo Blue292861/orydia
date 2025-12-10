@@ -18,6 +18,7 @@ import { LITERARY_GENRES } from '@/constants/genres';
 
 const OBJECTIVE_TYPES: { value: ChallengeObjectiveType; label: string }[] = [
   { value: 'read_book', label: 'Lire un livre spécifique' },
+  { value: 'read_saga_book', label: 'Lire un livre d\'une saga (au choix)' },
   { value: 'read_genre', label: 'Lire des livres d\'un genre' },
   { value: 'collect_item', label: 'Obtenir un item' },
   { value: 'read_any_books', label: 'Lire des livres (au choix)' },
@@ -496,6 +497,39 @@ export default function ChallengeAdmin() {
                               onChange={(e) => updateObjective(index, { targetCount: parseInt(e.target.value) || 1 })}
                               className="bg-slate-800 border-amber-700/50"
                             />
+                          </div>
+                        )}
+
+                        {obj.objectiveType === 'read_saga_book' && (
+                          <div className="space-y-2 md:col-span-2">
+                            <Label className="text-amber-200/80 text-sm">Livres de la saga (au choix)</Label>
+                            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-slate-900 rounded border border-amber-700/30">
+                              {books.map(book => {
+                                const isSelected = obj.targetBookIds?.includes(book.id);
+                                return (
+                                  <div
+                                    key={book.id}
+                                    onClick={() => {
+                                      const currentIds = obj.targetBookIds || [];
+                                      const newIds = isSelected
+                                        ? currentIds.filter((id: string) => id !== book.id)
+                                        : [...currentIds, book.id];
+                                      updateObjective(index, { targetBookIds: newIds });
+                                    }}
+                                    className={`p-2 rounded cursor-pointer text-sm transition-colors ${
+                                      isSelected 
+                                        ? 'bg-amber-600 text-white' 
+                                        : 'bg-slate-800 hover:bg-slate-700 text-amber-200'
+                                    }`}
+                                  >
+                                    {book.title}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <p className="text-xs text-amber-400/60">
+                              {obj.targetBookIds?.length || 0} livre(s) sélectionné(s)
+                            </p>
                           </div>
                         )}
                       </div>

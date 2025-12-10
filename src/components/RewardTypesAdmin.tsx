@@ -89,6 +89,7 @@ export const RewardTypesAdmin: React.FC = () => {
   const [editingReward, setEditingReward] = useState<RewardType | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -276,12 +277,26 @@ export const RewardTypesAdmin: React.FC = () => {
     }
   };
 
+  const filteredRewardTypes = rewardTypes.filter(r => 
+    r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.rarity.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (loading) return <div className="p-4">Chargement...</div>;
 
   return (
     <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-4">
         <h2 className="text-2xl font-bold">Gestion des Types de Récompenses</h2>
+        <div className="flex-1 max-w-sm">
+          <Input
+            placeholder="Rechercher un type de récompense..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
+        </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button>
@@ -487,7 +502,9 @@ export const RewardTypesAdmin: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {rewardTypes.map((reward) => (
+        {filteredRewardTypes.length === 0 ? (
+          <p className="col-span-full text-center text-muted-foreground py-8">Aucun résultat trouvé</p>
+        ) : filteredRewardTypes.map((reward) => (
           <Card key={reward.id} className={`border-2 ${getRarityColor(reward.rarity)}`}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">

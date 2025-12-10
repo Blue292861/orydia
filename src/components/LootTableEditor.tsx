@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trash2, Plus, Sparkles, Check, ChevronsUpDown, Globe, BookOpen } from 'lucide-react';
+import { Trash2, Plus, Sparkles, Check, ChevronsUpDown, Globe, BookOpen, Search } from 'lucide-react';
 import { RewardType, LootTable } from '@/types/RewardType';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -196,6 +196,17 @@ export const LootTableEditor: React.FC = () => {
     }
   };
 
+  const getRarityBackgroundClass = (rewardTypeId: string | null) => {
+    const reward = rewardTypes.find(r => r.id === rewardTypeId);
+    switch (reward?.rarity) {
+      case 'common': return 'bg-gray-100 dark:bg-gray-800/50';
+      case 'rare': return 'bg-blue-100 dark:bg-blue-950/50 border-blue-300 dark:border-blue-700';
+      case 'epic': return 'bg-purple-100 dark:bg-purple-950/50 border-purple-300 dark:border-purple-700';
+      case 'legendary': return 'bg-amber-100 dark:bg-amber-950/50 border-amber-400 dark:border-amber-600';
+      default: return '';
+    }
+  };
+
   const simulateDrops = (lootList: LootTable[], rolls: number = 100) => {
     const results: Record<string, number> = {};
     let emptyChests = 0;
@@ -233,26 +244,42 @@ export const LootTableEditor: React.FC = () => {
 
         <div className="space-y-2">
           {lootList.map((entry, index) => (
-            <Card key={index}>
+            <Card key={index} className={getRarityBackgroundClass(entry.reward_type_id)}>
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
                   <div className="md:col-span-2">
                     <Label>Récompense</Label>
-                    <Select
-                      value={entry.reward_type_id || ''}
-                      onValueChange={(value) => updateLootEntry(chestType, index, 'reward_type_id', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {rewardTypes.map(reward => (
-                          <SelectItem key={reward.id} value={reward.id}>
-                            {reward.name} ({reward.category})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" role="combobox" className="w-full justify-between">
+                          {entry.reward_type_id 
+                            ? rewardTypes.find(r => r.id === entry.reward_type_id)?.name || 'Sélectionner...'
+                            : 'Rechercher...'}
+                          <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] p-0 bg-popover z-[100]">
+                        <Command>
+                          <CommandInput placeholder="Rechercher une récompense..." />
+                          <CommandList>
+                            <CommandEmpty>Aucune récompense trouvée.</CommandEmpty>
+                            <CommandGroup>
+                              {rewardTypes.map(reward => (
+                                <CommandItem
+                                  key={reward.id}
+                                  value={`${reward.name} ${reward.category}`}
+                                  onSelect={() => updateLootEntry(chestType, index, 'reward_type_id', reward.id)}
+                                >
+                                  <Check className={cn("mr-2 h-4 w-4", entry.reward_type_id === reward.id ? "opacity-100" : "opacity-0")} />
+                                  <span className="font-medium">{reward.name}</span>
+                                  <span className="ml-2 text-sm text-muted-foreground">({reward.category})</span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   <div>

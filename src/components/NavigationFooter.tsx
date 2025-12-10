@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useResponsive } from '@/hooks/useResponsive';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthRequiredDialog } from './AuthRequiredDialog';
 import { cn } from '@/lib/utils';
+import { hasUnclaimedGifts } from '@/services/giftService';
 
 interface NavigationFooterProps {
   onNavigate: (page: 'library' | 'search' | 'shop' | 'profile') => void;
@@ -16,6 +17,15 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate, 
   const { user } = useAuth();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [authMessage, setAuthMessage] = useState('');
+  const [hasGifts, setHasGifts] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      hasUnclaimedGifts().then(setHasGifts).catch(() => setHasGifts(false));
+    } else {
+      setHasGifts(false);
+    }
+  }, [user]);
   
   const navItems = [
     { id: 'library' as const, icon: '/lovable-uploads/b50e70c6-4063-405e-8340-84ade6817368.png', label: 'Bibliothèque' },
@@ -89,6 +99,10 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate, 
                         alt={item.label} 
                         className={`object-contain filter brightness-90 group-hover:brightness-110 transition-all duration-300 ${getIconSize()}`}
                       />
+                      {/* Red dot for unclaimed gifts on profile tab */}
+                      {item.id === 'profile' && hasGifts && (
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse border-2 border-forest-600" />
+                      )}
                     </div>
                     <span className={`font-nature font-medium leading-none text-center truncate max-w-full transition-colors duration-300 group-hover:text-gold-200 ${getTextSize()}`}>
                       {isMobile && item.label.length > 8 ? item.label.substring(0, 8) + '...' : item.label}

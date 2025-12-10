@@ -149,13 +149,10 @@ export function InventoryPage() {
 
       {/* Tabs for different inventory sections */}
       <Tabs defaultValue="collections" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="collections">
             <Layers className="w-4 h-4 mr-2" />
             Collections
-          </TabsTrigger>
-          <TabsTrigger value="cards">
-            Cartes ({cards.length})
           </TabsTrigger>
           <TabsTrigger value="items">
             Objets ({items.length})
@@ -183,45 +180,6 @@ export function InventoryPage() {
                   progress={progress}
                   onClick={() => setSelectedCollection(progress)}
                 />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="cards" className="mt-6">
-          {cards.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                <p>Aucune carte collectionnée pour le moment</p>
-                <p className="text-sm mt-2">Terminez des livres pour en obtenir !</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {cards.map((card: any) => (
-                <Card key={card.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-square relative">
-                    <img
-                      src={card.reward_types.image_url}
-                      alt={card.reward_types.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <Badge 
-                      className="absolute top-2 right-2"
-                      variant={
-                        card.reward_types.rarity === 'legendary' ? 'default' :
-                        card.reward_types.rarity === 'epic' ? 'secondary' :
-                        card.reward_types.rarity === 'rare' ? 'outline' : 'secondary'
-                      }
-                    >
-                      {card.reward_types.rarity}
-                    </Badge>
-                  </div>
-                  <CardContent className="p-3">
-                    <p className="font-semibold text-sm line-clamp-2">{card.reward_types.name}</p>
-                    <p className="text-xs text-muted-foreground">×{card.quantity}</p>
-                  </CardContent>
-                </Card>
               ))}
             </div>
           )}
