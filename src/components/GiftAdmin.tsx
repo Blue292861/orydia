@@ -423,7 +423,7 @@ const GiftAdmin: React.FC = () => {
                         {gift.expires_at && (
                           <span>Expire: {format(new Date(gift.expires_at), 'dd MMM yyyy HH:mm', { locale: fr })}</span>
                         )}
-                        <span
+                        <span>
                           {claimCounts[gift.id] || 0} réclamé(s)
                         </span>
                       </div>
