@@ -1,6 +1,7 @@
 // src/types/UserStatsContext.ts
 
 import { UserStats, Achievement } from './UserStats';
+import { PendingLevelReward, ClaimedLevelRewards } from './LevelReward';
 
 export interface UserStatsContextType {
   userStats: UserStats;
@@ -16,4 +17,7 @@ export interface UserStatsContextType {
   recordAdView: () => Promise<boolean>;
   markTutorialAsSeen: (tutorialId: string) => void;
   completeTutorial: () => Promise<void>;
+  pendingLevelRewards: PendingLevelReward[];
+  claimLevelRewards: () => Promise<ClaimedLevelRewards | null>;
+  loadPendingLevelRewards: () => Promise<void>;
 }

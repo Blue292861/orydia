@@ -1,19 +1,26 @@
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
 import { LevelInfo } from '@/types/UserStats';
-import { Star, Trophy } from 'lucide-react';
+import { PendingLevelReward } from '@/types/LevelReward';
+import { Star, Trophy, Gift } from 'lucide-react';
 import { useResponsive } from '@/hooks/useResponsive';
+import { Badge } from '@/components/ui/badge';
 
 interface LevelProgressBarProps {
   levelInfo: LevelInfo;
+  pendingLevelRewards?: PendingLevelReward[];
+  onClaimRewards?: () => void;
   className?: string;
 }
 
 export const LevelProgressBar: React.FC<LevelProgressBarProps> = ({ 
   levelInfo, 
+  pendingLevelRewards = [],
+  onClaimRewards,
   className = '' 
 }) => {
   const { isMobile, isTablet } = useResponsive();
+  const hasPendingRewards = pendingLevelRewards.length > 0;
 
   const getIconSize = () => {
     if (isMobile) return 'h-5 w-5';
@@ -46,7 +53,33 @@ export const LevelProgressBar: React.FC<LevelProgressBarProps> = ({
   };
 
   return (
-    <div className={`bg-card rounded-lg border ${getPadding()} ${getSpacing()} ${className}`}>
+    <div className={`bg-card rounded-lg border ${getPadding()} ${getSpacing()} ${className} relative`}>
+      {/* Coffre de récompenses de niveau */}
+      {hasPendingRewards && onClaimRewards && (
+        <button
+          onClick={onClaimRewards}
+          className="absolute -top-3 -right-3 z-10 animate-bounce hover:scale-110 transition-transform"
+        >
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/coffre-or.png" 
+              alt="Récompenses disponibles" 
+              className="w-12 h-12 drop-shadow-lg"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <div className="hidden w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg flex items-center justify-center">
+              <Gift className="w-6 h-6 text-white" />
+            </div>
+            <Badge className="absolute -bottom-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 min-w-[20px] text-center">
+              {pendingLevelRewards.length}
+            </Badge>
+          </div>
+        </button>
+      )}
+
       {/* Titre et niveau */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">

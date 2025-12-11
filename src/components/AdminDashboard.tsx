@@ -16,6 +16,7 @@ import { RewardTypesAdmin } from '@/components/RewardTypesAdmin';
 import { LootTableEditor } from '@/components/LootTableEditor';
 import { CollectionsAdmin } from '@/components/CollectionsAdmin';
 import { TestEnvironmentAdmin } from '@/components/TestEnvironmentAdmin';
+import { LevelRewardsAdmin } from '@/components/LevelRewardsAdmin';
 import ChallengeAdmin from '@/components/ChallengeAdmin';
 import GiftAdmin from '@/components/GiftAdmin';
 import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap, Gift } from 'lucide-react';
@@ -87,6 +88,7 @@ export const AdminDashboard: React.FC = () => {
           <TabsTrigger value="challenges">Défis</TabsTrigger>
           <TabsTrigger value="collections">Collections</TabsTrigger>
           <TabsTrigger value="gifts" className="flex items-center gap-1"><Gift className="w-4 h-4" />Cadeaux</TabsTrigger>
+          <TabsTrigger value="levels" className="flex items-center gap-1"><Star className="w-4 h-4" />Niveaux</TabsTrigger>
           <TabsTrigger value="translations">Traductions</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           <TabsTrigger value="test">🧪 Test</TabsTrigger>
@@ -210,6 +212,10 @@ export const AdminDashboard: React.FC = () => {
 
         <TabsContent value="gifts">
           <GiftAdmin />
+        </TabsContent>
+
+        <TabsContent value="levels">
+          <LevelRewardsAdmin />
         </TabsContent>
 
         <TabsContent value="translations">
