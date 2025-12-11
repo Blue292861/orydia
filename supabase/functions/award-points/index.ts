@@ -107,6 +107,41 @@ serve(async (req) => {
 
     if (updateError) throw updateError;
 
+    // Vérifier les passages de niveau et créer des récompenses en attente
+    const oldLevel = userStats.level || 1;
+    const newLevelValue = newLevel.data || 1;
+
+    if (newLevelValue > oldLevel) {
+      console.log(`[award-points] Level up detected: ${oldLevel} -> ${newLevelValue}`);
+      
+      // Pour chaque niveau passé, vérifier si une récompense existe
+      for (let lvl = oldLevel + 1; lvl <= newLevelValue; lvl++) {
+        const { data: levelReward, error: rewardError } = await supabaseClient
+          .from('level_rewards')
+          .select('id')
+          .eq('level', lvl)
+          .eq('is_active', true)
+          .single();
+        
+        if (levelReward && !rewardError) {
+          // Créer une entrée de récompense en attente
+          const { error: pendingError } = await supabaseClient
+            .from('pending_level_rewards')
+            .upsert({
+              user_id,
+              level: lvl,
+              level_reward_id: levelReward.id
+            }, { onConflict: 'user_id,level' });
+          
+          if (pendingError) {
+            console.error(`[award-points] Error creating pending reward for level ${lvl}:`, pendingError);
+          } else {
+            console.log(`[award-points] Created pending reward for level ${lvl}`);
+          }
+        }
+      }
+    }
+
     // Enregistrer la transaction
     const { error: transactionError } = await supabaseClient
       .from("point_transactions")

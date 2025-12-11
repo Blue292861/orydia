@@ -13,8 +13,10 @@ import { InventoryPage } from '@/components/InventoryPage';
 import { CardCollectionButton } from '@/components/CardCollectionButton';
 import { AildorKeyStock } from '@/components/AildorKeyStock';
 import { RareBooksCollection } from '@/components/RareBooksCollection';
+import { ChestOpeningDialog } from '@/components/ChestOpeningDialog';
 import ChallengesSection from '@/components/ChallengesSection';
 import GiftsTab from '@/components/GiftsTab';
+import { ClaimedLevelRewards } from '@/types/LevelReward';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,7 +29,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Achievement } from '@/types/UserStats';
 
 export const ProfilePage: React.FC = () => {
-  const { userStats } = useUserStats();
+  const { userStats, pendingLevelRewards, claimLevelRewards } = useUserStats();
   const { subscription, checkSubscriptionStatus, user } = useAuth();
   const { isMobile, isTablet } = useResponsive();
   const navigate = useNavigate();
@@ -36,6 +38,8 @@ export const ProfilePage: React.FC = () => {
   const [cardCount, setCardCount] = useState(0);
   const [activeTab, setActiveTab] = useState('profile');
   const prevAchievements = useRef<Achievement[]>([]);
+  const [showLevelChest, setShowLevelChest] = useState(false);
+  const [levelRewards, setLevelRewards] = useState<ClaimedLevelRewards | null>(null);
 
   const unlockedAchievements = userStats.achievements.filter(a => a.unlocked);
   const totalAchievementPoints = unlockedAchievements.reduce((sum, a) => sum + a.points, 0);
@@ -107,6 +111,18 @@ export const ProfilePage: React.FC = () => {
     if (isMobile) return 'space-y-4 pb-20';
     if (isTablet) return 'space-y-5 pb-20';
     return 'space-y-6 pb-20';
+  };
+
+  const handleClaimLevelRewards = async () => {
+    try {
+      const rewards = await claimLevelRewards();
+      if (rewards) {
+        setLevelRewards(rewards);
+        setShowLevelChest(true);
+      }
+    } catch (error) {
+      console.error('Error claiming rewards:', error);
+    }
   };
 
   const getPadding = () => {
@@ -208,7 +224,11 @@ export const ProfilePage: React.FC = () => {
 
           {/* Level Progress */}
           {userStats.levelInfo && (
-            <LevelProgressBar levelInfo={userStats.levelInfo} />
+            <LevelProgressBar 
+              levelInfo={userStats.levelInfo}
+              pendingLevelRewards={pendingLevelRewards}
+              onClaimRewards={handleClaimLevelRewards}
+            />
           )}
 
           {/* Card Collection Button */}
@@ -272,6 +292,26 @@ export const ProfilePage: React.FC = () => {
           <GiftsTab />
         </TabsContent>
       </Tabs>
+
+      {/* Level Rewards Chest Dialog */}
+      {levelRewards && (
+        <ChestOpeningDialog
+          open={showLevelChest}
+          onOpenChange={setShowLevelChest}
+          chestType="gold"
+          rewards={{
+            orydors: levelRewards.totalOrydors,
+            xp: levelRewards.totalXp,
+            items: levelRewards.items.map(item => ({
+              name: item.name,
+              imageUrl: item.imageUrl,
+              quantity: item.quantity,
+              rarity: item.rarity
+            }))
+          }}
+          bookTitle={`Niveaux ${levelRewards.levels.join(', ')}`}
+        />
+      )}
     </div>
   );
 };

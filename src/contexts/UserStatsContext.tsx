@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { UserStats, Achievement } from '@/types/UserStats';
 import { UserStatsContextType } from '@/types/UserStatsContext';
+import { PendingLevelReward, ClaimedLevelRewards } from '@/types/LevelReward';
 import { SoundEffects } from '@/utils/soundEffects';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from './AuthContext';
@@ -9,6 +10,7 @@ import { initialAchievements } from '@/data/initialAchievements';
 import { checkAndUnlockAchievements } from '@/utils/achievementChecker';
 import { supabase } from '@/integrations/supabase/client';
 import { calculateLevelInfo } from '@/utils/levelCalculations';
+import { getPendingLevelRewards, claimAllLevelRewards } from '@/services/levelRewardService';
 
 const UserStatsContext = createContext<UserStatsContextType | undefined>(undefined);
 
@@ -34,9 +36,10 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     level: 1,
     experiencePoints: 0,
     pendingPremiumMonths: 0,
-    tutorialsSeen: [] // Initialisation de la nouvelle propriété
+    tutorialsSeen: []
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingLevelRewards, setPendingLevelRewards] = useState<PendingLevelReward[]>([]);
 
   // Charger les stats depuis la base de données
   const loadUserStats = async () => {
@@ -99,6 +102,49 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     }
   };
 
+  // Load pending level rewards
+  const loadPendingLevelRewards = async () => {
+    if (!session?.user?.id) return;
+    
+    try {
+      const rewards = await getPendingLevelRewards(session.user.id);
+      setPendingLevelRewards(rewards);
+    } catch (error) {
+      console.error('Error loading pending level rewards:', error);
+    }
+  };
+
+  // Claim all pending level rewards
+  const claimLevelRewards = async (): Promise<ClaimedLevelRewards | null> => {
+    if (!session?.user?.id || pendingLevelRewards.length === 0) return null;
+    
+    try {
+      const result = await claimAllLevelRewards();
+      
+      if (result.rewards) {
+        SoundEffects.playPoints();
+        
+        // Clear pending rewards
+        setPendingLevelRewards([]);
+        
+        // Reload stats
+        await loadUserStats();
+        
+        return result.rewards;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error claiming level rewards:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de réclamer les récompenses',
+        variant: 'destructive'
+      });
+      throw error;
+    }
+  };
+
   const markTutorialAsSeen = async (tutorialId: string) => {
     if (!session?.user?.id || userStats.tutorialsSeen.includes(tutorialId)) return;
 
@@ -137,6 +183,7 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
   // Charger les stats au montage et quand la session change
   useEffect(() => {
     loadUserStats();
+    loadPendingLevelRewards();
   }, [session?.user?.id]);
 
   useEffect(() => {
@@ -341,7 +388,10 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
       checkDailyAdLimit,
       recordAdView,
       markTutorialAsSeen,
-      completeTutorial
+      completeTutorial,
+      pendingLevelRewards,
+      claimLevelRewards,
+      loadPendingLevelRewards
     }}>
       {children}
     </UserStatsContext.Provider>

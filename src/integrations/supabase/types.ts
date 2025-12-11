@@ -1142,6 +1142,45 @@ export type Database = {
           },
         ]
       }
+      level_rewards: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          item_rewards: Json | null
+          level: number
+          orydors_reward: number | null
+          premium_days: number | null
+          updated_at: string | null
+          xp_bonus: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_rewards?: Json | null
+          level: number
+          orydors_reward?: number | null
+          premium_days?: number | null
+          updated_at?: string | null
+          xp_bonus?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_rewards?: Json | null
+          level?: number
+          orydors_reward?: number | null
+          premium_days?: number | null
+          updated_at?: string | null
+          xp_bonus?: number | null
+        }
+        Relationships: []
+      }
       loot_tables: {
         Row: {
           book_id: string | null
@@ -1226,6 +1265,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      pending_level_rewards: {
+        Row: {
+          created_at: string | null
+          id: string
+          level: number
+          level_reward_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          level: number
+          level_reward_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          level?: number
+          level_reward_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_level_rewards_level_reward_id_fkey"
+            columns: ["level_reward_id"]
+            isOneToOne: false
+            referencedRelation: "level_rewards"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       point_transactions: {
         Row: {
