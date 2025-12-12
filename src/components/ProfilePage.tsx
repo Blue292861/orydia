@@ -296,20 +296,20 @@ export const ProfilePage: React.FC = () => {
       {/* Level Rewards Chest Dialog */}
       {levelRewards && (
         <ChestOpeningDialog
-          open={showLevelChest}
-          onOpenChange={setShowLevelChest}
+          isOpen={showLevelChest}
+          onClose={() => setShowLevelChest(false)}
           chestType="gold"
-          rewards={{
-            orydors: levelRewards.totalOrydors,
-            xp: levelRewards.totalXp,
-            items: levelRewards.items.map(item => ({
-              name: item.name,
-              imageUrl: item.imageUrl,
-              quantity: item.quantity,
-              rarity: item.rarity
-            }))
-          }}
-          bookTitle={`Niveaux ${levelRewards.levels.join(', ')}`}
+          orydors={levelRewards.totalOrydors}
+          orydorsVariation={100}
+          additionalRewards={levelRewards.items.map(item => ({
+            type: 'item' as const,
+            name: item.name,
+            quantity: item.quantity,
+            imageUrl: item.imageUrl,
+            rarity: item.rarity as 'common' | 'rare' | 'epic' | 'legendary',
+            rewardTypeId: ''
+          }))}
+          bookTitle={`Récompenses niveaux ${levelRewards.levels.join(', ')}`}
         />
       )}
     </div>
