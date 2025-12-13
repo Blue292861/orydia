@@ -16,7 +16,7 @@ import { ArrowLeft, Share2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { TextReader } from '@/components/TextReader';
 import { fetchBooksFromDB } from '@/services/bookService';
-import { AdInterstitial } from '@/components/AdInterstitial';
+
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { hasUserDiscoveredRareBook, addRareBookToCollection } from '@/services/rareBookService';
 

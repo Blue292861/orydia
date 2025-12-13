@@ -912,6 +912,93 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_chest_claims: {
+        Row: {
+          claim_date: string
+          claimed_at: string | null
+          config_id: string | null
+          id: string
+          item_quantity: number | null
+          item_won_id: string | null
+          orydors_won: number
+          user_id: string
+        }
+        Insert: {
+          claim_date?: string
+          claimed_at?: string | null
+          config_id?: string | null
+          id?: string
+          item_quantity?: number | null
+          item_won_id?: string | null
+          orydors_won: number
+          user_id: string
+        }
+        Update: {
+          claim_date?: string
+          claimed_at?: string | null
+          config_id?: string | null
+          id?: string
+          item_quantity?: number | null
+          item_won_id?: string | null
+          orydors_won?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_chest_claims_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "daily_chest_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_chest_claims_item_won_id_fkey"
+            columns: ["item_won_id"]
+            isOneToOne: false
+            referencedRelation: "reward_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_chest_configs: {
+        Row: {
+          created_at: string | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          item_pool: Json | null
+          max_orydors: number
+          min_orydors: number
+          name: string
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          item_pool?: Json | null
+          max_orydors?: number
+          min_orydors?: number
+          name: string
+          start_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          item_pool?: Json | null
+          max_orydors?: number
+          min_orydors?: number
+          name?: string
+          start_date?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       epub_reading_progress: {
         Row: {
           book_id: string

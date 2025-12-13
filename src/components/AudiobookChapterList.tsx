@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { BannerAd } from '@/components/BannerAd';
+
 import { ArrowLeft, Play, Pause, Clock, CheckCircle } from 'lucide-react';
 import { audiobookChapterService } from '@/services/audiobookChapterService';
 import { useAuth } from '@/contexts/AuthContext';
