@@ -24,7 +24,6 @@ import { UserStatsProvider } from "./contexts/UserStatsContext";
 import { ContrastProvider } from "./contexts/ContrastContext";
 import { PlatformUtils } from "./utils/platformDetection";
 import { useServiceWorker } from "./hooks/useServiceWorker";
-import { AdScriptsManager } from "./components/AdScriptsManager";
 import { useRouteToast } from "./hooks/use-route-toast";
 
 const queryClient = new QueryClient();
@@ -47,8 +46,6 @@ const AppContent = () => {
 
   // Ne pas afficher le splash screen sur la page d'auth
   const isAuthPage = location.pathname === '/auth';
-
-  // Debug logs removed for production
 
   if (loading) {
     return (
@@ -116,7 +113,6 @@ const App = () => {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <AdScriptsManager />
           <ContrastProvider>
             <AuthProvider>
               <UserStatsProvider>

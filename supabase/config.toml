@@ -30,6 +30,7 @@ verify_jwt = false
 [functions.award-points]
 [functions.cancel-subscription]
 [functions.claim-level-rewards]
+[functions.claim-daily-chest]
 [functions.check-subscription]
 [functions.create-api-key]
 [functions.create-checkout]

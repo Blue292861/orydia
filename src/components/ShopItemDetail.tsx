@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { AddressRequiredDialog } from '@/components/AddressRequiredDialog';
 import { AuthRequiredDialog } from '@/components/AuthRequiredDialog';
-import { AdInterstitial } from '@/components/AdInterstitial';
+
 
 interface ShopItemDetailProps {
   item: ShopItem;

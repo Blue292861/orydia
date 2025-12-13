@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { BannerAd } from '@/components/BannerAd';
+
 import { CopyrightWarning } from '@/components/CopyrightWarning';
 import { 
   ArrowLeft, 

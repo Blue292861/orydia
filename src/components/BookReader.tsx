@@ -3,8 +3,6 @@ import { Book } from '@/types/Book';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, X, Star } from 'lucide-react';
 import { TextSizeControls } from '@/components/TextSizeControls';
-import { BannerAd } from '@/components/BannerAd';
-import { RewardAd } from '@/components/RewardAd';
 import { AgeVerificationDialog } from '@/components/AgeVerificationDialog';
 import { RatingDialog } from './RatingDialog';
 import { CopyrightWarning } from '@/components/CopyrightWarning';

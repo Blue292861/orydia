@@ -33,7 +33,7 @@ import { AdminStatsPage } from '@/pages/AdminStatsPage';
 import { WelcomeDialog } from '@/components/WelcomeDialog';
 import { GuidedTutorial } from '@/components/GuidedTutorial';
 
-import { VideoAd } from '@/components/VideoAd';
+
 import NewChallengePopup from '@/components/NewChallengePopup';
 import { useBooks } from '@/hooks/useBooks';
 import { useShopItems } from '@/hooks/useShopItems';
@@ -152,8 +152,6 @@ const AppContent = () => {
 
   const renderCurrentPage = () => {
     switch (currentPage) {
-      case 'video-ad':
-        return bookForAd ? <VideoAd book={bookForAd} onAdFinished={handleAdFinished} /> : null;
       case 'reader':
         return selectedBook ? (
           <BookReader book={selectedBook} onBack={handleBackToLibrary} />

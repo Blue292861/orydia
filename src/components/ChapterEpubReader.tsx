@@ -9,8 +9,6 @@ import { startReadingEpubChapter, markEpubChapterCompleted } from '@/services/ch
 import { updateProgressOnBookCompletion } from '@/services/challengeService';
 import { Button } from '@/components/ui/button';
 import { ChapterReadingControls } from '@/components/ChapterReadingControls';
-import { ChapterBannerAd } from '@/components/ChapterBannerAd';
-import { RewardAd } from '@/components/RewardAd';
 import { ChestOpeningDialog } from '@/components/ChestOpeningDialog';
 import { ChapterCompletionAnimation } from '@/components/ChapterCompletionAnimation';
 import { TranslationProgress } from '@/components/TranslationProgress';
