@@ -228,12 +228,6 @@ export const AudiobookPlayerWithAutoPlay: React.FC<AudiobookPlayerWithAutoPlayPr
         </div>
       </div>
 
-      {/* Show ads for non-premium users */}
-      {!subscription && (
-        <div className="p-4">
-          <BannerAd />
-        </div>
-      )}
 
       <div className="p-4 space-y-6">
         {/* Auto-play toggle */}
