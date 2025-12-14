@@ -97,9 +97,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onPasswordReset }) => {
 
   return (
     <div className="relative">
-      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-        <div>
-          <Label htmlFor="login-email" className="text-forest-800 font-medium font-medieval text-sm">
+      <form onSubmit={handleSubmit} className="space-y-2 sm:space-y-3">
+        <div className="space-y-1">
+          <Label htmlFor="login-email" className="text-forest-800 font-medium font-medieval text-xs sm:text-sm">
             Adresse de messagerie
           </Label>
           <Input
@@ -110,11 +110,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onPasswordReset }) => {
             onChange={handleChange}
             required
             placeholder="votre.quete@orydia.com"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm h-9 sm:h-10 text-forest-900"
           />
         </div>
-        <div>
-          <Label htmlFor="login-password" className="text-forest-800 font-medium font-medieval text-sm">
+        <div className="space-y-1">
+          <Label htmlFor="login-password" className="text-forest-800 font-medium font-medieval text-xs sm:text-sm">
             Mot de passe secret
           </Label>
           <div className="relative">
@@ -126,7 +126,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onPasswordReset }) => {
               onChange={handleChange}
               required
               placeholder="••••••••"
-              className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm pr-10 text-forest-900"
+              className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm pr-10 h-9 sm:h-10 text-forest-900"
             />
             <Button
               type="button"
@@ -134,7 +134,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onPasswordReset }) => {
               size="sm"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-forest-600 hover:text-gold-600"
-              title={showPassword ? "Masquer le mot de passe" : "Révéler le mot de passe"}
+              title={showPassword ? "Masquer" : "Révéler"}
             >
               {showPassword ? (
                 <EyeOff className="h-4 w-4" />
@@ -147,9 +147,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onPasswordReset }) => {
         <Button 
           type="submit" 
           disabled={loading} 
-          className="w-full bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white font-medieval shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
+          className="w-full bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white font-medieval shadow-lg hover:shadow-xl transition-all duration-300 text-sm h-10 sm:h-11"
         >
-          {loading ? 'Invocation en cours...' : 'Entrer en Orydia'}
+          {loading ? 'Invocation...' : 'Entrer en Orydia'}
         </Button>
       </form>
       

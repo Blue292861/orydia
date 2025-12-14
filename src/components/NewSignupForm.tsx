@@ -85,11 +85,12 @@ export const NewSignupForm: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-        <div>
-          <Label htmlFor="signup-email" className="text-forest-800 font-medium font-medieval text-sm">
-            Adresse email *
+    <form onSubmit={handleSubmit} className="space-y-2 sm:space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+        {/* Email */}
+        <div className="space-y-1">
+          <Label htmlFor="signup-email" className="text-forest-800 font-medium font-medieval text-xs sm:text-sm">
+            Email *
           </Label>
           <Input
             id="signup-email"
@@ -99,11 +100,13 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="votre.email@exemple.com"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm h-9 sm:h-10 text-forest-900"
           />
         </div>
-        <div>
-          <Label htmlFor="signup-password" className="text-forest-800 font-medium font-medieval text-sm">
+        
+        {/* Password */}
+        <div className="space-y-1">
+          <Label htmlFor="signup-password" className="text-forest-800 font-medium font-medieval text-xs sm:text-sm">
             Mot de passe *
           </Label>
           <div className="relative">
@@ -114,9 +117,9 @@ export const NewSignupForm: React.FC = () => {
               value={signupData.password}
               onChange={handleChange}
               required
-              placeholder="Au moins 6 caractères"
+              placeholder="6 caractères min."
               minLength={6}
-              className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm pr-10 text-forest-900"
+              className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm pr-10 h-9 sm:h-10 text-forest-900"
             />
             <Button
               type="button"
@@ -124,7 +127,7 @@ export const NewSignupForm: React.FC = () => {
               size="sm"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-forest-600 hover:text-gold-600"
-              title={showPassword ? "Masquer le mot de passe" : "Révéler le mot de passe"}
+              title={showPassword ? "Masquer" : "Révéler"}
             >
               {showPassword ? (
                 <EyeOff className="h-4 w-4" />
@@ -134,9 +137,11 @@ export const NewSignupForm: React.FC = () => {
             </Button>
           </div>
         </div>
-        <div>
-          <Label htmlFor="signup-username" className="text-forest-800 font-medium font-medieval text-sm">
-            Nom d'utilisateur *
+        
+        {/* Username */}
+        <div className="space-y-1">
+          <Label htmlFor="signup-username" className="text-forest-800 font-medium font-medieval text-xs sm:text-sm">
+            Pseudo *
           </Label>
           <Input
             id="signup-username"
@@ -145,11 +150,13 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="VotreNom123"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm h-9 sm:h-10 text-forest-900"
           />
         </div>
-        <div>
-          <Label htmlFor="signup-firstName" className="text-forest-800 font-medium font-medieval text-sm">
+        
+        {/* First Name */}
+        <div className="space-y-1">
+          <Label htmlFor="signup-firstName" className="text-forest-800 font-medium font-medieval text-xs sm:text-sm">
             Prénom *
           </Label>
           <Input
@@ -159,12 +166,14 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="Jean"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm h-9 sm:h-10 text-forest-900"
           />
         </div>
-        <div>
-          <Label htmlFor="signup-lastName" className="text-forest-800 font-medium font-medieval text-sm">
-            Nom de famille *
+        
+        {/* Last Name */}
+        <div className="space-y-1">
+          <Label htmlFor="signup-lastName" className="text-forest-800 font-medium font-medieval text-xs sm:text-sm">
+            Nom *
           </Label>
           <Input
             id="signup-lastName"
@@ -173,11 +182,13 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="Dupont"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm h-9 sm:h-10 text-forest-900"
           />
         </div>
-        <div className="md:col-span-2">
-          <Label htmlFor="signup-address" className="text-forest-800 font-medium font-medieval text-sm">
+        
+        {/* Address */}
+        <div className="space-y-1">
+          <Label htmlFor="signup-address" className="text-forest-800 font-medium font-medieval text-xs sm:text-sm">
             Adresse
           </Label>
           <Input
@@ -185,12 +196,14 @@ export const NewSignupForm: React.FC = () => {
             name="address"
             value={signupData.address}
             onChange={handleChange}
-            placeholder="123 rue de la Paix"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
+            placeholder="123 rue..."
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm h-9 sm:h-10 text-forest-900"
           />
         </div>
-        <div>
-          <Label htmlFor="signup-postalCode" className="text-forest-800 font-medium font-medieval text-sm">
+        
+        {/* Postal Code */}
+        <div className="space-y-1">
+          <Label htmlFor="signup-postalCode" className="text-forest-800 font-medium font-medieval text-xs sm:text-sm">
             Code postal
           </Label>
           <Input
@@ -199,11 +212,13 @@ export const NewSignupForm: React.FC = () => {
             value={signupData.postalCode}
             onChange={handleChange}
             placeholder="75000"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm h-9 sm:h-10 text-forest-900"
           />
         </div>
-        <div>
-          <Label htmlFor="signup-city" className="text-forest-800 font-medium font-medieval text-sm">
+        
+        {/* City */}
+        <div className="space-y-1">
+          <Label htmlFor="signup-city" className="text-forest-800 font-medium font-medieval text-xs sm:text-sm">
             Ville *
           </Label>
           <Input
@@ -213,11 +228,13 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="Paris"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm h-9 sm:h-10 text-forest-900"
           />
         </div>
-        <div className="md:col-span-2">
-          <Label htmlFor="signup-country" className="text-forest-800 font-medium font-medieval text-sm">
+        
+        {/* Country */}
+        <div className="space-y-1 sm:col-span-2">
+          <Label htmlFor="signup-country" className="text-forest-800 font-medium font-medieval text-xs sm:text-sm">
             Pays *
           </Label>
           <Input
@@ -227,16 +244,17 @@ export const NewSignupForm: React.FC = () => {
             onChange={handleChange}
             required
             placeholder="France"
-            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm text-forest-900"
+            className="border-wood-400 focus:border-gold-400 bg-white/80 backdrop-blur-sm text-sm h-9 sm:h-10 text-forest-900"
           />
         </div>
       </div>
+      
       <Button 
         type="submit" 
         disabled={loading} 
-        className="w-full bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white font-medieval shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
+        className="w-full bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-700 hover:to-forest-800 text-white font-medieval shadow-lg hover:shadow-xl transition-all duration-300 text-sm h-10 sm:h-11 mt-2"
       >
-        {loading ? 'Inscription en cours...' : 'Créer mon compte'}
+        {loading ? 'Inscription...' : 'Créer mon compte'}
       </Button>
     </form>
   );
