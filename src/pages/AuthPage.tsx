@@ -40,13 +40,14 @@ const AuthPage: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen bg-gradient-to-br from-forest-900 via-forest-800 to-forest-700 relative overflow-hidden flex items-center justify-center p-4 transition-all duration-300"
+      className="min-h-[100dvh] min-h-screen bg-gradient-to-br from-forest-900 via-forest-800 to-forest-700 relative overflow-y-auto overflow-x-hidden flex flex-col items-center justify-start py-6 px-4 safe-area-inset-bottom"
       style={{
-        paddingBottom: keyboardHeight > 0 ? `${keyboardHeight + 20}px` : '1rem'
+        WebkitOverflowScrolling: 'touch',
+        paddingBottom: keyboardHeight > 0 ? `${keyboardHeight + 40}px` : undefined
       }}
     >
       {/* Fond animé avec des particules et effets magiques */}
-      <div className="absolute inset-0 bg-gradient-to-br from-forest-900/80 via-forest-800/60 to-forest-700/80">
+      <div className="fixed inset-0 bg-gradient-to-br from-forest-900/80 via-forest-800/60 to-forest-700/80 pointer-events-none">
         {/* Particules flottantes */}
         <div className="absolute inset-0">
           {[...Array(20)].map((_, i) => (
@@ -78,16 +79,16 @@ const AuthPage: React.FC = () => {
         }}
       >
         {/* En-tête Bienvenue en Orydia */}
-        <div className="text-center mb-8">
-          <h1 className="font-cursive text-6xl md:text-7xl text-blue-300 drop-shadow-2xl mb-4 animate-fade-in-down">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="font-cursive text-4xl sm:text-6xl md:text-7xl text-blue-300 drop-shadow-2xl mb-3 sm:mb-4 animate-fade-in-down">
             Bienvenue sur Orydia
           </h1>
-          <div className="flex justify-center items-center gap-4 mb-6">
+          <div className="flex justify-center items-center gap-4 mb-4 sm:mb-6">
             <div className="h-px bg-gradient-to-r from-transparent via-title-blue/50 to-transparent flex-1 max-w-32" />
             <div className="w-2 h-2 bg-title-blue rounded-full animate-pulse" />
             <div className="h-px bg-gradient-to-r from-transparent via-title-blue/50 to-transparent flex-1 max-w-32" />
           </div>
-          <p className="font-serif text-forest-200 text-lg md:text-xl opacity-90 animate-fade-in">
+          <p className="font-serif text-forest-200 text-base sm:text-lg md:text-xl opacity-90 animate-fade-in">
             {activeTab === 'signup' 
               ? "Rejoignez nous vite dans l'aventure Orydia !" 
               : "Votre bibliothèque numérique personnelle"

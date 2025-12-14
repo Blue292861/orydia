@@ -43,13 +43,62 @@
     @apply border-border;
   }
   
+  html {
+    scroll-behavior: smooth;
+    height: 100%;
+    height: -webkit-fill-available;
+  }
+  
   body {
     @apply bg-gradient-to-br from-forest-50 via-wood-50 to-stone-50 text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-family: 'Crimson Pro', serif;
     background-attachment: fixed;
-    /* IMPORTANT : Supprimer tout ce qui pourrait empêcher le body de défiler si nécessaire */
-    overflow-y: auto; /* Assurer que le défilement n'est pas masqué globalement si l'App doit défiler */
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+  }
+  
+  /* iOS Safari scroll and input fixes */
+  @supports (-webkit-touch-callout: none) {
+    body {
+      min-height: -webkit-fill-available;
+    }
+    
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+  }
+  
+  /* Safe area utilities for notched devices */
+  .safe-area-inset-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+  }
+  
+  /* iOS scroll utility */
+  .ios-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+  
+  /* Dynamic viewport height support */
+  @supports (height: 100dvh) {
+    .min-h-screen-safe {
+      min-height: 100dvh;
+    }
+  }
+  
+  @supports not (height: 100dvh) {
+    .min-h-screen-safe {
+      min-height: calc(100vh - env(safe-area-inset-bottom, 0px));
+    }
   }
   
   /* Platform-specific styles */
