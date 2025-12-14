@@ -220,7 +220,7 @@ const GiftAdmin: React.FC = () => {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Ex: Bienvenue sur Orydia !"
-                    className="bg-amber-950/50 border-amber-700/50"
+                    className="bg-forest-900 border-amber-700/50 text-amber-100 placeholder:text-amber-400/50"
                   />
                 </div>
                 <div className="space-y-2">
@@ -241,7 +241,7 @@ const GiftAdmin: React.FC = () => {
                     type="datetime-local"
                     value={expiresAt}
                     onChange={(e) => setExpiresAt(e.target.value)}
-                    className="bg-amber-950/50 border-amber-700/50"
+                    className="bg-forest-900 border-amber-700/50 text-amber-100"
                   />
                 </div>
               )}
@@ -253,7 +253,7 @@ const GiftAdmin: React.FC = () => {
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Le message qui accompagnera le cadeau..."
                   rows={4}
-                  className="bg-amber-950/50 border-amber-700/50"
+                  className="bg-forest-900 border-amber-700/50 text-amber-100 placeholder:text-amber-400/50"
                 />
               </div>
 
@@ -265,7 +265,7 @@ const GiftAdmin: React.FC = () => {
                     value={orydors}
                     onChange={(e) => setOrydors(parseInt(e.target.value) || 0)}
                     min={0}
-                    className="bg-amber-950/50 border-amber-700/50"
+                    className="bg-forest-900 border-amber-700/50 text-amber-100"
                   />
                 </div>
                 <div className="space-y-2">
@@ -275,7 +275,7 @@ const GiftAdmin: React.FC = () => {
                     value={xp}
                     onChange={(e) => setXp(parseInt(e.target.value) || 0)}
                     min={0}
-                    className="bg-amber-950/50 border-amber-700/50"
+                    className="bg-forest-900 border-amber-700/50 text-amber-100"
                   />
                 </div>
               </div>
@@ -283,7 +283,7 @@ const GiftAdmin: React.FC = () => {
               <div className="space-y-2">
                 <Label className="text-amber-200">Ajouter des items</Label>
                 <Select onValueChange={handleAddItem}>
-                  <SelectTrigger className="bg-amber-950/50 border-amber-700/50">
+                  <SelectTrigger className="bg-forest-900 border-amber-700/50 text-amber-100">
                     <SelectValue placeholder="Sélectionner un item..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -352,7 +352,7 @@ const GiftAdmin: React.FC = () => {
                     value={specificEmails.join(', ')}
                     onChange={(e) => setSpecificEmails(e.target.value.split(',').map(email => email.trim()).filter(Boolean))}
                     placeholder="user1@email.com, user2@email.com"
-                    className="bg-amber-950/50 border-amber-700/50 text-amber-100"
+                    className="bg-forest-900 border-amber-700/50 text-amber-100 placeholder:text-amber-400/50"
                   />
                 </div>
               )}
