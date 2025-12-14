@@ -206,9 +206,9 @@ const AppContent = () => {
     }
   };
 
-  const pageBackground = ['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background';
-  
   const isAdminPage = (['admin', 'shop-admin', 'achievement-admin', 'orders-admin', 'reading-stats-admin', 'reading-stats-export', 'user-stats', 'audiobook-admin', 'points-admin', 'premium-admin', 'orydors-codes', 'premium-codes', 'api-keys-admin', 'reward-types', 'loot-tables'] as const).includes(currentPage as any);
+
+  const pageBackground = isAdminPage ? 'bg-forest-800' : (['library', 'search'].includes(currentPage) ? 'bg-forest-900' : 'bg-background');
 
   const getMainPadding = () => {
     if (isMobile) {
@@ -248,9 +248,10 @@ const AppContent = () => {
   };
 
   const getBottomPadding = () => {
-    if (isMobile) return 'pb-16';
-    if (isTablet) return 'pb-18';
-    return 'pb-16 sm:pb-20';
+    if (isAdminPage) return 'pb-28';
+    if (isMobile) return 'pb-20';
+    if (isTablet) return 'pb-22';
+    return 'pb-20 sm:pb-24';
   };
 
   return (
