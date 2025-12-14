@@ -181,14 +181,6 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
   return (
     <>
       <CopyrightWarning />
-      {showRewardAd && (
-        <RewardAd 
-          book={book}
-          pointsToWin={pointsToWin}
-          onAdCompleted={handleAdCompleted}
-          onAdClosed={handleAdClosed}
-        />
-      )}
 
       {chestRewards && (
         <ChestOpeningDialog
@@ -252,11 +244,6 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onBack }) => {
             {book.content}
           </div>
           
-          {!isPremium && (
-            <div className="mt-8 mb-6">
-              <BannerAd />
-            </div>
-          )}
           
           <div className="mt-8 pt-6 border-t flex justify-center">
             {isAlreadyRead ? (

@@ -290,18 +290,6 @@ const WorkPage: React.FC = () => {
           </div>
         </main>
 
-        {showAdInterstitial && (
-          <AdInterstitial
-            title="Publicité"
-            description="Regardez cette courte publicité avant de commencer votre lecture"
-            onClose={() => setShowAdInterstitial(false)}
-            onAdWatched={() => {
-              setShowAdInterstitial(false);
-              proceedToReading();
-            }}
-            autoCloseDelay={5000}
-          />
-        )}
 
         <PremiumSelectionDialog 
           trigger={

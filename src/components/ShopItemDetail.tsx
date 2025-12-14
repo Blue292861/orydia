@@ -303,15 +303,6 @@ export const ShopItemDetail: React.FC<ShopItemDetailProps> = ({ item, onClose })
         </div>
       </div>
 
-      {showAdInterstitial && (
-        <AdInterstitial
-          title="Publicité"
-          description="Regardez cette courte publicité pour continuer votre achat"
-          onClose={() => setShowAdInterstitial(false)}
-          onAdWatched={handleAdWatched}
-          autoCloseDelay={5000}
-        />
-      )}
 
       <AddressRequiredDialog
         open={showAddressDialog}

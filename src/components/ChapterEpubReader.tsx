@@ -1353,24 +1353,6 @@ export const ChapterEpubReader: React.FC = () => {
         onLanguageChange={handleLanguageChange}
       />
 
-      {/* Ad Banner for non-premium users */}
-      <ChapterBannerAd />
-
-      {/* Reward Ad for claiming orydors */}
-      {showRewardAd && book && (
-        <RewardAd
-          book={book}
-          pointsToWin={book.points || 50}
-          onAdCompleted={async () => {
-            setShowRewardAd(false);
-            await awardPointsAndComplete();
-          }}
-          onAdClosed={() => {
-            setShowRewardAd(false);
-            toast.info("Publicité fermée. Recommencez pour réclamer vos Orydors.");
-          }}
-        />
-      )}
 
       {/* SVG Filters for colorblind modes */}
       <svg style={{ position: 'absolute', width: 0, height: 0 }}>
