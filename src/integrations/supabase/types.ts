@@ -1274,6 +1274,7 @@ export type Database = {
           chest_type: string
           created_at: string | null
           drop_chance_percentage: number
+          genre: string | null
           id: string
           max_quantity: number | null
           min_quantity: number | null
@@ -1284,6 +1285,7 @@ export type Database = {
           chest_type: string
           created_at?: string | null
           drop_chance_percentage: number
+          genre?: string | null
           id?: string
           max_quantity?: number | null
           min_quantity?: number | null
@@ -1294,6 +1296,7 @@ export type Database = {
           chest_type?: string
           created_at?: string | null
           drop_chance_percentage?: number
+          genre?: string | null
           id?: string
           max_quantity?: number | null
           min_quantity?: number | null

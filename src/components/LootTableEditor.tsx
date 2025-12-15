@@ -7,19 +7,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trash2, Plus, Sparkles, Check, ChevronsUpDown, Globe, BookOpen, Search } from 'lucide-react';
+import { Trash2, Plus, Sparkles, Check, ChevronsUpDown, Globe, BookOpen, Search, Tag } from 'lucide-react';
 import { RewardType, LootTable } from '@/types/RewardType';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { LITERARY_GENRES } from '@/constants/genres';
 
-type LootMode = 'global' | 'book';
+type LootMode = 'global' | 'genre' | 'book';
 
 export const LootTableEditor: React.FC = () => {
   const [lootMode, setLootMode] = useState<LootMode>('global');
   const [books, setBooks] = useState<any[]>([]);
   const [rewardTypes, setRewardTypes] = useState<RewardType[]>([]);
   const [selectedBookId, setSelectedBookId] = useState<string>('');
+  const [selectedGenre, setSelectedGenre] = useState<string>('');
   const [silverLoot, setSilverLoot] = useState<LootTable[]>([]);
   const [goldLoot, setGoldLoot] = useState<LootTable[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,17 +33,19 @@ export const LootTableEditor: React.FC = () => {
     fetchRewardTypes();
   }, []);
 
-  // Fetch loot tables when mode or selected book changes
+  // Fetch loot tables when mode or selection changes
   useEffect(() => {
     if (lootMode === 'global') {
       fetchGlobalLootTables();
-    } else if (selectedBookId) {
+    } else if (lootMode === 'genre' && selectedGenre) {
+      fetchGenreLootTables(selectedGenre);
+    } else if (lootMode === 'book' && selectedBookId) {
       fetchBookLootTables(selectedBookId);
     } else {
       setSilverLoot([]);
       setGoldLoot([]);
     }
-  }, [lootMode, selectedBookId]);
+  }, [lootMode, selectedBookId, selectedGenre]);
 
   const fetchBooks = async () => {
     try {
@@ -75,13 +79,14 @@ export const LootTableEditor: React.FC = () => {
     }
   };
 
-  // Fetch GLOBAL items (book_id IS NULL)
+  // Fetch GLOBAL items (book_id IS NULL AND genre IS NULL)
   const fetchGlobalLootTables = async () => {
     try {
       const { data, error } = await supabase
         .from('loot_tables')
         .select('*')
-        .is('book_id', null);
+        .is('book_id', null)
+        .is('genre', null);
 
       if (error) throw error;
 
@@ -90,6 +95,25 @@ export const LootTableEditor: React.FC = () => {
     } catch (error) {
       console.error('Error fetching global loot tables:', error);
       toast({ title: "Erreur", description: "Impossible de charger les items globaux", variant: "destructive" });
+    }
+  };
+
+  // Fetch GENRE-SPECIFIC items (book_id IS NULL AND genre = selected)
+  const fetchGenreLootTables = async (genre: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('loot_tables')
+        .select('*')
+        .is('book_id', null)
+        .eq('genre', genre);
+
+      if (error) throw error;
+
+      setSilverLoot((data?.filter(l => l.chest_type === 'silver') || []) as LootTable[]);
+      setGoldLoot((data?.filter(l => l.chest_type === 'gold') || []) as LootTable[]);
+    } catch (error) {
+      console.error('Error fetching genre loot tables:', error);
+      toast({ title: "Erreur", description: "Impossible de charger les items du genre", variant: "destructive" });
     }
   };
 
@@ -113,7 +137,8 @@ export const LootTableEditor: React.FC = () => {
 
   const addLootEntry = (chestType: 'silver' | 'gold') => {
     const newEntry: Partial<LootTable> = {
-      book_id: lootMode === 'global' ? null : selectedBookId,
+      book_id: lootMode === 'book' ? selectedBookId : null,
+      genre: lootMode === 'genre' ? selectedGenre : null,
       chest_type: chestType,
       reward_type_id: rewardTypes[0]?.id || '',
       drop_chance_percentage: 10,
@@ -157,6 +182,16 @@ export const LootTableEditor: React.FC = () => {
           .from('loot_tables')
           .delete()
           .is('book_id', null)
+          .is('genre', null)
+          .eq('chest_type', chestType);
+
+        if (deleteError) throw deleteError;
+      } else if (lootMode === 'genre') {
+        const { error: deleteError } = await supabase
+          .from('loot_tables')
+          .delete()
+          .is('book_id', null)
+          .eq('genre', selectedGenre)
           .eq('chest_type', chestType);
 
         if (deleteError) throw deleteError;
@@ -175,7 +210,8 @@ export const LootTableEditor: React.FC = () => {
         const { error: insertError } = await supabase
           .from('loot_tables')
           .insert(lootList.map(l => ({
-            book_id: lootMode === 'global' ? null : l.book_id,
+            book_id: lootMode === 'book' ? selectedBookId : null,
+            genre: lootMode === 'genre' ? selectedGenre : null,
             chest_type: l.chest_type,
             reward_type_id: l.reward_type_id,
             drop_chance_percentage: l.drop_chance_percentage,
@@ -186,9 +222,15 @@ export const LootTableEditor: React.FC = () => {
         if (insertError) throw insertError;
       }
 
+      const modeLabels = {
+        global: 'globale',
+        genre: `du genre ${selectedGenre}`,
+        book: 'du livre'
+      };
+
       toast({ 
         title: "Succès", 
-        description: `Table de loot ${chestType === 'silver' ? 'argentée' : 'dorée'} ${lootMode === 'global' ? 'globale' : 'du livre'} sauvegardée` 
+        description: `Table de loot ${chestType === 'silver' ? 'argentée' : 'dorée'} ${modeLabels[lootMode]} sauvegardée` 
       });
     } catch (error) {
       console.error('Error saving loot tables:', error);
@@ -360,12 +402,16 @@ export const LootTableEditor: React.FC = () => {
     <div className="p-4 space-y-6">
       <h2 className="text-2xl font-bold">Éditeur de Tables de Loot</h2>
 
-      {/* Mode selector: Global vs Book-specific */}
+      {/* Mode selector: Global vs Genre vs Book-specific */}
       <Tabs value={lootMode} onValueChange={(v) => setLootMode(v as LootMode)}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="global" className="flex items-center gap-2">
             <Globe className="w-4 h-4" />
             Items Globaux
+          </TabsTrigger>
+          <TabsTrigger value="genre" className="flex items-center gap-2">
+            <Tag className="w-4 h-4" />
+            Items par Genre
           </TabsTrigger>
           <TabsTrigger value="book" className="flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
@@ -377,7 +423,7 @@ export const LootTableEditor: React.FC = () => {
           <Card className="mb-4">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">
-                🌍 Ces items apparaîtront dans <strong>TOUS les coffres</strong>, peu importe le livre terminé.
+                🌍 Ces items apparaîtront dans <strong>TOUS les coffres</strong>, peu importe le livre ou le genre.
               </p>
             </CardContent>
           </Card>
@@ -398,11 +444,53 @@ export const LootTableEditor: React.FC = () => {
           </Tabs>
         </TabsContent>
 
+        <TabsContent value="genre" className="mt-4">
+          <Card className="mb-4">
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                🏷️ Ces items apparaîtront dans les coffres de <strong>TOUS les livres de ce genre</strong>.
+                Un livre multi-genres cumule les items de chaque genre (en plus des items globaux).
+              </p>
+
+              <Label>Sélectionner un genre</Label>
+              <Select value={selectedGenre} onValueChange={setSelectedGenre}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Choisir un genre..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {LITERARY_GENRES.map(genre => (
+                    <SelectItem key={genre} value={genre}>
+                      {genre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+
+          {selectedGenre && (
+            <Tabs defaultValue="silver">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="silver">Coffre Argenté (Freemium)</TabsTrigger>
+                <TabsTrigger value="gold">Coffre Doré (Premium)</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="silver">
+                {renderLootTable('silver', silverLoot)}
+              </TabsContent>
+
+              <TabsContent value="gold">
+                {renderLootTable('gold', goldLoot)}
+              </TabsContent>
+            </Tabs>
+          )}
+        </TabsContent>
+
         <TabsContent value="book" className="mt-4">
           <Card className="mb-4">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground mb-4">
-                📖 Ces items n'apparaîtront <strong>QUE dans le coffre du livre sélectionné</strong> (en plus des items globaux).
+                📖 Ces items n'apparaîtront <strong>QUE dans le coffre du livre sélectionné</strong> (en plus des items globaux et de genre).
               </p>
 
               <Label>Sélectionner un livre</Label>
@@ -412,7 +500,7 @@ export const LootTableEditor: React.FC = () => {
                     variant="outline"
                     role="combobox"
                     aria-expanded={bookComboOpen}
-                    className="w-full justify-between"
+                    className="w-full justify-between mt-2"
                   >
                     {selectedBookId
                       ? books.find((book) => book.id === selectedBookId)?.title
@@ -470,12 +558,6 @@ export const LootTableEditor: React.FC = () => {
                 {renderLootTable('gold', goldLoot)}
               </TabsContent>
             </Tabs>
-          )}
-
-          {!selectedBookId && (
-            <div className="text-center py-8 text-muted-foreground">
-              Sélectionnez un livre pour configurer ses items spécifiques
-            </div>
           )}
         </TabsContent>
       </Tabs>
