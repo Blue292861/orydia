@@ -32,6 +32,7 @@ interface Book {
   author: string;
   points: number;
   is_interactive: boolean;
+  genres: string[];
 }
 
 interface InteractiveChapter {
@@ -91,7 +92,7 @@ export const TestEnvironmentAdmin: React.FC = () => {
       setLoadingBooks(true);
       const { data, error } = await supabase
         .from('books')
-        .select('id, title, author, points, is_interactive')
+        .select('id, title, author, points, is_interactive, genres')
         .order('title');
       
       if (!error && data) {
@@ -146,7 +147,9 @@ export const TestEnvironmentAdmin: React.FC = () => {
     }
 
     const isPremium = chestType === 'gold';
-    const result = await rollChestRewards(selectedBookId, basePoints, isPremium);
+    const book = books.find(b => b.id === selectedBookId);
+    const genres = book?.genres || [];
+    const result = await rollChestRewards(selectedBookId, genres, basePoints, isPremium);
     
     setChestResult({
       orydors: result.orydors,
@@ -167,7 +170,8 @@ export const TestEnvironmentAdmin: React.FC = () => {
     if (!book) return;
 
     const isPremium = chestType === 'gold';
-    const result = await rollChestRewards(selectedBookId, book.points, isPremium);
+    const genres = book.genres || [];
+    const result = await rollChestRewards(selectedBookId, genres, book.points, isPremium);
     
     setChestResult({
       orydors: result.orydors,

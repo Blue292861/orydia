@@ -96,16 +96,18 @@ serve(async (req) => {
       }
     }
 
-    // Get book points
+    // Get book points and genres
     const { data: book } = await supabaseClient
       .from('books')
-      .select('points')
+      .select('points, genres')
       .eq('id', bookId)
       .single();
 
     if (!book) {
       throw new Error("Book not found");
     }
+
+    const bookGenres: string[] = book.genres || [];
 
     // Check premium status
     const { data: subscription } = await supabaseClient
@@ -136,7 +138,7 @@ serve(async (req) => {
     
     const orydors = Math.floor((basePoints * selectedVariation) / 100);
 
-    // Fetch GLOBAL loot table (book_id IS NULL)
+    // Fetch GLOBAL loot table (book_id IS NULL AND genre IS NULL)
     const { data: globalLoot } = await supabaseClient
       .from('loot_tables')
       .select(`
@@ -144,7 +146,25 @@ serve(async (req) => {
         reward_types (*)
       `)
       .is('book_id', null)
+      .is('genre', null)
       .eq('chest_type', chestType);
+
+    // Fetch GENRE-SPECIFIC loot tables (for all genres of the book)
+    let genreLoot: any[] = [];
+    if (bookGenres.length > 0) {
+      const { data } = await supabaseClient
+        .from('loot_tables')
+        .select(`
+          *,
+          reward_types (*)
+        `)
+        .is('book_id', null)
+        .in('genre', bookGenres)
+        .eq('chest_type', chestType);
+      
+      genreLoot = data || [];
+      console.log(`Fetched ${genreLoot.length} genre-specific loot items for genres: ${bookGenres.join(', ')}`);
+    }
 
     // Fetch BOOK-SPECIFIC loot table
     const { data: bookLoot } = await supabaseClient
@@ -156,8 +176,9 @@ serve(async (req) => {
       .eq('book_id', bookId)
       .eq('chest_type', chestType);
 
-    // Merge global and book-specific items
-    const lootTable = [...(globalLoot || []), ...(bookLoot || [])];
+    // Merge ALL loot tables: global + genres + book-specific
+    const lootTable = [...(globalLoot || []), ...genreLoot, ...(bookLoot || [])];
+    console.log(`Total loot table entries: ${lootTable.length} (global: ${globalLoot?.length || 0}, genre: ${genreLoot.length}, book: ${bookLoot?.length || 0})`);
 
     // Roll additional rewards
     const additionalRewards: ChestReward[] = [];

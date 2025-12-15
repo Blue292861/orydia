@@ -62,13 +62,14 @@ export function rollAdditionalRewards(
 
 /**
  * Fetch loot table for a specific book and chest type
- * Merges GLOBAL items (book_id = null) with BOOK-SPECIFIC items
+ * Merges GLOBAL items (book_id = null, genre = null) with GENRE items and BOOK-SPECIFIC items
  */
 export async function fetchLootTable(
   bookId: string,
+  genres: string[],
   chestType: 'silver' | 'gold'
 ): Promise<any[]> {
-  // Fetch GLOBAL items (book_id IS NULL)
+  // Fetch GLOBAL items (book_id IS NULL AND genre IS NULL)
   const { data: globalLoot, error: globalError } = await supabase
     .from('loot_tables')
     .select(`
@@ -76,10 +77,30 @@ export async function fetchLootTable(
       reward_types (*)
     `)
     .is('book_id', null)
+    .is('genre', null)
     .eq('chest_type', chestType);
   
   if (globalError) {
     console.error('Error fetching global loot table:', globalError);
+  }
+
+  // Fetch GENRE-SPECIFIC items (for each genre of the book)
+  let genreLoot: any[] = [];
+  if (genres.length > 0) {
+    const { data, error: genreError } = await supabase
+      .from('loot_tables')
+      .select(`
+        *,
+        reward_types (*)
+      `)
+      .is('book_id', null)
+      .in('genre', genres)
+      .eq('chest_type', chestType);
+    
+    if (genreError) {
+      console.error('Error fetching genre loot table:', genreError);
+    }
+    genreLoot = data || [];
   }
 
   // Fetch BOOK-SPECIFIC items
@@ -96,8 +117,8 @@ export async function fetchLootTable(
     console.error('Error fetching book loot table:', bookError);
   }
   
-  // Merge global and book-specific items
-  return [...(globalLoot || []), ...(bookLoot || [])];
+  // Merge ALL loot tables: global + genres + book-specific
+  return [...(globalLoot || []), ...genreLoot, ...(bookLoot || [])];
 }
 
 /**
@@ -106,6 +127,7 @@ export async function fetchLootTable(
  */
 export async function rollChestRewards(
   bookId: string,
+  genres: string[],
   basePoints: number,
   isPremium: boolean
 ): Promise<ChestRollResult> {
@@ -114,8 +136,8 @@ export async function rollChestRewards(
   // Calculate Orydors with variation
   const { amount, variation } = calculateOrydorsVariation(basePoints, isPremium);
   
-  // Fetch and roll additional rewards
-  const lootTable = await fetchLootTable(bookId, chestType);
+  // Fetch and roll additional rewards (with genres)
+  const lootTable = await fetchLootTable(bookId, genres, chestType);
   const additionalRewards = rollAdditionalRewards(lootTable);
   
   return {

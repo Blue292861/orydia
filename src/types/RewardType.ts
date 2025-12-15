@@ -14,6 +14,7 @@ export interface RewardType {
 export interface LootTable {
   id: string;
   book_id: string | null;
+  genre: string | null;
   chest_type: 'silver' | 'gold';
   reward_type_id: string | null;
   drop_chance_percentage: number;
