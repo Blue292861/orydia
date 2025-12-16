@@ -272,6 +272,76 @@ export default {
             transform: 'perspective(500px) rotateX(2deg)'
           }
         },
+        // === RARITY ANIMATIONS ===
+        'reveal-common': {
+          '0%': { transform: 'scale(0.8)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' }
+        },
+        'reveal-rare': {
+          '0%': { transform: 'scale(0.5) rotateY(180deg)', opacity: '0' },
+          '60%': { transform: 'scale(1.05) rotateY(0deg)', opacity: '1' },
+          '100%': { transform: 'scale(1) rotateY(0deg)', opacity: '1' }
+        },
+        'reveal-epic': {
+          '0%': { transform: 'scale(0) rotate(-45deg)', opacity: '0', filter: 'blur(10px)' },
+          '50%': { transform: 'scale(1.15) rotate(5deg)', opacity: '1', filter: 'blur(0)' },
+          '70%': { transform: 'scale(0.95) rotate(-2deg)' },
+          '100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' }
+        },
+        'reveal-legendary': {
+          '0%': { transform: 'scale(0) rotate(720deg)', opacity: '0', filter: 'brightness(5) blur(20px)' },
+          '30%': { transform: 'scale(1.3) rotate(0deg)', opacity: '1', filter: 'brightness(2) blur(0)' },
+          '50%': { transform: 'scale(0.9)', filter: 'brightness(1)' },
+          '70%': { transform: 'scale(1.1)' },
+          '100%': { transform: 'scale(1)', opacity: '1' }
+        },
+        'epic-ring': {
+          '0%, 100%': { transform: 'scale(1)', opacity: '0.6' },
+          '50%': { transform: 'scale(1.2)', opacity: '0.2' }
+        },
+        'legendary-sparkle': {
+          '0%, 100%': { opacity: '0', transform: 'scale(0)' },
+          '50%': { opacity: '1', transform: 'scale(1)' }
+        },
+        'shimmer': {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' }
+        },
+        'flash-out': {
+          '0%': { opacity: '0.8' },
+          '100%': { opacity: '0' }
+        },
+        'shake': {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-4px)' },
+          '20%, 40%, 60%, 80%': { transform: 'translateX(4px)' }
+        },
+        'spin-slow': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' }
+        },
+        'pulse-slow': {
+          '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
+          '50%': { opacity: '1', transform: 'scale(1.05)' }
+        },
+        'particle-explode': {
+          '0%': { 
+            transform: 'translate(-50%, -50%) scale(1)',
+            opacity: '1'
+          },
+          '100%': { 
+            transform: 'translate(calc(-50% + var(--particle-x)), calc(-50% + var(--particle-y))) scale(0)',
+            opacity: '0'
+          }
+        },
+        'glow': {
+          '0%, 100%': { 
+            boxShadow: '0 0 20px rgba(251,191,36,0.5), 0 0 40px rgba(251,191,36,0.3)'
+          },
+          '50%': { 
+            boxShadow: '0 0 40px rgba(251,191,36,0.8), 0 0 80px rgba(251,191,36,0.5)'
+          }
+        },
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -285,6 +355,19 @@ export default {
         'golden-shimmer': 'golden-shimmer 3s ease-in-out infinite',
         'nature-breathe': 'nature-breathe 5s ease-in-out infinite',
         'vine-grow': 'vine-grow 1s ease-out forwards',
+        // Rarity animations
+        'reveal-common': 'reveal-common 0.3s ease-out forwards',
+        'reveal-rare': 'reveal-rare 0.6s ease-out forwards',
+        'reveal-epic': 'reveal-epic 0.8s ease-out forwards',
+        'reveal-legendary': 'reveal-legendary 1.2s ease-out forwards',
+        'epic-ring': 'epic-ring 1.5s ease-in-out infinite',
+        'legendary-sparkle': 'legendary-sparkle 1s ease-in-out infinite',
+        'shimmer': 'shimmer 2s linear infinite',
+        'flash-out': 'flash-out 0.3s ease-out forwards',
+        'shake': 'shake 0.5s ease-in-out',
+        'spin-slow': 'spin-slow 8s linear infinite',
+        'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
+        'glow': 'glow 2s ease-in-out infinite',
 			},
 			perspective: {
 				'1000': '1000px',
