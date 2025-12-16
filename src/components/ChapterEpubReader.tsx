@@ -328,6 +328,57 @@ export const ChapterEpubReader: React.FC = () => {
 
     const initEpub = async () => {
       try {
+        // Wait for container to have valid dimensions (like WaypointManager)
+        const checkDimensions = (): Promise<boolean> => {
+          return new Promise((resolve) => {
+            let attempts = 0;
+            const maxAttempts = 50; // 50 * 50ms = 2.5s max wait
+            
+            const check = () => {
+              if (cancelled) {
+                resolve(false);
+                return;
+              }
+              
+              if (!epubRootRef.current) {
+                resolve(false);
+                return;
+              }
+              
+              const width = epubRootRef.current.clientWidth;
+              const height = epubRootRef.current.clientHeight;
+              
+              console.log(`📐 Container dimensions check #${attempts + 1}:`, width, 'x', height);
+              
+              if (width > 50 && height > 50) {
+                console.log('✅ Container has valid dimensions, proceeding with EPUB init');
+                resolve(true);
+                return;
+              }
+              
+              attempts++;
+              if (attempts >= maxAttempts) {
+                console.error('❌ Container dimensions timeout after', attempts, 'attempts');
+                resolve(false);
+                return;
+              }
+              
+              // Use requestAnimationFrame for better sync with layout
+              requestAnimationFrame(check);
+            };
+            
+            requestAnimationFrame(check);
+          });
+        };
+
+        const hasValidDimensions = await checkDimensions();
+        if (!hasValidDimensions || cancelled) {
+          if (!cancelled) {
+            setEpubError('Le conteneur de lecture n\'a pas pu s\'initialiser. Veuillez recharger la page.');
+          }
+          return;
+        }
+
         // Defensive cleanup before init
         if (renditionRef.current) {
           try {
@@ -348,6 +399,9 @@ export const ChapterEpubReader: React.FC = () => {
         if (epubRootRef.current) {
           epubRootRef.current.innerHTML = '';
         }
+
+        console.log('🚀 Starting EPUB initialization for chapter:', chapter.id);
+        console.log('📐 Final container dimensions:', epubRootRef.current.clientWidth, 'x', epubRootRef.current.clientHeight);
 
         // If custom OPF exists, try merging quickly but don't block initial render
         let epubUrl = chapter.epub_url;
@@ -646,19 +700,41 @@ export const ChapterEpubReader: React.FC = () => {
           if (!cancelled && !epubReady) setEpubReady(true);
         });
 
-        // Fallback readiness check if 'rendered' event is slow
+        // Single fallback readiness check if 'rendered' event is slow (consolidated timer)
         if (readinessTimerRef.current) window.clearTimeout(readinessTimerRef.current);
         readinessTimerRef.current = window.setTimeout(() => {
-          if (!cancelled && !epubReady && epubRootRef.current?.querySelector('iframe')) {
-            setEpubReady(true);
+          if (!cancelled && !epubReady) {
+            const iframe = epubRootRef.current?.querySelector('iframe');
+            if (iframe) {
+              const iframeRect = iframe.getBoundingClientRect();
+              console.log('⏱️ Readiness fallback check - iframe found:', iframeRect.width, 'x', iframeRect.height);
+              if (iframeRect.width > 0 && iframeRect.height > 0) {
+                console.log('✅ Readiness fallback triggered - iframe has valid dimensions');
+                setEpubReady(true);
+              }
+            }
           }
-        }, 1500);
+        }, 2000);
 
-        // Fatal timeout: after 10s, show error if nothing displayed (increased for large files)
+        // Fatal timeout: after 10s, show error with detailed diagnostics
         if (fatalLoadTimerRef.current) window.clearTimeout(fatalLoadTimerRef.current);
         fatalLoadTimerRef.current = window.setTimeout(() => {
-          if (!cancelled && !epubReady && !epubRootRef.current?.querySelector('iframe')) {
-            console.error('❌ Fatal timeout: EPUB failed to load after 10s');
+          if (!cancelled && !epubReady) {
+            const iframe = epubRootRef.current?.querySelector('iframe');
+            const hasIframe = !!iframe;
+            const iframeDims = iframe ? `${iframe.clientWidth}x${iframe.clientHeight}` : 'N/A';
+            const containerDims = epubRootRef.current 
+              ? `${epubRootRef.current.clientWidth}x${epubRootRef.current.clientHeight}` 
+              : 'N/A';
+            
+            console.error('❌ Fatal timeout: EPUB failed to load after 10s', {
+              hasIframe,
+              iframeDims,
+              containerDims,
+              chapterId: chapter?.id,
+              epubUrl
+            });
+            
             setEpubError('Le chapitre met trop de temps à charger. Veuillez réessayer.');
           }
         }, 10000);
@@ -690,18 +766,14 @@ export const ChapterEpubReader: React.FC = () => {
             const locTotal = (book.locations as any)?.total || 0;
             if (!cancelled) {
               setTotalLocations(locTotal);
+              console.log('📊 Locations generated:', locTotal, 'total');
             }
           } catch (e) {
             console.warn('locations.generate failed', e);
           }
         })();
 
-        // Fallback readiness check (in case rendered event doesn't fire)
-        readinessTimerRef.current = window.setTimeout(() => {
-          if (!cancelled && !epubReady && epubRootRef.current?.querySelector('iframe')) {
-            setEpubReady(true);
-          }
-        }, 800);
+        // NOTE: Duplicate readiness timer removed - consolidated above at line 649
 
       } catch (error) {
         if (!cancelled) {
