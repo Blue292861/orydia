@@ -3,7 +3,9 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChestReward } from "@/types/RewardType";
 import { RewardCardDisplay } from "./RewardCardDisplay";
+import { RarityFlash } from "./RarityEffects";
 import { Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 import coffreArgent from "@/assets/coffre-argent.png";
 import coffreOr from "@/assets/coffre-or.png";
 import carteOrydors from "@/assets/carte-orydors.png";
@@ -18,7 +20,7 @@ interface ChestOpeningDialogProps {
   bookTitle: string;
 }
 
-type AnimationPhase = 'chest-closed' | 'chest-opening' | 'reveal-orydors' | 'reveal-rewards' | 'complete';
+type AnimationPhase = 'chest-closed' | 'chest-opening' | 'anticipation' | 'reveal-orydors' | 'reveal-rewards' | 'complete';
 
 export function ChestOpeningDialog({
   isOpen,
@@ -32,29 +34,72 @@ export function ChestOpeningDialog({
   const [phase, setPhase] = useState<AnimationPhase>('chest-closed');
   const [currentRewardIndex, setCurrentRewardIndex] = useState(-1);
   const [showSkipButton, setShowSkipButton] = useState(false);
+  const [showFlash, setShowFlash] = useState(false);
+  const [currentRarity, setCurrentRarity] = useState<'common' | 'rare' | 'epic' | 'legendary'>('common');
+  const [dialogShake, setDialogShake] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setPhase('chest-closed');
       setCurrentRewardIndex(-1);
       setShowSkipButton(false);
+      setShowFlash(false);
+      setDialogShake(false);
     }
   }, [isOpen]);
+
+  const triggerRarityEffects = (rarity: string) => {
+    const r = rarity as 'common' | 'rare' | 'epic' | 'legendary';
+    setCurrentRarity(r);
+    setShowFlash(true);
+    
+    // Shake for epic/legendary
+    if (r === 'epic' || r === 'legendary') {
+      setDialogShake(true);
+      setTimeout(() => setDialogShake(false), 500);
+    }
+    
+    setTimeout(() => setShowFlash(false), 300);
+  };
 
   const handleOpenChest = () => {
     setPhase('chest-opening');
     setTimeout(() => {
-      setPhase('reveal-orydors');
-      setShowSkipButton(true);
+      setPhase('anticipation');
+      // Anticipation phase - build suspense
+      setTimeout(() => {
+        triggerRarityEffects('common'); // Orydors are always "common" rarity display
+        setPhase('reveal-orydors');
+        setShowSkipButton(true);
+      }, 800);
     }, 1500);
   };
 
   const handleNextReward = () => {
     if (currentRewardIndex < additionalRewards.length - 1) {
-      setCurrentRewardIndex(prev => prev + 1);
-      setPhase('reveal-rewards');
+      const nextIndex = currentRewardIndex + 1;
+      const nextReward = additionalRewards[nextIndex];
+      
+      // Trigger anticipation based on rarity
+      setPhase('anticipation');
+      const anticipationTime = getAnticipationTime(nextReward.rarity);
+      
+      setTimeout(() => {
+        triggerRarityEffects(nextReward.rarity);
+        setCurrentRewardIndex(nextIndex);
+        setPhase('reveal-rewards');
+      }, anticipationTime);
     } else {
       setPhase('complete');
+    }
+  };
+
+  const getAnticipationTime = (rarity: string) => {
+    switch(rarity) {
+      case 'legendary': return 1000;
+      case 'epic': return 700;
+      case 'rare': return 400;
+      default: return 200;
     }
   };
 
@@ -72,9 +117,24 @@ export function ChestOpeningDialog({
     ? 'from-amber-400 via-yellow-500 to-amber-600' 
     : 'from-slate-300 via-slate-400 to-slate-500';
 
+  const getRarityTextStyle = (rarity: string) => {
+    switch(rarity) {
+      case 'legendary': return 'text-amber-500 animate-pulse';
+      case 'epic': return 'text-purple-500';
+      case 'rare': return 'text-blue-500';
+      default: return 'text-muted-foreground';
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl bg-gradient-to-br from-background to-muted border-2 border-primary/20">
+      <DialogContent className={cn(
+        "max-w-2xl bg-gradient-to-br from-background to-muted border-2 border-primary/20 overflow-hidden",
+        dialogShake && "animate-shake"
+      )}>
+        {/* Flash overlay */}
+        <RarityFlash rarity={currentRarity} isActive={showFlash} />
+
         {phase === 'chest-closed' && (
           <div className="flex flex-col items-center justify-center py-12 space-y-8">
             <h2 className="text-2xl font-bold text-center">
@@ -130,6 +190,18 @@ export function ChestOpeningDialog({
           </div>
         )}
 
+        {phase === 'anticipation' && (
+          <div className="flex flex-col items-center justify-center py-16 space-y-6">
+            {/* Suspense animation */}
+            <div className="relative w-32 h-32">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/50 to-amber-500/50 animate-ping" />
+              <div className="absolute inset-4 rounded-full bg-gradient-to-r from-primary/70 to-amber-500/70 animate-pulse" />
+              <div className="absolute inset-8 rounded-full bg-primary/90 animate-bounce" />
+            </div>
+            <p className="text-lg text-muted-foreground animate-pulse">Révélation en cours...</p>
+          </div>
+        )}
+
         {phase === 'reveal-orydors' && (
           <div className="flex flex-col items-center justify-center py-8 space-y-6">
             <h3 className="text-xl font-semibold">Vos récompenses !</h3>
@@ -174,6 +246,14 @@ export function ChestOpeningDialog({
               Récompense {currentRewardIndex + 2} / {additionalRewards.length + 1}
             </h3>
             
+            {/* Rarity announcement */}
+            <p className={cn(
+              "text-sm font-bold uppercase tracking-widest",
+              getRarityTextStyle(additionalRewards[currentRewardIndex].rarity)
+            )}>
+              {additionalRewards[currentRewardIndex].rarity}
+            </p>
+            
             <RewardCardDisplay
               reward={additionalRewards[currentRewardIndex]}
             />
@@ -212,13 +292,29 @@ export function ChestOpeningDialog({
               </div>
 
               {additionalRewards.map((reward, index) => (
-                <div key={index} className="flex flex-col items-center space-y-2 p-4 bg-muted rounded-lg">
+                <div 
+                  key={index} 
+                  className={cn(
+                    "flex flex-col items-center space-y-2 p-4 rounded-lg",
+                    reward.rarity === 'legendary' && "bg-amber-500/10 border border-amber-500/30",
+                    reward.rarity === 'epic' && "bg-purple-500/10 border border-purple-500/30",
+                    reward.rarity === 'rare' && "bg-blue-500/10 border border-blue-500/30",
+                    reward.rarity === 'common' && "bg-muted"
+                  )}
+                >
                   <img 
                     src={reward.imageUrl} 
                     alt={reward.name}
                     className="w-16 h-16 object-contain"
                   />
-                  <p className="font-semibold text-sm text-center">{reward.name}</p>
+                  <p className={cn(
+                    "font-semibold text-sm text-center",
+                    reward.rarity === 'legendary' && "text-amber-500",
+                    reward.rarity === 'epic' && "text-purple-500",
+                    reward.rarity === 'rare' && "text-blue-500"
+                  )}>
+                    {reward.name}
+                  </p>
                   <p className="text-xs text-muted-foreground">x{reward.quantity}</p>
                 </div>
               ))}
