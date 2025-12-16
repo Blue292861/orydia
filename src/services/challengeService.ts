@@ -255,6 +255,39 @@ export async function updateProgressOnBookCompletion(
   }
 }
 
+// Vérifier et mettre à jour la progression quand un chapitre est terminé
+export async function updateProgressOnChapterCompletion(
+  userId: string,
+  bookId: string,
+  chapterId: string,
+  bookGenres: string[]
+): Promise<void> {
+  const challenges = await getActiveChallenges();
+  
+  for (const challenge of challenges) {
+    for (const objective of challenge.objectives) {
+      // Objectif: lire X chapitres d'un livre spécifique
+      if (objective.objectiveType === 'read_chapters_book' && objective.targetBookId === bookId) {
+        await updateChallengeProgress(userId, objective.id, challenge.id, 1);
+      }
+      
+      // Objectif: lire X chapitres de livres d'un genre
+      if (objective.objectiveType === 'read_chapters_genre' && objective.targetGenre) {
+        if (bookGenres.includes(objective.targetGenre)) {
+          await updateChallengeProgress(userId, objective.id, challenge.id, 1);
+        }
+      }
+      
+      // Objectif: lire X chapitres parmi une sélection de livres
+      if (objective.objectiveType === 'read_chapters_selection' && objective.targetBookIds) {
+        if (objective.targetBookIds.includes(bookId)) {
+          await updateChallengeProgress(userId, objective.id, challenge.id, 1);
+        }
+      }
+    }
+  }
+}
+
 // Vérifier et mettre à jour la progression quand un item est obtenu
 export async function updateProgressOnItemCollected(
   userId: string,
