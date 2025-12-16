@@ -320,6 +320,14 @@ export const ChapterEpubReader: React.FC = () => {
 
   // Initialize EPUB reader with refs
   useEffect(() => {
+    console.log('📋 EPUB useEffect triggered:', { loading, chapterId: chapter?.id, hasRef: !!epubRootRef.current });
+    
+    // Don't initialize while data is still loading (container not rendered yet)
+    if (loading) {
+      console.log('⏳ Skipping EPUB init - still loading data');
+      return;
+    }
+    
     if (!chapter || !epubRootRef.current) return;
 
     let cancelled = false;
@@ -834,7 +842,7 @@ export const ChapterEpubReader: React.FC = () => {
         epubRootRef.current.innerHTML = '';
       }
     };
-  }, [chapter?.id]);
+  }, [chapter?.id, loading]);
 
   // Apply theme changes without re-initializing
   useEffect(() => {
