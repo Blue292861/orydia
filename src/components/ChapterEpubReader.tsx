@@ -6,7 +6,7 @@ import { Waypoint } from '@/types/Waypoint';
 import { chapterEpubService } from '@/services/chapterEpubService';
 import { getWaypointsByChapterId } from '@/services/waypointService';
 import { startReadingEpubChapter, markEpubChapterCompleted } from '@/services/chapterService';
-import { updateProgressOnBookCompletion } from '@/services/challengeService';
+import { updateProgressOnBookCompletion, updateProgressOnChapterCompletion } from '@/services/challengeService';
 import { Button } from '@/components/ui/button';
 import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChestOpeningDialog } from '@/components/ChestOpeningDialog';
@@ -1108,6 +1108,11 @@ export const ChapterEpubReader: React.FC = () => {
       // 2. Mark current chapter as completed
       await markEpubChapterCompleted(chapter.id, bookId);
       
+      // 2b. Update challenge progress for chapter-based objectives
+      if (book?.genres) {
+        await updateProgressOnChapterCompletion(user.id, bookId, chapter.id, book.genres);
+      }
+      
       // 3. Reload progression data
       const { data } = await supabase
         .from('user_epub_chapter_progress')
@@ -1388,7 +1393,11 @@ export const ChapterEpubReader: React.FC = () => {
                 onClick={async () => {
                   if (user && chapter && bookId) {
                     try {
-                      void markEpubChapterCompleted(chapter.id, bookId).catch(console.error);
+                      await markEpubChapterCompleted(chapter.id, bookId);
+                      // Update challenge progress for chapter-based objectives
+                      if (book?.genres) {
+                        await updateProgressOnChapterCompletion(user.id, bookId, chapter.id, book.genres);
+                      }
                     } catch (error) {
                       console.error('Error marking chapter completed:', error);
                     }

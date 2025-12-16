@@ -9,12 +9,13 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, Edit, Calendar, Target, Gift, Clock } from 'lucide-react';
+import { Plus, Trash2, Edit, Calendar, Target, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Challenge, ChallengeFormData, ObjectiveFormData, ItemRewardConfig, ChallengeObjectiveType } from '@/types/Challenge';
 import { getAllChallenges, createChallenge, updateChallenge, deleteChallenge } from '@/services/challengeService';
 import { LITERARY_GENRES } from '@/constants/genres';
+import { BookSearchSelect } from '@/components/BookSearchSelect';
 
 const OBJECTIVE_TYPES: { value: ChallengeObjectiveType; label: string }[] = [
   { value: 'read_book', label: 'Lire un livre spécifique' },
@@ -22,6 +23,9 @@ const OBJECTIVE_TYPES: { value: ChallengeObjectiveType; label: string }[] = [
   { value: 'read_genre', label: 'Lire des livres d\'un genre' },
   { value: 'collect_item', label: 'Obtenir un item' },
   { value: 'read_any_books', label: 'Lire des livres (au choix)' },
+  { value: 'read_chapters_book', label: 'Lire X chapitres d\'un livre' },
+  { value: 'read_chapters_genre', label: 'Lire X chapitres d\'un genre' },
+  { value: 'read_chapters_selection', label: 'Lire X chapitres d\'une sélection' },
 ];
 
 const ICONS = ['🎯', '📚', '⭐', '🏆', '🎄', '🎃', '💎', '🔥', '🌟', '🎁', '🌈', '🎮'];
@@ -59,7 +63,7 @@ export default function ChallengeAdmin() {
     try {
       const [challengesData, booksData, rewardTypesData] = await Promise.all([
         getAllChallenges(),
-        supabase.from('books').select('id, title, cover_url').order('title'),
+        supabase.from('books').select('id, title, cover_url, author, genres').order('title'),
         supabase.from('reward_types').select('*').eq('is_active', true),
       ]);
 
@@ -421,20 +425,93 @@ export default function ChallengeAdmin() {
                         {obj.objectiveType === 'read_book' && (
                           <div className="space-y-2 md:col-span-2">
                             <Label className="text-amber-200/80 text-sm">Livre cible</Label>
-                            <Select
+                            <BookSearchSelect
+                              books={books}
                               value={obj.targetBookId || ''}
-                              onValueChange={(value) => updateObjective(index, { targetBookId: value })}
-                            >
-                              <SelectTrigger className="bg-slate-800 border-amber-700/50">
-                                <SelectValue placeholder="Sélectionner un livre" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {books.map(book => (
-                                  <SelectItem key={book.id} value={book.id}>{book.title}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              onChange={(value) => updateObjective(index, { targetBookId: value as string })}
+                              placeholder="Rechercher un livre..."
+                            />
                           </div>
+                        )}
+
+                        {obj.objectiveType === 'read_chapters_book' && (
+                          <>
+                            <div className="space-y-2 md:col-span-2">
+                              <Label className="text-amber-200/80 text-sm">Livre cible</Label>
+                              <BookSearchSelect
+                                books={books}
+                                value={obj.targetBookId || ''}
+                                onChange={(value) => updateObjective(index, { targetBookId: value as string })}
+                                placeholder="Rechercher un livre..."
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-amber-200/80 text-sm">Nombre de chapitres</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                value={obj.targetCount}
+                                onChange={(e) => updateObjective(index, { targetCount: parseInt(e.target.value) || 1 })}
+                                className="bg-slate-800 border-amber-700/50"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {obj.objectiveType === 'read_chapters_genre' && (
+                          <>
+                            <div className="space-y-2">
+                              <Label className="text-amber-200/80 text-sm">Genre</Label>
+                              <Select
+                                value={obj.targetGenre || ''}
+                                onValueChange={(value) => updateObjective(index, { targetGenre: value })}
+                              >
+                                <SelectTrigger className="bg-slate-800 border-amber-700/50">
+                                  <SelectValue placeholder="Sélectionner un genre" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {LITERARY_GENRES.map(genre => (
+                                    <SelectItem key={genre} value={genre}>{genre}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-amber-200/80 text-sm">Nombre de chapitres</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                value={obj.targetCount}
+                                onChange={(e) => updateObjective(index, { targetCount: parseInt(e.target.value) || 1 })}
+                                className="bg-slate-800 border-amber-700/50"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {obj.objectiveType === 'read_chapters_selection' && (
+                          <>
+                            <div className="space-y-2 md:col-span-2">
+                              <Label className="text-amber-200/80 text-sm">Sélection de livres</Label>
+                              <BookSearchSelect
+                                books={books}
+                                value={obj.targetBookIds || []}
+                                onChange={(value) => updateObjective(index, { targetBookIds: value as string[] })}
+                                multiple
+                                placeholder="Rechercher des livres..."
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-amber-200/80 text-sm">Nombre de chapitres</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                value={obj.targetCount}
+                                onChange={(e) => updateObjective(index, { targetCount: parseInt(e.target.value) || 1 })}
+                                className="bg-slate-800 border-amber-700/50"
+                              />
+                            </div>
+                          </>
                         )}
 
                         {obj.objectiveType === 'read_genre' && (
@@ -503,33 +580,13 @@ export default function ChallengeAdmin() {
                         {obj.objectiveType === 'read_saga_book' && (
                           <div className="space-y-2 md:col-span-2">
                             <Label className="text-amber-200/80 text-sm">Livres de la saga (au choix)</Label>
-                            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-slate-900 rounded border border-amber-700/30">
-                              {books.map(book => {
-                                const isSelected = obj.targetBookIds?.includes(book.id);
-                                return (
-                                  <div
-                                    key={book.id}
-                                    onClick={() => {
-                                      const currentIds = obj.targetBookIds || [];
-                                      const newIds = isSelected
-                                        ? currentIds.filter((id: string) => id !== book.id)
-                                        : [...currentIds, book.id];
-                                      updateObjective(index, { targetBookIds: newIds });
-                                    }}
-                                    className={`p-2 rounded cursor-pointer text-sm transition-colors ${
-                                      isSelected 
-                                        ? 'bg-amber-600 text-white' 
-                                        : 'bg-slate-800 hover:bg-slate-700 text-amber-200'
-                                    }`}
-                                  >
-                                    {book.title}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <p className="text-xs text-amber-400/60">
-                              {obj.targetBookIds?.length || 0} livre(s) sélectionné(s)
-                            </p>
+                            <BookSearchSelect
+                              books={books}
+                              value={obj.targetBookIds || []}
+                              onChange={(value) => updateObjective(index, { targetBookIds: value as string[] })}
+                              multiple
+                              placeholder="Rechercher des livres de la saga..."
+                            />
                           </div>
                         )}
                       </div>

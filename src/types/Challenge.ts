@@ -1,9 +1,12 @@
 export type ChallengeObjectiveType = 
-  | 'read_book'       // Lire un livre spécifique
-  | 'read_genre'      // Lire X livres d'un genre
-  | 'collect_item'    // Obtenir un item spécifique
-  | 'read_any_books'  // Lire X livres (n'importe lesquels)
-  | 'read_saga_book'; // Lire un livre parmi une saga (au choix)
+  | 'read_book'              // Lire un livre spécifique
+  | 'read_genre'             // Lire X livres d'un genre
+  | 'collect_item'           // Obtenir un item spécifique
+  | 'read_any_books'         // Lire X livres (n'importe lesquels)
+  | 'read_saga_book'         // Lire un livre parmi une saga (au choix)
+  | 'read_chapters_book'     // Lire X chapitres d'un livre spécifique
+  | 'read_chapters_genre'    // Lire X chapitres de livres d'un genre
+  | 'read_chapters_selection'; // Lire X chapitres parmi une sélection de livres
 
 export interface ChallengeObjective {
   id: string;
