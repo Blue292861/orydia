@@ -32,7 +32,7 @@ import { ReadingStatsExport } from '@/components/ReadingStatsExport';
 import { AdminStatsPage } from '@/pages/AdminStatsPage';
 import { WelcomeDialog } from '@/components/WelcomeDialog';
 import { GuidedTutorial } from '@/components/GuidedTutorial';
-
+import { GuildPage } from '@/components/GuildPage';
 
 import NewChallengePopup from '@/components/NewChallengePopup';
 import { useBooks } from '@/hooks/useBooks';
@@ -42,7 +42,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AuthRequiredDialog } from '@/components/AuthRequiredDialog';
 
 type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'orydors-codes' | 'premium-admin' | 'premium-codes' | 'user-stats' | 'reward-types' | 'loot-tables';
-type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | AdminPage;
+type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'guild' | AdminPage;
 
 const AppContent = () => {
   const location = useLocation();
@@ -201,6 +201,8 @@ const AppContent = () => {
         return <ProfilePage />;
       case 'premium':
         return <PremiumPage />;
+      case 'guild':
+        return <GuildPage />;
       default:
         return <BookLibrary books={books} onBookSelect={handleBookSelect} />;
     }
