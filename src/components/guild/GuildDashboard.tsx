@@ -5,6 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Guild, GuildMember } from '@/types/Guild';
 import { GuildMembersList } from './GuildMembersList';
 import { GuildSettings } from './GuildSettings';
+import { GuildChat } from './GuildChat';
+import { GuildAnnouncementBoard } from './GuildAnnouncementBoard';
 import { Shield, Users, Settings, MessageCircle, Megaphone, Crown } from 'lucide-react';
 
 interface GuildDashboardProps {
@@ -100,29 +102,11 @@ export const GuildDashboard: React.FC<GuildDashboardProps> = ({
         </TabsList>
 
         <TabsContent value="info" className="mt-4">
-          <Card className="p-6 bg-forest-800/50 border-forest-600">
-            <div className="text-center py-8">
-              <Megaphone className="w-12 h-12 mx-auto text-gold-400/50 mb-3" />
-              <h3 className="text-lg font-medium text-wood-200 mb-2">Panneau d'affichage</h3>
-              <p className="text-wood-400 text-sm">
-                Le panneau d'affichage arrive bientôt !<br />
-                Les fondateurs pourront y publier des annonces.
-              </p>
-            </div>
-          </Card>
+          <GuildAnnouncementBoard guildId={guild.id} isAdmin={isAdmin} />
         </TabsContent>
 
         <TabsContent value="chat" className="mt-4">
-          <Card className="p-6 bg-forest-800/50 border-forest-600">
-            <div className="text-center py-8">
-              <MessageCircle className="w-12 h-12 mx-auto text-gold-400/50 mb-3" />
-              <h3 className="text-lg font-medium text-wood-200 mb-2">Chat de guilde</h3>
-              <p className="text-wood-400 text-sm">
-                Le chat de guilde arrive bientôt !<br />
-                Discutez avec les autres membres.
-              </p>
-            </div>
-          </Card>
+          <GuildChat guildId={guild.id} />
         </TabsContent>
 
         <TabsContent value="members" className="mt-4">
