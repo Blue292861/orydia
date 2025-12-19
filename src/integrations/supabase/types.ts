@@ -647,6 +647,7 @@ export type Database = {
           icon: string | null
           id: string
           is_active: boolean | null
+          is_guild_challenge: boolean | null
           item_rewards: Json | null
           name: string
           orydors_reward: number | null
@@ -663,6 +664,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean | null
+          is_guild_challenge?: boolean | null
           item_rewards?: Json | null
           name: string
           orydors_reward?: number | null
@@ -679,6 +681,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean | null
+          is_guild_challenge?: boolean | null
           item_rewards?: Json | null
           name?: string
           orydors_reward?: number | null
@@ -1218,6 +1221,54 @@ export type Database = {
             columns: ["guild_id"]
             isOneToOne: false
             referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_challenge_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          current_progress: number | null
+          guild_id: string
+          id: string
+          is_completed: boolean | null
+          objective_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_progress?: number | null
+          guild_id: string
+          id?: string
+          is_completed?: boolean | null
+          objective_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_progress?: number | null
+          guild_id?: string
+          id?: string
+          is_completed?: boolean | null
+          objective_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_challenge_progress_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_challenge_progress_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "challenge_objectives"
             referencedColumns: ["id"]
           },
         ]

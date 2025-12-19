@@ -50,6 +50,7 @@ export default function ChallengeAdmin() {
     xpReward: 0,
     itemRewards: [],
     premiumMonthsReward: 0,
+    isGuildChallenge: false,
   });
 
   const [objectives, setObjectives] = useState<ObjectiveFormData[]>([]);
@@ -90,6 +91,7 @@ export default function ChallengeAdmin() {
       xpReward: 0,
       itemRewards: [],
       premiumMonthsReward: 0,
+      isGuildChallenge: false,
     });
     setObjectives([]);
     setEditingChallenge(null);
@@ -108,6 +110,7 @@ export default function ChallengeAdmin() {
       xpReward: challenge.xpReward,
       itemRewards: challenge.itemRewards,
       premiumMonthsReward: challenge.premiumMonthsReward,
+      isGuildChallenge: challenge.isGuildChallenge || false,
     });
     setObjectives(challenge.objectives.map(obj => ({
       objectiveType: obj.objectiveType,
@@ -297,6 +300,23 @@ export default function ChallengeAdmin() {
                 />
                 <Label className="text-amber-200">Défi actif</Label>
               </div>
+
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={formData.isGuildChallenge}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isGuildChallenge: checked })}
+                />
+                <Label className="text-amber-200">🏰 Défi de guilde (progression collective)</Label>
+              </div>
+
+              {formData.isGuildChallenge && (
+                <div className="p-3 bg-amber-900/20 border border-amber-600/30 rounded-lg">
+                  <p className="text-amber-200 text-sm">
+                    ℹ️ Les défis de guilde cumulent la progression de tous les membres. 
+                    Exemple : si l'objectif est de lire 500 chapitres, les chapitres lus par tous les membres seront additionnés.
+                  </p>
+                </div>
+              )}
 
               {/* Récompenses */}
               <Card className="bg-slate-800/50 border-amber-700/30">
