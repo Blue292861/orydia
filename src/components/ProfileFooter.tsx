@@ -1,5 +1,6 @@
 import React from 'react';
 import { ContactDialog } from './ContactDialog';
+import { NewsletterSubscriptionToggle } from './NewsletterSubscriptionToggle';
 import { Instagram } from 'lucide-react';
 import { useResponsive } from '@/hooks/useResponsive';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,11 @@ export const ProfileFooter: React.FC = () => {
       {/* Titre du footer */}
       <div className="text-center mb-4">
         <h3 className="text-amber-400 font-bold text-lg">Rejoignez la communauté Orydia</h3>
+      </div>
+
+      {/* Newsletter subscription toggle */}
+      <div className="mb-4">
+        <NewsletterSubscriptionToggle />
       </div>
 
       <div className={cn(
