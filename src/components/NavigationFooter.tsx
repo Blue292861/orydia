@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils';
 import { hasUnclaimedGifts } from '@/services/giftService';
 
 interface NavigationFooterProps {
-  onNavigate: (page: 'library' | 'search' | 'shop' | 'profile') => void;
-  highlightedTab?: 'library' | 'search' | 'shop' | 'profile' | null;
+  onNavigate: (page: 'library' | 'search' | 'guild' | 'shop' | 'profile') => void;
+  highlightedTab?: 'library' | 'search' | 'guild' | 'shop' | 'profile' | null;
 }
 
 export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate, highlightedTab }) => {
@@ -30,6 +30,7 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate, 
   const navItems = [
     { id: 'library' as const, icon: '/lovable-uploads/b50e70c6-4063-405e-8340-84ade6817368.png', label: 'Bibliothèque' },
     { id: 'search' as const, icon: '/lovable-uploads/912c9a06-adc9-4d07-ae4d-d05115270e97.png', label: 'Rechercher' },
+    { id: 'guild' as const, icon: '/lovable-uploads/e4ca1c2e-eeba-4149-b13f-50ac08071650.png', label: 'Guilde' },
     { id: 'shop' as const, icon: '/lovable-uploads/9318a8b9-7fe4-43c9-8aea-a49486e5baac.png', label: 'Boutique' },
     { id: 'profile' as const, icon: '/lovable-uploads/fcea3651-a91a-445a-b535-d6b02cde2864.png', label: 'Mon Profil' },
   ];
@@ -52,10 +53,12 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate, 
     return 'px-1 py-1';
   };
 
-  const handleNavigation = (page: 'library' | 'search' | 'shop' | 'profile') => {
+  const handleNavigation = (page: 'library' | 'search' | 'guild' | 'shop' | 'profile') => {
     // Vérifier si l'authentification est requise
-    if (!user && page === 'profile') {
-      setAuthMessage("Pour accéder à votre profil, vous devez vous connecter.");
+    if (!user && (page === 'profile' || page === 'guild')) {
+      setAuthMessage(page === 'profile' 
+        ? "Pour accéder à votre profil, vous devez vous connecter."
+        : "Pour accéder aux guildes, vous devez vous connecter.");
       setShowAuthDialog(true);
       return;
     }

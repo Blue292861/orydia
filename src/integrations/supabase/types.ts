@@ -1184,6 +1184,77 @@ export type Database = {
         }
         Relationships: []
       }
+      guild_members: {
+        Row: {
+          guild_id: string
+          id: string
+          joined_at: string | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          guild_id: string
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          guild_id?: string
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_members_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guilds: {
+        Row: {
+          banner_url: string | null
+          created_at: string | null
+          creation_cost: number | null
+          id: string
+          is_active: boolean | null
+          member_count: number | null
+          name: string
+          owner_id: string
+          slogan: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          created_at?: string | null
+          creation_cost?: number | null
+          id?: string
+          is_active?: boolean | null
+          member_count?: number | null
+          name: string
+          owner_id: string
+          slogan?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          created_at?: string | null
+          creation_cost?: number | null
+          id?: string
+          is_active?: boolean | null
+          member_count?: number | null
+          name?: string
+          owner_id?: string
+          slogan?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       interactive_choices: {
         Row: {
           chapter_id: string
@@ -1332,6 +1403,7 @@ export type Database = {
           id: string
           item_id: string
           item_name: string
+          order_number: string
           price: number
           status: string
           user_id: string
@@ -1341,6 +1413,7 @@ export type Database = {
           id?: string
           item_id: string
           item_name: string
+          order_number: string
           price: number
           status?: string
           user_id: string
@@ -1350,6 +1423,7 @@ export type Database = {
           id?: string
           item_id?: string
           item_name?: string
+          order_number?: string
           price?: number
           status?: string
           user_id?: string
@@ -1780,6 +1854,7 @@ export type Database = {
           description: string
           id: string
           image_url: string
+          is_available: boolean
           is_clothing: boolean
           is_on_sale: boolean
           is_temporary: boolean | null
@@ -1808,6 +1883,7 @@ export type Database = {
           description: string
           id?: string
           image_url: string
+          is_available?: boolean
           is_clothing?: boolean
           is_on_sale?: boolean
           is_temporary?: boolean | null
@@ -1836,6 +1912,7 @@ export type Database = {
           description?: string
           id?: string
           image_url?: string
+          is_available?: boolean
           is_clothing?: boolean
           is_on_sale?: boolean
           is_temporary?: boolean | null

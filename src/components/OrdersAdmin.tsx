@@ -35,7 +35,10 @@ const fetchOrders = async (): Promise<Order[]> => {
     const userIds = [...new Set(ordersData.map((o) => o.user_id))];
     
     if (userIds.length === 0) {
-      return ordersData as Order[];
+      return ordersData.map((order) => ({
+        ...order,
+        profiles: null,
+      })) as Order[];
     }
 
     const { data: profilesData, error: profilesError } = await supabase

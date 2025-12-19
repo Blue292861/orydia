@@ -62,12 +62,13 @@ export const ShopItemCard: React.FC<ShopItemCardProps> = ({ item, onItemClick })
     if (userStats.totalPoints >= item.price) {
       spendPoints(item.price);
       
-      const { error } = await supabase.from('orders').insert({
+      const { error } = await supabase.from('orders').insert([{
         user_id: session.user.id,
         item_id: item.id,
         item_name: item.name,
         price: item.price,
-      });
+        order_number: `ORY-${Date.now()}`
+      }]);
 
       if (error) {
         console.error("Erreur lors de la création de la commande:", error);
