@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Edit } from 'lucide-react';
+import { AvatarUpload } from './AvatarUpload';
 
 interface Profile {
   id: string;
@@ -18,6 +18,7 @@ interface Profile {
   postal_code: string | null;
   city: string | null;
   country: string | null;
+  avatar_url: string | null;
 }
 
 export const EditProfileForm: React.FC = () => {
@@ -31,7 +32,8 @@ export const EditProfileForm: React.FC = () => {
     city: '',
     country: '',
     email: '',
-    newPassword: ''
+    newPassword: '',
+    avatarUrl: ''
   });
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -57,7 +59,8 @@ export const EditProfileForm: React.FC = () => {
             city: profileData.city || '',
             country: profileData.country || '',
             email: user.email || '',
-            newPassword: ''
+            newPassword: '',
+            avatarUrl: profileData.avatar_url || ''
           });
         }
       }
@@ -93,7 +96,8 @@ export const EditProfileForm: React.FC = () => {
           address: formData.address,
           postal_code: formData.postalCode,
           city: formData.city,
-          country: formData.country
+          country: formData.country,
+          avatar_url: formData.avatarUrl
         })
         .eq('id', user.id);
 
@@ -144,6 +148,15 @@ export const EditProfileForm: React.FC = () => {
           <DialogTitle>Modifier mes informations personnelles</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Avatar Upload */}
+          <div className="flex justify-center pb-4 border-b border-border">
+            <AvatarUpload
+              currentAvatarUrl={formData.avatarUrl}
+              username={formData.username}
+              onAvatarChange={(url) => setFormData({ ...formData, avatarUrl: url })}
+            />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="email">Adresse e-mail</Label>

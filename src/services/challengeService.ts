@@ -15,6 +15,7 @@ function mapChallenge(data: any, objectives: ChallengeObjective[] = []): Challen
     xpReward: data.xp_reward || 0,
     itemRewards: (data.item_rewards as ItemRewardConfig[]) || [],
     premiumMonthsReward: data.premium_months_reward || 0,
+    isGuildChallenge: data.is_guild_challenge || false,
     objectives,
     createdAt: new Date(data.created_at),
   };
@@ -255,6 +256,66 @@ export async function updateProgressOnBookCompletion(
   }
 }
 
+// Mettre à jour la progression d'un défi de guilde
+export async function updateGuildChallengeProgress(
+  guildId: string,
+  objectiveId: string,
+  increment: number = 1
+): Promise<void> {
+  // Récupérer l'objectif pour connaître la cible
+  const { data: objective } = await supabase
+    .from('challenge_objectives')
+    .select('target_count')
+    .eq('id', objectiveId)
+    .single();
+
+  if (!objective) return;
+
+  // Upsert la progression de guilde
+  const { data: existing } = await supabase
+    .from('guild_challenge_progress')
+    .select('*')
+    .eq('guild_id', guildId)
+    .eq('objective_id', objectiveId)
+    .single();
+
+  const newProgress = (existing?.current_progress || 0) + increment;
+  const isCompleted = newProgress >= objective.target_count;
+
+  if (existing) {
+    await supabase
+      .from('guild_challenge_progress')
+      .update({
+        current_progress: Math.min(newProgress, objective.target_count),
+        is_completed: isCompleted,
+        completed_at: isCompleted && !existing.is_completed ? new Date().toISOString() : existing.completed_at,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id);
+  } else {
+    await supabase
+      .from('guild_challenge_progress')
+      .insert({
+        guild_id: guildId,
+        objective_id: objectiveId,
+        current_progress: Math.min(newProgress, objective.target_count),
+        is_completed: isCompleted,
+        completed_at: isCompleted ? new Date().toISOString() : null,
+      });
+  }
+}
+
+// Récupérer la guilde d'un utilisateur
+async function getUserGuildId(userId: string): Promise<string | null> {
+  const { data } = await supabase
+    .from('guild_members')
+    .select('guild_id')
+    .eq('user_id', userId)
+    .single();
+  
+  return data?.guild_id || null;
+}
+
 // Vérifier et mettre à jour la progression quand un chapitre est terminé
 export async function updateProgressOnChapterCompletion(
   userId: string,
@@ -263,25 +324,49 @@ export async function updateProgressOnChapterCompletion(
   bookGenres: string[]
 ): Promise<void> {
   const challenges = await getActiveChallenges();
+  const userGuildId = await getUserGuildId(userId);
   
   for (const challenge of challenges) {
     for (const objective of challenge.objectives) {
-      // Objectif: lire X chapitres d'un livre spécifique
-      if (objective.objectiveType === 'read_chapters_book' && objective.targetBookId === bookId) {
-        await updateChallengeProgress(userId, objective.id, challenge.id, 1);
-      }
-      
-      // Objectif: lire X chapitres de livres d'un genre
-      if (objective.objectiveType === 'read_chapters_genre' && objective.targetGenre) {
-        if (bookGenres.includes(objective.targetGenre)) {
+      // Pour les défis de guilde, on met à jour la progression de la guilde
+      if (challenge.isGuildChallenge && userGuildId) {
+        // Objectif: lire X chapitres d'un livre spécifique
+        if (objective.objectiveType === 'read_chapters_book' && objective.targetBookId === bookId) {
+          await updateGuildChallengeProgress(userGuildId, objective.id, 1);
+        }
+        
+        // Objectif: lire X chapitres de livres d'un genre
+        if (objective.objectiveType === 'read_chapters_genre' && objective.targetGenre) {
+          if (bookGenres.includes(objective.targetGenre)) {
+            await updateGuildChallengeProgress(userGuildId, objective.id, 1);
+          }
+        }
+        
+        // Objectif: lire X chapitres parmi une sélection de livres
+        if (objective.objectiveType === 'read_chapters_selection' && objective.targetBookIds) {
+          if (objective.targetBookIds.includes(bookId)) {
+            await updateGuildChallengeProgress(userGuildId, objective.id, 1);
+          }
+        }
+      } else {
+        // Défis individuels
+        // Objectif: lire X chapitres d'un livre spécifique
+        if (objective.objectiveType === 'read_chapters_book' && objective.targetBookId === bookId) {
           await updateChallengeProgress(userId, objective.id, challenge.id, 1);
         }
-      }
-      
-      // Objectif: lire X chapitres parmi une sélection de livres
-      if (objective.objectiveType === 'read_chapters_selection' && objective.targetBookIds) {
-        if (objective.targetBookIds.includes(bookId)) {
-          await updateChallengeProgress(userId, objective.id, challenge.id, 1);
+        
+        // Objectif: lire X chapitres de livres d'un genre
+        if (objective.objectiveType === 'read_chapters_genre' && objective.targetGenre) {
+          if (bookGenres.includes(objective.targetGenre)) {
+            await updateChallengeProgress(userId, objective.id, challenge.id, 1);
+          }
+        }
+        
+        // Objectif: lire X chapitres parmi une sélection de livres
+        if (objective.objectiveType === 'read_chapters_selection' && objective.targetBookIds) {
+          if (objective.targetBookIds.includes(bookId)) {
+            await updateChallengeProgress(userId, objective.id, challenge.id, 1);
+          }
         }
       }
     }
@@ -483,6 +568,7 @@ export async function createChallenge(
     xpReward: number;
     itemRewards: ItemRewardConfig[];
     premiumMonthsReward: number;
+    isGuildChallenge?: boolean;
   },
   objectives: {
     objectiveType: string;
@@ -512,6 +598,7 @@ export async function createChallenge(
       xp_reward: data.xpReward,
       item_rewards: JSON.parse(JSON.stringify(data.itemRewards)),
       premium_months_reward: data.premiumMonthsReward,
+      is_guild_challenge: data.isGuildChallenge || false,
       created_by: user.id,
     })
     .select()
@@ -561,6 +648,7 @@ export async function updateChallenge(
     xpReward: number;
     itemRewards: ItemRewardConfig[];
     premiumMonthsReward: number;
+    isGuildChallenge?: boolean;
   },
   objectives: {
     objectiveType: string;
@@ -584,6 +672,7 @@ export async function updateChallenge(
       xp_reward: data.xpReward,
       item_rewards: JSON.parse(JSON.stringify(data.itemRewards)),
       premium_months_reward: data.premiumMonthsReward,
+      is_guild_challenge: data.isGuildChallenge || false,
     })
     .eq('id', challengeId);
 

@@ -42,6 +42,7 @@ export interface Challenge {
   xpReward: number;
   itemRewards: ItemRewardConfig[];
   premiumMonthsReward: number;
+  isGuildChallenge: boolean;
   objectives: ChallengeObjective[];
   createdAt: Date;
 }
@@ -73,6 +74,7 @@ export interface ChallengeFormData {
   xpReward: number;
   itemRewards: ItemRewardConfig[];
   premiumMonthsReward: number;
+  isGuildChallenge: boolean;
 }
 
 export interface ObjectiveFormData {
