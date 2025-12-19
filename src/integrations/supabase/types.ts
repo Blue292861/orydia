@@ -3069,6 +3069,56 @@ export type Database = {
         }
         Relationships: []
       }
+      leaderboard_general: {
+        Row: {
+          avatar_url: string | null
+          books_read_count: number | null
+          experience_points: number | null
+          first_name: string | null
+          guild_id: string | null
+          guild_name: string | null
+          last_name: string | null
+          level: number | null
+          rank: number | null
+          total_points: number | null
+          user_id: string | null
+          username: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_members_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leaderboard_guild: {
+        Row: {
+          avatar_url: string | null
+          books_read_count: number | null
+          experience_points: number | null
+          first_name: string | null
+          guild_id: string | null
+          guild_name: string | null
+          guild_rank: number | null
+          last_name: string | null
+          level: number | null
+          total_points: number | null
+          user_id: string | null
+          username: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_members_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       calculate_exponential_level: {
