@@ -19,7 +19,8 @@ import { TestEnvironmentAdmin } from '@/components/TestEnvironmentAdmin';
 import { LevelRewardsAdmin } from '@/components/LevelRewardsAdmin';
 import ChallengeAdmin from '@/components/ChallengeAdmin';
 import GiftAdmin from '@/components/GiftAdmin';
-import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap, Gift } from 'lucide-react';
+import { NewsletterAdmin } from '@/components/NewsletterAdmin';
+import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap, Gift, Mail } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
 import { useResponsive } from '@/hooks/useResponsive';
 import {
@@ -91,6 +92,7 @@ export const AdminDashboard: React.FC = () => {
           <TabsTrigger value="levels" className="flex items-center gap-1"><Star className="w-4 h-4" />Niveaux</TabsTrigger>
           <TabsTrigger value="translations">Traductions</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+          <TabsTrigger value="newsletter" className="flex items-center gap-1"><Mail className="w-4 h-4" />Newsletter</TabsTrigger>
           <TabsTrigger value="test">🧪 Test</TabsTrigger>
         </TabsList>
 
@@ -229,6 +231,10 @@ export const AdminDashboard: React.FC = () => {
             <TranslationDashboard />
             <TranslationBudgetManager />
           </div>
+        </TabsContent>
+
+        <TabsContent value="newsletter">
+          <NewsletterAdmin />
         </TabsContent>
 
         <TabsContent value="test">

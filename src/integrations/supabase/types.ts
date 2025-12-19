@@ -1524,6 +1524,48 @@ export type Database = {
           },
         ]
       }
+      newsletters: {
+        Row: {
+          attachments: Json | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          failed_count: number | null
+          id: string
+          sent_at: string | null
+          sent_count: number | null
+          status: string | null
+          subject: string
+          updated_at: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          failed_count?: number | null
+          id?: string
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          subject: string
+          updated_at?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          failed_count?: number | null
+          id?: string
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          subject?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string
@@ -1710,6 +1752,7 @@ export type Database = {
           has_rated_app: boolean | null
           id: string
           last_name: string | null
+          newsletter_subscribed: boolean | null
           postal_code: string | null
           rated_at: string | null
           tutorials_seen: string | null
@@ -1726,6 +1769,7 @@ export type Database = {
           has_rated_app?: boolean | null
           id: string
           last_name?: string | null
+          newsletter_subscribed?: boolean | null
           postal_code?: string | null
           rated_at?: string | null
           tutorials_seen?: string | null
@@ -1742,6 +1786,7 @@ export type Database = {
           has_rated_app?: boolean | null
           id?: string
           last_name?: string | null
+          newsletter_subscribed?: boolean | null
           postal_code?: string | null
           rated_at?: string | null
           tutorials_seen?: string | null
