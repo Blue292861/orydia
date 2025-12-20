@@ -5,6 +5,7 @@ import { Audiobook } from '@/types/Audiobook';
 import { Header } from '@/components/Header';
 import { SecurityHeaders } from '@/components/SecurityHeaders';
 import { PremiumSelectionDialog } from '@/components/PremiumSelectionDialog';
+import { ReaderOathDialog } from '@/components/ReaderOathDialog';
 import { WorkMeta } from '@/components/WorkMeta';
 import { useBooks } from '@/hooks/useBooks';
 import { audiobookService } from '@/services/audiobookService';
@@ -12,7 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { findWorkBySlug } from '@/utils/slugUtils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Share2 } from 'lucide-react';
+import { ArrowLeft, Share2, Scroll } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { TextReader } from '@/components/TextReader';
 import { fetchBooksFromDB } from '@/services/bookService';
@@ -35,6 +36,7 @@ const WorkPage: React.FC = () => {
   const [workType, setWorkType] = useState<'book' | 'audiobook' | null>(null);
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
   const [showAdInterstitial, setShowAdInterstitial] = useState(false);
+  const [showOathDialog, setShowOathDialog] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -269,10 +271,21 @@ const WorkPage: React.FC = () => {
                   </div>
                 )}
 
-                <div className="flex gap-3">
-                  <Button onClick={handleStartReading} className="flex-1">
+                <div className="flex gap-3 flex-wrap">
+                  <Button onClick={handleStartReading} className="flex-1 min-w-[150px]">
                     {workType === 'book' ? 'Commencer la lecture' : 'Écouter'}
                   </Button>
+                  
+                  {workType === 'book' && user && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowOathDialog(true)}
+                      className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
+                    >
+                      <Scroll className="w-4 h-4 mr-2" />
+                      Faire un serment
+                    </Button>
+                  )}
                   
                   <Button variant="outline" onClick={handleShare}>
                     <Share2 className="w-4 h-4 mr-2" />
@@ -304,6 +317,17 @@ const WorkPage: React.FC = () => {
             />
           }
         />
+
+        {/* Reader Oath Dialog */}
+        {foundWork && workType === 'book' && (
+          <ReaderOathDialog
+            open={showOathDialog}
+            onOpenChange={setShowOathDialog}
+            preselectedBookId={foundWork.id}
+            preselectedBookTitle={title}
+            preselectedBookCover={coverUrl}
+          />
+        )}
       </div>
     </>
   );
