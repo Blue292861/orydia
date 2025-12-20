@@ -115,7 +115,7 @@ export const GuildCreationDialog: React.FC<GuildCreationDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-gradient-to-b from-forest-800 to-forest-900 border-gold-500/30">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-b from-forest-800 to-forest-900 border-gold-500/30">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-gold-300">
             <Shield className="w-5 h-5" />
