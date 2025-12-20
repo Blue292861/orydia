@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Crown, TrendingUp, PieChart } from 'lucide-react';
+import { Users, Crown, TrendingUp, PieChart, ShieldAlert } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,6 +12,7 @@ interface UserStats {
   monthlyUsers: number;
   annualUsers: number;
   monthlyAnnualRatio: number;
+  adminCount: number;
 }
 
 export const AdminStatsPage: React.FC = () => {
@@ -23,6 +24,7 @@ export const AdminStatsPage: React.FC = () => {
     monthlyUsers: 0,
     annualUsers: 0,
     monthlyAnnualRatio: 0,
+    adminCount: 0,
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -31,17 +33,41 @@ export const AdminStatsPage: React.FC = () => {
     try {
       setLoading(true);
 
-      // Récupérer le nombre total d'utilisateurs
-      const { count: totalUsers, error: userError } = await supabase
+      // Récupérer les IDs des admins pour les exclure des stats
+      const { data: adminRoles, error: adminError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin');
+
+      if (adminError) throw adminError;
+
+      const adminIds = adminRoles?.map(r => r.user_id) || [];
+      const adminCount = adminIds.length;
+
+      // Récupérer le nombre total d'utilisateurs (excluant les admins)
+      let userQuery = supabase
         .from('profiles')
-        .select('*', { count: 'exact', head: true });
+        .select('id', { count: 'exact', head: true });
+
+      // Si on a des admins, les exclure
+      if (adminIds.length > 0) {
+        userQuery = userQuery.not('id', 'in', `(${adminIds.join(',')})`);
+      }
+
+      const { count: totalUsers, error: userError } = await userQuery;
 
       if (userError) throw userError;
 
-      // Récupérer les données d'abonnement
-      const { data: subscriptionData, error: subError } = await supabase
+      // Récupérer les données d'abonnement (excluant les admins)
+      let subQuery = supabase
         .from('subscribers')
-        .select('subscribed, subscription_tier');
+        .select('user_id, subscribed, subscription_tier');
+
+      if (adminIds.length > 0) {
+        subQuery = subQuery.not('user_id', 'in', `(${adminIds.join(',')})`);
+      }
+
+      const { data: subscriptionData, error: subError } = await subQuery;
 
       if (subError) throw subError;
 
@@ -78,6 +104,7 @@ export const AdminStatsPage: React.FC = () => {
         monthlyUsers: adjustedMonthlyUsers,
         annualUsers,
         monthlyAnnualRatio,
+        adminCount,
       });
 
     } catch (error) {
@@ -111,10 +138,10 @@ export const AdminStatsPage: React.FC = () => {
     <div className="container mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Statistiques Utilisateurs</h1>
-        <p className="text-muted-foreground">Vue d'ensemble des utilisateurs et abonnements</p>
+        <p className="text-muted-foreground">Vue d'ensemble des utilisateurs et abonnements (admins exclus)</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         {/* Utilisateurs Total */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -124,7 +151,7 @@ export const AdminStatsPage: React.FC = () => {
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalUsers}</div>
             <p className="text-xs text-muted-foreground">
-              Tous les utilisateurs inscrits
+              Hors admins
             </p>
           </CardContent>
         </Card>
@@ -167,6 +194,20 @@ export const AdminStatsPage: React.FC = () => {
             <div className="text-2xl font-bold">{stats.monthlyAnnualRatio}%</div>
             <p className="text-xs text-muted-foreground">
               {stats.monthlyUsers}M / {stats.annualUsers}A
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Comptes Admin */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Comptes Admin</CardTitle>
+            <ShieldAlert className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.adminCount}</div>
+            <p className="text-xs text-muted-foreground">
+              Exclus des stats
             </p>
           </CardContent>
         </Card>

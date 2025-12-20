@@ -27,6 +27,9 @@ serve(async (req) => {
 
     const userId = userData.user.id;
 
+    // ========== VÉRIFIER SI L'UTILISATEUR EST ADMIN ==========
+    const { data: isAdmin } = await supabaseClient.rpc('is_admin', { p_user_id: userId });
+
     // Récupérer ou créer les stats de l'utilisateur avec les informations de niveau
     let { data: userStats, error: statsError } = await supabaseClient
       .from("user_level_info")
@@ -95,7 +98,11 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({
-      user_stats: { ...userStats, tutorials_seen: tutorialsSeen },
+      user_stats: { 
+        ...userStats, 
+        tutorials_seen: tutorialsSeen,
+        is_admin: isAdmin || false  // Ajouter le flag admin
+      },
       achievements: achievements || [],
       recent_transactions: recentTransactions || []
     }), {

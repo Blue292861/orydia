@@ -34,4 +34,5 @@ export interface UserStats {
   levelInfo?: LevelInfo;
   pendingPremiumMonths?: number; // Months of premium pending to be applied
   tutorialsSeen: string[]; // Ajout de la nouvelle propriété
+  isAdmin?: boolean; // Flag pour les privilèges admin
 }

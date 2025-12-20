@@ -53,46 +53,56 @@ serve(async (req) => {
       throw new Error("Missing bookId");
     }
 
+    // ========== ADMIN CHECK ==========
+    // Vérifier si l'utilisateur est admin pour outrepasser toutes les règles
+    const { data: isAdmin } = await supabaseClient.rpc('is_admin', { p_user_id: userId });
+    
+    if (isAdmin) {
+      console.log(`Admin user ${userId} opening chest - bypassing all restrictions`);
+    }
+
     // Get current month-year for monthly reclaim system
     const currentMonthYear = new Date().toISOString().slice(0, 7); // "2025-11"
 
-    // Check if chest already opened for this book this month
-    const { data: existingChest } = await supabaseClient
-      .from('chest_openings')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('book_id', bookId)
-      .eq('month_year', currentMonthYear)
-      .single();
+    // Check if chest already opened for this book this month (SAUF pour les admins)
+    if (!isAdmin) {
+      const { data: existingChest } = await supabaseClient
+        .from('chest_openings')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('book_id', bookId)
+        .eq('month_year', currentMonthYear)
+        .single();
 
-    // If chest already opened this month, check if user wants to use a Chest Key
-    if (existingChest) {
-      if (useChestKey) {
-        const CHEST_KEY_ID = '550e8400-e29b-41d4-a716-446655440000';
-        
-        // Check if user has a Chest Key
-        const { data: keyItem } = await supabaseClient
-          .from('user_inventory')
-          .select('quantity')
-          .eq('user_id', userId)
-          .eq('reward_type_id', CHEST_KEY_ID)
-          .single();
+      // If chest already opened this month, check if user wants to use a Chest Key
+      if (existingChest) {
+        if (useChestKey) {
+          const CHEST_KEY_ID = '550e8400-e29b-41d4-a716-446655440000';
+          
+          // Check if user has a Chest Key
+          const { data: keyItem } = await supabaseClient
+            .from('user_inventory')
+            .select('quantity')
+            .eq('user_id', userId)
+            .eq('reward_type_id', CHEST_KEY_ID)
+            .single();
 
-        if (!keyItem || keyItem.quantity <= 0) {
-          throw new Error("Vous n'avez pas de Clé de Coffre Magique");
+          if (!keyItem || keyItem.quantity <= 0) {
+            throw new Error("Vous n'avez pas de Clé de Coffre Magique");
+          }
+
+          // Consume one key
+          await supabaseClient
+            .from('user_inventory')
+            .update({ quantity: keyItem.quantity - 1 })
+            .eq('user_id', userId)
+            .eq('reward_type_id', CHEST_KEY_ID);
+          
+          console.log('Chest key consumed, allowing chest to be re-opened');
+          // Allow the chest opening to proceed
+        } else {
+          throw new Error("Chest already opened this month");
         }
-
-        // Consume one key
-        await supabaseClient
-          .from('user_inventory')
-          .update({ quantity: keyItem.quantity - 1 })
-          .eq('user_id', userId)
-          .eq('reward_type_id', CHEST_KEY_ID);
-        
-        console.log('Chest key consumed, allowing chest to be re-opened');
-        // Allow the chest opening to proceed
-      } else {
-        throw new Error("Chest already opened this month");
       }
     }
 
@@ -108,32 +118,42 @@ serve(async (req) => {
     }
 
     const bookGenres: string[] = book.genres || [];
-
-    // Check premium status
-    const { data: subscription } = await supabaseClient
-      .from('subscribers')
-      .select('subscribed, subscription_end')
-      .eq('user_id', userId)
-      .single();
-
-    const isPremium = subscription?.subscribed && 
-      subscription.subscription_end && 
-      new Date(subscription.subscription_end) > new Date();
-
-    const chestType = isPremium ? 'gold' : 'silver';
     const basePoints = book.points || 0;
 
-    // Calculate Orydors with variation
-    const variations = isPremium ? [190, 200, 210] : [95, 100, 105];
-    const random = Math.random();
+    // ========== ADMIN PRIVILEGES: ALWAYS GOLD CHEST WITH MAX MULTIPLIER ==========
+    let chestType: 'silver' | 'gold';
     let selectedVariation: number;
-    
-    if (random < 0.25) {
-      selectedVariation = variations[0];
-    } else if (random < 0.75) {
-      selectedVariation = variations[1];
+
+    if (isAdmin) {
+      // Admin: toujours coffre doré avec multiplicateur maximum (210%)
+      chestType = 'gold';
+      selectedVariation = 210;
+      console.log(`Admin chest: gold chest with 210% multiplier`);
     } else {
-      selectedVariation = variations[2];
+      // Check premium status for non-admin users
+      const { data: subscription } = await supabaseClient
+        .from('subscribers')
+        .select('subscribed, subscription_end')
+        .eq('user_id', userId)
+        .single();
+
+      const isPremium = subscription?.subscribed && 
+        subscription.subscription_end && 
+        new Date(subscription.subscription_end) > new Date();
+
+      chestType = isPremium ? 'gold' : 'silver';
+      
+      // Calculate Orydors with variation
+      const variations = isPremium ? [190, 200, 210] : [95, 100, 105];
+      const random = Math.random();
+      
+      if (random < 0.25) {
+        selectedVariation = variations[0];
+      } else if (random < 0.75) {
+        selectedVariation = variations[1];
+      } else {
+        selectedVariation = variations[2];
+      }
     }
     
     const orydors = Math.floor((basePoints * selectedVariation) / 100);

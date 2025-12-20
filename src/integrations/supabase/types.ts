@@ -3117,7 +3117,7 @@ export type Database = {
       leaderboard_general: {
         Row: {
           avatar_url: string | null
-          books_read_count: number | null
+          books_read_count: string[] | null
           experience_points: number | null
           first_name: string | null
           guild_id: string | null
@@ -3142,7 +3142,7 @@ export type Database = {
       leaderboard_guild: {
         Row: {
           avatar_url: string | null
-          books_read_count: number | null
+          books_read_count: string[] | null
           experience_points: number | null
           first_name: string | null
           guild_id: string | null
@@ -3228,6 +3228,7 @@ export type Database = {
         Args: { p_months?: number; p_user_id: string }
         Returns: undefined
       }
+      is_admin: { Args: { p_user_id: string }; Returns: boolean }
       log_admin_action: {
         Args: { action_type: string; details?: Json; target_user_id?: string }
         Returns: undefined

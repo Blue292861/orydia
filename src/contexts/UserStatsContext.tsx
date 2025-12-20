@@ -36,7 +36,8 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
     level: 1,
     experiencePoints: 0,
     pendingPremiumMonths: 0,
-    tutorialsSeen: []
+    tutorialsSeen: [],
+    isAdmin: false
   });
   const [isLoading, setIsLoading] = useState(true);
   const [pendingLevelRewards, setPendingLevelRewards] = useState<PendingLevelReward[]>([]);
@@ -55,6 +56,7 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
       if (data?.user_stats) {
         const dbStats = data.user_stats;
         const dbAchievements = data.achievements || [];
+        const isAdmin = dbStats.is_admin || false;
         
         // Convertir les achievements de la DB au format attendu
         const achievements = dbAchievements.map((ach: any) => ({
@@ -83,16 +85,20 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
           progressPercentage: Math.round(((dbStats.current_xp || 0) / (dbStats.next_level_xp || 100)) * 100)
         };
         
+        // Les admins ont toujours le premium actif
+        const isPremium = isAdmin ? true : subscription.isPremium;
+        
         setUserStats({
           totalPoints: dbStats.total_points || 0,
           booksRead: dbStats.books_read || [],
           achievements: [...achievements, ...remainingAchievements],
-          isPremium: subscription.isPremium,
+          isPremium,
           level: dbStats.level || 1,
           experiencePoints: dbStats.experience_points || 0,
           levelInfo,
           pendingPremiumMonths: dbStats.pending_premium_months || 0,
-          tutorialsSeen: dbStats.tutorials_seen || [] // Chargement des pop-ups vus
+          tutorialsSeen: dbStats.tutorials_seen || [],
+          isAdmin
         });
       }
     } catch (error) {
