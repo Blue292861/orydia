@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SkillPath, Skill, BonusType, BonusConfig, getDayNames } from '@/types/Skill';
-import { GENRES } from '@/constants/genres';
+import { LITERARY_GENRES } from '@/constants/genres';
 import { 
   getAllSkillPathsWithSkills, 
   createSkillPath, 
@@ -277,7 +277,7 @@ export const SkillTreeAdmin: React.FC = () => {
               <div><Label>Genre</Label>
                 <Select value={skillForm.genre} onValueChange={v => setSkillForm(s => ({ ...s, genre: v }))}>
                   <SelectTrigger><SelectValue placeholder="Sélectionner un genre" /></SelectTrigger>
-                  <SelectContent>{GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+                  <SelectContent>{LITERARY_GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             )}
