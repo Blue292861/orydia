@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,7 @@ import {
   deleteGuildMessage,
   GuildMessage 
 } from '@/services/guildChatService';
-import { Send, Loader2, Trash2, MessageCircle } from 'lucide-react';
+import { Send, Loader2, Trash2, MessageCircle, RefreshCw } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -29,21 +29,31 @@ export const GuildChat: React.FC<GuildChatProps> = ({ guildId }) => {
   const [isSending, setIsSending] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Load messages function
+  const loadMessages = useCallback(async (showLoader = true) => {
+    if (showLoader) setIsLoading(true);
+    setIsRefreshing(true);
+    
+    console.log('[GuildChat] Loading messages for guild:', guildId);
+    const data = await getGuildMessages(guildId);
+    console.log('[GuildChat] Loaded messages:', data.length, data);
+    
+    setMessages(data);
+    setIsLoading(false);
+    setIsRefreshing(false);
+    
+    // Scroll to bottom
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  }, [guildId]);
 
   // Load initial messages
   useEffect(() => {
-    const loadMessages = async () => {
-      setIsLoading(true);
-      const data = await getGuildMessages(guildId);
-      setMessages(data);
-      setIsLoading(false);
-      // Scroll to bottom
-      setTimeout(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    };
     loadMessages();
-  }, [guildId]);
+  }, [loadMessages]);
 
   // Subscribe to real-time messages
   useEffect(() => {
@@ -76,6 +86,8 @@ export const GuildChat: React.FC<GuildChatProps> = ({ guildId }) => {
     
     if (result.success) {
       setNewMessage('');
+      // Refresh messages after sending (backup if realtime doesn't work)
+      setTimeout(() => loadMessages(false), 500);
     } else {
       toast({
         title: 'Erreur',
@@ -136,7 +148,7 @@ export const GuildChat: React.FC<GuildChatProps> = ({ guildId }) => {
 
   if (isLoading) {
     return (
-      <Card className="p-6 bg-forest-800/50 border-forest-600">
+      <Card className="p-6 bg-forest-900/80 border-forest-600">
         <div className="flex items-center justify-center py-8">
           <Loader2 className="w-6 h-6 animate-spin text-gold-400" />
         </div>
@@ -145,14 +157,28 @@ export const GuildChat: React.FC<GuildChatProps> = ({ guildId }) => {
   }
 
   return (
-    <Card className="bg-forest-800/50 border-forest-600 flex flex-col h-[400px]">
+    <Card className="bg-forest-900/80 border-forest-600 flex flex-col h-[400px]">
+      {/* Header with refresh button */}
+      <div className="p-3 border-b border-forest-600 flex items-center justify-between">
+        <span className="text-sm font-medium text-gold-300">Chat de la Guilde</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => loadMessages(false)}
+          disabled={isRefreshing}
+          className="text-gold-400 hover:text-gold-300 hover:bg-forest-700/50"
+        >
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+        </Button>
+      </div>
+
       {/* Messages area */}
       <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-wood-400">
-            <MessageCircle className="w-10 h-10 mb-2 opacity-50" />
-            <p>Aucun message pour le moment</p>
-            <p className="text-sm">Soyez le premier à écrire !</p>
+          <div className="flex flex-col items-center justify-center h-full text-gold-300/70">
+            <MessageCircle className="w-10 h-10 mb-2 text-gold-400/50" />
+            <p className="text-gold-200">Aucun message pour le moment</p>
+            <p className="text-sm text-gold-300/60">Soyez le premier à écrire !</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -165,25 +191,25 @@ export const GuildChat: React.FC<GuildChatProps> = ({ guildId }) => {
                 >
                   <Avatar className="w-8 h-8 flex-shrink-0">
                     <AvatarImage src={msg.profile?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-forest-700 text-wood-200 text-xs">
+                    <AvatarFallback className="bg-forest-700 text-gold-200 text-xs">
                       {getInitials(msg)}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'}`}>
                     <div className={`flex items-center gap-2 mb-1 ${isOwn ? 'flex-row-reverse' : ''}`}>
-                      <span className="text-xs font-medium text-wood-300">
+                      <span className="text-xs font-medium text-gold-200">
                         {getDisplayName(msg)}
                       </span>
-                      <span className="text-xs text-wood-500">
+                      <span className="text-xs text-wood-300">
                         {formatMessageDate(msg.created_at)}
                       </span>
                     </div>
                     
                     <div className={`group relative rounded-lg px-3 py-2 ${
                       isOwn 
-                        ? 'bg-gold-500/20 text-wood-100' 
-                        : 'bg-forest-700 text-wood-200'
+                        ? 'bg-gold-500/30 text-wood-50' 
+                        : 'bg-forest-700/80 text-wood-100'
                     }`}>
                       <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                       
@@ -206,7 +232,7 @@ export const GuildChat: React.FC<GuildChatProps> = ({ guildId }) => {
       </ScrollArea>
 
       {/* Input area */}
-      <div className="p-3 border-t border-forest-600">
+      <div className="p-3 border-t border-forest-600 bg-forest-800/50">
         <div className="flex gap-2">
           <Input
             value={newMessage}
@@ -215,7 +241,7 @@ export const GuildChat: React.FC<GuildChatProps> = ({ guildId }) => {
             placeholder="Écrire un message..."
             maxLength={1000}
             disabled={isSending}
-            className="flex-1 bg-forest-700/50 border-forest-500 text-wood-100 placeholder:text-wood-500"
+            className="flex-1 bg-forest-800 border-forest-500 text-white placeholder:text-wood-400 focus:border-gold-500"
           />
           <Button
             onClick={handleSend}
