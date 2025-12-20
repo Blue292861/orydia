@@ -493,8 +493,27 @@ serve(async (req) => {
       }
     }
 
+    // ========== CHECK AND RESOLVE READER OATH ==========
+    let oathResult: { hasOath: boolean; result?: any } = { hasOath: false };
+    try {
+      const { data: oathData, error: oathError } = await supabaseClient
+        .rpc('check_reader_oath_on_completion', {
+          p_user_id: userId,
+          p_book_id: bookId
+        });
+      
+      if (!oathError && oathData) {
+        oathResult = oathData as { hasOath: boolean; result?: any };
+        if (oathResult.hasOath) {
+          console.log('[open-chest] Reader oath resolved:', oathResult.result);
+        }
+      }
+    } catch (oathErr) {
+      console.error('[open-chest] Error checking reader oath:', oathErr);
+    }
+
     // ========== BUILD FINAL RESULT ==========
-    const result: ChestRollResult = {
+    const result: ChestRollResult & { oathResult?: any } = {
       chestType,
       orydors,
       orydorsVariation: selectedVariation,
@@ -502,6 +521,7 @@ serve(async (req) => {
       additionalRewards,
       xpData,
       appliedBonuses,
+      ...(oathResult.hasOath && { oathResult: oathResult.result }),
     };
 
     console.log('Chest opened successfully:', { 
@@ -512,7 +532,8 @@ serve(async (req) => {
       xpBefore: xpData.xpBefore, 
       xpAfter: xpData.xpAfter, 
       didLevelUp: xpData.didLevelUp,
-      newLevels: xpData.newLevels 
+      newLevels: xpData.newLevels,
+      oathResolved: oathResult.hasOath
     });
 
     return new Response(JSON.stringify(result), {

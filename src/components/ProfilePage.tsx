@@ -18,6 +18,7 @@ import ChallengesSection from '@/components/ChallengesSection';
 import GiftsTab from '@/components/GiftsTab';
 import { LeaderboardTab } from '@/components/leaderboard/LeaderboardTab';
 import { SkillTree } from '@/components/skill-tree';
+import { ReaderOathsSection } from '@/components/ReaderOathsSection';
 import { ClaimedLevelRewards } from '@/types/LevelReward';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Crown, User, Gift, Target, Trophy, BookMarked, Medal, TreeDeciduous } from 'lucide-react';
+import { Crown, User, Gift, Target, Trophy, BookMarked, Medal, TreeDeciduous, Scroll } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import type { Achievement } from '@/types/UserStats';
@@ -160,7 +161,7 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-8 mb-6">
+        <TabsList className="grid w-full grid-cols-9 mb-6">
           <TabsTrigger value="profile" className="flex items-center space-x-1 text-xs sm:text-sm">
             <User className="w-4 h-4" />
             <span className="hidden sm:inline">Profil</span>
@@ -168,6 +169,10 @@ export const ProfilePage: React.FC = () => {
           <TabsTrigger value="skills" className="flex items-center space-x-1 text-xs sm:text-sm">
             <TreeDeciduous className="w-4 h-4" />
             <span className="hidden sm:inline">Skills</span>
+          </TabsTrigger>
+          <TabsTrigger value="oaths" className="flex items-center space-x-1 text-xs sm:text-sm">
+            <Scroll className="w-4 h-4" />
+            <span className="hidden sm:inline">Serments</span>
           </TabsTrigger>
           <TabsTrigger value="achievements" className="flex items-center space-x-1 text-xs sm:text-sm">
             <Trophy className="w-4 h-4" />
@@ -279,6 +284,10 @@ export const ProfilePage: React.FC = () => {
 
         <TabsContent value="skills" className="space-y-4">
           <SkillTree />
+        </TabsContent>
+
+        <TabsContent value="oaths" className="space-y-4">
+          <ReaderOathsSection />
         </TabsContent>
 
         <TabsContent value="achievements" className="space-y-4">
