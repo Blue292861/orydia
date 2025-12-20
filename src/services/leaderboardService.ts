@@ -14,6 +14,7 @@ const mapToLeaderboardEntry = (row: any): LeaderboardEntry => ({
   guildId: row.guild_id,
   guildName: row.guild_name,
   rank: Number(row.rank || row.guild_rank),
+  isPremium: row.is_premium || false,
 });
 
 export async function getGeneralLeaderboard(userId?: string): Promise<LeaderboardData> {

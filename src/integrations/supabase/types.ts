@@ -3344,6 +3344,7 @@ export type Database = {
           first_name: string | null
           guild_id: string | null
           guild_name: string | null
+          is_premium: boolean | null
           last_name: string | null
           level: number | null
           rank: number | null
@@ -3370,6 +3371,7 @@ export type Database = {
           guild_id: string | null
           guild_name: string | null
           guild_rank: number | null
+          is_premium: boolean | null
           last_name: string | null
           level: number | null
           total_points: number | null
