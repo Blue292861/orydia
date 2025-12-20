@@ -26,6 +26,9 @@ export const PointsDisplay: React.FC = () => {
     return 'px-2 py-1';
   };
 
+  // Les admins ont des Orydors illimités - afficher ∞
+  const displayPoints = userStats.isAdmin ? '∞' : userStats.totalPoints;
+
   return (
     <BuyOrydorsDialog 
       trigger={
@@ -35,8 +38,8 @@ export const PointsDisplay: React.FC = () => {
             alt="Icône Orydors" 
             className={`group-hover:scale-110 transition-transform flex-shrink-0 ${getIconSize()}`} 
           />
-          <span className={`font-bold text-gold-400 group-hover:text-gold-300 transition-colors flex-shrink-0 ${getTextSize()}`}>
-            {userStats.totalPoints}
+          <span className={`font-bold text-gold-400 group-hover:text-gold-300 transition-colors flex-shrink-0 ${getTextSize()} ${userStats.isAdmin ? 'animate-pulse' : ''}`}>
+            {displayPoints}
           </span>
           {!isMobile && (
             <span className="text-gold-500 font-medieval flex-shrink-0 text-xs">

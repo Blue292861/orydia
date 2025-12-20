@@ -174,7 +174,8 @@ export const getAllGuilds = async (): Promise<GuildSearchResult[]> => {
  */
 export const createGuild = async (
   guildData: CreateGuildData,
-  currentPoints: number
+  currentPoints: number,
+  isAdmin: boolean = false
 ): Promise<{ success: boolean; error?: string; guild?: Guild }> => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -187,8 +188,8 @@ export const createGuild = async (
     return { success: false, error: 'Vous êtes déjà membre d\'une guilde' };
   }
 
-  // Check if user has enough points
-  if (currentPoints < GUILD_CREATION_COST) {
+  // Check if user has enough points (admins bypass this check)
+  if (!isAdmin && currentPoints < GUILD_CREATION_COST) {
     return { success: false, error: `Vous avez besoin de ${GUILD_CREATION_COST} Orydors pour créer une guilde` };
   }
 
@@ -257,21 +258,25 @@ export const createGuild = async (
     return { success: false, error: 'Erreur lors de la création de la guilde' };
   }
 
-  // Deduct points via edge function
-  const { error: pointsError } = await supabase.functions.invoke('award-points', {
-    body: {
-      user_id: user.id,
-      points: -GUILD_CREATION_COST,
-      transaction_type: 'guild_creation',
-      reference_id: newGuild.id,
-      description: `Création de la guilde "${guildData.name}"`,
-      source_app: 'main_app'
-    }
-  });
+  // Deduct points via edge function (admins bypass this)
+  if (!isAdmin) {
+    const { error: pointsError } = await supabase.functions.invoke('award-points', {
+      body: {
+        user_id: user.id,
+        points: -GUILD_CREATION_COST,
+        transaction_type: 'guild_creation',
+        reference_id: newGuild.id,
+        description: `Création de la guilde "${guildData.name}"`,
+        source_app: 'main_app'
+      }
+    });
 
-  if (pointsError) {
-    console.error('Error deducting points:', pointsError);
-    // Note: Guild is created but points weren't deducted - may need admin intervention
+    if (pointsError) {
+      console.error('Error deducting points:', pointsError);
+      // Note: Guild is created but points weren't deducted - may need admin intervention
+    }
+  } else {
+    console.log('[Admin] Bypass guild creation cost - Orydors illimités');
   }
 
   return { success: true, guild: newGuild as Guild };

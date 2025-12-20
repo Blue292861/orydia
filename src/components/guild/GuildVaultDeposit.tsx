@@ -9,6 +9,7 @@ import { depositToVault, getUserDuplicateCards } from "@/services/guildVaultServ
 import { UserDuplicateCard } from "@/types/GuildVault";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserStats } from "@/contexts/UserStatsContext";
 
 interface GuildVaultDepositProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface GuildVaultDepositProps {
 }
 
 export function GuildVaultDeposit({ open, onOpenChange, guildId, onSuccess }: GuildVaultDepositProps) {
+  const { userStats } = useUserStats();
   const [orydorsAmount, setOrydorsAmount] = useState("");
   const [keysAmount, setKeysAmount] = useState("");
   const [userOrydors, setUserOrydors] = useState(0);
@@ -132,7 +134,7 @@ export function GuildVaultDeposit({ open, onOpenChange, guildId, onSuccess }: Gu
                 max={userOrydors}
               />
               <p className="text-sm text-muted-foreground mt-1">
-                Disponible : {userOrydors.toLocaleString()} Orydors
+                Disponible : {userStats.isAdmin ? '∞' : userOrydors.toLocaleString()} Orydors
               </p>
             </div>
             <Button 

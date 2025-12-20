@@ -28,7 +28,8 @@ export const GuildCreationDialog: React.FC<GuildCreationDialogProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const hasEnoughPoints = userStats.totalPoints >= GUILD_COST;
+  // Les admins n'ont pas besoin de vérifier les points
+  const hasEnoughPoints = userStats.isAdmin || userStats.totalPoints >= GUILD_COST;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -76,7 +77,8 @@ export const GuildCreationDialog: React.FC<GuildCreationDialogProps> = ({
     try {
       const result = await createGuild(
         { name: name.trim(), slogan: slogan.trim() || undefined, bannerFile: bannerFile || undefined },
-        userStats.totalPoints
+        userStats.totalPoints,
+        userStats.isAdmin
       );
 
       if (result.success) {
