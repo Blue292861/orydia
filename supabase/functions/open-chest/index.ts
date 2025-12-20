@@ -15,11 +15,41 @@ interface ChestReward {
   rewardTypeId: string;
 }
 
+interface XPData {
+  xpBefore: number;
+  xpAfter: number;
+  xpGained: number;
+  levelBefore: number;
+  levelAfter: number;
+  didLevelUp: boolean;
+  newLevels: number[];
+}
+
 interface ChestRollResult {
   chestType: 'silver' | 'gold';
   orydors: number;
   orydorsVariation: number;
   additionalRewards: ChestReward[];
+  xpData: XPData;
+}
+
+// Level calculation (matching src/utils/levelCalculations.ts)
+const LEVEL_THRESHOLDS = [
+  0, 100, 250, 450, 700, 1000, 1350, 1750, 2200, 2700,
+  3250, 3850, 4500, 5200, 5950, 6750, 7600, 8500, 9450, 10450
+];
+
+function calculateLevel(experiencePoints: number): number {
+  for (let i = 0; i < LEVEL_THRESHOLDS.length - 1; i++) {
+    if (experiencePoints >= LEVEL_THRESHOLDS[i] && experiencePoints < LEVEL_THRESHOLDS[i + 1]) {
+      return i + 1;
+    }
+  }
+  if (experiencePoints >= LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1]) {
+    const extraXp = experiencePoints - LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1];
+    return 20 + Math.floor(extraXp / 1000);
+  }
+  return 1;
 }
 
 serve(async (req) => {
@@ -119,6 +149,16 @@ serve(async (req) => {
 
     const bookGenres: string[] = book.genres || [];
     const basePoints = book.points || 0;
+
+    // ========== GET USER STATS BEFORE CHEST OPENING ==========
+    const { data: userStatsBefore } = await supabaseClient
+      .from('user_stats')
+      .select('experience_points')
+      .eq('user_id', userId)
+      .single();
+    
+    const xpBefore = userStatsBefore?.experience_points || 0;
+    const levelBefore = calculateLevel(xpBefore);
 
     // ========== ADMIN PRIVILEGES: ALWAYS GOLD CHEST WITH MAX MULTIPLIER ==========
     let chestType: 'silver' | 'gold';
@@ -224,11 +264,15 @@ serve(async (req) => {
       }
     }
 
-    const result: ChestRollResult = {
-      chestType,
-      orydors,
-      orydorsVariation: selectedVariation,
-      additionalRewards
+    // Result will be finalized after XP is calculated (placeholder for now)
+    let xpData: XPData = {
+      xpBefore: 0,
+      xpAfter: 0,
+      xpGained: 0,
+      levelBefore: 1,
+      levelAfter: 1,
+      didLevelUp: false,
+      newLevels: [],
     };
 
     // Save chest opening with month_year
@@ -298,7 +342,33 @@ serve(async (req) => {
       }
     });
 
-    // Update challenge progress for collected items
+    // ========== GET USER STATS AFTER CHEST OPENING ==========
+    const { data: userStatsAfter } = await supabaseClient
+      .from('user_stats')
+      .select('experience_points')
+      .eq('user_id', userId)
+      .single();
+    
+    const xpAfter = userStatsAfter?.experience_points || xpBefore + orydors;
+    const xpGained = xpAfter - xpBefore;
+    const levelAfter = calculateLevel(xpAfter);
+    const didLevelUp = levelAfter > levelBefore;
+    
+    // Calculate all new levels gained
+    const newLevels: number[] = [];
+    for (let l = levelBefore + 1; l <= levelAfter; l++) {
+      newLevels.push(l);
+    }
+
+    const xpData: XPData = {
+      xpBefore,
+      xpAfter,
+      xpGained,
+      levelBefore,
+      levelAfter,
+      didLevelUp,
+      newLevels,
+    };
     for (const reward of additionalRewards) {
       if (reward.rewardTypeId) {
         // Get active challenges with collect_item objectives for this reward type
@@ -366,6 +436,24 @@ serve(async (req) => {
         }
       }
     }
+
+    // Build final result with xpData
+    const result: ChestRollResult = {
+      chestType,
+      orydors,
+      orydorsVariation: selectedVariation,
+      additionalRewards,
+      xpData,
+    };
+
+    console.log('Chest opened successfully:', { 
+      chestType, 
+      orydors, 
+      xpBefore: xpData.xpBefore, 
+      xpAfter: xpData.xpAfter, 
+      didLevelUp: xpData.didLevelUp,
+      newLevels: xpData.newLevels 
+    });
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

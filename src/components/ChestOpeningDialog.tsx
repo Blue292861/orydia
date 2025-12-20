@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChestReward } from "@/types/RewardType";
+import { ChestReward, XPData } from "@/types/ChestReward";
 import { RewardCardDisplay } from "./RewardCardDisplay";
 import { RarityFlash } from "./RarityEffects";
+import { AnimatedXPBar } from "./AnimatedXPBar";
+import { LevelUpCelebration } from "./LevelUpCelebration";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import coffreArgent from "@/assets/coffre-argent.png";
 import coffreOr from "@/assets/coffre-or.png";
 import carteOrydors from "@/assets/carte-orydors.png";
+import { useUserStats } from "@/contexts/UserStatsContext";
+import { PendingLevelReward } from "@/types/LevelReward";
 
 interface ChestOpeningDialogProps {
   isOpen: boolean;
@@ -18,9 +22,18 @@ interface ChestOpeningDialogProps {
   orydorsVariation: number;
   additionalRewards: ChestReward[];
   bookTitle: string;
+  xpData?: XPData;
 }
 
-type AnimationPhase = 'chest-closed' | 'chest-opening' | 'anticipation' | 'reveal-orydors' | 'reveal-rewards' | 'complete';
+type AnimationPhase = 
+  | 'chest-closed' 
+  | 'chest-opening' 
+  | 'anticipation' 
+  | 'reveal-orydors' 
+  | 'reveal-rewards' 
+  | 'complete' 
+  | 'xp-animation' 
+  | 'level-up';
 
 export function ChestOpeningDialog({
   isOpen,
@@ -29,7 +42,8 @@ export function ChestOpeningDialog({
   orydors,
   orydorsVariation,
   additionalRewards,
-  bookTitle
+  bookTitle,
+  xpData
 }: ChestOpeningDialogProps) {
   const [phase, setPhase] = useState<AnimationPhase>('chest-closed');
   const [currentRewardIndex, setCurrentRewardIndex] = useState(-1);
@@ -37,6 +51,10 @@ export function ChestOpeningDialog({
   const [showFlash, setShowFlash] = useState(false);
   const [currentRarity, setCurrentRarity] = useState<'common' | 'rare' | 'epic' | 'legendary'>('common');
   const [dialogShake, setDialogShake] = useState(false);
+  const [levelUpLevel, setLevelUpLevel] = useState<number | null>(null);
+  const [pendingLevelReward, setPendingLevelReward] = useState<PendingLevelReward | null>(null);
+  
+  const { pendingLevelRewards, claimLevelRewards, loadPendingLevelRewards } = useUserStats();
 
   useEffect(() => {
     if (isOpen) {
@@ -45,6 +63,8 @@ export function ChestOpeningDialog({
       setShowSkipButton(false);
       setShowFlash(false);
       setDialogShake(false);
+      setLevelUpLevel(null);
+      setPendingLevelReward(null);
     }
   }, [isOpen]);
 
@@ -53,7 +73,6 @@ export function ChestOpeningDialog({
     setCurrentRarity(r);
     setShowFlash(true);
     
-    // Shake for epic/legendary
     if (r === 'epic' || r === 'legendary') {
       setDialogShake(true);
       setTimeout(() => setDialogShake(false), 500);
@@ -66,9 +85,8 @@ export function ChestOpeningDialog({
     setPhase('chest-opening');
     setTimeout(() => {
       setPhase('anticipation');
-      // Anticipation phase - build suspense
       setTimeout(() => {
-        triggerRarityEffects('common'); // Orydors are always "common" rarity display
+        triggerRarityEffects('common');
         setPhase('reveal-orydors');
         setShowSkipButton(true);
       }, 800);
@@ -80,7 +98,6 @@ export function ChestOpeningDialog({
       const nextIndex = currentRewardIndex + 1;
       const nextReward = additionalRewards[nextIndex];
       
-      // Trigger anticipation based on rarity
       setPhase('anticipation');
       const anticipationTime = getAnticipationTime(nextReward.rarity);
       
@@ -107,9 +124,48 @@ export function ChestOpeningDialog({
     setPhase('complete');
   };
 
+  const handleContinueToXP = () => {
+    if (xpData && xpData.xpGained > 0) {
+      setPhase('xp-animation');
+    } else {
+      handleClose();
+    }
+  };
+
+  const handleXPAnimationComplete = () => {
+    // Check if there's a level up to celebrate
+    if (xpData?.didLevelUp && xpData.newLevels.length > 0) {
+      // Load pending rewards before showing level up celebration
+      loadPendingLevelRewards().then(() => {
+        setLevelUpLevel(xpData.newLevels[xpData.newLevels.length - 1]);
+        setPhase('level-up');
+      });
+    } else {
+      handleClose();
+    }
+  };
+
+  const handleLevelUp = (level: number) => {
+    console.log('Level up reached:', level);
+    // Could trigger additional effects here
+  };
+
+  const handleLevelUpContinue = () => {
+    handleClose();
+  };
+
+  const handleClaimLevelReward = async () => {
+    const rewards = await claimLevelRewards();
+    if (rewards) {
+      console.log('Level rewards claimed:', rewards);
+    }
+    handleClose();
+  };
+
   const handleClose = () => {
     setPhase('chest-closed');
     setCurrentRewardIndex(-1);
+    setLevelUpLevel(null);
     onClose();
   };
 
@@ -125,6 +181,19 @@ export function ChestOpeningDialog({
       default: return 'text-muted-foreground';
     }
   };
+
+  // Level up celebration (full screen overlay)
+  if (phase === 'level-up' && levelUpLevel) {
+    const currentPendingReward = pendingLevelRewards.find(r => r.level === levelUpLevel);
+    return (
+      <LevelUpCelebration
+        newLevel={levelUpLevel}
+        pendingReward={currentPendingReward}
+        onContinue={handleLevelUpContinue}
+        onClaimReward={currentPendingReward ? handleClaimLevelReward : undefined}
+      />
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -142,12 +211,9 @@ export function ChestOpeningDialog({
               <span className="text-primary">{bookTitle}</span>
             </h2>
             
-            {/* Chest with animated halo */}
             <div className="relative">
-              {/* Animated halo */}
               <div className={`absolute inset-0 bg-gradient-to-r ${chestColor} rounded-full blur-3xl opacity-60 animate-pulse-slow scale-150`} />
               
-              {/* Chest */}
               <div className="relative transform hover:scale-105 transition-transform duration-300 chest-appear">
                 <img 
                   src={chestType === 'gold' ? coffreOr : coffreArgent}
@@ -175,10 +241,8 @@ export function ChestOpeningDialog({
         {phase === 'chest-opening' && (
           <div className="flex items-center justify-center py-12">
             <div className="relative">
-              {/* Halo lumineux qui explose */}
               <div className={`absolute inset-0 bg-gradient-to-r ${chestColor} rounded-full blur-3xl chest-halo-burst`} />
               
-              {/* Coffre figé qui disparaît dans la lumière */}
               <div className="relative chest-opening">
                 <img 
                   src={chestType === 'gold' ? coffreOr : coffreArgent}
@@ -192,7 +256,6 @@ export function ChestOpeningDialog({
 
         {phase === 'anticipation' && (
           <div className="flex flex-col items-center justify-center py-16 space-y-6">
-            {/* Suspense animation */}
             <div className="relative w-32 h-32">
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/50 to-amber-500/50 animate-ping" />
               <div className="absolute inset-4 rounded-full bg-gradient-to-r from-primary/70 to-amber-500/70 animate-pulse" />
@@ -227,7 +290,7 @@ export function ChestOpeningDialog({
                 Carte suivante ({additionalRewards.length} restantes)
               </Button>
             ) : (
-              <Button onClick={handleClose} size="lg">
+              <Button onClick={() => setPhase('complete')} size="lg">
                 Terminer
               </Button>
             )}
@@ -246,7 +309,6 @@ export function ChestOpeningDialog({
               Récompense {currentRewardIndex + 2} / {additionalRewards.length + 1}
             </h3>
             
-            {/* Rarity announcement */}
             <p className={cn(
               "text-sm font-bold uppercase tracking-widest",
               getRarityTextStyle(additionalRewards[currentRewardIndex].rarity)
@@ -263,7 +325,7 @@ export function ChestOpeningDialog({
                 Carte suivante ({additionalRewards.length - currentRewardIndex - 1} restantes)
               </Button>
             ) : (
-              <Button onClick={handleClose} size="lg">
+              <Button onClick={() => setPhase('complete')} size="lg">
                 Terminer
               </Button>
             )}
@@ -320,9 +382,23 @@ export function ChestOpeningDialog({
               ))}
             </div>
 
-            <Button onClick={handleClose} size="lg" className="w-full max-w-xs">
+            <Button onClick={handleContinueToXP} size="lg" className="w-full max-w-xs">
               Continuer
             </Button>
+          </div>
+        )}
+
+        {phase === 'xp-animation' && xpData && (
+          <div className="flex flex-col items-center justify-center py-8">
+            <h3 className="text-xl font-semibold mb-4">Expérience gagnée !</h3>
+            <AnimatedXPBar
+              xpBefore={xpData.xpBefore}
+              xpAfter={xpData.xpAfter}
+              levelBefore={xpData.levelBefore}
+              levelAfter={xpData.levelAfter}
+              onComplete={handleXPAnimationComplete}
+              onLevelUp={handleLevelUp}
+            />
           </div>
         )}
       </DialogContent>
