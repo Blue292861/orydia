@@ -111,8 +111,32 @@ serve(async (req) => {
     const oldLevel = userStats.level || 1;
     const newLevelValue = newLevel.data || 1;
 
+    // Variable pour suivre les points de compétences attribués
+    let skillPointsAwarded = 0;
+
     if (newLevelValue > oldLevel) {
       console.log(`[award-points] Level up detected: ${oldLevel} -> ${newLevelValue}`);
+      
+      // ========== ATTRIBUTION DES POINTS DE COMPÉTENCES ==========
+      // Chaque niveau passé donne un nombre de points égal au niveau atteint
+      // Niveau 2 = +2 pts, Niveau 3 = +3 pts, etc.
+      for (let lvl = oldLevel + 1; lvl <= newLevelValue; lvl++) {
+        skillPointsAwarded += lvl;
+      }
+      
+      if (skillPointsAwarded > 0) {
+        const currentSkillPoints = userStats.skill_points || 0;
+        const { error: skillPointsError } = await supabaseClient
+          .from('user_stats')
+          .update({ skill_points: currentSkillPoints + skillPointsAwarded })
+          .eq('user_id', user_id);
+        
+        if (skillPointsError) {
+          console.error(`[award-points] Error awarding skill points:`, skillPointsError);
+        } else {
+          console.log(`[award-points] Awarded ${skillPointsAwarded} skill points (total: ${currentSkillPoints + skillPointsAwarded})`);
+        }
+      }
       
       // Pour chaque niveau passé, vérifier si une récompense existe
       for (let lvl = oldLevel + 1; lvl <= newLevelValue; lvl++) {
@@ -160,6 +184,7 @@ serve(async (req) => {
       success: true,
       new_total_points: newTotalPoints,
       new_level: newLevel.data,
+      skill_points_awarded: skillPointsAwarded,
       transaction_id: crypto.randomUUID()
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

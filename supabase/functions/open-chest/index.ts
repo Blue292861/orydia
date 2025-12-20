@@ -25,12 +25,21 @@ interface XPData {
   newLevels: number[];
 }
 
+interface SkillBonus {
+  pathName: string;
+  skillName: string;
+  bonusType: string;
+  description: string;
+}
+
 interface ChestRollResult {
   chestType: 'silver' | 'gold';
   orydors: number;
   orydorsVariation: number;
+  orydorsMultiplier: number;
   additionalRewards: ChestReward[];
   xpData: XPData;
+  appliedBonuses: SkillBonus[];
 }
 
 // Level calculation (matching src/utils/levelCalculations.ts)
@@ -84,7 +93,6 @@ serve(async (req) => {
     }
 
     // ========== ADMIN CHECK ==========
-    // Vérifier si l'utilisateur est admin pour outrepasser toutes les règles
     const { data: isAdmin } = await supabaseClient.rpc('is_admin', { p_user_id: userId });
     
     if (isAdmin) {
@@ -92,7 +100,7 @@ serve(async (req) => {
     }
 
     // Get current month-year for monthly reclaim system
-    const currentMonthYear = new Date().toISOString().slice(0, 7); // "2025-11"
+    const currentMonthYear = new Date().toISOString().slice(0, 7);
 
     // Check if chest already opened for this book this month (SAUF pour les admins)
     if (!isAdmin) {
@@ -104,12 +112,10 @@ serve(async (req) => {
         .eq('month_year', currentMonthYear)
         .single();
 
-      // If chest already opened this month, check if user wants to use a Chest Key
       if (existingChest) {
         if (useChestKey) {
           const CHEST_KEY_ID = '550e8400-e29b-41d4-a716-446655440000';
           
-          // Check if user has a Chest Key
           const { data: keyItem } = await supabaseClient
             .from('user_inventory')
             .select('quantity')
@@ -121,7 +127,6 @@ serve(async (req) => {
             throw new Error("Vous n'avez pas de Clé de Coffre Magique");
           }
 
-          // Consume one key
           await supabaseClient
             .from('user_inventory')
             .update({ quantity: keyItem.quantity - 1 })
@@ -129,7 +134,6 @@ serve(async (req) => {
             .eq('reward_type_id', CHEST_KEY_ID);
           
           console.log('Chest key consumed, allowing chest to be re-opened');
-          // Allow the chest opening to proceed
         } else {
           throw new Error("Chest already opened this month");
         }
@@ -160,17 +164,56 @@ serve(async (req) => {
     const xpBefore = userStatsBefore?.experience_points || 0;
     const levelBefore = calculateLevel(xpBefore);
 
+    // ========== GET ACTIVE SKILL BONUSES ==========
+    const { data: activeBonuses } = await supabaseClient
+      .rpc('get_user_active_skill_bonuses', { p_user_id: userId });
+    
+    console.log(`[open-chest] Active skill bonuses: ${JSON.stringify(activeBonuses)}`);
+
+    // ========== CALCULATE ORYDORS MULTIPLIER FROM SKILL BONUSES ==========
+    let orydorsMultiplier = 1;
+    const appliedBonuses: SkillBonus[] = [];
+    const today = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+
+    for (const bonus of activeBonuses || []) {
+      if (bonus.bonus_type === 'day_orydors') {
+        const config = bonus.bonus_config as { days: number[]; percentage: number };
+        if (config.days?.includes(today)) {
+          orydorsMultiplier += config.percentage / 100;
+          appliedBonuses.push({
+            pathName: bonus.path_name,
+            skillName: bonus.skill_name,
+            bonusType: 'day_orydors',
+            description: `+${config.percentage}% Orydors (jour de la semaine)`
+          });
+          console.log(`[open-chest] Day bonus applied: +${config.percentage}%`);
+        }
+      }
+      
+      if (bonus.bonus_type === 'genre_orydors') {
+        const config = bonus.bonus_config as { genre: string; percentage: number };
+        if (bookGenres.includes(config.genre)) {
+          orydorsMultiplier += config.percentage / 100;
+          appliedBonuses.push({
+            pathName: bonus.path_name,
+            skillName: bonus.skill_name,
+            bonusType: 'genre_orydors',
+            description: `+${config.percentage}% Orydors (genre ${config.genre})`
+          });
+          console.log(`[open-chest] Genre bonus applied: +${config.percentage}% for ${config.genre}`);
+        }
+      }
+    }
+
     // ========== ADMIN PRIVILEGES: ALWAYS GOLD CHEST WITH MAX MULTIPLIER ==========
     let chestType: 'silver' | 'gold';
     let selectedVariation: number;
 
     if (isAdmin) {
-      // Admin: toujours coffre doré avec multiplicateur maximum (210%)
       chestType = 'gold';
       selectedVariation = 210;
       console.log(`Admin chest: gold chest with 210% multiplier`);
     } else {
-      // Check premium status for non-admin users
       const { data: subscription } = await supabaseClient
         .from('subscribers')
         .select('subscribed, subscription_end')
@@ -183,7 +226,6 @@ serve(async (req) => {
 
       chestType = isPremium ? 'gold' : 'silver';
       
-      // Calculate Orydors with variation
       const variations = isPremium ? [190, 200, 210] : [95, 100, 105];
       const random = Math.random();
       
@@ -196,28 +238,27 @@ serve(async (req) => {
       }
     }
     
-    const orydors = Math.floor((basePoints * selectedVariation) / 100);
+    // Apply skill bonus multiplier to orydors
+    const baseOrydors = Math.floor((basePoints * selectedVariation) / 100);
+    const orydors = Math.floor(baseOrydors * orydorsMultiplier);
+    
+    if (orydorsMultiplier > 1) {
+      console.log(`[open-chest] Orydors with skill bonus: ${baseOrydors} * ${orydorsMultiplier} = ${orydors}`);
+    }
 
-    // Fetch GLOBAL loot table (book_id IS NULL AND genre IS NULL)
+    // ========== FETCH LOOT TABLES ==========
     const { data: globalLoot } = await supabaseClient
       .from('loot_tables')
-      .select(`
-        *,
-        reward_types (*)
-      `)
+      .select(`*, reward_types (*)`)
       .is('book_id', null)
       .is('genre', null)
       .eq('chest_type', chestType);
 
-    // Fetch GENRE-SPECIFIC loot tables (for all genres of the book)
     let genreLoot: any[] = [];
     if (bookGenres.length > 0) {
       const { data } = await supabaseClient
         .from('loot_tables')
-        .select(`
-          *,
-          reward_types (*)
-        `)
+        .select(`*, reward_types (*)`)
         .is('book_id', null)
         .in('genre', bookGenres)
         .eq('chest_type', chestType);
@@ -226,28 +267,56 @@ serve(async (req) => {
       console.log(`Fetched ${genreLoot.length} genre-specific loot items for genres: ${bookGenres.join(', ')}`);
     }
 
-    // Fetch BOOK-SPECIFIC loot table
     const { data: bookLoot } = await supabaseClient
       .from('loot_tables')
-      .select(`
-        *,
-        reward_types (*)
-      `)
+      .select(`*, reward_types (*)`)
       .eq('book_id', bookId)
       .eq('chest_type', chestType);
 
-    // Merge ALL loot tables: global + genres + book-specific
     const lootTable = [...(globalLoot || []), ...genreLoot, ...(bookLoot || [])];
-    console.log(`Total loot table entries: ${lootTable.length} (global: ${globalLoot?.length || 0}, genre: ${genreLoot.length}, book: ${bookLoot?.length || 0})`);
+    console.log(`Total loot table entries: ${lootTable.length}`);
 
-    // Roll additional rewards
+    // ========== ROLL ADDITIONAL REWARDS WITH SKILL DROP BONUSES ==========
     const additionalRewards: ChestReward[] = [];
     
+    // Build a map of drop chance bonuses from skills
+    const dropBonusMap: Record<string, number> = {};
+    for (const bonus of activeBonuses || []) {
+      if (bonus.bonus_type === 'chest_drop') {
+        const config = bonus.bonus_config as { reward_type_id: string; percentage: number };
+        if (config.reward_type_id) {
+          dropBonusMap[config.reward_type_id] = (dropBonusMap[config.reward_type_id] || 0) + config.percentage;
+        }
+      }
+    }
+
     if (lootTable) {
       for (const entry of lootTable) {
+        // Calculate modified drop chance with skill bonuses
+        let modifiedDropChance = entry.drop_chance_percentage;
+        
+        if (entry.reward_type_id && dropBonusMap[entry.reward_type_id]) {
+          const bonusPercentage = dropBonusMap[entry.reward_type_id];
+          modifiedDropChance += bonusPercentage;
+          console.log(`[open-chest] Drop bonus for ${entry.reward_types?.name}: +${bonusPercentage}% (total: ${modifiedDropChance}%)`);
+          
+          // Add to applied bonuses if not already there
+          const existingBonus = appliedBonuses.find(b => 
+            b.bonusType === 'chest_drop' && b.description.includes(entry.reward_types?.name)
+          );
+          if (!existingBonus && entry.reward_types) {
+            appliedBonuses.push({
+              pathName: 'Compétence',
+              skillName: 'Bonus de drop',
+              bonusType: 'chest_drop',
+              description: `+${bonusPercentage}% chance de drop: ${entry.reward_types.name}`
+            });
+          }
+        }
+        
         const dropRoll = Math.random() * 100;
         
-        if (dropRoll <= entry.drop_chance_percentage && entry.reward_types) {
+        if (dropRoll <= modifiedDropChance && entry.reward_types) {
           const quantity = Math.floor(
             Math.random() * (entry.max_quantity - entry.min_quantity + 1) + entry.min_quantity
           );
@@ -264,18 +333,7 @@ serve(async (req) => {
       }
     }
 
-    // Result will be finalized after XP is calculated (placeholder for now)
-    let xpData: XPData = {
-      xpBefore: 0,
-      xpAfter: 0,
-      xpGained: 0,
-      levelBefore: 1,
-      levelAfter: 1,
-      didLevelUp: false,
-      newLevels: [],
-    };
-
-    // Save chest opening with month_year
+    // ========== SAVE CHEST OPENING ==========
     const { error: chestError } = await supabaseClient
       .from('chest_openings')
       .insert({
@@ -298,7 +356,7 @@ serve(async (req) => {
       throw chestError;
     }
 
-    // Add rewards to inventory
+    // ========== ADD REWARDS TO INVENTORY ==========
     for (const reward of additionalRewards) {
       await supabaseClient
         .from('user_inventory')
@@ -310,7 +368,6 @@ serve(async (req) => {
           onConflict: 'user_id,reward_type_id'
         });
 
-      // Handle gem fragments
       if (reward.type === 'fragment') {
         const { data: existingGems } = await supabaseClient
           .from('gem_fragments')
@@ -331,14 +388,14 @@ serve(async (req) => {
       }
     }
 
-    // Award Orydors via existing award-points function
+    // ========== AWARD ORYDORS ==========
     await supabaseClient.functions.invoke('award-points', {
       body: {
         user_id: userId,
         points: orydors,
         transaction_type: 'book_completion',
         reference_id: bookId,
-        description: `Coffre ${chestType === 'gold' ? 'doré' : 'argenté'} - ${selectedVariation}%`
+        description: `Coffre ${chestType === 'gold' ? 'doré' : 'argenté'} - ${selectedVariation}%${orydorsMultiplier > 1 ? ` (x${orydorsMultiplier.toFixed(2)} bonus)` : ''}`
       }
     });
 
@@ -354,7 +411,6 @@ serve(async (req) => {
     const levelAfter = calculateLevel(xpAfter);
     const didLevelUp = levelAfter > levelBefore;
     
-    // Calculate all new levels gained
     const newLevels: number[] = [];
     for (let l = levelBefore + 1; l <= levelAfter; l++) {
       newLevels.push(l);
@@ -369,9 +425,10 @@ serve(async (req) => {
       didLevelUp,
       newLevels,
     };
+
+    // ========== UPDATE CHALLENGE PROGRESS ==========
     for (const reward of additionalRewards) {
       if (reward.rewardTypeId) {
-        // Get active challenges with collect_item objectives for this reward type
         const { data: objectives } = await supabaseClient
           .from('challenge_objectives')
           .select(`
@@ -392,7 +449,6 @@ serve(async (req) => {
           for (const obj of objectives) {
             const challenge = (obj as any).challenges;
             if (challenge?.is_active && challenge.start_date <= now && challenge.end_date >= now) {
-              // Check/update user progress
               const { data: existingProgress } = await supabaseClient
                 .from('user_challenge_progress')
                 .select('*')
@@ -437,18 +493,22 @@ serve(async (req) => {
       }
     }
 
-    // Build final result with xpData
+    // ========== BUILD FINAL RESULT ==========
     const result: ChestRollResult = {
       chestType,
       orydors,
       orydorsVariation: selectedVariation,
+      orydorsMultiplier,
       additionalRewards,
       xpData,
+      appliedBonuses,
     };
 
     console.log('Chest opened successfully:', { 
       chestType, 
-      orydors, 
+      orydors,
+      orydorsMultiplier,
+      appliedBonusesCount: appliedBonuses.length,
       xpBefore: xpData.xpBefore, 
       xpAfter: xpData.xpAfter, 
       didLevelUp: xpData.didLevelUp,
