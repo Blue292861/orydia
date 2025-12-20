@@ -108,14 +108,14 @@ export const GuildSettings: React.FC<GuildSettingsProps> = ({
         
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-wood-400">Date de création</span>
-            <span className="text-wood-200">
+            <span className="text-wood-200">Date de création</span>
+            <span className="text-wood-100">
               {format(new Date(guild.created_at), 'd MMMM yyyy', { locale: fr })}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-wood-400">Nombre de membres</span>
-            <span className="text-wood-200 flex items-center gap-1">
+            <span className="text-wood-200">Nombre de membres</span>
+            <span className="text-wood-100 flex items-center gap-1">
               <Users className="w-4 h-4" />
               {guild.member_count}
             </span>
@@ -176,11 +176,9 @@ export const GuildSettings: React.FC<GuildSettingsProps> = ({
       {/* Leave guild */}
       <Card className="p-4 bg-red-900/20 border-red-800/50">
         <h3 className="text-lg font-medium text-red-300 mb-2">Zone de danger</h3>
-        <p className="text-sm text-wood-400 mb-4">
+        <p className="text-sm text-wood-200 mb-4">
           {isOwner 
-            ? guild.member_count > 1
-              ? 'Vous devez transférer la propriété avant de quitter la guilde.'
-              : 'Quitter la guilde la dissoudra car vous êtes le seul membre.'
+            ? 'Dissoudre la guilde supprimera définitivement tous les membres, messages, annonces et ressources du coffre.'
             : 'Vous pouvez quitter la guilde à tout moment.'}
         </p>
 
@@ -189,7 +187,6 @@ export const GuildSettings: React.FC<GuildSettingsProps> = ({
             <Button 
               variant="destructive" 
               className="w-full"
-              disabled={isOwner && guild.member_count > 1}
             >
               <LogOut className="w-4 h-4 mr-2" />
               {isOwner ? 'Dissoudre la guilde' : 'Quitter la guilde'}
@@ -200,14 +197,14 @@ export const GuildSettings: React.FC<GuildSettingsProps> = ({
               <AlertDialogTitle className="text-wood-100">
                 {isOwner ? 'Dissoudre la guilde ?' : 'Quitter la guilde ?'}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-wood-400">
+              <AlertDialogDescription className="text-wood-200">
                 {isOwner 
-                  ? 'Cette action est irréversible. La guilde sera définitivement supprimée.'
+                  ? `⚠️ Cette action est IRRÉVERSIBLE. La guilde "${guild.name}" sera définitivement supprimée avec tous ses ${guild.member_count} membre${guild.member_count > 1 ? 's' : ''}, messages, annonces et ressources du coffre.`
                   : 'Vous pourrez rejoindre une autre guilde ou revenir plus tard.'}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="border-forest-500 text-wood-200 hover:bg-forest-700">
+              <AlertDialogCancel className="border-forest-500 text-wood-100 hover:bg-forest-700">
                 Annuler
               </AlertDialogCancel>
               <AlertDialogAction

@@ -173,8 +173,8 @@ export const GuildAnnouncementBoard: React.FC<GuildAnnouncementBoardProps> = ({ 
         <Card className="p-6 bg-forest-800/50 border-forest-600">
           <div className="text-center py-8">
             <Megaphone className="w-12 h-12 mx-auto text-gold-400/50 mb-3" />
-            <h3 className="text-lg font-medium text-wood-200 mb-2">Aucune annonce</h3>
-            <p className="text-wood-400 text-sm">
+            <h3 className="text-lg font-medium text-wood-100 mb-2">Aucune annonce</h3>
+            <p className="text-wood-200 text-sm">
               {isAdmin 
                 ? 'Publiez votre première annonce pour informer les membres de la guilde.'
                 : 'Les fondateurs et administrateurs peuvent publier des annonces ici.'}
@@ -191,7 +191,7 @@ export const GuildAnnouncementBoard: React.FC<GuildAnnouncementBoardProps> = ({ 
                   <p className="text-wood-200 text-sm whitespace-pre-wrap mb-3">
                     {announcement.content}
                   </p>
-                  <div className="flex items-center gap-4 text-xs text-wood-500">
+                  <div className="flex items-center gap-4 text-xs text-wood-300">
                     <span className="flex items-center gap-1">
                       <User className="w-3 h-3" />
                       {announcement.author_profile?.username || 'Admin'}

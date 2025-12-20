@@ -55,7 +55,7 @@ export const GuildPage: React.FC = () => {
       <div className="flex flex-col items-center justify-center py-16 px-4">
         <Shield className="w-16 h-16 text-gold-400/50 mb-4" />
         <h2 className="text-xl font-semibold text-wood-100 mb-2">Guildes de Lecture</h2>
-        <p className="text-wood-400 text-center max-w-md">
+        <p className="text-wood-200 text-center max-w-md">
           Connectez-vous pour rejoindre ou créer une guilde de lecture et partager votre passion avec d'autres lecteurs.
         </p>
       </div>
@@ -94,7 +94,7 @@ export const GuildPage: React.FC = () => {
           <Shield className="w-8 h-8 text-gold-400" />
         </div>
         <h1 className="text-2xl font-bold text-gold-300 mb-2">Guildes de Lecture</h1>
-        <p className="text-wood-400 max-w-md mx-auto">
+        <p className="text-wood-200 max-w-md mx-auto">
           Rejoignez une communauté de lecteurs ou fondez votre propre guilde !
         </p>
       </div>
@@ -107,7 +107,7 @@ export const GuildPage: React.FC = () => {
               <Coins className="w-5 h-5 text-gold-400" />
             </div>
             <div>
-              <p className="text-xs text-wood-400">Vos Orydors</p>
+              <p className="text-xs text-wood-200">Vos Orydors</p>
               <p className="text-lg font-bold text-gold-300">{userStats.totalPoints.toLocaleString()}</p>
             </div>
           </div>
@@ -118,7 +118,7 @@ export const GuildPage: React.FC = () => {
               <Sparkles className="w-5 h-5 text-gold-400" />
             </div>
             <div>
-              <p className="text-xs text-wood-400">Coût création</p>
+              <p className="text-xs text-wood-200">Coût création</p>
               <p className="text-lg font-bold text-gold-300">{GUILD_COST.toLocaleString()}</p>
             </div>
           </div>
@@ -155,13 +155,13 @@ export const GuildPage: React.FC = () => {
                 <Shield className="w-7 h-7 text-gold-400" />
               </div>
               <h3 className="text-lg font-semibold text-wood-100 mb-2">Fondez votre guilde</h3>
-              <p className="text-wood-400 text-sm mb-6">
+              <p className="text-wood-200 text-sm mb-6">
                 Créez votre propre communauté de lecteurs, donnez-lui un nom unique et rassemblez des passionnés autour de vos lectures favorites.
               </p>
 
               <div className="bg-forest-700/50 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-wood-300">Coût de création</span>
+                  <span className="text-wood-100">Coût de création</span>
                   <span className="flex items-center gap-2 font-bold text-gold-400">
                     <Coins className="w-4 h-4" />
                     {GUILD_COST.toLocaleString()} Orydors

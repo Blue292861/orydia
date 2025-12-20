@@ -90,7 +90,7 @@ export const GuildSearchList: React.FC<GuildSearchListProps> = ({ onJoinSuccess 
             <Loader2 className="w-6 h-6 animate-spin text-gold-400" />
           </div>
         ) : guilds.length === 0 ? (
-          <div className="text-center py-8 text-wood-400">
+          <div className="text-center py-8 text-wood-200">
             <Shield className="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p>Aucune guilde trouvée</p>
             {searchQuery && <p className="text-sm mt-1">Essayez une autre recherche</p>}
@@ -127,9 +127,9 @@ export const GuildSearchList: React.FC<GuildSearchListProps> = ({ onJoinSuccess 
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-wood-100 truncate">{guild.name}</h3>
                   {guild.slogan && (
-                    <p className="text-sm text-wood-400 truncate italic">"{guild.slogan}"</p>
+                    <p className="text-sm text-wood-200 truncate italic">"{guild.slogan}"</p>
                   )}
-                  <div className="flex items-center gap-3 mt-1 text-xs text-wood-500">
+                  <div className="flex items-center gap-3 mt-1 text-xs text-wood-300">
                     <span className="flex items-center gap-1">
                       <Users className="w-3 h-3" />
                       {guild.member_count} membre{guild.member_count > 1 ? 's' : ''}
