@@ -164,23 +164,27 @@ export async function depositToVault(
     }
 
   } else if (request.resource_type === 'aildor_key') {
-    // Get user's current keys from user_stats
-    const { data: stats } = await supabase
-      .from('user_stats')
-      .select('aildor_keys')
+    const AILDOR_KEY_ID = '550e8400-e29b-41d4-a716-446655440000';
+    
+    // Get user's current keys from user_inventory
+    const { data: keyInventory } = await supabase
+      .from('user_inventory')
+      .select('quantity')
       .eq('user_id', user.id)
-      .single();
+      .eq('reward_type_id', AILDOR_KEY_ID)
+      .maybeSingle();
 
-    const currentKeys = (stats as any)?.aildor_keys || 0;
+    const currentKeys = keyInventory?.quantity || 0;
     if (currentKeys < request.quantity) {
       throw new Error('Clés d\'Aildor insuffisantes');
     }
 
-    // Deduct from user
+    // Deduct from user inventory
     await supabase
-      .from('user_stats')
-      .update({ aildor_keys: currentKeys - request.quantity } as any)
-      .eq('user_id', user.id);
+      .from('user_inventory')
+      .update({ quantity: currentKeys - request.quantity })
+      .eq('user_id', user.id)
+      .eq('reward_type_id', AILDOR_KEY_ID);
 
     // Add to vault
     const { data: vault } = await supabase

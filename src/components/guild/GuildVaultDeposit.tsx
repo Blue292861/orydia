@@ -36,15 +36,18 @@ export function GuildVaultDeposit({ open, onOpenChange, guildId, onSuccess }: Gu
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const [statsRes, cardsRes] = await Promise.all([
-      supabase.from('user_stats').select('total_points, aildor_keys').eq('user_id', user.id).single(),
+    const AILDOR_KEY_ID = '550e8400-e29b-41d4-a716-446655440000';
+    
+    const [statsRes, keysRes, cardsRes] = await Promise.all([
+      supabase.from('user_stats').select('total_points').eq('user_id', user.id).single(),
+      supabase.from('user_inventory').select('quantity').eq('user_id', user.id).eq('reward_type_id', AILDOR_KEY_ID).maybeSingle(),
       getUserDuplicateCards()
     ]);
 
     if (statsRes.data) {
       setUserOrydors(statsRes.data.total_points || 0);
-      setUserKeys((statsRes.data as any).aildor_keys || 0);
     }
+    setUserKeys(keysRes.data?.quantity || 0);
     setDuplicateCards(cardsRes);
   };
 
