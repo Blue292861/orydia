@@ -11,6 +11,7 @@ export interface LeaderboardEntry {
   guildId: string | null;
   guildName: string | null;
   rank: number;
+  isPremium: boolean;
 }
 
 export interface LeaderboardData {
