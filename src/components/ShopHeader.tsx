@@ -36,8 +36,8 @@ export const ShopHeader: React.FC = () => {
           }`} />
           <span className={`font-bold text-amber-200 ${
             isMobile ? 'text-lg' : 'text-2xl'
-          }`}>
-            {userStats.totalPoints}
+          } ${userStats.isAdmin ? 'animate-pulse' : ''}`}>
+            {userStats.isAdmin ? '∞' : userStats.totalPoints}
           </span>
           <span className={`text-amber-300 ${
             isMobile ? 'text-sm' : 'text-base'

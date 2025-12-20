@@ -59,7 +59,8 @@ export const ShopItemCard: React.FC<ShopItemCardProps> = ({ item, onItemClick })
       return;
     }
     
-    if (userStats.totalPoints >= item.price) {
+    // Les admins ont des Orydors illimités
+    if (userStats.isAdmin || userStats.totalPoints >= item.price) {
       spendPoints(item.price);
       
       const { error } = await supabase.from('orders').insert([{

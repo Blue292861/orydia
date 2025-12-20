@@ -335,6 +335,12 @@ export const UserStatsProvider: React.FC<UserStatsProviderProps> = ({ children }
   };
 
   const spendPoints = (amount: number) => {
+    // Les admins ont des Orydors illimités - pas de déduction
+    if (userStats.isAdmin) {
+      console.log('[Admin] Bypass spendPoints - Orydors illimités');
+      return;
+    }
+    
     setUserStats(prev => ({
       ...prev,
       totalPoints: Math.max(0, prev.totalPoints - amount)
