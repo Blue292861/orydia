@@ -65,12 +65,12 @@ export const GuildDashboard: React.FC<GuildDashboardProps> = ({
               {guild.slogan && (
                 <p className="text-wood-300 italic mt-1">"{guild.slogan}"</p>
               )}
-              <div className="flex items-center gap-4 mt-3 text-sm text-wood-400">
+              <div className="flex items-center gap-4 mt-3 text-sm text-wood-200">
                 <span className="flex items-center gap-1">
                   <Users className="w-4 h-4" />
                   {guild.member_count} membre{guild.member_count > 1 ? 's' : ''}
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-forest-700 text-wood-300 text-xs">
+                <span className="px-2 py-0.5 rounded-full bg-forest-700 text-wood-100 text-xs">
                   {membership.role === 'owner' ? 'Fondateur' : 
                    membership.role === 'admin' ? 'Administrateur' : 'Membre'}
                 </span>

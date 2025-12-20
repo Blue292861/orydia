@@ -19,7 +19,7 @@ export const GuildMembersList: React.FC<GuildMembersListProps> = ({ members, cur
       case 'admin':
         return <Shield className="w-4 h-4 text-blue-400" />;
       default:
-        return <User className="w-4 h-4 text-wood-400" />;
+        return <User className="w-4 h-4 text-wood-200" />;
     }
   };
 
@@ -83,7 +83,7 @@ export const GuildMembersList: React.FC<GuildMembersListProps> = ({ members, cur
                 <span className="text-xs text-gold-400">(vous)</span>
               )}
             </div>
-            <div className="flex items-center gap-2 text-xs text-wood-400">
+            <div className="flex items-center gap-2 text-xs text-wood-200">
               {getRoleIcon(member.role)}
               <span>{getRoleLabel(member.role)}</span>
               <span>•</span>

@@ -318,7 +318,7 @@ export const joinGuild = async (guildId: string): Promise<{ success: boolean; er
 };
 
 /**
- * Leave current guild
+ * Leave current guild or dissolve it if owner
  */
 export const leaveGuild = async (): Promise<{ success: boolean; error?: string }> => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -326,28 +326,20 @@ export const leaveGuild = async (): Promise<{ success: boolean; error?: string }
     return { success: false, error: 'Non authentifié' };
   }
 
-  // Check if user is owner
   const membership = await getMyGuild();
   if (!membership) {
     return { success: false, error: 'Vous n\'êtes membre d\'aucune guilde' };
   }
 
   if (membership.membership.role === 'owner') {
-    // Check if there are other members
-    const members = await getGuildMembers(membership.guild.id);
-    if (members.length > 1) {
-      return { success: false, error: 'Transférez la propriété à un autre membre avant de quitter' };
-    }
-    
-    // If owner is alone, delete the guild
-    const { error: deleteError } = await supabase
-      .from('guilds')
-      .delete()
-      .eq('id', membership.guild.id);
+    // Owner can dissolve the guild using the RPC function
+    const { error: dissolveError } = await supabase.rpc('dissolve_guild', {
+      p_guild_id: membership.guild.id
+    });
 
-    if (deleteError) {
-      console.error('Error deleting guild:', deleteError);
-      return { success: false, error: 'Erreur lors de la suppression de la guilde' };
+    if (dissolveError) {
+      console.error('Error dissolving guild:', dissolveError);
+      return { success: false, error: 'Erreur lors de la dissolution de la guilde' };
     }
 
     return { success: true };

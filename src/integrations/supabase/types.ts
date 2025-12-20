@@ -3424,6 +3424,7 @@ export type Database = {
         }
         Returns: string
       }
+      dissolve_guild: { Args: { p_guild_id: string }; Returns: boolean }
       get_current_month_budget: {
         Args: never
         Returns: {
