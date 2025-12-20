@@ -3440,6 +3440,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["ui_theme"]
       }
+      get_user_id_by_email: { Args: { p_email: string }; Returns: string }
       grant_manual_premium: {
         Args: { p_months?: number; p_user_id: string }
         Returns: undefined
