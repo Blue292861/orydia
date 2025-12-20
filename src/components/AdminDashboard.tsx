@@ -20,7 +20,8 @@ import { LevelRewardsAdmin } from '@/components/LevelRewardsAdmin';
 import ChallengeAdmin from '@/components/ChallengeAdmin';
 import GiftAdmin from '@/components/GiftAdmin';
 import { NewsletterAdmin } from '@/components/NewsletterAdmin';
-import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap, Gift, Mail } from 'lucide-react';
+import { SkillTreeAdmin } from '@/components/SkillTreeAdmin';
+import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap, Gift, Mail, TreeDeciduous } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
 import { useResponsive } from '@/hooks/useResponsive';
 import {
@@ -88,6 +89,7 @@ export const AdminDashboard: React.FC = () => {
           <TabsTrigger value="books">Livres</TabsTrigger>
           <TabsTrigger value="challenges">Défis</TabsTrigger>
           <TabsTrigger value="collections">Collections</TabsTrigger>
+          <TabsTrigger value="skills" className="flex items-center gap-1"><TreeDeciduous className="w-4 h-4" />Skills</TabsTrigger>
           <TabsTrigger value="gifts" className="flex items-center gap-1"><Gift className="w-4 h-4" />Cadeaux</TabsTrigger>
           <TabsTrigger value="levels" className="flex items-center gap-1"><Star className="w-4 h-4" />Niveaux</TabsTrigger>
           <TabsTrigger value="translations">Traductions</TabsTrigger>
@@ -210,6 +212,10 @@ export const AdminDashboard: React.FC = () => {
 
         <TabsContent value="collections">
           <CollectionsAdmin />
+        </TabsContent>
+
+        <TabsContent value="skills">
+          <SkillTreeAdmin />
         </TabsContent>
 
         <TabsContent value="gifts">

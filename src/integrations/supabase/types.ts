@@ -2335,6 +2335,92 @@ export type Database = {
           },
         ]
       }
+      skill_paths: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          position: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          position?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          position?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      skills: {
+        Row: {
+          bonus_config: Json
+          bonus_type: string
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          path_id: string
+          position: number
+          skill_point_cost: number
+          updated_at: string | null
+        }
+        Insert: {
+          bonus_config: Json
+          bonus_type: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          path_id: string
+          position: number
+          skill_point_cost?: number
+          updated_at?: string | null
+        }
+        Update: {
+          bonus_config?: Json
+          bonus_type?: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          path_id?: string
+          position?: number
+          skill_point_cost?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skills_path_id_fkey"
+            columns: ["path_id"]
+            isOneToOne: false
+            referencedRelation: "skill_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscribers: {
         Row: {
           cancel_at_period_end: boolean | null
@@ -3201,6 +3287,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_skills: {
+        Row: {
+          id: string
+          skill_id: string
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          skill_id: string
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          skill_id?: string
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_stats: {
         Row: {
           books_read: string[]
@@ -3209,6 +3324,7 @@ export type Database = {
           id: string
           level: number
           pending_premium_months: number
+          skill_points: number
           total_points: number
           updated_at: string
           user_id: string
@@ -3220,6 +3336,7 @@ export type Database = {
           id?: string
           level?: number
           pending_premium_months?: number
+          skill_points?: number
           total_points?: number
           updated_at?: string
           user_id: string
@@ -3231,6 +3348,7 @@ export type Database = {
           id?: string
           level?: number
           pending_premium_months?: number
+          skill_points?: number
           total_points?: number
           updated_at?: string
           user_id?: string
@@ -3441,7 +3559,19 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["ui_theme"]
       }
+      get_user_active_skill_bonuses: {
+        Args: { p_user_id: string }
+        Returns: {
+          bonus_config: Json
+          bonus_type: string
+          path_id: string
+          path_name: string
+          skill_name: string
+          skill_position: number
+        }[]
+      }
       get_user_id_by_email: { Args: { p_email: string }; Returns: string }
+      get_user_skill_stats: { Args: { p_user_id: string }; Returns: Json }
       grant_manual_premium: {
         Args: { p_months?: number; p_user_id: string }
         Returns: undefined
@@ -3491,6 +3621,10 @@ export type Database = {
       transfer_guild_leadership: {
         Args: { p_guild_id: string; p_new_leader_id: string }
         Returns: boolean
+      }
+      unlock_skill: {
+        Args: { p_skill_id: string; p_user_id: string }
+        Returns: Json
       }
       update_genre_preference: {
         Args: {
