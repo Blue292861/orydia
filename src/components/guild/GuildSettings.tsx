@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from '@/hooks/use-toast';
 import { Guild, GuildMember } from '@/types/Guild';
 import { leaveGuild, updateGuild } from '@/services/guildService';
-import { LogOut, Save, Loader2, Info, Calendar, Users } from 'lucide-react';
+import { LogOut, Save, Loader2, Info, Users, Upload, ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -30,6 +30,29 @@ export const GuildSettings: React.FC<GuildSettingsProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [editName, setEditName] = useState(guild.name);
   const [editSlogan, setEditSlogan] = useState(guild.slogan || '');
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'Fichier trop volumineux',
+          description: 'L\'image ne doit pas dépasser 5 Mo',
+          variant: 'destructive'
+        });
+        return;
+      }
+      setBannerFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBannerPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleLeave = async () => {
     setIsLeaving(true);
@@ -68,7 +91,8 @@ export const GuildSettings: React.FC<GuildSettingsProps> = ({
     try {
       const result = await updateGuild(guild.id, {
         name: editName !== guild.name ? editName : undefined,
-        slogan: editSlogan !== guild.slogan ? editSlogan : undefined
+        slogan: editSlogan !== guild.slogan ? editSlogan : undefined,
+        bannerFile: bannerFile || undefined
       });
 
       if (result.success) {
@@ -76,6 +100,8 @@ export const GuildSettings: React.FC<GuildSettingsProps> = ({
           title: 'Modifications enregistrées',
           description: 'Les informations de la guilde ont été mises à jour.'
         });
+        setBannerFile(null);
+        setBannerPreview(null);
         onUpdateSuccess();
       } else {
         toast({
@@ -95,7 +121,7 @@ export const GuildSettings: React.FC<GuildSettingsProps> = ({
     }
   };
 
-  const hasChanges = editName !== guild.name || editSlogan !== (guild.slogan || '');
+  const hasChanges = editName !== guild.name || editSlogan !== (guild.slogan || '') || bannerFile !== null;
 
   return (
     <div className="space-y-4">
@@ -129,6 +155,47 @@ export const GuildSettings: React.FC<GuildSettingsProps> = ({
           <h3 className="text-lg font-medium text-wood-100 mb-4">Modifier la guilde</h3>
           
           <div className="space-y-4">
+            {/* Banner upload */}
+            <div className="space-y-2">
+              <Label className="text-wood-200">Image de la guilde</Label>
+              <div className="flex items-center gap-4">
+                <div 
+                  className="relative w-24 h-24 rounded-lg overflow-hidden bg-forest-700/50 border border-forest-500 flex items-center justify-center cursor-pointer hover:border-gold-500/50 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {bannerPreview ? (
+                    <img src={bannerPreview} alt="Aperçu" className="w-full h-full object-cover" />
+                  ) : guild.banner_url ? (
+                    <img src={guild.banner_url} alt="Bannière actuelle" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-8 h-8 text-wood-300" />
+                  )}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Upload className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-forest-500 text-wood-100 hover:bg-forest-700"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Changer l'image
+                  </Button>
+                  <p className="text-xs text-wood-300 mt-1">JPG, PNG ou GIF. Max 5 Mo</p>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBannerChange}
+                  className="hidden"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="edit-name" className="text-wood-200">Nom</Label>
               <Input
