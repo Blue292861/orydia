@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AuthRequiredDialog } from './AuthRequiredDialog';
 import { cn } from '@/lib/utils';
 import { hasUnclaimedGifts } from '@/services/giftService';
+import guildIcon from '@/assets/guild-icon.png';
 
 interface NavigationFooterProps {
   onNavigate: (page: 'library' | 'search' | 'guild' | 'shop' | 'profile') => void;
@@ -30,7 +31,7 @@ export const NavigationFooter: React.FC<NavigationFooterProps> = ({ onNavigate, 
   const navItems = [
     { id: 'library' as const, icon: '/lovable-uploads/b50e70c6-4063-405e-8340-84ade6817368.png', label: 'Bibliothèque' },
     { id: 'search' as const, icon: '/lovable-uploads/912c9a06-adc9-4d07-ae4d-d05115270e97.png', label: 'Rechercher' },
-    { id: 'guild' as const, icon: '/lovable-uploads/e4ca1c2e-eeba-4149-b13f-50ac08071650.png', label: 'Guilde' },
+    { id: 'guild' as const, icon: guildIcon, label: 'Guilde' },
     { id: 'shop' as const, icon: '/lovable-uploads/9318a8b9-7fe4-43c9-8aea-a49486e5baac.png', label: 'Boutique' },
     { id: 'profile' as const, icon: '/lovable-uploads/fcea3651-a91a-445a-b535-d6b02cde2864.png', label: 'Mon Profil' },
   ];
