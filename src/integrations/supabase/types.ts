@@ -2130,6 +2130,51 @@ export type Database = {
         }
         Relationships: []
       }
+      reader_oaths: {
+        Row: {
+          bonus_percentage: number
+          book_cover_url: string | null
+          book_id: string
+          book_title: string
+          created_at: string
+          deadline: string
+          id: string
+          payout_amount: number | null
+          resolved_at: string | null
+          stake_amount: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          bonus_percentage?: number
+          book_cover_url?: string | null
+          book_id: string
+          book_title: string
+          created_at?: string
+          deadline: string
+          id?: string
+          payout_amount?: number | null
+          resolved_at?: string | null
+          stake_amount: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          bonus_percentage?: number
+          book_cover_url?: string | null
+          book_id?: string
+          book_title?: string
+          created_at?: string
+          deadline?: string
+          id?: string
+          payout_amount?: number | null
+          resolved_at?: string | null
+          stake_amount?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       reward_types: {
         Row: {
           category: string
@@ -3528,6 +3573,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_reader_oath_on_completion: {
+        Args: { p_book_id: string; p_user_id: string }
+        Returns: Json
+      }
       cleanup_orphaned_storage_files: { Args: never; Returns: undefined }
       create_instant_order: {
         Args: { p_item_id: string; p_item_name: string; p_price: number }
@@ -3559,6 +3608,22 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["ui_theme"]
       }
+      get_user_active_oaths: {
+        Args: { p_user_id?: string }
+        Returns: {
+          bonus_percentage: number
+          book_cover_url: string
+          book_id: string
+          book_title: string
+          created_at: string
+          deadline: string
+          id: string
+          potential_loss: number
+          potential_win: number
+          stake_amount: number
+          time_remaining: unknown
+        }[]
+      }
       get_user_active_skill_bonuses: {
         Args: { p_user_id: string }
         Returns: {
@@ -3571,6 +3636,22 @@ export type Database = {
         }[]
       }
       get_user_id_by_email: { Args: { p_email: string }; Returns: string }
+      get_user_oath_history: {
+        Args: { p_limit?: number; p_user_id?: string }
+        Returns: {
+          book_cover_url: string
+          book_id: string
+          book_title: string
+          created_at: string
+          deadline: string
+          id: string
+          payout_amount: number
+          resolved_at: string
+          stake_amount: number
+          status: string
+        }[]
+      }
+      get_user_oath_stats: { Args: { p_user_id?: string }; Returns: Json }
       get_user_skill_stats: { Args: { p_user_id: string }; Returns: Json }
       grant_manual_premium: {
         Args: { p_months?: number; p_user_id: string }
@@ -3601,7 +3682,18 @@ export type Database = {
         Args: { details?: Json; event_type: string; user_id?: string }
         Returns: undefined
       }
+      place_reader_oath: {
+        Args: {
+          p_book_cover_url: string
+          p_book_id: string
+          p_book_title: string
+          p_deadline: string
+          p_stake_amount: number
+        }
+        Returns: Json
+      }
       reset_revenue_and_orders: { Args: never; Returns: undefined }
+      resolve_reader_oath: { Args: { p_oath_id: string }; Returns: Json }
       revoke_manual_premium: { Args: { p_user_id: string }; Returns: undefined }
       revoke_manual_premium_by_email_secure: {
         Args: { p_email: string }

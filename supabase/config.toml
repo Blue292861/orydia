@@ -30,6 +30,9 @@ verify_jwt = false
 [functions.merge-epub-opf]
 verify_jwt = false
 
+[functions.resolve-expired-oaths]
+verify_jwt = false
+
 [functions.award-points]
 [functions.cancel-subscription]
 [functions.claim-level-rewards]
