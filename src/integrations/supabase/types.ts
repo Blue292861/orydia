@@ -1273,6 +1273,48 @@ export type Database = {
           },
         ]
       }
+      guild_member_ranks: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          guild_id: string
+          id: string
+          rank_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          guild_id: string
+          id?: string
+          rank_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          guild_id?: string
+          id?: string
+          rank_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_member_ranks_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_member_ranks_rank_id_fkey"
+            columns: ["rank_id"]
+            isOneToOne: false
+            referencedRelation: "guild_ranks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_members: {
         Row: {
           guild_id: string
@@ -1336,6 +1378,186 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "guild_messages_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_ranks: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          display_name: string
+          guild_id: string
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          max_holders: number | null
+          permissions: Json | null
+          priority: number | null
+          rank_type: Database["public"]["Enums"]["guild_rank_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          guild_id: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_holders?: number | null
+          permissions?: Json | null
+          priority?: number | null
+          rank_type: Database["public"]["Enums"]["guild_rank_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          guild_id?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_holders?: number | null
+          permissions?: Json | null
+          priority?: number | null
+          rank_type?: Database["public"]["Enums"]["guild_rank_type"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_ranks_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_vault: {
+        Row: {
+          aildor_keys: number | null
+          created_at: string | null
+          guild_id: string
+          id: string
+          orydors: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          aildor_keys?: number | null
+          created_at?: string | null
+          guild_id: string
+          id?: string
+          orydors?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          aildor_keys?: number | null
+          created_at?: string | null
+          guild_id?: string
+          id?: string
+          orydors?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_vault_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: true
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_vault_cards: {
+        Row: {
+          created_at: string | null
+          guild_id: string
+          id: string
+          quantity: number | null
+          reward_type_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          guild_id: string
+          id?: string
+          quantity?: number | null
+          reward_type_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          guild_id?: string
+          id?: string
+          quantity?: number | null
+          reward_type_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_vault_cards_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_vault_cards_reward_type_id_fkey"
+            columns: ["reward_type_id"]
+            isOneToOne: false
+            referencedRelation: "reward_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_vault_transactions: {
+        Row: {
+          action: string
+          created_at: string | null
+          guild_id: string
+          id: string
+          note: string | null
+          quantity: number
+          recipient_id: string | null
+          resource_id: string | null
+          resource_type: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          guild_id: string
+          id?: string
+          note?: string | null
+          quantity: number
+          recipient_id?: string | null
+          resource_id?: string | null
+          resource_type: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          guild_id?: string
+          id?: string
+          note?: string | null
+          quantity?: number
+          recipient_id?: string | null
+          resource_id?: string | null
+          resource_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_vault_transactions_guild_id_fkey"
             columns: ["guild_id"]
             isOneToOne: false
             referencedRelation: "guilds"
@@ -3228,7 +3450,15 @@ export type Database = {
         Args: { p_months?: number; p_user_id: string }
         Returns: undefined
       }
+      has_guild_permission: {
+        Args: { p_guild_id: string; p_permission: string; p_user_id: string }
+        Returns: boolean
+      }
       is_admin: { Args: { p_user_id: string }; Returns: boolean }
+      is_guild_leader: {
+        Args: { p_guild_id: string; p_user_id: string }
+        Returns: boolean
+      }
       log_admin_action: {
         Args: { action_type: string; details?: Json; target_user_id?: string }
         Returns: undefined
@@ -3254,6 +3484,10 @@ export type Database = {
         }[]
       }
       sync_user_level_info: { Args: never; Returns: undefined }
+      transfer_guild_leadership: {
+        Args: { p_guild_id: string; p_new_leader_id: string }
+        Returns: boolean
+      }
       update_genre_preference: {
         Args: {
           p_genre: string
@@ -3276,6 +3510,16 @@ export type Database = {
     }
     Enums: {
       app_role: "admin"
+      guild_rank_type:
+        | "guild_leader"
+        | "treasurer"
+        | "reading_champion"
+        | "genre_champion"
+        | "lore_keeper"
+        | "dragon_slayer"
+        | "veteran"
+        | "elite"
+        | "member"
       shop_type: "internal" | "external"
       ui_theme:
         | "medieval_fantasy"
@@ -3412,6 +3656,17 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin"],
+      guild_rank_type: [
+        "guild_leader",
+        "treasurer",
+        "reading_champion",
+        "genre_champion",
+        "lore_keeper",
+        "dragon_slayer",
+        "veteran",
+        "elite",
+        "member",
+      ],
       shop_type: ["internal", "external"],
       ui_theme: [
         "medieval_fantasy",
