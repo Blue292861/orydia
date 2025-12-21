@@ -341,7 +341,185 @@ export default {
           '50%': { 
             boxShadow: '0 0 40px rgba(251,191,36,0.8), 0 0 80px rgba(251,191,36,0.5)'
           }
-        },
+			},
+				// === CHALLENGE ANIMATIONS ===
+				'challenge-badge-appear': {
+					'0%': { transform: 'scale(0) rotate(-180deg)', opacity: '0' },
+					'60%': { transform: 'scale(1.2) rotate(10deg)', opacity: '1' },
+					'100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' }
+				},
+				'challenge-trophy-pop': {
+					'0%': { transform: 'scale(0)', opacity: '0' },
+					'60%': { transform: 'scale(1.3)', opacity: '1' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
+				'challenge-text-slide': {
+					'0%': { transform: 'translateY(30px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' }
+				},
+				'challenge-button-appear': {
+					'0%': { transform: 'scale(0.8)', opacity: '0' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
+				'challenge-sparkle': {
+					'0%, 100%': { opacity: '0', transform: 'scale(0)' },
+					'50%': { opacity: '1', transform: 'scale(1)' }
+				},
+				// === SKILL ANIMATIONS ===
+				'skill-flash': {
+					'0%': { opacity: '0.8' },
+					'100%': { opacity: '0' }
+				},
+				'skill-ring': {
+					'0%': { transform: 'scale(0.5)', opacity: '1' },
+					'100%': { transform: 'scale(2)', opacity: '0' }
+				},
+				'skill-icon-appear': {
+					'0%': { transform: 'scale(0) rotate(-90deg)', opacity: '0' },
+					'60%': { transform: 'scale(1.15) rotate(5deg)', opacity: '1' },
+					'100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' }
+				},
+				'skill-text-appear': {
+					'0%': { transform: 'translateY(20px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' }
+				},
+				'skill-button-appear': {
+					'0%': { transform: 'translateY(20px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' }
+				},
+				// === OATH ANIMATIONS ===
+				'oath-scroll-unroll': {
+					'0%': { maxHeight: '0', opacity: '0', transform: 'scaleY(0)' },
+					'100%': { maxHeight: '400px', opacity: '1', transform: 'scaleY(1)' }
+				},
+				'oath-seal-stamp': {
+					'0%': { transform: 'translateX(-50%) scale(3) rotate(-45deg)', opacity: '0' },
+					'60%': { transform: 'translateX(-50%) scale(0.9) rotate(5deg)', opacity: '1' },
+					'100%': { transform: 'translateX(-50%) scale(1) rotate(0deg)', opacity: '1' }
+				},
+				'oath-text-appear': {
+					'0%': { transform: 'translateY(20px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' }
+				},
+				'oath-button-appear': {
+					'0%': { transform: 'scale(0.8)', opacity: '0' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
+				'oath-flame': {
+					'0%, 100%': { transform: 'scaleY(1) scaleX(1)', opacity: '0.6' },
+					'50%': { transform: 'scaleY(1.2) scaleX(0.9)', opacity: '0.8' }
+				},
+				'oath-victory-appear': {
+					'0%': { transform: 'scale(0) rotate(-180deg)', opacity: '0' },
+					'60%': { transform: 'scale(1.2) rotate(10deg)', opacity: '1' },
+					'100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' }
+				},
+				'oath-coin-rain': {
+					'0%': { transform: 'translateY(-100vh) rotate(0deg)', opacity: '1' },
+					'100%': { transform: 'translateY(100vh) rotate(720deg)', opacity: '0' }
+				},
+				'oath-text-slide': {
+					'0%': { transform: 'translateY(30px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' }
+				},
+				'oath-defeat-shake': {
+					'0%, 100%': { transform: 'translateX(0)' },
+					'10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-8px)' },
+					'20%, 40%, 60%, 80%': { transform: 'translateX(8px)' }
+				},
+				'oath-ash-fall': {
+					'0%': { transform: 'translateY(-20px) rotate(0deg)', opacity: '0.8' },
+					'100%': { transform: 'translateY(100vh) rotate(360deg)', opacity: '0' }
+				},
+				'oath-defeat-appear': {
+					'0%': { transform: 'scale(0.5)', opacity: '0' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
+				'oath-defeat-text': {
+					'0%': { transform: 'translateY(20px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' }
+				},
+				'oath-crack': {
+					'0%': { transform: 'rotate(45deg) scaleX(0)', opacity: '0' },
+					'100%': { transform: 'rotate(45deg) scaleX(1)', opacity: '1' }
+				},
+				// === GUILD ANIMATIONS ===
+				'guild-welcome-appear': {
+					'0%': { transform: 'translateY(30px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' }
+				},
+				'guild-button-appear': {
+					'0%': { transform: 'scale(0.8)', opacity: '0' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
+				'guild-ray': {
+					'0%': { opacity: '0' },
+					'50%': { opacity: '0.4' },
+					'100%': { opacity: '0' }
+				},
+				'guild-banner-wave': {
+					'0%, 100%': { transform: 'translateX(-50%) translateY(-8px) rotate(-2deg)' },
+					'50%': { transform: 'translateX(-50%) translateY(-8px) rotate(2deg)' }
+				},
+				'guild-crown-appear': {
+					'0%': { transform: 'translateX(-50%) translateY(-20px) scale(0)', opacity: '0' },
+					'60%': { transform: 'translateX(-50%) scale(1.3)', opacity: '1' },
+					'100%': { transform: 'translateX(-50%) scale(1)', opacity: '1' }
+				},
+				'guild-creation-text': {
+					'0%': { transform: 'translateY(30px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' }
+				},
+				// === COLLECTION ANIMATIONS ===
+				'collection-orbit': {
+					'0%': { transform: 'rotate(0deg)' },
+					'100%': { transform: 'rotate(360deg)' }
+				},
+				'collection-ring': {
+					'0%': { transform: 'scale(0.8)', opacity: '0.8' },
+					'50%': { transform: 'scale(1.2)', opacity: '0.3' },
+					'100%': { transform: 'scale(0.8)', opacity: '0.8' }
+				},
+				'collection-icon-appear': {
+					'0%': { transform: 'scale(0) rotate(-180deg)', opacity: '0' },
+					'60%': { transform: 'scale(1.15) rotate(10deg)', opacity: '1' },
+					'100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' }
+				},
+				'collection-sparkle': {
+					'0%, 100%': { opacity: '0', transform: 'scale(0)' },
+					'50%': { opacity: '1', transform: 'scale(1)' }
+				},
+				'collection-text-appear': {
+					'0%': { transform: 'translateY(30px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' }
+				},
+				'collection-button-appear': {
+					'0%': { transform: 'scale(0.8)', opacity: '0' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
+				// === CHAPTER COMPLETION ANIMATIONS ===
+				'chapter-glow': {
+					'0%, 100%': { opacity: '0.3', transform: 'scale(1)' },
+					'50%': { opacity: '0.6', transform: 'scale(1.1)' }
+				},
+				'chapter-glow-inner': {
+					'0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+					'50%': { opacity: '0.8', transform: 'scale(1.05)' }
+				},
+				'chapter-spin-in': {
+					'0%': { transform: 'scale(0) rotate(-180deg)', opacity: '0' },
+					'60%': { transform: 'scale(1.1) rotate(10deg)', opacity: '1' },
+					'100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' }
+				},
+				'chapter-text-bounce': {
+					'0%': { transform: 'translateY(30px)', opacity: '0' },
+					'60%': { transform: 'translateY(-5px)', opacity: '1' },
+					'100%': { transform: 'translateY(0)', opacity: '1' }
+				},
+				'chapter-button-appear': {
+					'0%': { transform: 'scale(0.8)', opacity: '0' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -367,7 +545,60 @@ export default {
         'shake': 'shake 0.5s ease-in-out',
         'spin-slow': 'spin-slow 8s linear infinite',
         'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
-        'glow': 'glow 2s ease-in-out infinite',
+				'glow': 'glow 2s ease-in-out infinite',
+				// Challenge
+				'challenge-badge-appear': 'challenge-badge-appear 0.8s ease-out forwards',
+				'challenge-trophy-pop': 'challenge-trophy-pop 0.5s ease-out 0.3s forwards',
+				'challenge-text-slide': 'challenge-text-slide 0.6s ease-out 0.5s forwards',
+				'challenge-button-appear': 'challenge-button-appear 0.4s ease-out 0.8s forwards',
+				'challenge-sparkle-1': 'challenge-sparkle 2s ease-in-out infinite',
+				'challenge-sparkle-2': 'challenge-sparkle 2s ease-in-out 0.3s infinite',
+				'challenge-sparkle-3': 'challenge-sparkle 2s ease-in-out 0.6s infinite',
+				// Skill
+				'skill-flash': 'skill-flash 0.3s ease-out forwards',
+				'skill-ring-1': 'skill-ring 1s ease-out forwards',
+				'skill-ring-2': 'skill-ring 1s ease-out 0.1s forwards',
+				'skill-ring-3': 'skill-ring 1s ease-out 0.2s forwards',
+				'skill-icon-appear': 'skill-icon-appear 0.6s ease-out forwards',
+				'skill-text-appear': 'skill-text-appear 0.5s ease-out 0.3s forwards',
+				'skill-button-appear': 'skill-button-appear 0.4s ease-out 0.5s forwards',
+				// Oath
+				'oath-scroll-unroll': 'oath-scroll-unroll 0.8s ease-out forwards',
+				'oath-seal-stamp': 'oath-seal-stamp 0.6s ease-out forwards',
+				'oath-text-appear': 'oath-text-appear 0.5s ease-out 0.3s forwards',
+				'oath-button-appear': 'oath-button-appear 0.4s ease-out 0.5s forwards',
+				'oath-flame-1': 'oath-flame 2s ease-in-out infinite',
+				'oath-flame-2': 'oath-flame 2s ease-in-out 0.5s infinite',
+				'oath-victory-appear': 'oath-victory-appear 0.8s ease-out forwards',
+				'oath-coin-rain': 'oath-coin-rain 2s linear forwards',
+				'oath-text-slide': 'oath-text-slide 0.6s ease-out 0.4s forwards',
+				'oath-defeat-shake': 'oath-defeat-shake 0.6s ease-in-out',
+				'oath-ash-fall': 'oath-ash-fall 3s linear forwards',
+				'oath-defeat-appear': 'oath-defeat-appear 0.5s ease-out forwards',
+				'oath-defeat-text': 'oath-defeat-text 0.5s ease-out 0.3s forwards',
+				'oath-crack': 'oath-crack 0.4s ease-out 0.2s forwards',
+				// Guild
+				'guild-welcome-appear': 'guild-welcome-appear 0.6s ease-out forwards',
+				'guild-button-appear': 'guild-button-appear 0.4s ease-out 0.3s forwards',
+				'guild-ray': 'guild-ray 3s ease-in-out infinite',
+				'guild-banner-wave': 'guild-banner-wave 3s ease-in-out infinite',
+				'guild-crown-appear': 'guild-crown-appear 0.6s ease-out forwards',
+				'guild-creation-text': 'guild-creation-text 0.6s ease-out 0.3s forwards',
+				// Collection
+				'collection-orbit': 'collection-orbit 4s linear infinite',
+				'collection-ring-1': 'collection-ring 2s ease-in-out infinite',
+				'collection-ring-2': 'collection-ring 2s ease-in-out 0.3s infinite',
+				'collection-ring-3': 'collection-ring 2s ease-in-out 0.6s infinite',
+				'collection-icon-appear': 'collection-icon-appear 0.8s ease-out forwards',
+				'collection-sparkle': 'collection-sparkle 1.5s ease-in-out infinite',
+				'collection-text-appear': 'collection-text-appear 0.6s ease-out 0.4s forwards',
+				'collection-button-appear': 'collection-button-appear 0.4s ease-out 0.6s forwards',
+				// Chapter
+				'chapter-glow': 'chapter-glow 2s ease-in-out infinite',
+				'chapter-glow-inner': 'chapter-glow-inner 2s ease-in-out 0.5s infinite',
+				'chapter-spin-in': 'chapter-spin-in 0.8s ease-out forwards',
+				'chapter-text-bounce': 'chapter-text-bounce 0.7s ease-out 0.3s forwards',
+				'chapter-button-appear': 'chapter-button-appear 0.4s ease-out 0.6s forwards',
 			},
 			perspective: {
 				'1000': '1000px',
