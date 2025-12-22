@@ -8,6 +8,7 @@ import { toast } from '@/hooks/use-toast';
 import { createGuild, GUILD_COST } from '@/services/guildService';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { Camera, Loader2, Shield, Coins } from 'lucide-react';
+import { GuildCreationAnimation } from '@/components/GuildCreationAnimation';
 
 interface GuildCreationDialogProps {
   open: boolean;
@@ -27,6 +28,8 @@ export const GuildCreationDialog: React.FC<GuildCreationDialogProps> = ({
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showCreationAnimation, setShowCreationAnimation] = useState(false);
+  const [createdGuildName, setCreatedGuildName] = useState('');
 
   // Les admins n'ont pas besoin de vérifier les points
   const hasEnoughPoints = userStats.isAdmin || userStats.totalPoints >= GUILD_COST;
@@ -82,18 +85,9 @@ export const GuildCreationDialog: React.FC<GuildCreationDialogProps> = ({
       );
 
       if (result.success) {
-        toast({
-          title: '🏰 Guilde créée !',
-          description: `Bienvenue dans "${name}" !`
-        });
+        setCreatedGuildName(name);
+        setShowCreationAnimation(true);
         await loadUserStats();
-        onSuccess();
-        onOpenChange(false);
-        // Reset form
-        setName('');
-        setSlogan('');
-        setBannerFile(null);
-        setBannerPreview(null);
       } else {
         toast({
           title: 'Erreur',
@@ -224,6 +218,22 @@ export const GuildCreationDialog: React.FC<GuildCreationDialogProps> = ({
           </div>
         </form>
       </DialogContent>
+
+      {/* Animation de création de guilde */}
+      <GuildCreationAnimation
+        isOpen={showCreationAnimation}
+        guildName={createdGuildName}
+        onContinue={() => {
+          setShowCreationAnimation(false);
+          onSuccess();
+          onOpenChange(false);
+          // Reset form
+          setName('');
+          setSlogan('');
+          setBannerFile(null);
+          setBannerPreview(null);
+        }}
+      />
     </Dialog>
   );
 };

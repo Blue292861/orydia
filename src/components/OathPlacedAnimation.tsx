@@ -6,6 +6,7 @@ interface OathPlacedAnimationProps {
   isOpen: boolean;
   bookTitle: string;
   stakeAmount: number;
+  deadline: Date;
   onContinue: () => void;
 }
 
@@ -13,6 +14,7 @@ export const OathPlacedAnimation: React.FC<OathPlacedAnimationProps> = ({
   isOpen,
   bookTitle,
   stakeAmount,
+  deadline,
   onContinue,
 }) => {
   const [phase, setPhase] = useState<'scroll' | 'seal' | 'complete'>('scroll');

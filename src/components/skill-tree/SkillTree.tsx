@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sparkles, Zap, TreeDeciduous } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SkillUnlockAnimation } from '@/components/SkillUnlockAnimation';
 
 export const SkillTree: React.FC = () => {
   const { user } = useAuth();
@@ -29,6 +30,8 @@ export const SkillTree: React.FC = () => {
   const [activeBonuses, setActiveBonuses] = useState<ActiveSkillBonus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUnlocking, setIsUnlocking] = useState(false);
+  const [showUnlockAnimation, setShowUnlockAnimation] = useState(false);
+  const [unlockedSkill, setUnlockedSkill] = useState<Skill | null>(null);
 
   const loadData = async () => {
     if (!user) return;
@@ -70,10 +73,8 @@ export const SkillTree: React.FC = () => {
       const result = await unlockSkill(user.id, skill.id);
 
       if (result.success) {
-        toast({
-          title: '🎉 Compétence débloquée !',
-          description: `${skill.name} - ${result.remaining_points} points restants`
-        });
+        setUnlockedSkill(skill);
+        setShowUnlockAnimation(true);
         
         // Reload data
         await loadData();
@@ -170,6 +171,16 @@ export const SkillTree: React.FC = () => {
           ))
         )}
       </div>
+
+      {/* Animation de déblocage de compétence */}
+      <SkillUnlockAnimation
+        isOpen={showUnlockAnimation}
+        skill={unlockedSkill}
+        onContinue={() => {
+          setShowUnlockAnimation(false);
+          setUnlockedSkill(null);
+        }}
+      />
     </div>
   );
 };

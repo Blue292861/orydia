@@ -6,6 +6,7 @@ import { RewardCardDisplay } from "./RewardCardDisplay";
 import { RarityFlash } from "./RarityEffects";
 import { AnimatedXPBar } from "./AnimatedXPBar";
 import { LevelUpCelebration } from "./LevelUpCelebration";
+import { CollectionCompleteAnimation } from "./CollectionCompleteAnimation";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import coffreArgent from "@/assets/coffre-argent.png";
@@ -13,6 +14,13 @@ import coffreOr from "@/assets/coffre-or.png";
 import carteOrydors from "@/assets/carte-orydors.png";
 import { useUserStats } from "@/contexts/UserStatsContext";
 import { PendingLevelReward } from "@/types/LevelReward";
+
+interface CollectionCompleted {
+  name: string;
+  iconUrl: string;
+  orydorsReward: number;
+  xpReward: number;
+}
 
 interface ChestOpeningDialogProps {
   isOpen: boolean;
@@ -23,6 +31,7 @@ interface ChestOpeningDialogProps {
   additionalRewards: ChestReward[];
   bookTitle: string;
   xpData?: XPData;
+  completedCollections?: CollectionCompleted[];
 }
 
 type AnimationPhase = 
@@ -32,6 +41,7 @@ type AnimationPhase =
   | 'reveal-orydors' 
   | 'reveal-rewards' 
   | 'complete' 
+  | 'collection-complete'
   | 'xp-animation' 
   | 'level-up';
 
@@ -43,7 +53,8 @@ export function ChestOpeningDialog({
   orydorsVariation,
   additionalRewards,
   bookTitle,
-  xpData
+  xpData,
+  completedCollections = []
 }: ChestOpeningDialogProps) {
   const [phase, setPhase] = useState<AnimationPhase>('chest-closed');
   const [currentRewardIndex, setCurrentRewardIndex] = useState(-1);
@@ -53,6 +64,7 @@ export function ChestOpeningDialog({
   const [dialogShake, setDialogShake] = useState(false);
   const [levelUpLevel, setLevelUpLevel] = useState<number | null>(null);
   const [pendingLevelReward, setPendingLevelReward] = useState<PendingLevelReward | null>(null);
+  const [currentCollectionIndex, setCurrentCollectionIndex] = useState(0);
   
   const { pendingLevelRewards, claimLevelRewards, loadPendingLevelRewards } = useUserStats();
 
@@ -65,6 +77,7 @@ export function ChestOpeningDialog({
       setDialogShake(false);
       setLevelUpLevel(null);
       setPendingLevelReward(null);
+      setCurrentCollectionIndex(0);
     }
   }, [isOpen]);
 
@@ -125,7 +138,21 @@ export function ChestOpeningDialog({
   };
 
   const handleContinueToXP = () => {
-    if (xpData && xpData.xpGained > 0) {
+    // Check for collection completions first
+    if (completedCollections.length > 0) {
+      setCurrentCollectionIndex(0);
+      setPhase('collection-complete');
+    } else if (xpData && xpData.xpGained > 0) {
+      setPhase('xp-animation');
+    } else {
+      handleClose();
+    }
+  };
+
+  const handleCollectionContinue = () => {
+    if (currentCollectionIndex < completedCollections.length - 1) {
+      setCurrentCollectionIndex(prev => prev + 1);
+    } else if (xpData && xpData.xpGained > 0) {
       setPhase('xp-animation');
     } else {
       handleClose();
@@ -386,6 +413,17 @@ export function ChestOpeningDialog({
               Continuer
             </Button>
           </div>
+        )}
+
+        {phase === 'collection-complete' && completedCollections.length > 0 && (
+          <CollectionCompleteAnimation
+            isOpen={true}
+            collectionName={completedCollections[currentCollectionIndex].name}
+            collectionIconUrl={completedCollections[currentCollectionIndex].iconUrl}
+            orydorsReward={completedCollections[currentCollectionIndex].orydorsReward}
+            xpReward={completedCollections[currentCollectionIndex].xpReward}
+            onContinue={handleCollectionContinue}
+          />
         )}
 
         {phase === 'xp-animation' && xpData && (

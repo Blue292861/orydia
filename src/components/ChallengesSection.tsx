@@ -8,9 +8,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Target, Clock, Gift, Check, BookOpen, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserChallengeStatus } from '@/types/Challenge';
+import { UserChallengeStatus, Challenge } from '@/types/Challenge';
 import { getUserChallengesWithProgress, claimChallengeRewards, getBooksWithReward } from '@/services/challengeService';
 import { useNavigate } from 'react-router-dom';
+import { ChallengeCompletionAnimation } from './ChallengeCompletionAnimation';
 
 interface BookWithReward {
   id: string;
@@ -31,6 +32,8 @@ export default function ChallengesSection() {
   const [booksDialogOpen, setBooksDialogOpen] = useState(false);
   const [selectedRewardBooks, setSelectedRewardBooks] = useState<BookWithReward[]>([]);
   const [selectedRewardName, setSelectedRewardName] = useState('');
+  const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
+  const [completedChallenge, setCompletedChallenge] = useState<Challenge | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -54,11 +57,16 @@ export default function ChallengesSection() {
   const handleClaimRewards = async (challengeId: string) => {
     if (!user) return;
     
+    const challenge = challengeStatuses.find(s => s.challenge.id === challengeId)?.challenge;
+    
     setClaimingId(challengeId);
     try {
       const result = await claimChallengeRewards(user.id, challengeId);
       if (result.success) {
-        toast.success('Récompenses réclamées avec succès !');
+        if (challenge) {
+          setCompletedChallenge(challenge);
+          setShowCompletionAnimation(true);
+        }
         loadChallenges();
       } else {
         toast.error(result.error || 'Erreur lors de la réclamation');
@@ -322,6 +330,13 @@ export default function ChallengesSection() {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Animation de complétion de défi */}
+      <ChallengeCompletionAnimation
+        isOpen={showCompletionAnimation}
+        challenge={completedChallenge}
+        onContinue={() => setShowCompletionAnimation(false)}
+      />
     </>
   );
 }

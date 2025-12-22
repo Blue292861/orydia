@@ -19,12 +19,21 @@ import {
   Coins, 
   Play,
   AlertTriangle,
-  FlaskConical
+  FlaskConical,
+  Wand2
 } from 'lucide-react';
 import { rollChestRewards } from '@/services/chestService';
 import { fetchCollections, getUserCollectionProgress } from '@/services/collectionService';
 import { Collection } from '@/types/Collection';
 import { ChestReward } from '@/types/RewardType';
+import { ChallengeCompletionAnimation } from './ChallengeCompletionAnimation';
+import { SkillUnlockAnimation } from './SkillUnlockAnimation';
+import { OathPlacedAnimation } from './OathPlacedAnimation';
+import { OathResultAnimation } from './OathResultAnimation';
+import { GuildJoinAnimation } from './GuildJoinAnimation';
+import { GuildCreationAnimation } from './GuildCreationAnimation';
+import { CollectionCompleteAnimation } from './CollectionCompleteAnimation';
+import { ChapterCompletionAnimation } from './ChapterCompletionAnimation';
 
 interface Book {
   id: string;
@@ -85,6 +94,17 @@ export const TestEnvironmentAdmin: React.FC = () => {
   const [manualOrydors, setManualOrydors] = useState<number>(100);
   const [manualXP, setManualXP] = useState<number>(50);
   const [realAttribution, setRealAttribution] = useState(false);
+  
+  // Animation test states
+  const [showChallengeAnim, setShowChallengeAnim] = useState(false);
+  const [showSkillAnim, setShowSkillAnim] = useState(false);
+  const [showOathPlacedAnim, setShowOathPlacedAnim] = useState(false);
+  const [showOathWinAnim, setShowOathWinAnim] = useState(false);
+  const [showOathLoseAnim, setShowOathLoseAnim] = useState(false);
+  const [showGuildJoinAnim, setShowGuildJoinAnim] = useState(false);
+  const [showGuildCreateAnim, setShowGuildCreateAnim] = useState(false);
+  const [showCollectionAnim, setShowCollectionAnim] = useState(false);
+  const [showChapterAnim, setShowChapterAnim] = useState(false);
 
   // Load books
   useEffect(() => {
@@ -663,6 +683,114 @@ export const TestEnvironmentAdmin: React.FC = () => {
           bookTitle={selectedCollection?.name || 'Collection'}
         />
       )}
+
+      {/* Section Test Animations */}
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wand2 className="h-5 w-5 text-purple-500" />
+            Test des Animations
+          </CardTitle>
+          <CardDescription>
+            Prévisualiser toutes les animations d'immersion
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Button onClick={() => setShowChallengeAnim(true)} variant="outline" className="flex flex-col h-auto py-3">
+              <Trophy className="h-5 w-5 mb-1 text-emerald-500" />
+              <span className="text-xs">Défi complété</span>
+            </Button>
+            <Button onClick={() => setShowSkillAnim(true)} variant="outline" className="flex flex-col h-auto py-3">
+              <Sparkles className="h-5 w-5 mb-1 text-purple-500" />
+              <span className="text-xs">Compétence</span>
+            </Button>
+            <Button onClick={() => setShowOathPlacedAnim(true)} variant="outline" className="flex flex-col h-auto py-3">
+              <span className="text-lg mb-1">📜</span>
+              <span className="text-xs">Serment placé</span>
+            </Button>
+            <Button onClick={() => setShowOathWinAnim(true)} variant="outline" className="flex flex-col h-auto py-3">
+              <span className="text-lg mb-1">🏆</span>
+              <span className="text-xs">Serment gagné</span>
+            </Button>
+            <Button onClick={() => setShowOathLoseAnim(true)} variant="outline" className="flex flex-col h-auto py-3">
+              <span className="text-lg mb-1">💀</span>
+              <span className="text-xs">Serment perdu</span>
+            </Button>
+            <Button onClick={() => setShowGuildJoinAnim(true)} variant="outline" className="flex flex-col h-auto py-3">
+              <span className="text-lg mb-1">🏰</span>
+              <span className="text-xs">Rejoindre guilde</span>
+            </Button>
+            <Button onClick={() => setShowGuildCreateAnim(true)} variant="outline" className="flex flex-col h-auto py-3">
+              <span className="text-lg mb-1">👑</span>
+              <span className="text-xs">Créer guilde</span>
+            </Button>
+            <Button onClick={() => setShowCollectionAnim(true)} variant="outline" className="flex flex-col h-auto py-3">
+              <span className="text-lg mb-1">🃏</span>
+              <span className="text-xs">Collection</span>
+            </Button>
+            <Button onClick={() => setShowChapterAnim(true)} variant="outline" className="flex flex-col h-auto py-3">
+              <span className="text-lg mb-1">📖</span>
+              <span className="text-xs">Chapitre terminé</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Animation Previews */}
+      <ChallengeCompletionAnimation
+        isOpen={showChallengeAnim}
+        challenge={{ id: 'test', name: 'Lecteur Assidu', icon: '📚', description: 'Lire 5 livres', startDate: new Date(), endDate: new Date(), objectives: [], orydorsReward: 500, xpReward: 100, premiumMonthsReward: 0, itemRewards: [], isGuildChallenge: false }}
+        onContinue={() => setShowChallengeAnim(false)}
+      />
+      <SkillUnlockAnimation
+        isOpen={showSkillAnim}
+        skill={{ id: 'test', name: 'Lecture Rapide', description: '+10% XP de lecture', icon: '⚡', path_id: '', cost: 1, position: 1, tier: 1, bonus_type: 'xp_multiplier', bonus_value: 10, prerequisites: [] }}
+        onContinue={() => setShowSkillAnim(false)}
+      />
+      <OathPlacedAnimation
+        isOpen={showOathPlacedAnim}
+        bookTitle="Les Ombres du Cataclysme"
+        stakeAmount={500}
+        deadline={new Date()}
+        onContinue={() => setShowOathPlacedAnim(false)}
+      />
+      <OathResultAnimation
+        isOpen={showOathWinAnim}
+        result="win"
+        bookTitle="Les Ombres du Cataclysme"
+        orydorsChange={550}
+        onContinue={() => setShowOathWinAnim(false)}
+      />
+      <OathResultAnimation
+        isOpen={showOathLoseAnim}
+        result="lose"
+        bookTitle="Les Ombres du Cataclysme"
+        orydorsChange={-550}
+        onContinue={() => setShowOathLoseAnim(false)}
+      />
+      <GuildJoinAnimation
+        isOpen={showGuildJoinAnim}
+        guildName="Les Chroniqueurs d'Aildor"
+        onContinue={() => setShowGuildJoinAnim(false)}
+      />
+      <GuildCreationAnimation
+        isOpen={showGuildCreateAnim}
+        guildName="Les Chroniqueurs d'Aildor"
+        onContinue={() => setShowGuildCreateAnim(false)}
+      />
+      <CollectionCompleteAnimation
+        isOpen={showCollectionAnim}
+        collectionName="Les Héros d'Aildor"
+        onContinue={() => setShowCollectionAnim(false)}
+      />
+      <ChapterCompletionAnimation
+        isOpen={showChapterAnim}
+        currentChapter={3}
+        totalChapters={12}
+        bookTitle="Les Ombres du Cataclysme"
+        onContinue={() => setShowChapterAnim(false)}
+      />
     </div>
   );
 };

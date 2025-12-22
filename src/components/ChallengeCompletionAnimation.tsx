@@ -2,18 +2,17 @@ import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Trophy, Sparkles } from 'lucide-react';
 import { useConfetti } from '@/hooks/useConfetti';
+import { Challenge } from '@/types/Challenge';
 
 interface ChallengeCompletionAnimationProps {
   isOpen: boolean;
-  challengeName: string;
-  challengeIcon: string;
+  challenge: Challenge | null;
   onContinue: () => void;
 }
 
 export const ChallengeCompletionAnimation: React.FC<ChallengeCompletionAnimationProps> = ({
   isOpen,
-  challengeName,
-  challengeIcon,
+  challenge,
   onContinue,
 }) => {
   const { triggerConfetti, cleanup } = useConfetti();
@@ -32,7 +31,7 @@ export const ChallengeCompletionAnimation: React.FC<ChallengeCompletionAnimation
     return () => cleanup();
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !challenge) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md">
@@ -46,7 +45,7 @@ export const ChallengeCompletionAnimation: React.FC<ChallengeCompletionAnimation
           {/* Central badge */}
           <div className="relative animate-challenge-badge-appear">
             <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 flex items-center justify-center shadow-2xl shadow-emerald-500/50 border-4 border-emerald-300/50">
-              <span className="text-5xl md:text-6xl animate-bounce">{challengeIcon}</span>
+              <span className="text-5xl md:text-6xl animate-bounce">{challenge.icon}</span>
             </div>
             
             {/* Trophy badge */}
@@ -73,7 +72,7 @@ export const ChallengeCompletionAnimation: React.FC<ChallengeCompletionAnimation
             Défi Accompli !
           </h2>
           <p className="text-emerald-100 text-lg md:text-xl leading-relaxed">
-            {challengeName}
+            {challenge.name}
           </p>
           <p className="text-amber-300 text-sm md:text-base flex items-center justify-center gap-2">
             <Sparkles className="w-4 h-4" />
