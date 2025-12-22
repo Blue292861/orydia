@@ -13,6 +13,7 @@ import { format, addDays, setHours, setMinutes, setSeconds } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon, Scroll, AlertTriangle, Trophy, Skull, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { OathPlacedAnimation } from "./OathPlacedAnimation";
 
 interface ReaderOathDialogProps {
   open: boolean;
@@ -38,6 +39,7 @@ export function ReaderOathDialog({
   const [selectedStake, setSelectedStake] = useState<StakeAmount>(500);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(addDays(new Date(), 3));
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showOathAnimation, setShowOathAnimation] = useState(false);
 
   // Update when preselected book changes
   useEffect(() => {
@@ -96,13 +98,8 @@ export function ReaderOathDialog({
       );
 
       if (result.success) {
-        toast({
-          title: "🤞 Serment placé !",
-          description: `Vous avez parié ${selectedStake} Orydors sur "${bookTitle}"`,
-        });
+        setShowOathAnimation(true);
         await loadUserStats();
-        onOathPlaced?.();
-        onOpenChange(false);
       } else {
         toast({
           title: "Erreur",
@@ -296,6 +293,19 @@ export function ReaderOathDialog({
           </p>
         </div>
       </DialogContent>
+
+      {/* Animation de placement du serment */}
+      <OathPlacedAnimation
+        isOpen={showOathAnimation}
+        bookTitle={bookTitle}
+        stakeAmount={selectedStake}
+        deadline={selectedDate || new Date()}
+        onContinue={() => {
+          setShowOathAnimation(false);
+          onOathPlaced?.();
+          onOpenChange(false);
+        }}
+      />
     </Dialog>
   );
 }

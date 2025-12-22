@@ -7,6 +7,8 @@ interface CollectionCompleteAnimationProps {
   isOpen: boolean;
   collectionName: string;
   collectionIconUrl?: string;
+  orydorsReward?: number;
+  xpReward?: number;
   onContinue: () => void;
 }
 
@@ -14,6 +16,8 @@ export const CollectionCompleteAnimation: React.FC<CollectionCompleteAnimationPr
   isOpen,
   collectionName,
   collectionIconUrl,
+  orydorsReward,
+  xpReward,
   onContinue,
 }) => {
   const { triggerConfetti, cleanup } = useConfetti();

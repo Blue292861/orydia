@@ -6,6 +6,7 @@ import { toast } from '@/hooks/use-toast';
 import { searchGuilds, getAllGuilds, joinGuild } from '@/services/guildService';
 import { GuildSearchResult } from '@/types/Guild';
 import { Search, Users, Loader2, Shield, Crown } from 'lucide-react';
+import { GuildJoinAnimation } from '@/components/GuildJoinAnimation';
 
 interface GuildSearchListProps {
   onJoinSuccess: () => void;
@@ -16,6 +17,8 @@ export const GuildSearchList: React.FC<GuildSearchListProps> = ({ onJoinSuccess 
   const [guilds, setGuilds] = useState<GuildSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [joiningGuildId, setJoiningGuildId] = useState<string | null>(null);
+  const [showJoinAnimation, setShowJoinAnimation] = useState(false);
+  const [joinedGuildName, setJoinedGuildName] = useState('');
 
   const loadGuilds = async () => {
     setIsLoading(true);
@@ -47,11 +50,8 @@ export const GuildSearchList: React.FC<GuildSearchListProps> = ({ onJoinSuccess 
     try {
       const result = await joinGuild(guildId);
       if (result.success) {
-        toast({
-          title: '🎉 Bienvenue !',
-          description: `Vous avez rejoint la guilde "${guildName}"`
-        });
-        onJoinSuccess();
+        setJoinedGuildName(guildName);
+        setShowJoinAnimation(true);
       } else {
         toast({
           title: 'Erreur',
@@ -161,6 +161,16 @@ export const GuildSearchList: React.FC<GuildSearchListProps> = ({ onJoinSuccess 
           ))
         )}
       </div>
+
+      {/* Animation de rejoindre une guilde */}
+      <GuildJoinAnimation
+        isOpen={showJoinAnimation}
+        guildName={joinedGuildName}
+        onContinue={() => {
+          setShowJoinAnimation(false);
+          onJoinSuccess();
+        }}
+      />
     </div>
   );
 };
