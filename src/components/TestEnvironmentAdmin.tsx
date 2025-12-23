@@ -740,12 +740,12 @@ export const TestEnvironmentAdmin: React.FC = () => {
       {/* Animation Previews */}
       <ChallengeCompletionAnimation
         isOpen={showChallengeAnim}
-        challenge={{ id: 'test', name: 'Lecteur Assidu', icon: '📚', description: 'Lire 5 livres', startDate: new Date(), endDate: new Date(), objectives: [], orydorsReward: 500, xpReward: 100, premiumMonthsReward: 0, itemRewards: [], isGuildChallenge: false }}
+        challenge={{ id: 'test', name: 'Lecteur Assidu', icon: '📚', description: 'Lire 5 livres', startDate: new Date(), endDate: new Date(), objectives: [], orydorsReward: 500, xpReward: 100, premiumMonthsReward: 0, itemRewards: [], isGuildChallenge: false, isActive: true, createdAt: new Date() }}
         onContinue={() => setShowChallengeAnim(false)}
       />
       <SkillUnlockAnimation
         isOpen={showSkillAnim}
-        skill={{ id: 'test', name: 'Lecture Rapide', description: '+10% XP de lecture', icon: '⚡', path_id: '', cost: 1, position: 1, tier: 1, bonus_type: 'xp_multiplier', bonus_value: 10, prerequisites: [] }}
+        skill={{ id: 'test', name: 'Lecture Rapide', description: '+10% Orydors le weekend', icon: '⚡', path_id: '', skill_point_cost: 1, position: 1, bonus_type: 'day_orydors', bonus_config: { days: [0, 6], percentage: 10 }, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }}
         onContinue={() => setShowSkillAnim(false)}
       />
       <OathPlacedAnimation
@@ -757,16 +757,16 @@ export const TestEnvironmentAdmin: React.FC = () => {
       />
       <OathResultAnimation
         isOpen={showOathWinAnim}
-        result="win"
+        isVictory={true}
         bookTitle="Les Ombres du Cataclysme"
-        orydorsChange={550}
+        amount={550}
         onContinue={() => setShowOathWinAnim(false)}
       />
       <OathResultAnimation
         isOpen={showOathLoseAnim}
-        result="lose"
+        isVictory={false}
         bookTitle="Les Ombres du Cataclysme"
-        orydorsChange={-550}
+        amount={550}
         onContinue={() => setShowOathLoseAnim(false)}
       />
       <GuildJoinAnimation
