@@ -19,6 +19,13 @@ interface GiftRewards {
   items?: GiftRewardItem[];
 }
 
+interface ClaimResult {
+  orydorsAwarded: number;
+  xpAwarded: number;
+  itemsAwarded: { reward_type_id: string; quantity: number; success: boolean; error?: string }[];
+  errors: string[];
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -122,82 +129,183 @@ serve(async (req) => {
     }
 
     const rewards = gift.rewards as GiftRewards;
-    console.log('Processing rewards:', rewards);
+    console.log('Processing rewards:', JSON.stringify(rewards));
 
-    // Award Orydors if any
+    const result: ClaimResult = {
+      orydorsAwarded: 0,
+      xpAwarded: 0,
+      itemsAwarded: [],
+      errors: []
+    };
+
+    // Get current user stats first
+    const { data: userStats, error: statsError } = await supabase
+      .from('user_stats')
+      .select('total_points, experience_points, level')
+      .eq('user_id', user.id)
+      .single();
+
+    if (statsError && statsError.code !== 'PGRST116') {
+      console.error('Error fetching user stats:', statsError);
+    }
+
+    const currentPoints = userStats?.total_points || 0;
+    const currentXp = userStats?.experience_points || 0;
+    let newPoints = currentPoints;
+    let newXp = currentXp;
+
+    // Award Orydors if any - DIRECTLY without calling award-points
     if (rewards.orydors && rewards.orydors > 0) {
-      console.log(`Awarding ${rewards.orydors} Orydors to user ${user.id}`);
-      const { error: pointsError } = await supabase.functions.invoke('award-points', {
-        body: {
+      console.log(`Awarding ${rewards.orydors} Orydors to user ${user.id} (current: ${currentPoints})`);
+      
+      newPoints = currentPoints + rewards.orydors;
+      result.orydorsAwarded = rewards.orydors;
+      
+      // Record the transaction
+      const { error: transactionError } = await supabase
+        .from('point_transactions')
+        .insert({
           user_id: user.id,
           points: rewards.orydors,
           transaction_type: 'gift_claim',
           reference_id: gift_id,
           description: `Cadeau: ${gift.title}`
-        }
-      });
+        });
 
-      if (pointsError) {
-        console.error('Error awarding Orydors:', pointsError);
+      if (transactionError) {
+        console.error('Error recording Orydors transaction:', transactionError);
+        result.errors.push(`Erreur enregistrement transaction Orydors: ${transactionError.message}`);
+      } else {
+        console.log(`Orydors transaction recorded successfully`);
       }
     }
 
     // Award XP if any
     if (rewards.xp && rewards.xp > 0) {
-      console.log(`Awarding ${rewards.xp} XP to user ${user.id}`);
+      console.log(`Awarding ${rewards.xp} XP to user ${user.id} (current: ${currentXp})`);
+      newXp = currentXp + rewards.xp;
+      result.xpAwarded = rewards.xp;
+    }
+
+    // Update user stats if Orydors or XP were awarded
+    if (result.orydorsAwarded > 0 || result.xpAwarded > 0) {
+      // Calculate new level based on new XP
+      let newLevel = userStats?.level || 1;
       
-      // Get current user stats
-      const { data: userStats } = await supabase
-        .from('user_stats')
-        .select('experience_points')
-        .eq('user_id', user.id)
-        .single();
+      if (result.xpAwarded > 0) {
+        const { data: levelData, error: levelError } = await supabase.rpc('calculate_level', {
+          experience_points: newXp
+        });
+        
+        if (levelError) {
+          console.error('Error calculating level:', levelError);
+        } else {
+          newLevel = levelData || newLevel;
+        }
+      }
 
-      const newXp = (userStats?.experience_points || 0) + rewards.xp;
-
-      // Calculate new level
-      const { data: levelData } = await supabase.rpc('calculate_level', {
-        experience_points: newXp
-      });
-
-      await supabase
+      const { error: updateError } = await supabase
         .from('user_stats')
         .upsert({
           user_id: user.id,
+          total_points: newPoints,
           experience_points: newXp,
-          level: levelData || 1
+          level: newLevel
         }, { onConflict: 'user_id' });
+
+      if (updateError) {
+        console.error('Error updating user stats:', updateError);
+        result.errors.push(`Erreur mise à jour stats: ${updateError.message}`);
+      } else {
+        console.log(`User stats updated: points=${newPoints}, xp=${newXp}, level=${newLevel}`);
+      }
     }
 
     // Award items if any
     if (rewards.items && rewards.items.length > 0) {
       for (const item of rewards.items) {
-        console.log(`Adding item ${item.reward_type_id} x${item.quantity} to inventory`);
+        console.log(`Processing item ${item.reward_type_id} x${item.quantity}`);
+        
+        // Verify reward_type exists
+        const { data: rewardType, error: rewardTypeError } = await supabase
+          .from('reward_types')
+          .select('id, name')
+          .eq('id', item.reward_type_id)
+          .single();
+
+        if (rewardTypeError || !rewardType) {
+          console.error(`Reward type ${item.reward_type_id} not found:`, rewardTypeError);
+          result.itemsAwarded.push({
+            reward_type_id: item.reward_type_id,
+            quantity: item.quantity,
+            success: false,
+            error: `Type de récompense non trouvé: ${item.reward_type_id}`
+          });
+          result.errors.push(`Item ${item.name || item.reward_type_id} non trouvé dans reward_types`);
+          continue;
+        }
+
+        console.log(`Adding item "${rewardType.name}" (${item.reward_type_id}) x${item.quantity} to inventory`);
         
         // Check if user already has this item
-        const { data: existingItem } = await supabase
+        const { data: existingItem, error: existingError } = await supabase
           .from('user_inventory')
           .select('quantity')
           .eq('user_id', user.id)
           .eq('reward_type_id', item.reward_type_id)
           .single();
 
+        if (existingError && existingError.code !== 'PGRST116') {
+          console.error(`Error checking existing inventory for ${item.reward_type_id}:`, existingError);
+        }
+
+        let itemSuccess = false;
+        let itemError: string | undefined;
+
         if (existingItem) {
           // Update quantity
-          await supabase
+          const newQuantity = existingItem.quantity + item.quantity;
+          const { error: updateError } = await supabase
             .from('user_inventory')
-            .update({ quantity: existingItem.quantity + item.quantity })
+            .update({ quantity: newQuantity, updated_at: new Date().toISOString() })
             .eq('user_id', user.id)
             .eq('reward_type_id', item.reward_type_id);
+
+          if (updateError) {
+            console.error(`Error updating inventory for ${item.reward_type_id}:`, updateError);
+            itemError = updateError.message;
+          } else {
+            console.log(`Updated inventory: ${item.reward_type_id} quantity ${existingItem.quantity} -> ${newQuantity}`);
+            itemSuccess = true;
+          }
         } else {
           // Insert new item
-          await supabase
+          const { error: insertError } = await supabase
             .from('user_inventory')
             .insert({
               user_id: user.id,
               reward_type_id: item.reward_type_id,
               quantity: item.quantity
             });
+
+          if (insertError) {
+            console.error(`Error inserting inventory for ${item.reward_type_id}:`, insertError);
+            itemError = insertError.message;
+          } else {
+            console.log(`Inserted new inventory item: ${item.reward_type_id} x${item.quantity}`);
+            itemSuccess = true;
+          }
+        }
+
+        result.itemsAwarded.push({
+          reward_type_id: item.reward_type_id,
+          quantity: item.quantity,
+          success: itemSuccess,
+          error: itemError
+        });
+
+        if (!itemSuccess && itemError) {
+          result.errors.push(`Erreur ajout item ${rewardType.name}: ${itemError}`);
         }
       }
     }
@@ -219,11 +327,22 @@ serve(async (req) => {
     }
 
     console.log(`Gift ${gift_id} successfully claimed by user ${user.id}`);
+    console.log('Claim result:', JSON.stringify(result));
 
+    // Return success with detailed result
+    const hasErrors = result.errors.length > 0;
+    
     return new Response(
       JSON.stringify({ 
-        success: true, 
-        rewards: rewards
+        success: true,
+        partial_errors: hasErrors,
+        rewards: rewards,
+        awarded: {
+          orydors: result.orydorsAwarded,
+          xp: result.xpAwarded,
+          items: result.itemsAwarded
+        },
+        errors: hasErrors ? result.errors : undefined
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -231,7 +350,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Unexpected error:', error);
     return new Response(
-      JSON.stringify({ success: false, error: 'Internal server error' }),
+      JSON.stringify({ success: false, error: 'Internal server error', details: String(error) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
