@@ -11,7 +11,7 @@ import { OrydorsPackGrid } from './OrydorsPackGrid';
 import { OrydorsDialogHeader } from './OrydorsDialogHeader';
 import { OrydorsDialogFooter } from './OrydorsDialogFooter';
 import { OrydorsCodeRedemption } from './OrydorsCodeRedemption';
-import { DailyChestSection } from './DailyChestSection';
+import { FortuneWheel } from './FortuneWheel';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthRequiredDialog } from './AuthRequiredDialog';
 
@@ -83,10 +83,10 @@ export const BuyOrydorsDialog: React.FC<BuyOrydorsDialogProps> = ({ trigger, ope
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-b from-wood-50 via-wood-100 to-wood-200 border-2 border-gold-400 shadow-2xl">
         <OrydorsDialogHeader onClose={() => setOpenState(false)} />
         
-        {/* Daily Chest section */}
+        {/* Fortune Wheel section */}
         {user && (
           <div className="mb-4">
-            <DailyChestSection onChestClaimed={() => {}} />
+            <FortuneWheel onSpinComplete={() => {}} />
           </div>
         )}
         
