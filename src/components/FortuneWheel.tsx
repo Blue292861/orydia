@@ -1,0 +1,466 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
+import { Loader2, Flame, Clock, RotateCcw, Sparkles, Gift } from 'lucide-react';
+import { 
+  WheelConfig, 
+  WheelSegment, 
+  WheelSpinResult, 
+  WheelStreak, 
+  StreakBonus,
+  STREAK_RECOVERY_COST 
+} from '@/types/FortuneWheel';
+import { 
+  getActiveWheelConfig, 
+  getUserStreak, 
+  canSpinForFree, 
+  getTimeUntilNextFreeSpin,
+  getStreakBonuses 
+} from '@/services/fortuneWheelService';
+import { useConfetti } from '@/hooks/useConfetti';
+
+interface FortuneWheelProps {
+  onSpinComplete?: () => void;
+}
+
+export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) => {
+  const { user } = useAuth();
+  const { triggerConfetti } = useConfetti();
+  const wheelRef = useRef<HTMLDivElement>(null);
+  
+  const [config, setConfig] = useState<WheelConfig | null>(null);
+  const [streak, setStreak] = useState<WheelStreak | null>(null);
+  const [bonuses, setBonuses] = useState<StreakBonus[]>([]);
+  const [canSpin, setCanSpin] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<string>('');
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [spinResult, setSpinResult] = useState<WheelSpinResult | null>(null);
+  const [showResultDialog, setShowResultDialog] = useState(false);
+  const [rotation, setRotation] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [recoveringStreak, setRecoveringStreak] = useState(false);
+  const [purchasingExtraSpin, setPurchasingExtraSpin] = useState(false);
+
+  // Load initial data
+  useEffect(() => {
+    const loadData = async () => {
+      if (!user) return;
+      
+      try {
+        const [configData, streakData, bonusesData, canSpinData] = await Promise.all([
+          getActiveWheelConfig(),
+          getUserStreak(user.id),
+          getStreakBonuses(),
+          canSpinForFree(user.id)
+        ]);
+        
+        setConfig(configData);
+        setStreak(streakData);
+        setBonuses(bonusesData);
+        setCanSpin(canSpinData);
+      } catch (error) {
+        console.error('Error loading wheel data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
+  }, [user]);
+
+  // Timer for next free spin
+  useEffect(() => {
+    if (canSpin) {
+      setTimeRemaining('');
+      return;
+    }
+
+    const updateTimer = () => {
+      const ms = getTimeUntilNextFreeSpin();
+      if (ms <= 0) {
+        setCanSpin(true);
+        setTimeRemaining('');
+        return;
+      }
+      
+      const hours = Math.floor(ms / (1000 * 60 * 60));
+      const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+      setTimeRemaining(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [canSpin]);
+
+  // Get active bonus for current streak
+  const getActiveBonus = (): StreakBonus | null => {
+    if (!streak || !bonuses.length) return null;
+    
+    const applicableBonuses = bonuses
+      .filter(b => b.streakLevel <= streak.currentStreak && b.isActive)
+      .sort((a, b) => b.streakLevel - a.streakLevel);
+    
+    return applicableBonuses[0] || null;
+  };
+
+  // Handle spin
+  const handleSpin = async (isPaid = false) => {
+    if (!user || !config || isSpinning) return;
+    
+    setIsSpinning(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('spin-wheel', {
+        body: { isPaidSpin: isPaid }
+      });
+      
+      if (error) throw error;
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Erreur lors du tour');
+      }
+      
+      // Animate the wheel
+      const segmentAngle = 360 / config.segments.length;
+      const targetAngle = 360 - (data.segmentIndex * segmentAngle + segmentAngle / 2);
+      const spins = 5 + Math.random() * 3; // 5-8 full rotations
+      const finalRotation = rotation + (spins * 360) + targetAngle;
+      
+      setRotation(finalRotation);
+      
+      // Wait for animation to complete
+      setTimeout(() => {
+        setSpinResult(data);
+        setShowResultDialog(true);
+        setIsSpinning(false);
+        setCanSpin(false);
+        
+        // Update streak
+        if (data.newStreak !== undefined) {
+          setStreak(prev => prev ? { ...prev, currentStreak: data.newStreak } : null);
+        }
+        
+        // Fire confetti for good rewards
+        if (data.reward.type === 'item' || (data.reward.type === 'orydors' && data.reward.value && data.reward.value >= 1000)) {
+          triggerConfetti();
+        }
+        
+        onSpinComplete?.();
+      }, 4000);
+      
+    } catch (error: any) {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive'
+      });
+      setIsSpinning(false);
+    }
+  };
+
+  // Handle streak recovery
+  const handleRecoverStreak = async () => {
+    if (!user || recoveringStreak) return;
+    
+    setRecoveringStreak(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('recover-streak', {});
+      
+      if (error) throw error;
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Erreur lors de la récupération');
+      }
+      
+      toast({
+        title: 'Série récupérée !',
+        description: `Votre série de ${data.recoveredStreak} jours a été restaurée.`,
+      });
+      
+      setStreak(prev => prev ? { 
+        ...prev, 
+        currentStreak: data.recoveredStreak,
+        streakBrokenAt: null 
+      } : null);
+      
+    } catch (error: any) {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive'
+      });
+    } finally {
+      setRecoveringStreak(false);
+    }
+  };
+
+  // Handle extra spin purchase
+  const handlePurchaseExtraSpin = async () => {
+    if (!user || purchasingExtraSpin) return;
+    
+    setPurchasingExtraSpin(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-wheel-checkout', {});
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive'
+      });
+      setPurchasingExtraSpin(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card className="bg-gradient-to-br from-wood-100 to-wood-200 border-gold-400">
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-gold-500" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!config) {
+    return (
+      <Card className="bg-gradient-to-br from-wood-100 to-wood-200 border-gold-400">
+        <CardContent className="py-6 text-center text-muted-foreground">
+          La roue de la fortune n'est pas disponible actuellement.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const activeBonus = getActiveBonus();
+
+  return (
+    <>
+      <Card className="bg-gradient-to-br from-wood-100 via-wood-50 to-gold-100 border-2 border-gold-400 shadow-lg overflow-hidden">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg text-wood-800">
+              <Sparkles className="h-5 w-5 text-gold-500" />
+              Roue de la Fortune
+            </CardTitle>
+            {streak && streak.currentStreak > 0 && (
+              <Badge variant="secondary" className="bg-orange-500/20 text-orange-700 border-orange-400">
+                <Flame className="h-3 w-3 mr-1" />
+                {streak.currentStreak} jour{streak.currentStreak > 1 ? 's' : ''}
+              </Badge>
+            )}
+          </div>
+          {activeBonus && (
+            <p className="text-xs text-gold-700 mt-1">
+              ✨ {activeBonus.description}
+            </p>
+          )}
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          {/* Wheel */}
+          <div className="relative flex justify-center">
+            {/* Pointer */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 z-20">
+              <div className="w-0 h-0 border-l-[12px] border-r-[12px] border-t-[20px] border-l-transparent border-r-transparent border-t-gold-600 drop-shadow-lg" />
+            </div>
+            
+            {/* Wheel container */}
+            <div 
+              ref={wheelRef}
+              className="relative w-56 h-56 rounded-full border-4 border-gold-500 shadow-xl overflow-hidden"
+              style={{
+                transform: `rotate(${rotation}deg)`,
+                transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none'
+              }}
+            >
+              {/* Segments */}
+              {config.segments.map((segment, index) => {
+                const angle = 360 / config.segments.length;
+                const startAngle = index * angle;
+                
+                return (
+                  <div
+                    key={segment.id}
+                    className="absolute w-full h-full origin-center"
+                    style={{
+                      transform: `rotate(${startAngle}deg)`,
+                      clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.tan(angle * Math.PI / 360)}% 0%, 50% 50%)`
+                    }}
+                  >
+                    <div 
+                      className="w-full h-full flex items-start justify-center pt-2"
+                      style={{ 
+                        backgroundColor: segment.color,
+                        transform: `rotate(${angle / 2}deg)`
+                      }}
+                    >
+                      <span className="text-[8px] font-bold text-white drop-shadow-md text-center px-1 max-w-[60px] leading-tight">
+                        {segment.label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Center circle */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 border-2 border-gold-300 shadow-inner flex items-center justify-center">
+                <Gift className="h-6 w-6 text-white" />
+              </div>
+            </div>
+          </div>
+          
+          {/* Actions */}
+          <div className="space-y-2">
+            {canSpin ? (
+              <Button 
+                onClick={() => handleSpin(false)} 
+                disabled={isSpinning}
+                className="w-full bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white font-semibold"
+              >
+                {isSpinning ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    La roue tourne...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Tourner gratuitement !
+                  </>
+                )}
+              </Button>
+            ) : (
+              <>
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  Prochain tour dans {timeRemaining}
+                </div>
+                <Button 
+                  onClick={handlePurchaseExtraSpin}
+                  disabled={purchasingExtraSpin || isSpinning}
+                  variant="outline"
+                  className="w-full border-gold-400 text-gold-700 hover:bg-gold-50"
+                >
+                  {purchasingExtraSpin ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                  )}
+                  Tour supplémentaire (0,50€)
+                </Button>
+              </>
+            )}
+            
+            {/* Streak recovery */}
+            {streak && streak.streakBrokenAt && streak.streakBrokenAt > 0 && (
+              <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <p className="text-xs text-orange-700 mb-2">
+                  ⚠️ Série interrompue au jour {streak.streakBrokenAt}
+                </p>
+                <Button 
+                  onClick={handleRecoverStreak}
+                  disabled={recoveringStreak}
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-orange-400 text-orange-700 hover:bg-orange-100"
+                >
+                  {recoveringStreak ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Flame className="h-4 w-4 mr-2" />
+                  )}
+                  Reprendre pour {STREAK_RECOVERY_COST} Orydors
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Result Dialog */}
+      <Dialog open={showResultDialog} onOpenChange={setShowResultDialog}>
+        <DialogContent className="bg-gradient-to-br from-wood-50 to-gold-100 border-2 border-gold-400">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl text-wood-800">
+              🎉 Félicitations !
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Voici votre récompense
+            </DialogDescription>
+          </DialogHeader>
+          
+          {spinResult && (
+            <div className="py-6 text-center space-y-4">
+              {spinResult.reward.item ? (
+                <div className="space-y-2">
+                  <img 
+                    src={spinResult.reward.item.imageUrl} 
+                    alt={spinResult.reward.item.name}
+                    className="w-24 h-24 mx-auto rounded-lg border-2 border-gold-400 shadow-lg"
+                  />
+                  <p className="text-lg font-semibold text-wood-800">
+                    {spinResult.reward.item.quantity}x {spinResult.reward.item.name}
+                  </p>
+                  <Badge className="bg-purple-500 text-white">
+                    {spinResult.reward.item.rarity}
+                  </Badge>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="text-5xl">
+                    {spinResult.reward.type === 'orydors' ? '💰' : '⚡'}
+                  </div>
+                  <p className="text-2xl font-bold text-gold-600">
+                    +{spinResult.reward.value} {spinResult.reward.type === 'orydors' ? 'Orydors' : 'XP'}
+                  </p>
+                </div>
+              )}
+              
+              {spinResult.bonusApplied && (
+                <p className="text-sm text-gold-700">
+                  ✨ Bonus appliqué : {spinResult.bonusApplied}
+                </p>
+              )}
+              
+              {spinResult.xpData?.didLevelUp && (
+                <div className="p-3 bg-green-100 border border-green-300 rounded-lg">
+                  <p className="text-green-700 font-semibold">
+                    🎊 Niveau {spinResult.xpData.levelAfter} atteint !
+                  </p>
+                </div>
+              )}
+              
+              <p className="text-sm text-muted-foreground">
+                Série actuelle : {spinResult.newStreak} jour{spinResult.newStreak > 1 ? 's' : ''} 🔥
+              </p>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              onClick={() => setShowResultDialog(false)}
+              className="w-full bg-gold-500 hover:bg-gold-600 text-white"
+            >
+              Super !
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
