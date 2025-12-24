@@ -924,7 +924,10 @@ export type Database = {
           item_quantity: number | null
           item_won_id: string | null
           orydors_won: number
+          reward_type: string | null
+          spin_type: string | null
           user_id: string
+          xp_won: number | null
         }
         Insert: {
           claim_date?: string
@@ -934,7 +937,10 @@ export type Database = {
           item_quantity?: number | null
           item_won_id?: string | null
           orydors_won: number
+          reward_type?: string | null
+          spin_type?: string | null
           user_id: string
+          xp_won?: number | null
         }
         Update: {
           claim_date?: string
@@ -944,7 +950,10 @@ export type Database = {
           item_quantity?: number | null
           item_won_id?: string | null
           orydors_won?: number
+          reward_type?: string | null
+          spin_type?: string | null
           user_id?: string
+          xp_won?: number | null
         }
         Relationships: [
           {
@@ -975,6 +984,7 @@ export type Database = {
           name: string
           start_date: string
           updated_at: string | null
+          wheel_segments: Json | null
         }
         Insert: {
           created_at?: string | null
@@ -987,6 +997,7 @@ export type Database = {
           name: string
           start_date: string
           updated_at?: string | null
+          wheel_segments?: Json | null
         }
         Update: {
           created_at?: string | null
@@ -999,6 +1010,7 @@ export type Database = {
           name?: string
           start_date?: string
           updated_at?: string | null
+          wheel_segments?: Json | null
         }
         Relationships: []
       }
@@ -2466,6 +2478,36 @@ export type Database = {
           },
         ]
       }
+      streak_bonuses: {
+        Row: {
+          bonus_type: string
+          bonus_value: number
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          streak_level: number
+        }
+        Insert: {
+          bonus_type: string
+          bonus_value: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          streak_level: number
+        }
+        Update: {
+          bonus_type?: string
+          bonus_value?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          streak_level?: number
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           cancel_at_period_end: boolean | null
@@ -3482,6 +3524,39 @@ export type Database = {
           current_theme?: Database["public"]["Enums"]["ui_theme"]
           id?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wheel_streaks: {
+        Row: {
+          created_at: string | null
+          current_streak: number | null
+          id: string
+          last_spin_date: string | null
+          max_streak: number | null
+          streak_broken_at: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_spin_date?: string | null
+          max_streak?: number | null
+          streak_broken_at?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_spin_date?: string | null
+          max_streak?: number | null
+          streak_broken_at?: number | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
