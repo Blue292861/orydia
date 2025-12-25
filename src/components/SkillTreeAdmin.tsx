@@ -42,7 +42,7 @@ export const SkillTreeAdmin: React.FC = () => {
   const [skillForm, setSkillForm] = useState({
     name: '', description: '', icon: '⭐', position: 1, skill_point_cost: 1,
     bonus_type: 'day_orydors' as BonusType,
-    days: [] as number[], percentage: 1, genre: '', reward_type_id: '', is_active: true
+    days: [] as number[], percentage: 1, genres: [] as string[], reward_type_id: '', is_active: true
   });
 
   const loadData = async () => {
@@ -98,7 +98,9 @@ export const SkillTreeAdmin: React.FC = () => {
       if (skillForm.bonus_type === 'day_orydors') {
         bonusConfig = { days: skillForm.days, percentage: skillForm.percentage };
       } else if (skillForm.bonus_type === 'genre_orydors') {
-        bonusConfig = { genre: skillForm.genre, percentage: skillForm.percentage };
+        bonusConfig = { genres: skillForm.genres, percentage: skillForm.percentage };
+      } else if (skillForm.bonus_type === 'xp_boost') {
+        bonusConfig = { percentage: skillForm.percentage };
       } else {
         bonusConfig = { reward_type_id: skillForm.reward_type_id, percentage: skillForm.percentage };
       }
@@ -156,7 +158,7 @@ export const SkillTreeAdmin: React.FC = () => {
     setEditingSkill(null);
     setCurrentPathId(pathId);
     const maxPos = skills.length > 0 ? Math.max(...skills.map(s => s.position)) : 0;
-    setSkillForm({ name: '', description: '', icon: '⭐', position: maxPos + 1, skill_point_cost: 1, bonus_type: 'day_orydors', days: [], percentage: 1, genre: '', reward_type_id: '', is_active: true });
+    setSkillForm({ name: '', description: '', icon: '⭐', position: maxPos + 1, skill_point_cost: 1, bonus_type: 'day_orydors', days: [], percentage: 1, genres: [], reward_type_id: '', is_active: true });
     setShowSkillDialog(true);
   };
 
@@ -167,7 +169,7 @@ export const SkillTreeAdmin: React.FC = () => {
     setSkillForm({
       name: skill.name, description: skill.description || '', icon: skill.icon, position: skill.position,
       skill_point_cost: skill.skill_point_cost, bonus_type: skill.bonus_type,
-      days: cfg.days || [], percentage: cfg.percentage || 1, genre: cfg.genre || '', reward_type_id: cfg.reward_type_id || '',
+      days: cfg.days || [], percentage: cfg.percentage || 1, genres: cfg.genres || (cfg.genre ? [cfg.genre] : []), reward_type_id: cfg.reward_type_id || '',
       is_active: skill.is_active
     });
     setShowSkillDialog(true);
@@ -256,7 +258,8 @@ export const SkillTreeAdmin: React.FC = () => {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="day_orydors">Bonus Orydors par jour</SelectItem>
-                  <SelectItem value="genre_orydors">Bonus Orydors par genre</SelectItem>
+                  <SelectItem value="genre_orydors">Bonus Orydors par genre(s)</SelectItem>
+                  <SelectItem value="xp_boost">Bonus XP global</SelectItem>
                   <SelectItem value="chest_drop">Bonus drop coffre</SelectItem>
                 </SelectContent>
               </Select>
@@ -274,11 +277,24 @@ export const SkillTreeAdmin: React.FC = () => {
               </div>
             )}
             {skillForm.bonus_type === 'genre_orydors' && (
-              <div><Label>Genre</Label>
-                <Select value={skillForm.genre} onValueChange={v => setSkillForm(s => ({ ...s, genre: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Sélectionner un genre" /></SelectTrigger>
-                  <SelectContent>{LITERARY_GENRES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
-                </Select>
+              <div><Label>Genres (sélection multiple)</Label>
+                <div className="flex flex-wrap gap-2 mt-2 max-h-40 overflow-y-auto border rounded-md p-2">
+                  {LITERARY_GENRES.map(g => (
+                    <label key={g} className="flex items-center gap-1 text-sm">
+                      <Checkbox 
+                        checked={skillForm.genres.includes(g)} 
+                        onCheckedChange={c => setSkillForm(s => ({ 
+                          ...s, 
+                          genres: c ? [...s.genres, g] : s.genres.filter(genre => genre !== g) 
+                        }))} 
+                      />
+                      {g}
+                    </label>
+                  ))}
+                </div>
+                {skillForm.genres.length > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">{skillForm.genres.length} genre(s) sélectionné(s)</p>
+                )}
               </div>
             )}
             {skillForm.bonus_type === 'chest_drop' && (
