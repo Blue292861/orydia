@@ -1,6 +1,6 @@
 // Types for Skill Tree System
 
-export type BonusType = 'day_orydors' | 'genre_orydors' | 'chest_drop';
+export type BonusType = 'day_orydors' | 'genre_orydors' | 'chest_drop' | 'xp_boost';
 
 export interface DayOrydorsBonusConfig {
   days: number[]; // 0 = Sunday, 6 = Saturday
@@ -8,7 +8,11 @@ export interface DayOrydorsBonusConfig {
 }
 
 export interface GenreOrydorsBonusConfig {
-  genre: string;
+  genres: string[]; // Multiple genres allowed
+  percentage: number;
+}
+
+export interface XpBoostBonusConfig {
   percentage: number;
 }
 
@@ -18,7 +22,7 @@ export interface ChestDropBonusConfig {
   percentage: number;
 }
 
-export type BonusConfig = DayOrydorsBonusConfig | GenreOrydorsBonusConfig | ChestDropBonusConfig;
+export type BonusConfig = DayOrydorsBonusConfig | GenreOrydorsBonusConfig | ChestDropBonusConfig | XpBoostBonusConfig;
 
 export interface Skill {
   id: string;
@@ -92,12 +96,19 @@ export function formatBonusDescription(bonusType: BonusType, bonusConfig: BonusC
     }
     case 'genre_orydors': {
       const config = bonusConfig as GenreOrydorsBonusConfig;
-      return `+${config.percentage}% Orydors sur le genre ${config.genre}`;
+      const genresText = config.genres.length > 2 
+        ? `${config.genres.slice(0, 2).join(', ')}... (+${config.genres.length - 2})`
+        : config.genres.join(', ');
+      return `+${config.percentage}% Orydors sur ${genresText}`;
     }
     case 'chest_drop': {
       const config = bonusConfig as ChestDropBonusConfig;
       const itemName = config.reward_type_name || 'item';
       return `+${config.percentage}% de chance de drop: ${itemName}`;
+    }
+    case 'xp_boost': {
+      const config = bonusConfig as XpBoostBonusConfig;
+      return `+${config.percentage}% XP sur toutes les lectures`;
     }
     default:
       return 'Bonus inconnu';
