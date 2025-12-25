@@ -62,8 +62,40 @@ serve(async (req) => {
         }
 
         results.processed++;
+        
+        let xpAwarded = 0;
         if (result?.status === 'won') {
           results.won++;
+          
+          // Award XP based on stake amount (stake / 10)
+          xpAwarded = Math.floor(oath.stake_amount / 10);
+          if (xpAwarded > 0) {
+            const { error: xpError } = await supabaseClient
+              .from('user_stats')
+              .update({ 
+                total_points: supabaseClient.rpc('increment_points', { amount: xpAwarded }),
+              })
+              .eq('user_id', oath.user_id);
+            
+            // Use direct SQL increment for reliability
+            const { error: updateError } = await supabaseClient.rpc('add_user_xp', {
+              p_user_id: oath.user_id,
+              p_xp_amount: xpAwarded
+            });
+            
+            if (updateError) {
+              // Fallback: direct update
+              await supabaseClient
+                .from('user_stats')
+                .update({ 
+                  total_points: oath.stake_amount / 10 
+                })
+                .eq('user_id', oath.user_id);
+              console.log(`[resolve-expired-oaths] Fallback XP update for user ${oath.user_id}`);
+            } else {
+              console.log(`[resolve-expired-oaths] Awarded ${xpAwarded} XP to user ${oath.user_id}`);
+            }
+          }
         } else if (result?.status === 'lost') {
           results.lost++;
         }
@@ -73,6 +105,7 @@ serve(async (req) => {
           book_title: oath.book_title,
           status: result?.status,
           payout: result?.payout_amount,
+          xp_awarded: xpAwarded,
         });
 
         console.log(`[resolve-expired-oaths] Oath ${oath.id} resolved: ${result?.status}, payout: ${result?.payout_amount}`);

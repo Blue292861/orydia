@@ -3628,6 +3628,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_user_xp: {
+        Args: { p_user_id: string; p_xp_amount: number }
+        Returns: undefined
+      }
       calculate_exponential_level: {
         Args: { xp_points: number }
         Returns: {
