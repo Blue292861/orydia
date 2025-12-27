@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Flame, Clock, RotateCcw, Sparkles, Gift } from 'lucide-react';
+import { Loader2, Flame, Clock, RotateCcw, Sparkles, Gift, Crown, CreditCard, Mail } from 'lucide-react';
 import { 
   WheelConfig, 
   WheelSegment, 
@@ -20,7 +20,8 @@ import {
   getUserStreak, 
   canSpinForFree, 
   getTimeUntilNextFreeSpin,
-  getStreakBonuses 
+  getStreakBonuses,
+  checkUserPremium
 } from '@/services/fortuneWheelService';
 import { useConfetti } from '@/hooks/useConfetti';
 
@@ -37,6 +38,7 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
   const [streak, setStreak] = useState<WheelStreak | null>(null);
   const [bonuses, setBonuses] = useState<StreakBonus[]>([]);
   const [canSpin, setCanSpin] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinResult, setSpinResult] = useState<WheelSpinResult | null>(null);
@@ -52,17 +54,19 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
       if (!user) return;
       
       try {
-        const [configData, streakData, bonusesData, canSpinData] = await Promise.all([
+        const [configData, streakData, bonusesData, canSpinData, isPremiumData] = await Promise.all([
           getActiveWheelConfig(),
           getUserStreak(user.id),
           getStreakBonuses(),
-          canSpinForFree(user.id)
+          canSpinForFree(user.id),
+          checkUserPremium(user.id)
         ]);
         
         setConfig(configData);
         setStreak(streakData);
         setBonuses(bonusesData);
         setCanSpin(canSpinData);
+        setIsPremium(isPremiumData);
       } catch (error) {
         console.error('Error loading wheel data:', error);
       } finally {
@@ -148,7 +152,7 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
         }
         
         // Fire confetti for good rewards
-        if (data.reward.type === 'item' || (data.reward.type === 'orydors' && data.reward.value && data.reward.value >= 1000)) {
+        if (data.reward.type === 'item' || data.reward.type === 'gift_card' || (data.reward.type === 'orydors' && data.reward.value && data.reward.value >= 1000)) {
           triggerConfetti();
         }
         
@@ -241,6 +245,26 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
       <Card className="bg-gradient-to-br from-wood-100 to-wood-200 border-gold-400">
         <CardContent className="py-6 text-center text-muted-foreground">
           La roue de la fortune n'est pas disponible actuellement.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Check premium restriction
+  if (config.isPremiumOnly && !isPremium) {
+    return (
+      <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400">
+        <CardContent className="py-8 text-center space-y-4">
+          <Crown className="h-12 w-12 mx-auto text-amber-500" />
+          <div>
+            <h3 className="text-lg font-semibold text-amber-800">Roue Premium</h3>
+            <p className="text-sm text-amber-600 mt-1">
+              Cette roue exclusive est réservée aux membres Premium.
+            </p>
+          </div>
+          <Button variant="outline" className="border-amber-400 text-amber-700 hover:bg-amber-50">
+            Devenir Premium
+          </Button>
         </CardContent>
       </Card>
     );
@@ -406,7 +430,31 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
           
           {spinResult && (
             <div className="py-6 text-center space-y-4">
-              {spinResult.reward.item ? (
+              {spinResult.reward.giftCard ? (
+                <div className="space-y-3">
+                  <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center">
+                    <CreditCard className="h-10 w-10 text-white" />
+                  </div>
+                  <p className="text-lg font-semibold text-wood-800">
+                    Carte Cadeau Oryshop
+                  </p>
+                  <p className="text-3xl font-bold text-green-600">
+                    {spinResult.reward.giftCard.amount}€
+                  </p>
+                  <div className="p-3 bg-gray-100 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Votre code :</p>
+                    <p className="text-lg font-mono font-bold tracking-wider text-wood-800">
+                      {spinResult.reward.giftCard.code}
+                    </p>
+                  </div>
+                  {spinResult.reward.giftCard.emailSent && (
+                    <p className="text-sm text-green-600 flex items-center justify-center gap-1">
+                      <Mail className="h-4 w-4" />
+                      Code envoyé par email !
+                    </p>
+                  )}
+                </div>
+              ) : spinResult.reward.item ? (
                 <div className="space-y-2">
                   <img 
                     src={spinResult.reward.item.imageUrl} 

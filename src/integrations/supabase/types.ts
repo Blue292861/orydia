@@ -978,6 +978,7 @@ export type Database = {
           end_date: string
           id: string
           is_active: boolean | null
+          is_premium_only: boolean | null
           item_pool: Json | null
           max_orydors: number
           min_orydors: number
@@ -991,6 +992,7 @@ export type Database = {
           end_date: string
           id?: string
           is_active?: boolean | null
+          is_premium_only?: boolean | null
           item_pool?: Json | null
           max_orydors?: number
           min_orydors?: number
@@ -1004,6 +1006,7 @@ export type Database = {
           end_date?: string
           id?: string
           is_active?: boolean | null
+          is_premium_only?: boolean | null
           item_pool?: Json | null
           max_orydors?: number
           min_orydors?: number
@@ -1196,6 +1199,101 @@ export type Database = {
           premium_months_claimed?: number | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      gift_card_transactions: {
+        Row: {
+          amount_used: number
+          balance_after: number
+          balance_before: number
+          created_at: string
+          gift_card_id: string
+          id: string
+          order_id: string | null
+          transaction_type: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_used: number
+          balance_after: number
+          balance_before: number
+          created_at?: string
+          gift_card_id: string
+          id?: string
+          order_id?: string | null
+          transaction_type: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_used?: number
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          gift_card_id?: string
+          id?: string
+          order_id?: string | null
+          transaction_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gift_card_transactions_gift_card_id_fkey"
+            columns: ["gift_card_id"]
+            isOneToOne: false
+            referencedRelation: "gift_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gift_cards: {
+        Row: {
+          code: string
+          created_at: string
+          current_balance: number
+          expires_at: string | null
+          id: string
+          initial_amount: number
+          is_active: boolean
+          personal_message: string | null
+          purchaser_email: string | null
+          purchaser_id: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          stripe_payment_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          current_balance: number
+          expires_at?: string | null
+          id?: string
+          initial_amount: number
+          is_active?: boolean
+          personal_message?: string | null
+          purchaser_email?: string | null
+          purchaser_id?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          stripe_payment_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          current_balance?: number
+          expires_at?: string | null
+          id?: string
+          initial_amount?: number
+          is_active?: boolean
+          personal_message?: string | null
+          purchaser_email?: string | null
+          purchaser_id?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          stripe_payment_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -3657,6 +3755,21 @@ export type Database = {
         Returns: Json
       }
       cleanup_orphaned_storage_files: { Args: never; Returns: undefined }
+      create_gift_card: {
+        Args: {
+          p_amount: number
+          p_personal_message?: string
+          p_purchaser_email: string
+          p_purchaser_id: string
+          p_recipient_email?: string
+          p_recipient_name?: string
+          p_stripe_payment_id?: string
+        }
+        Returns: {
+          code: string
+          id: string
+        }[]
+      }
       create_instant_order: {
         Args: { p_item_id: string; p_item_name: string; p_price: number }
         Returns: string
@@ -3671,6 +3784,7 @@ export type Database = {
         Returns: string
       }
       dissolve_guild: { Args: { p_guild_id: string }; Returns: boolean }
+      generate_gift_card_code: { Args: never; Returns: string }
       get_current_month_budget: {
         Args: never
         Returns: {
@@ -3809,12 +3923,36 @@ export type Database = {
         Args: { cost_amount: number }
         Returns: boolean
       }
+      use_gift_card: {
+        Args: {
+          p_amount: number
+          p_code: string
+          p_order_id: string
+          p_user_id: string
+        }
+        Returns: {
+          amount_used: number
+          message: string
+          remaining_balance: number
+          success: boolean
+        }[]
+      }
       user_has_role: {
         Args: {
           p_role: Database["public"]["Enums"]["app_role"]
           p_user_id: string
         }
         Returns: boolean
+      }
+      validate_gift_card: {
+        Args: { p_code: string }
+        Returns: {
+          current_balance: number
+          expires_at: string
+          gift_card_id: string
+          is_valid: boolean
+          message: string
+        }[]
       }
     }
     Enums: {

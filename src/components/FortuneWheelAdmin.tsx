@@ -7,9 +7,10 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Loader2, Sparkles, Flame } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Sparkles, Flame, Crown, CreditCard } from 'lucide-react';
 import { WheelConfig, WheelSegment, StreakBonus } from '@/types/FortuneWheel';
 import { getAllWheelConfigs, createWheelConfig, updateWheelConfig, deleteWheelConfig } from '@/services/fortuneWheelService';
 
@@ -33,6 +34,7 @@ export const FortuneWheelAdmin: React.FC = () => {
   const [formStartDate, setFormStartDate] = useState('');
   const [formEndDate, setFormEndDate] = useState('');
   const [formIsActive, setFormIsActive] = useState(true);
+  const [formIsPremiumOnly, setFormIsPremiumOnly] = useState(false);
   const [formSegments, setFormSegments] = useState<WheelSegment[]>([]);
 
   useEffect(() => {
@@ -75,6 +77,7 @@ export const FortuneWheelAdmin: React.FC = () => {
     setFormStartDate('');
     setFormEndDate('');
     setFormIsActive(true);
+    setFormIsPremiumOnly(false);
     setFormSegments([
       { id: 'seg1', type: 'orydors', value: 200, probability: 50, color: '#FFD700', label: '200 Orydors' },
       { id: 'seg2', type: 'orydors', value: 1000, probability: 5, color: '#FF6B00', label: '1000 Orydors' },
@@ -94,6 +97,7 @@ export const FortuneWheelAdmin: React.FC = () => {
     setFormStartDate(config.startDate.split('T')[0]);
     setFormEndDate(config.endDate.split('T')[0]);
     setFormIsActive(config.isActive);
+    setFormIsPremiumOnly(config.isPremiumOnly || false);
     setFormSegments(config.segments);
     setShowConfigDialog(true);
   };
@@ -114,12 +118,25 @@ export const FortuneWheelAdmin: React.FC = () => {
       return;
     }
 
+    // Validate gift card segments have amount
+    for (const seg of formSegments) {
+      if (seg.type === 'gift_card' && (!seg.giftCardAmount || seg.giftCardAmount <= 0)) {
+        toast({ 
+          title: 'Erreur de carte cadeau', 
+          description: 'Les segments carte cadeau doivent avoir un montant supérieur à 0€',
+          variant: 'destructive' 
+        });
+        return;
+      }
+    }
+
     try {
       const configData = {
         name: formName,
         startDate: formStartDate,
         endDate: formEndDate,
         isActive: formIsActive,
+        isPremiumOnly: formIsPremiumOnly,
         segments: formSegments
       };
 
@@ -226,7 +243,15 @@ export const FortuneWheelAdmin: React.FC = () => {
               <Card key={config.id} className={config.isActive ? 'ring-2 ring-green-500' : ''}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{config.name}</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-lg">{config.name}</CardTitle>
+                      {config.isPremiumOnly && (
+                        <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-300">
+                          <Crown className="h-3 w-3 mr-1" />
+                          Premium
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex gap-2">
                       <Button variant="ghost" size="sm" onClick={() => openEditDialog(config)}>
                         <Pencil className="h-4 w-4" />
@@ -241,6 +266,12 @@ export const FortuneWheelAdmin: React.FC = () => {
                   <div className="text-sm text-muted-foreground">
                     <p>Du {new Date(config.startDate).toLocaleDateString()} au {new Date(config.endDate).toLocaleDateString()}</p>
                     <p>{config.segments.length} segments</p>
+                    {config.segments.some(s => s.type === 'gift_card') && (
+                      <Badge variant="outline" className="mt-1 text-green-600 border-green-300">
+                        <CreditCard className="h-3 w-3 mr-1" />
+                        Contient des cartes cadeaux
+                      </Badge>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -309,9 +340,18 @@ export const FortuneWheelAdmin: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Switch checked={formIsActive} onCheckedChange={setFormIsActive} />
-              <Label>Active</Label>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Switch checked={formIsActive} onCheckedChange={setFormIsActive} />
+                <Label>Active</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch checked={formIsPremiumOnly} onCheckedChange={setFormIsPremiumOnly} />
+                <Label className="flex items-center gap-1">
+                  <Crown className="h-4 w-4 text-amber-500" />
+                  Réservée aux Premium
+                </Label>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -330,7 +370,26 @@ export const FortuneWheelAdmin: React.FC = () => {
                       <Label className="text-xs">Type</Label>
                       <Select 
                         value={segment.type} 
-                        onValueChange={v => updateSegment(index, { type: v as 'orydors' | 'xp' | 'item' })}
+                        onValueChange={v => {
+                          const newType = v as 'orydors' | 'xp' | 'item' | 'gift_card';
+                          const updates: Partial<WheelSegment> = { type: newType };
+                          // Reset type-specific fields
+                          if (newType === 'gift_card') {
+                            updates.giftCardAmount = 5;
+                            updates.label = '5€ Carte Cadeau';
+                            updates.value = undefined;
+                            updates.rewardTypeId = undefined;
+                          } else if (newType === 'item') {
+                            updates.giftCardAmount = undefined;
+                            updates.value = undefined;
+                          } else {
+                            updates.giftCardAmount = undefined;
+                            updates.rewardTypeId = undefined;
+                            updates.value = 100;
+                            updates.label = `100 ${newType === 'orydors' ? 'Orydors' : 'XP'}`;
+                          }
+                          updateSegment(index, updates);
+                        }}
                       >
                         <SelectTrigger className="h-8">
                           <SelectValue />
@@ -339,6 +398,12 @@ export const FortuneWheelAdmin: React.FC = () => {
                           <SelectItem value="orydors">Orydors</SelectItem>
                           <SelectItem value="xp">XP</SelectItem>
                           <SelectItem value="item">Item</SelectItem>
+                          <SelectItem value="gift_card">
+                            <span className="flex items-center gap-1">
+                              <CreditCard className="h-3 w-3" />
+                              Carte Cadeau
+                            </span>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -366,6 +431,23 @@ export const FortuneWheelAdmin: React.FC = () => {
                             ))}
                           </SelectContent>
                         </Select>
+                      </div>
+                    ) : segment.type === 'gift_card' ? (
+                      <div>
+                        <Label className="text-xs">Montant (€)</Label>
+                        <Input 
+                          type="number" 
+                          className="h-8"
+                          min="1"
+                          value={segment.giftCardAmount || ''} 
+                          onChange={e => {
+                            const amount = parseFloat(e.target.value) || 0;
+                            updateSegment(index, { 
+                              giftCardAmount: amount,
+                              label: `${amount}€ Carte Cadeau`
+                            });
+                          }} 
+                        />
                       </div>
                     ) : (
                       <div>
