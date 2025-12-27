@@ -37,6 +37,7 @@ export async function getActiveWheelConfig(): Promise<WheelConfig | null> {
     endDate: data.end_date,
     segments,
     isActive: data.is_active,
+    isPremiumOnly: data.is_premium_only || false,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
   };
@@ -91,6 +92,22 @@ export async function canSpinForFree(userId: string): Promise<boolean> {
   }
   
   return !data; // Can spin if no claim exists for today
+}
+
+/**
+ * Check if user is premium
+ */
+export async function checkUserPremium(userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('subscribers')
+    .select('subscribed, subscription_end')
+    .eq('user_id', userId)
+    .maybeSingle();
+  
+  if (error || !data) return false;
+  
+  return data.subscribed && 
+    (!data.subscription_end || new Date(data.subscription_end) > new Date());
 }
 
 /**
@@ -173,6 +190,7 @@ export async function getAllWheelConfigs(): Promise<WheelConfig[]> {
     endDate: d.end_date,
     segments: (d.wheel_segments as unknown as WheelSegment[]) || DEFAULT_WHEEL_SEGMENTS,
     isActive: d.is_active,
+    isPremiumOnly: d.is_premium_only || false,
     createdAt: d.created_at,
     updatedAt: d.updated_at,
   }));
@@ -190,6 +208,7 @@ export async function createWheelConfig(config: Omit<WheelConfig, 'id' | 'create
       end_date: config.endDate,
       wheel_segments: JSON.parse(JSON.stringify(config.segments)),
       is_active: config.isActive,
+      is_premium_only: config.isPremiumOnly || false,
     }])
     .select()
     .single();
@@ -206,6 +225,7 @@ export async function createWheelConfig(config: Omit<WheelConfig, 'id' | 'create
     endDate: data.end_date,
     segments: (data.wheel_segments as unknown as WheelSegment[]) || [],
     isActive: data.is_active,
+    isPremiumOnly: data.is_premium_only || false,
   };
 }
 
@@ -219,6 +239,7 @@ export async function updateWheelConfig(id: string, updates: Partial<WheelConfig
   if (updates.endDate !== undefined) updateData.end_date = updates.endDate;
   if (updates.segments !== undefined) updateData.wheel_segments = updates.segments;
   if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
+  if (updates.isPremiumOnly !== undefined) updateData.is_premium_only = updates.isPremiumOnly;
   
   const { error } = await supabase
     .from('daily_chest_configs')

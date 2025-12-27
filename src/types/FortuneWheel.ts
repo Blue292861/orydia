@@ -2,10 +2,11 @@
 
 export interface WheelSegment {
   id: string;
-  type: 'orydors' | 'xp' | 'item';
+  type: 'orydors' | 'xp' | 'item' | 'gift_card';
   value?: number;
   rewardTypeId?: string;
   quantity?: number;
+  giftCardAmount?: number; // Amount in euros for gift cards
   probability: number;
   color: string;
   label: string;
@@ -18,6 +19,7 @@ export interface WheelConfig {
   endDate: string;
   segments: WheelSegment[];
   isActive: boolean;
+  isPremiumOnly?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -45,7 +47,7 @@ export interface StreakBonus {
 export interface WheelSpinResult {
   segmentIndex: number;
   reward: {
-    type: 'orydors' | 'xp' | 'item';
+    type: 'orydors' | 'xp' | 'item' | 'gift_card';
     value?: number;
     label: string;
     item?: {
@@ -54,6 +56,11 @@ export interface WheelSpinResult {
       imageUrl: string;
       rarity: string;
       quantity: number;
+    };
+    giftCard?: {
+      code: string;
+      amount: number;
+      emailSent: boolean;
     };
   };
   newStreak: number;
