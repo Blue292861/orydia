@@ -9,21 +9,6 @@ verify_jwt = false
 [functions.send-contact-email]
 verify_jwt = false
 
-[functions.translate-chapter-batch]
-verify_jwt = false
-
-[functions.translate-book-kickoff]
-verify_jwt = false
-
-[functions.translate-epub-content]
-verify_jwt = false
-
-[functions.translation-recovery]
-verify_jwt = false
-
-[functions.translate-book-chapters]
-verify_jwt = false
-
 [functions.complete-item-purchase]
 verify_jwt = false
 
@@ -46,3 +31,6 @@ verify_jwt = false
 [functions.get-user-stats]
 [functions.open-chest]
 [functions.claim-gift]
+[functions.spin-wheel]
+[functions.recover-streak]
+[functions.create-wheel-checkout]
