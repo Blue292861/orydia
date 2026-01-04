@@ -384,13 +384,6 @@ export type Database = {
             foreignKeyName: "book_chapter_epubs_book_id_fkey"
             columns: ["book_id"]
             isOneToOne: false
-            referencedRelation: "book_translation_status"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "book_chapter_epubs_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
             referencedRelation: "books"
             referencedColumns: ["id"]
           },
@@ -434,13 +427,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "book_chapters_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "book_translation_status"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "book_chapters_book_id_fkey"
             columns: ["book_id"]
@@ -619,13 +605,6 @@ export type Database = {
             foreignKeyName: "challenge_objectives_target_book_id_fkey"
             columns: ["target_book_id"]
             isOneToOne: false
-            referencedRelation: "book_translation_status"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "challenge_objectives_target_book_id_fkey"
-            columns: ["target_book_id"]
-            isOneToOne: false
             referencedRelation: "books"
             referencedColumns: ["id"]
           },
@@ -691,50 +670,6 @@ export type Database = {
           xp_reward?: number | null
         }
         Relationships: []
-      }
-      chapter_translations: {
-        Row: {
-          chapter_id: string
-          content_hash: string | null
-          created_at: string
-          error_message: string | null
-          id: string
-          language: string
-          status: string
-          translated_content: Json
-          updated_at: string
-        }
-        Insert: {
-          chapter_id: string
-          content_hash?: string | null
-          created_at?: string
-          error_message?: string | null
-          id?: string
-          language: string
-          status?: string
-          translated_content: Json
-          updated_at?: string
-        }
-        Update: {
-          chapter_id?: string
-          content_hash?: string | null
-          created_at?: string
-          error_message?: string | null
-          id?: string
-          language?: string
-          status?: string
-          translated_content?: Json
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chapter_translations_chapter_id_fkey"
-            columns: ["chapter_id"]
-            isOneToOne: false
-            referencedRelation: "book_chapter_epubs"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       chapter_waypoints: {
         Row: {
@@ -824,13 +759,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "chest_openings_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "book_translation_status"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "chest_openings_book_id_fkey"
             columns: ["book_id"]
@@ -1837,13 +1765,6 @@ export type Database = {
             foreignKeyName: "loot_tables_book_id_fkey"
             columns: ["book_id"]
             isOneToOne: false
-            referencedRelation: "book_translation_status"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "loot_tables_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
             referencedRelation: "books"
             referencedColumns: ["id"]
           },
@@ -2722,201 +2643,6 @@ export type Database = {
         }
         Relationships: []
       }
-      translation_alerts: {
-        Row: {
-          alert_type: string
-          created_at: string | null
-          id: string
-          is_resolved: boolean | null
-          message: string
-          metadata: Json | null
-          resolved_at: string | null
-          severity: string
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          alert_type: string
-          created_at?: string | null
-          id?: string
-          is_resolved?: boolean | null
-          message: string
-          metadata?: Json | null
-          resolved_at?: string | null
-          severity?: string
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          alert_type?: string
-          created_at?: string | null
-          id?: string
-          is_resolved?: boolean | null
-          message?: string
-          metadata?: Json | null
-          resolved_at?: string | null
-          severity?: string
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      translation_budget: {
-        Row: {
-          alert_threshold_pct: number
-          budget_usd: number
-          created_at: string
-          id: string
-          is_active: boolean
-          month_year: string
-          spent_usd: number
-          updated_at: string
-        }
-        Insert: {
-          alert_threshold_pct?: number
-          budget_usd?: number
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          month_year: string
-          spent_usd?: number
-          updated_at?: string
-        }
-        Update: {
-          alert_threshold_pct?: number
-          budget_usd?: number
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          month_year?: string
-          spent_usd?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      translation_jobs: {
-        Row: {
-          book_id: string
-          completed_at: string | null
-          completed_chapters: number | null
-          created_at: string
-          error_message: string | null
-          failed_chapters: number | null
-          id: string
-          metadata: Json | null
-          started_at: string | null
-          status: string
-          target_languages: string[]
-          total_chapters: number
-          updated_at: string
-        }
-        Insert: {
-          book_id: string
-          completed_at?: string | null
-          completed_chapters?: number | null
-          created_at?: string
-          error_message?: string | null
-          failed_chapters?: number | null
-          id?: string
-          metadata?: Json | null
-          started_at?: string | null
-          status?: string
-          target_languages: string[]
-          total_chapters: number
-          updated_at?: string
-        }
-        Update: {
-          book_id?: string
-          completed_at?: string | null
-          completed_chapters?: number | null
-          created_at?: string
-          error_message?: string | null
-          failed_chapters?: number | null
-          id?: string
-          metadata?: Json | null
-          started_at?: string | null
-          status?: string
-          target_languages?: string[]
-          total_chapters?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "translation_jobs_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "book_translation_status"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "translation_jobs_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      translation_metrics: {
-        Row: {
-          chapter_id: string | null
-          cost_usd: number | null
-          created_at: string
-          duration_ms: number | null
-          error_message: string | null
-          id: string
-          job_id: string | null
-          language: string
-          metadata: Json | null
-          retries: number | null
-          status: string
-          tokens_used: number | null
-        }
-        Insert: {
-          chapter_id?: string | null
-          cost_usd?: number | null
-          created_at?: string
-          duration_ms?: number | null
-          error_message?: string | null
-          id?: string
-          job_id?: string | null
-          language: string
-          metadata?: Json | null
-          retries?: number | null
-          status: string
-          tokens_used?: number | null
-        }
-        Update: {
-          chapter_id?: string | null
-          cost_usd?: number | null
-          created_at?: string
-          duration_ms?: number | null
-          error_message?: string | null
-          id?: string
-          job_id?: string | null
-          language?: string
-          metadata?: Json | null
-          retries?: number | null
-          status?: string
-          tokens_used?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "translation_metrics_chapter_id_fkey"
-            columns: ["chapter_id"]
-            isOneToOne: false
-            referencedRelation: "book_chapter_epubs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "translation_metrics_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "translation_jobs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       ui_themes: {
         Row: {
           accent_color: string
@@ -3152,13 +2878,6 @@ export type Database = {
             foreignKeyName: "user_chapter_progress_book_id_fkey"
             columns: ["book_id"]
             isOneToOne: false
-            referencedRelation: "book_translation_status"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_chapter_progress_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
             referencedRelation: "books"
             referencedColumns: ["id"]
           },
@@ -3238,13 +2957,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "user_epub_chapter_progress_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "book_translation_status"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "user_epub_chapter_progress_book_id_fkey"
             columns: ["book_id"]
@@ -3442,13 +3154,6 @@ export type Database = {
             foreignKeyName: "user_rare_books_book_id_fkey"
             columns: ["book_id"]
             isOneToOne: false
-            referencedRelation: "book_translation_status"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_rare_books_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
             referencedRelation: "books"
             referencedColumns: ["id"]
           },
@@ -3570,13 +3275,6 @@ export type Database = {
             foreignKeyName: "user_story_choices_book_id_fkey"
             columns: ["book_id"]
             isOneToOne: false
-            referencedRelation: "book_translation_status"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_story_choices_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
             referencedRelation: "books"
             referencedColumns: ["id"]
           },
@@ -3661,17 +3359,6 @@ export type Database = {
       }
     }
     Views: {
-      book_translation_status: {
-        Row: {
-          author: string | null
-          id: string | null
-          title: string | null
-          total_chapters: number | null
-          translated_chapter_count: number | null
-          translation_status: string | null
-        }
-        Relationships: []
-      }
       leaderboard_general: {
         Row: {
           avatar_url: string | null
@@ -3740,7 +3427,6 @@ export type Database = {
         }[]
       }
       calculate_level: { Args: { experience_points: number }; Returns: number }
-      check_and_create_budget_alert: { Args: never; Returns: undefined }
       check_rate_limit: {
         Args: {
           p_action_type: string
@@ -3785,18 +3471,6 @@ export type Database = {
       }
       dissolve_guild: { Args: { p_guild_id: string }; Returns: boolean }
       generate_gift_card_code: { Args: never; Returns: string }
-      get_current_month_budget: {
-        Args: never
-        Returns: {
-          alert_threshold_pct: number
-          budget_usd: number
-          id: string
-          is_over_threshold: boolean
-          month_year: string
-          remaining_usd: number
-          spent_usd: number
-        }[]
-      }
       get_recommended_theme: {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["ui_theme"]
@@ -3918,10 +3592,6 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
-      }
-      update_translation_budget_spent: {
-        Args: { cost_amount: number }
-        Returns: boolean
       }
       use_gift_card: {
         Args: {

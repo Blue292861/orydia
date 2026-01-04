@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChestOpeningDialog } from '@/components/ChestOpeningDialog';
 import { ChapterCompletionAnimation } from '@/components/ChapterCompletionAnimation';
-import { TranslationProgress } from '@/components/TranslationProgress';
 import WaypointPopup from '@/components/WaypointPopup';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserStats } from '@/contexts/UserStatsContext';
@@ -22,7 +21,6 @@ import { Book } from '@/types/Book';
 
 type Theme = 'light' | 'dark' | 'sepia';
 type ColorblindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
-type Language = 'fr' | 'en' | 'es' | 'de' | 'ru' | 'zh' | 'ja' | 'ar' | 'it' | 'pt' | 'nl' | 'pl' | 'tr' | 'ko';
 
 export const ChapterEpubReader: React.FC = () => {
   const { bookId, chapterId } = useParams<{ bookId: string; chapterId: string }>();
@@ -40,8 +38,6 @@ export const ChapterEpubReader: React.FC = () => {
   const [fontSize, setFontSize] = useState(16);
   const [theme, setTheme] = useState<Theme>('light');
   const [colorblindMode, setColorblindMode] = useState<ColorblindMode>('none');
-  const [language, setLanguage] = useState<Language>('fr');
-  const [isTranslating, setIsTranslating] = useState(false);
   
   // EPUB state
   const [epubReady, setEpubReady] = useState(false);
@@ -84,8 +80,6 @@ export const ChapterEpubReader: React.FC = () => {
   const fatalLoadTimerRef = useRef<number | null>(null);
   const lastSizeRef = useRef({ width: 0, height: 0 });
   const viewportResizeHandlerRef = useRef<(() => void) | null>(null);
-  const translationCacheRef = useRef<Map<string, string>>(new Map());
-  const originalContentRef = useRef<string>('');
   const preloadCacheRef = useRef<Map<string, Blob>>(new Map());
 
   // Helper function to highlight waypoint words in EPUB content
@@ -178,11 +172,9 @@ export const ChapterEpubReader: React.FC = () => {
         // Load saved settings
         const savedFontSize = localStorage.getItem(`chapter_fontSize_${chapterId}`);
         const savedTheme = localStorage.getItem(`chapter_theme_${chapterId}`);
-        const savedLanguage = localStorage.getItem(`chapter_language_${chapterId}`);
 
         if (savedFontSize) setFontSize(parseInt(savedFontSize));
         if (savedTheme) setTheme(savedTheme as Theme);
-        if (savedLanguage) setLanguage(savedLanguage as Language);
       } catch (error) {
         console.error('Error loading chapter:', error);
         toast.error('Erreur lors du chargement');
@@ -579,19 +571,6 @@ export const ChapterEpubReader: React.FC = () => {
           const doc = contents.document;
           if (!doc) return;
           
-          // Apply translations if not French
-          if (language !== 'fr') {
-            const section = contents.section;
-            const sectionId = section?.idref;
-            
-            if (sectionId && translationCacheRef.current.has(sectionId)) {
-              const translatedHTML = translationCacheRef.current.get(sectionId);
-              if (doc.body && translatedHTML) {
-                doc.body.innerHTML = translatedHTML;
-              }
-            }
-          }
-          
           // Apply waypoint highlighting
           if (waypoints.length > 0) {
             const themeColors = {
@@ -897,95 +876,6 @@ export const ChapterEpubReader: React.FC = () => {
     setTheme(newTheme);
   };
 
-  const handleLanguageChange = (newLanguage: Language) => {
-    setLanguage(newLanguage);
-    if (chapterId) {
-      localStorage.setItem(`chapter_language_${chapterId}`, newLanguage);
-    }
-  };
-
-  // Load translations from database
-  const loadTranslationsFromDatabase = async (targetLang: Language) => {
-    if (!chapterId) return;
-
-    try {
-      setIsTranslating(true);
-
-      const { data, error } = await supabase
-        .from('chapter_translations')
-        .select('translated_content, status')
-        .eq('chapter_id', chapterId)
-        .eq('language', targetLang)
-        .single();
-
-      if (error || !data) {
-        toast.error('Traduction non disponible pour cette langue');
-        setLanguage('fr');
-        return;
-      }
-
-      if (data.status === 'processing') {
-        toast.info('Traduction en cours de génération... Réessayez dans quelques minutes.');
-        setLanguage('fr');
-        return;
-      }
-
-      if (data.status === 'failed') {
-        toast.error('La traduction a échoué. Contactez l\'administrateur.');
-        setLanguage('fr');
-        return;
-      }
-
-      if (data.status === 'completed') {
-        const translatedData = data.translated_content as any;
-        const sections = translatedData?.sections || [];
-        translationCacheRef.current.clear();
-        sections.forEach((s: any) => {
-          translationCacheRef.current.set(s.id, s.html);
-        });
-
-        // Reload current page to apply translations
-        if (renditionRef.current) {
-          const currentCfi = renditionRef.current.currentLocation()?.start?.cfi;
-          if (currentCfi) {
-            renditionRef.current.display(currentCfi);
-          }
-        }
-
-        toast.success('Traduction chargée !');
-      }
-    } catch (error) {
-      console.error('Error loading translation:', error);
-      toast.error('Erreur lors du chargement de la traduction');
-      setLanguage('fr');
-    } finally {
-      setIsTranslating(false);
-    }
-  };
-
-  // Load translations from database when language changes
-  useEffect(() => {
-    if (!epubReady || !renditionRef.current || !chapterId) return;
-
-    if (language === 'fr') {
-      // Clear translations and reload original content
-      translationCacheRef.current.clear();
-      const currentCfi = renditionRef.current.currentLocation()?.start?.cfi;
-      if (currentCfi) {
-        renditionRef.current.display(currentCfi);
-      }
-    } else {
-      // Load pre-translated content from database
-      loadTranslationsFromDatabase(language);
-    }
-  }, [language, epubReady, chapterId]);
-
-  // Clear translation cache and reset when chapter changes
-  useEffect(() => {
-    translationCacheRef.current.clear();
-    originalContentRef.current = '';
-  }, [chapterId]);
-
   const handleResetPosition = () => {
     if (chapterId) {
       localStorage.removeItem(`chapter_location_${chapterId}`);
@@ -1237,11 +1127,6 @@ export const ChapterEpubReader: React.FC = () => {
           </Button>
           <h1 className="text-base md:text-lg font-semibold line-clamp-1 flex-1">
             {chapter.title}
-            {language !== 'fr' && (
-              <span className="ml-2 text-xs font-normal text-muted-foreground">
-                (traduit)
-              </span>
-            )}
           </h1>
           <Button
             variant="outline"
@@ -1253,13 +1138,6 @@ export const ChapterEpubReader: React.FC = () => {
           </Button>
         </div>
       </div>
-
-      {/* Translation Progress */}
-      <TranslationProgress 
-        bookId={bookId} 
-        language={language} 
-        className="mx-auto max-w-4xl px-4 mt-2"
-      />
 
       {/* EPUB Reader with Navigation */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden pb-16 md:pb-14">
@@ -1297,19 +1175,19 @@ export const ChapterEpubReader: React.FC = () => {
 
             {/* Reader Container with Navigation Buttons */}
             <div className="flex-1 relative overflow-hidden pb-2" ref={containerRef} style={{ minHeight: '0' }}>
-              {(!epubReady || isTranslating) && (
+              {!epubReady && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/60 z-10 pointer-events-none">
                   <div className="text-center space-y-2">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                     <p className="text-muted-foreground">
-                      {isTranslating ? 'Traduction en cours...' : 'Chargement du chapitre...'}
+                      Chargement du chapitre...
                     </p>
                   </div>
                 </div>
               )}
 
               {/* Navigation Button - Previous */}
-              {epubReady && !isTranslating && (
+              {epubReady && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -1332,7 +1210,7 @@ export const ChapterEpubReader: React.FC = () => {
         />
 
               {/* Navigation Button - Next */}
-              {epubReady && !isTranslating && (
+              {epubReady && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -1449,11 +1327,9 @@ export const ChapterEpubReader: React.FC = () => {
         fontSize={fontSize}
         theme={theme}
         colorblindMode={colorblindMode}
-        language={language}
         onFontSizeChange={handleFontSizeChange}
         onThemeChange={handleThemeChange}
         onColorblindModeChange={setColorblindMode}
-        onLanguageChange={handleLanguageChange}
       />
 
 

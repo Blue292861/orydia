@@ -7,11 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookForm } from '@/components/BookForm';
 import { BookDetailAdmin } from '@/components/BookDetailAdmin';
-import { BookTranslationManager } from '@/components/BookTranslationManager';
-import { TranslationDashboard } from '@/components/TranslationDashboard';
-import { TranslationBudgetManager } from '@/components/TranslationBudgetManager';
-import { TranslationAlerts } from '@/components/TranslationAlerts';
-import { TranslationJobsMonitor } from '@/components/TranslationJobsMonitor';
 import { RewardTypesAdmin } from '@/components/RewardTypesAdmin';
 import { LootTableEditor } from '@/components/LootTableEditor';
 import { CollectionsAdmin } from '@/components/CollectionsAdmin';
@@ -94,8 +89,6 @@ export const AdminDashboard: React.FC = () => {
           <TabsTrigger value="skills" className="flex items-center gap-1"><TreeDeciduous className="w-4 h-4" />Skills</TabsTrigger>
           <TabsTrigger value="gifts" className="flex items-center gap-1"><Gift className="w-4 h-4" />Cadeaux</TabsTrigger>
           <TabsTrigger value="levels" className="flex items-center gap-1"><Star className="w-4 h-4" />Niveaux</TabsTrigger>
-          <TabsTrigger value="translations">Traductions</TabsTrigger>
-          <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           <TabsTrigger value="newsletter" className="flex items-center gap-1"><Mail className="w-4 h-4" />Newsletter</TabsTrigger>
           <TabsTrigger value="test">🧪 Test</TabsTrigger>
         </TabsList>
@@ -230,19 +223,6 @@ export const AdminDashboard: React.FC = () => {
 
         <TabsContent value="levels">
           <LevelRewardsAdmin />
-        </TabsContent>
-
-        <TabsContent value="translations">
-          <BookTranslationManager />
-        </TabsContent>
-
-        <TabsContent value="monitoring">
-          <div className="space-y-6">
-            <TranslationAlerts />
-            <TranslationJobsMonitor />
-            <TranslationDashboard />
-            <TranslationBudgetManager />
-          </div>
         </TabsContent>
 
         <TabsContent value="newsletter">
