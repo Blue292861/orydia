@@ -25,6 +25,28 @@ import {
 } from '@/services/fortuneWheelService';
 import { useConfetti } from '@/hooks/useConfetti';
 
+// SVG arc utilities for wheel segments
+const polarToCartesian = (cx: number, cy: number, radius: number, angleInDegrees: number) => {
+  const angleInRadians = (angleInDegrees * Math.PI) / 180;
+  return {
+    x: cx + radius * Math.cos(angleInRadians),
+    y: cy + radius * Math.sin(angleInRadians)
+  };
+};
+
+const describeArc = (cx: number, cy: number, radius: number, startAngle: number, endAngle: number): string => {
+  const start = polarToCartesian(cx, cy, radius, endAngle);
+  const end = polarToCartesian(cx, cy, radius, startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+  
+  return [
+    "M", cx, cy,
+    "L", start.x, start.y,
+    "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y,
+    "Z"
+  ].join(" ");
+};
+
 interface FortuneWheelProps {
   onSpinComplete?: () => void;
 }
@@ -303,47 +325,90 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
               <div className="w-0 h-0 border-l-[12px] border-r-[12px] border-t-[20px] border-l-transparent border-r-transparent border-t-gold-600 drop-shadow-lg" />
             </div>
             
-            {/* Wheel container */}
+            {/* Responsive wheel container */}
             <div 
               ref={wheelRef}
-              className="relative w-56 h-56 rounded-full border-4 border-gold-500 shadow-xl overflow-hidden"
+              className="relative w-full max-w-[240px] sm:max-w-[280px] md:max-w-[320px] aspect-square"
               style={{
                 transform: `rotate(${rotation}deg)`,
                 transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none'
               }}
             >
-              {/* Segments */}
-              {config.segments.map((segment, index) => {
-                const angle = 360 / config.segments.length;
-                const startAngle = index * angle;
+              <svg 
+                viewBox="0 0 200 200" 
+                className="w-full h-full drop-shadow-xl"
+              >
+                {/* Outer border */}
+                <circle cx="100" cy="100" r="98" fill="none" stroke="hsl(var(--gold-500))" strokeWidth="4" />
                 
-                return (
-                  <div
-                    key={segment.id}
-                    className="absolute w-full h-full origin-center"
-                    style={{
-                      transform: `rotate(${startAngle}deg)`,
-                      clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.tan(angle * Math.PI / 360)}% 0%, 50% 50%)`
-                    }}
-                  >
-                    <div 
-                      className="w-full h-full flex items-start justify-center pt-2"
-                      style={{ 
-                        backgroundColor: segment.color,
-                        transform: `rotate(${angle / 2}deg)`
-                      }}
-                    >
-                      <span className="text-[8px] font-bold text-white drop-shadow-md text-center px-1 max-w-[60px] leading-tight">
-                        {segment.label}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+                {/* Segments */}
+                {config.segments.map((segment, index) => {
+                  const segmentCount = config.segments.length;
+                  const angle = 360 / segmentCount;
+                  const startAngle = index * angle - 90; // Start from top
+                  const endAngle = startAngle + angle;
+                  
+                  // Calculate arc path
+                  const path = describeArc(100, 100, 90, startAngle, endAngle);
+                  
+                  // Calculate text position (middle of segment)
+                  const midAngle = startAngle + angle / 2;
+                  const textRadius = 55; // Distance from center
+                  const textX = 100 + textRadius * Math.cos((midAngle * Math.PI) / 180);
+                  const textY = 100 + textRadius * Math.sin((midAngle * Math.PI) / 180);
+                  
+                  // Truncate label if too long
+                  const maxChars = segmentCount <= 4 ? 16 : segmentCount <= 6 ? 12 : 10;
+                  const displayLabel = segment.label.length > maxChars 
+                    ? segment.label.substring(0, maxChars - 1) + '…' 
+                    : segment.label;
+                  
+                  // Dynamic font size based on segment count
+                  const fontSize = segmentCount <= 4 ? 10 : segmentCount <= 6 ? 9 : segmentCount <= 8 ? 8 : 7;
+                  
+                  return (
+                    <g key={segment.id}>
+                      <path 
+                        d={path} 
+                        fill={segment.color}
+                        stroke="rgba(255,255,255,0.3)"
+                        strokeWidth="1"
+                      />
+                      <text
+                        x={textX}
+                        y={textY}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill="white"
+                        fontSize={fontSize}
+                        fontWeight="bold"
+                        transform={`rotate(${midAngle + 90}, ${textX}, ${textY})`}
+                        style={{ 
+                          textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        {displayLabel}
+                      </text>
+                    </g>
+                  );
+                })}
+                
+                {/* Center circle */}
+                <circle cx="100" cy="100" r="22" fill="url(#centerGradient)" stroke="hsl(var(--gold-300))" strokeWidth="2" />
+                
+                {/* Gradient definition */}
+                <defs>
+                  <linearGradient id="centerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="hsl(45, 93%, 58%)" />
+                    <stop offset="100%" stopColor="hsl(45, 93%, 47%)" />
+                  </linearGradient>
+                </defs>
+              </svg>
               
-              {/* Center circle */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 border-2 border-gold-300 shadow-inner flex items-center justify-center">
-                <Gift className="h-6 w-6 text-white" />
+              {/* Center icon overlay */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-white drop-shadow-md" />
               </div>
             </div>
           </div>
