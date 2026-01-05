@@ -17,9 +17,10 @@ import GiftAdmin from '@/components/GiftAdmin';
 import { NewsletterAdmin } from '@/components/NewsletterAdmin';
 import { SkillTreeAdmin } from '@/components/SkillTreeAdmin';
 import { FortuneWheelAdmin } from '@/components/FortuneWheelAdmin';
-import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap, Gift, Mail, TreeDeciduous, Sparkles } from 'lucide-react';
+import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap, Gift, Mail, TreeDeciduous, Sparkles, Search } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
 import { useResponsive } from '@/hooks/useResponsive';
+import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +34,19 @@ export const AdminDashboard: React.FC = () => {
   const [editingBook, setEditingBook] = useState<Book | null>(null);
   const [detailBook, setDetailBook] = useState<Book | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { isMobile, isTablet } = useResponsive();
+
+  // Filter books based on search query
+  const filteredBooks = books.filter((book) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      book.title.toLowerCase().includes(query) ||
+      book.author.toLowerCase().includes(query) ||
+      (book.tags && book.tags.some(tag => tag.toLowerCase().includes(query)))
+    );
+  });
 
   const handleOpenAdd = () => {
     setEditingBook(null);
@@ -94,7 +107,18 @@ export const AdminDashboard: React.FC = () => {
         </TabsList>
 
         <TabsContent value="books" className="space-y-6">
-          <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-end items-center'}`}>
+          <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between items-center gap-4'}`}>
+            {/* Search bar */}
+            <div className={`relative ${isMobile ? 'w-full' : 'flex-1 max-w-md'}`}>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Rechercher par titre, auteur ou tag..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
             <Button 
               onClick={handleOpenAdd} 
               className={`flex items-center gap-2 ${isMobile ? 'w-full justify-center' : ''}`}
@@ -105,6 +129,12 @@ export const AdminDashboard: React.FC = () => {
             </Button>
           </div>
 
+          {searchQuery && (
+            <p className="text-sm text-muted-foreground">
+              {filteredBooks.length} résultat{filteredBooks.length !== 1 ? 's' : ''} pour "{searchQuery}"
+            </p>
+          )}
+
           <div className={`grid gap-4 ${
             isMobile 
               ? 'grid-cols-1' 
@@ -112,7 +142,7 @@ export const AdminDashboard: React.FC = () => {
                 ? 'grid-cols-1 md:grid-cols-2' 
                 : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
           }`}>
-        {books.map((book) => (
+        {filteredBooks.map((book) => (
           <Card key={book.id} className={book.isPremium ? "ring-2 ring-yellow-500" : ""}>
             <div className={`flex ${isMobile ? 'h-[100px]' : 'h-[120px]'}`}>
               <img 
