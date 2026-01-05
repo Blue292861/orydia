@@ -20,7 +20,8 @@ import {
   Play,
   AlertTriangle,
   FlaskConical,
-  Wand2
+  Wand2,
+  RotateCw
 } from 'lucide-react';
 import { rollChestRewards } from '@/services/chestService';
 import { fetchCollections, getUserCollectionProgress } from '@/services/collectionService';
@@ -34,6 +35,7 @@ import { GuildJoinAnimation } from './GuildJoinAnimation';
 import { GuildCreationAnimation } from './GuildCreationAnimation';
 import { CollectionCompleteAnimation } from './CollectionCompleteAnimation';
 import { ChapterCompletionAnimation } from './ChapterCompletionAnimation';
+import { FortuneWheel } from './FortuneWheel';
 
 interface Book {
   id: string;
@@ -105,6 +107,9 @@ export const TestEnvironmentAdmin: React.FC = () => {
   const [showGuildCreateAnim, setShowGuildCreateAnim] = useState(false);
   const [showCollectionAnim, setShowCollectionAnim] = useState(false);
   const [showChapterAnim, setShowChapterAnim] = useState(false);
+  
+  // Fortune wheel test state
+  const [showFortuneWheel, setShowFortuneWheel] = useState(false);
 
   // Load books
   useEffect(() => {
@@ -733,9 +738,38 @@ export const TestEnvironmentAdmin: React.FC = () => {
               <span className="text-lg mb-1">📖</span>
               <span className="text-xs">Chapitre terminé</span>
             </Button>
+            <Button onClick={() => setShowFortuneWheel(true)} variant="outline" className="flex flex-col h-auto py-3">
+              <RotateCw className="h-5 w-5 mb-1 text-gold-500" />
+              <span className="text-xs">Roue quotidienne</span>
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Fortune Wheel Test Section */}
+      {showFortuneWheel && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <RotateCw className="h-5 w-5 text-gold-500" />
+                Test Roue Quotidienne
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setShowFortuneWheel(false)}>
+                Fermer
+              </Button>
+            </div>
+            <CardDescription>
+              Tester la roue de la fortune quotidienne
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="max-w-md mx-auto">
+              <FortuneWheel onSpinComplete={() => toast.success('Tour de roue terminé !')} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Animation Previews */}
       <ChallengeCompletionAnimation
