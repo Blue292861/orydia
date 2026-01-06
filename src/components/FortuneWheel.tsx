@@ -16,7 +16,8 @@ import {
   STREAK_RECOVERY_COST 
 } from '@/types/FortuneWheel';
 import { 
-  getActiveWheelConfig, 
+  getActiveWheelConfig,
+  getWheelConfigById,
   getUserStreak, 
   canSpinForFree, 
   getTimeUntilNextFreeSpin,
@@ -50,6 +51,7 @@ const describeArc = (cx: number, cy: number, radius: number, startAngle: number,
 interface FortuneWheelProps {
   onSpinComplete?: () => void;
   isTestMode?: boolean;
+  testConfigId?: string;
   forcedSegmentIndex?: number;
   unlimitedSpins?: boolean;
 }
@@ -57,6 +59,7 @@ interface FortuneWheelProps {
 export const FortuneWheel: React.FC<FortuneWheelProps> = ({ 
   onSpinComplete, 
   isTestMode = false,
+  testConfigId,
   forcedSegmentIndex,
   unlimitedSpins = false
 }) => {
@@ -121,8 +124,13 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
       if (!user) return;
       
       try {
+        // In test mode with a specific config, load that config; otherwise load active config
+        const configPromise = isTestMode && testConfigId 
+          ? getWheelConfigById(testConfigId)
+          : getActiveWheelConfig();
+          
         const [configData, streakData, bonusesData, canSpinData, isPremiumData] = await Promise.all([
-          getActiveWheelConfig(),
+          configPromise,
           getUserStreak(user.id),
           getStreakBonuses(),
           canSpinForFree(user.id),
@@ -142,7 +150,7 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
     };
     
     loadData();
-  }, [user]);
+  }, [user, isTestMode, testConfigId]);
 
   // Timer for next free spin
   useEffect(() => {

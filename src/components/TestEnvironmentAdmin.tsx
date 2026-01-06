@@ -112,6 +112,8 @@ export const TestEnvironmentAdmin: React.FC = () => {
   const [showFortuneWheel, setShowFortuneWheel] = useState(false);
   const [wheelForcedSegment, setWheelForcedSegment] = useState<string>('random');
   const [wheelUnlimitedSpins, setWheelUnlimitedSpins] = useState(true);
+  const [wheelConfigs, setWheelConfigs] = useState<{id: string; name: string; isPremiumOnly: boolean}[]>([]);
+  const [selectedWheelConfigId, setSelectedWheelConfigId] = useState<string>('');
   const [wheelSegments, setWheelSegments] = useState<{id: string; label: string}[]>([]);
 
   // Load books
@@ -143,38 +145,54 @@ export const TestEnvironmentAdmin: React.FC = () => {
     loadCollections();
   }, []);
 
-  // Load wheel segments for test mode
+  // Load wheel configs for test mode
   useEffect(() => {
-    const loadWheelConfig = async () => {
-      const now = new Date().toISOString();
-      // First try to get active config within date range
-      let { data, error } = await supabase
+    const loadWheelConfigs = async () => {
+      const { data, error } = await supabase
+        .from('daily_chest_configs')
+        .select('id, name, is_premium_only, wheel_segments')
+        .eq('is_active', true)
+        .order('is_premium_only', { ascending: true })
+        .order('created_at', { ascending: false });
+      
+      if (!error && data && data.length > 0) {
+        setWheelConfigs(data.map(c => ({ 
+          id: c.id, 
+          name: c.name, 
+          isPremiumOnly: c.is_premium_only || false 
+        })));
+        // Auto-select first config
+        setSelectedWheelConfigId(data[0].id);
+        // Load segments for first config
+        const firstConfig = data[0];
+        if (firstConfig.wheel_segments) {
+          const segments = firstConfig.wheel_segments as any[];
+          setWheelSegments(segments.map((s, i) => ({ id: String(i), label: s.label || `Segment ${i + 1}` })));
+        }
+      }
+    };
+    loadWheelConfigs();
+  }, []);
+
+  // Update segments when selected config changes
+  useEffect(() => {
+    if (!selectedWheelConfigId) return;
+    
+    const loadSegments = async () => {
+      const { data } = await supabase
         .from('daily_chest_configs')
         .select('wheel_segments')
-        .eq('is_active', true)
-        .lte('start_date', now)
-        .gte('end_date', now)
-        .maybeSingle();
-      
-      // If no config in date range, get any active config
-      if (!data) {
-        const result = await supabase
-          .from('daily_chest_configs')
-          .select('wheel_segments')
-          .eq('is_active', true)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        data = result.data;
-      }
+        .eq('id', selectedWheelConfigId)
+        .single();
       
       if (data?.wheel_segments) {
         const segments = data.wheel_segments as any[];
         setWheelSegments(segments.map((s, i) => ({ id: String(i), label: s.label || `Segment ${i + 1}` })));
+        setWheelForcedSegment('random'); // Reset forced segment when config changes
       }
     };
-    loadWheelConfig();
-  }, []);
+    loadSegments();
+  }, [selectedWheelConfigId]);
 
   // Load interactive chapters when book selected
   useEffect(() => {
@@ -804,7 +822,26 @@ export const TestEnvironmentAdmin: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Test Controls */}
-            <div className="grid gap-4 md:grid-cols-2 p-4 bg-muted/50 rounded-lg border border-dashed">
+            <div className="grid gap-4 md:grid-cols-3 p-4 bg-muted/50 rounded-lg border border-dashed">
+              <div className="space-y-2">
+                <Label>Configuration de roue</Label>
+                <Select value={selectedWheelConfigId} onValueChange={setSelectedWheelConfigId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choisir une roue" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {wheelConfigs.map((cfg) => (
+                      <SelectItem key={cfg.id} value={cfg.id}>
+                        {cfg.isPremiumOnly ? '👑 ' : '🆓 '}{cfg.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  👑 Premium / 🆓 Freemium
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <Label>Résultat forcé</Label>
                 <Select value={wheelForcedSegment} onValueChange={setWheelForcedSegment}>
@@ -812,7 +849,7 @@ export const TestEnvironmentAdmin: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="random">🎲 Aléatoire (appel serveur)</SelectItem>
+                    <SelectItem value="random">🎲 Aléatoire</SelectItem>
                     {wheelSegments.map((seg, i) => (
                       <SelectItem key={seg.id} value={String(i)}>
                         🎯 {seg.label}
@@ -821,7 +858,7 @@ export const TestEnvironmentAdmin: React.FC = () => {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Choisir un segment spécifique simule localement (pas d'appel serveur)
+                  Forcer un segment spécifique
                 </p>
               </div>
 
@@ -839,8 +876,10 @@ export const TestEnvironmentAdmin: React.FC = () => {
             {/* Wheel */}
             <div className="max-w-md mx-auto">
               <FortuneWheel 
+                key={selectedWheelConfigId}
                 onSpinComplete={() => toast.success('Tour de roue terminé !')}
                 isTestMode={true}
+                testConfigId={selectedWheelConfigId}
                 forcedSegmentIndex={wheelForcedSegment !== 'random' ? parseInt(wheelForcedSegment) : undefined}
                 unlimitedSpins={wheelUnlimitedSpins}
               />
