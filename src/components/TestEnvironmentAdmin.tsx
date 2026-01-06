@@ -110,6 +110,9 @@ export const TestEnvironmentAdmin: React.FC = () => {
   
   // Fortune wheel test state
   const [showFortuneWheel, setShowFortuneWheel] = useState(false);
+  const [wheelForcedSegment, setWheelForcedSegment] = useState<string>('random');
+  const [wheelUnlimitedSpins, setWheelUnlimitedSpins] = useState(true);
+  const [wheelSegments, setWheelSegments] = useState<{id: string; label: string}[]>([]);
 
   // Load books
   useEffect(() => {
@@ -138,6 +141,25 @@ export const TestEnvironmentAdmin: React.FC = () => {
       setLoadingCollections(false);
     };
     loadCollections();
+  }, []);
+
+  // Load wheel segments for test mode
+  useEffect(() => {
+    const loadWheelConfig = async () => {
+      const { data, error } = await supabase
+        .from('daily_chest_configs')
+        .select('wheel_segments')
+        .eq('is_active', true)
+        .lte('start_date', new Date().toISOString())
+        .gte('end_date', new Date().toISOString())
+        .maybeSingle();
+      
+      if (!error && data?.wheel_segments) {
+        const segments = data.wheel_segments as any[];
+        setWheelSegments(segments.map((s, i) => ({ id: String(i), label: s.label || `Segment ${i + 1}` })));
+      }
+    };
+    loadWheelConfig();
   }, []);
 
   // Load interactive chapters when book selected
@@ -754,18 +776,60 @@ export const TestEnvironmentAdmin: React.FC = () => {
               <CardTitle className="flex items-center gap-2">
                 <RotateCw className="h-5 w-5 text-gold-500" />
                 Test Roue Quotidienne
+                <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300">
+                  MODE TEST
+                </Badge>
               </CardTitle>
               <Button variant="ghost" size="sm" onClick={() => setShowFortuneWheel(false)}>
                 Fermer
               </Button>
             </div>
             <CardDescription>
-              Tester la roue de la fortune quotidienne
+              Testez la roue avec des paramètres personnalisés (données non enregistrées)
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
+            {/* Test Controls */}
+            <div className="grid gap-4 md:grid-cols-2 p-4 bg-muted/50 rounded-lg border border-dashed">
+              <div className="space-y-2">
+                <Label>Résultat forcé</Label>
+                <Select value={wheelForcedSegment} onValueChange={setWheelForcedSegment}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="random">🎲 Aléatoire (appel serveur)</SelectItem>
+                    {wheelSegments.map((seg, i) => (
+                      <SelectItem key={seg.id} value={String(i)}>
+                        🎯 {seg.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Choisir un segment spécifique simule localement (pas d'appel serveur)
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Tours illimités</Label>
+                    <p className="text-xs text-muted-foreground">Ignorer la limite quotidienne</p>
+                  </div>
+                  <Switch checked={wheelUnlimitedSpins} onCheckedChange={setWheelUnlimitedSpins} />
+                </div>
+              </div>
+            </div>
+
+            {/* Wheel */}
             <div className="max-w-md mx-auto">
-              <FortuneWheel onSpinComplete={() => toast.success('Tour de roue terminé !')} />
+              <FortuneWheel 
+                onSpinComplete={() => toast.success('Tour de roue terminé !')}
+                isTestMode={true}
+                forcedSegmentIndex={wheelForcedSegment !== 'random' ? parseInt(wheelForcedSegment) : undefined}
+                unlimitedSpins={wheelUnlimitedSpins}
+              />
             </div>
           </CardContent>
         </Card>
