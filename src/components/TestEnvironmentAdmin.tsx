@@ -146,15 +146,29 @@ export const TestEnvironmentAdmin: React.FC = () => {
   // Load wheel segments for test mode
   useEffect(() => {
     const loadWheelConfig = async () => {
-      const { data, error } = await supabase
+      const now = new Date().toISOString();
+      // First try to get active config within date range
+      let { data, error } = await supabase
         .from('daily_chest_configs')
         .select('wheel_segments')
         .eq('is_active', true)
-        .lte('start_date', new Date().toISOString())
-        .gte('end_date', new Date().toISOString())
+        .lte('start_date', now)
+        .gte('end_date', now)
         .maybeSingle();
       
-      if (!error && data?.wheel_segments) {
+      // If no config in date range, get any active config
+      if (!data) {
+        const result = await supabase
+          .from('daily_chest_configs')
+          .select('wheel_segments')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        data = result.data;
+      }
+      
+      if (data?.wheel_segments) {
         const segments = data.wheel_segments as any[];
         setWheelSegments(segments.map((s, i) => ({ id: String(i), label: s.label || `Segment ${i + 1}` })));
       }
