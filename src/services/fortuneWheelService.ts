@@ -24,6 +24,33 @@ export async function getActiveWheelConfig(): Promise<WheelConfig | null> {
   
   if (!data) return null;
   
+  return parseWheelConfig(data);
+}
+
+/**
+ * Get wheel configuration by ID (for test mode)
+ */
+export async function getWheelConfigById(configId: string): Promise<WheelConfig | null> {
+  const { data, error } = await supabase
+    .from('daily_chest_configs')
+    .select('*')
+    .eq('id', configId)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching wheel config by ID:', error);
+    return null;
+  }
+  
+  if (!data) return null;
+  
+  return parseWheelConfig(data);
+}
+
+/**
+ * Parse raw config data into WheelConfig type
+ */
+function parseWheelConfig(data: any): WheelConfig {
   // Parse wheel_segments or use default
   let segments: WheelSegment[] = DEFAULT_WHEEL_SEGMENTS;
   if (data.wheel_segments && Array.isArray(data.wheel_segments) && data.wheel_segments.length > 0) {
