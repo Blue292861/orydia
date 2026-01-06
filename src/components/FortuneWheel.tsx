@@ -188,18 +188,36 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
     setIsSpinning(true);
     
     try {
-      // In test mode with forced segment, simulate locally
-      if (isTestMode && forcedSegmentIndex !== undefined) {
+      // In test mode, always simulate locally (no server call)
+      if (isTestMode) {
+        // Determine segment index: forced or random based on probabilities
+        let segmentIndex: number;
+        if (forcedSegmentIndex !== undefined) {
+          segmentIndex = forcedSegmentIndex;
+        } else {
+          // Random selection based on probabilities
+          const totalProbability = config.segments.reduce((sum, s) => sum + s.probability, 0);
+          let random = Math.random() * totalProbability;
+          segmentIndex = 0;
+          for (let i = 0; i < config.segments.length; i++) {
+            random -= config.segments[i].probability;
+            if (random <= 0) {
+              segmentIndex = i;
+              break;
+            }
+          }
+        }
+
         const segmentAngle = 360 / config.segments.length;
-        const targetAngle = 360 - (forcedSegmentIndex * segmentAngle + segmentAngle / 2);
+        const targetAngle = 360 - (segmentIndex * segmentAngle + segmentAngle / 2);
         const spins = 5 + Math.random() * 3;
         const finalRotation = rotation + (spins * 360) + targetAngle;
         
-        const segment = config.segments[forcedSegmentIndex];
+        const segment = config.segments[segmentIndex];
         
         animateWheel(finalRotation, () => {
           const mockResult: WheelSpinResult = {
-            segmentIndex: forcedSegmentIndex,
+            segmentIndex: segmentIndex,
             reward: {
               type: segment.type,
               value: segment.value,
@@ -211,10 +229,6 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
           setSpinResult(mockResult);
           setShowResultDialog(true);
           setIsSpinning(false);
-          
-          if (!unlimitedSpins) {
-            setCanSpin(false);
-          }
           
           if (segment.type === 'item' || segment.type === 'gift_card' || (segment.type === 'orydors' && segment.value && segment.value >= 1000)) {
             triggerConfetti();
