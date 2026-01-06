@@ -49,12 +49,21 @@ const describeArc = (cx: number, cy: number, radius: number, startAngle: number,
 
 interface FortuneWheelProps {
   onSpinComplete?: () => void;
+  isTestMode?: boolean;
+  forcedSegmentIndex?: number;
+  unlimitedSpins?: boolean;
 }
 
-export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) => {
+export const FortuneWheel: React.FC<FortuneWheelProps> = ({ 
+  onSpinComplete, 
+  isTestMode = false,
+  forcedSegmentIndex,
+  unlimitedSpins = false
+}) => {
   const { user } = useAuth();
   const { triggerConfetti } = useConfetti();
   const wheelRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number | null>(null);
   
   const [config, setConfig] = useState<WheelConfig | null>(null);
   const [streak, setStreak] = useState<WheelStreak | null>(null);
@@ -69,6 +78,42 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
   const [loading, setLoading] = useState(true);
   const [recoveringStreak, setRecoveringStreak] = useState(false);
   const [purchasingExtraSpin, setPurchasingExtraSpin] = useState(false);
+
+  // Cleanup animation on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, []);
+
+  // Smooth animation using requestAnimationFrame with easing
+  const animateWheel = (targetRotation: number, onComplete: () => void) => {
+    const startRotation = rotation;
+    const startTime = performance.now();
+    const duration = 4000; // 4 seconds
+
+    const easeOutQuart = (t: number): number => 1 - Math.pow(1 - t, 4);
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOutQuart(progress);
+      
+      const currentRotation = startRotation + (targetRotation - startRotation) * easedProgress;
+      setRotation(currentRotation);
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        animationRef.current = null;
+        onComplete();
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+  };
 
   // Load initial data
   useEffect(() => {
@@ -143,6 +188,44 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
     setIsSpinning(true);
     
     try {
+      // In test mode with forced segment, simulate locally
+      if (isTestMode && forcedSegmentIndex !== undefined) {
+        const segmentAngle = 360 / config.segments.length;
+        const targetAngle = 360 - (forcedSegmentIndex * segmentAngle + segmentAngle / 2);
+        const spins = 5 + Math.random() * 3;
+        const finalRotation = rotation + (spins * 360) + targetAngle;
+        
+        const segment = config.segments[forcedSegmentIndex];
+        
+        animateWheel(finalRotation, () => {
+          const mockResult: WheelSpinResult = {
+            segmentIndex: forcedSegmentIndex,
+            reward: {
+              type: segment.type,
+              value: segment.value,
+              label: segment.label
+            },
+            newStreak: (streak?.currentStreak || 0) + 1
+          };
+          
+          setSpinResult(mockResult);
+          setShowResultDialog(true);
+          setIsSpinning(false);
+          
+          if (!unlimitedSpins) {
+            setCanSpin(false);
+          }
+          
+          if (segment.type === 'item' || segment.type === 'gift_card' || (segment.type === 'orydors' && segment.value && segment.value >= 1000)) {
+            triggerConfetti();
+          }
+          
+          onSpinComplete?.();
+        });
+        
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('spin-wheel', {
         body: { isPaidSpin: isPaid }
       });
@@ -153,20 +236,20 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
         throw new Error(data.error || 'Erreur lors du tour');
       }
       
-      // Animate the wheel
+      // Animate the wheel with smooth requestAnimationFrame
       const segmentAngle = 360 / config.segments.length;
       const targetAngle = 360 - (data.segmentIndex * segmentAngle + segmentAngle / 2);
       const spins = 5 + Math.random() * 3; // 5-8 full rotations
       const finalRotation = rotation + (spins * 360) + targetAngle;
       
-      setRotation(finalRotation);
-      
-      // Wait for animation to complete
-      setTimeout(() => {
+      animateWheel(finalRotation, () => {
         setSpinResult(data);
         setShowResultDialog(true);
         setIsSpinning(false);
-        setCanSpin(false);
+        
+        if (!unlimitedSpins) {
+          setCanSpin(false);
+        }
         
         // Update streak
         if (data.newStreak !== undefined) {
@@ -179,7 +262,7 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
         }
         
         onSpinComplete?.();
-      }, 4000);
+      });
       
     } catch (error: any) {
       toast({
@@ -302,6 +385,11 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
             <CardTitle className="flex items-center gap-2 text-lg text-wood-800">
               <Sparkles className="h-5 w-5 text-gold-500" />
               Roue de la Fortune
+              {isTestMode && (
+                <Badge variant="outline" className="ml-2 bg-purple-100 text-purple-700 border-purple-300 text-xs">
+                  MODE TEST
+                </Badge>
+              )}
             </CardTitle>
             {streak && streak.currentStreak > 0 && (
               <Badge variant="secondary" className="bg-orange-500/20 text-orange-700 border-orange-400">
@@ -331,7 +419,7 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
               className="relative w-full max-w-[240px] sm:max-w-[280px] md:max-w-[320px] aspect-square"
               style={{
                 transform: `rotate(${rotation}deg)`,
-                transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none'
+                willChange: isSpinning ? 'transform' : 'auto'
               }}
             >
               <svg 
@@ -415,7 +503,7 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({ onSpinComplete }) =>
           
           {/* Actions */}
           <div className="space-y-2">
-            {canSpin ? (
+            {(canSpin || (isTestMode && unlimitedSpins)) ? (
               <Button 
                 onClick={() => handleSpin(false)} 
                 disabled={isSpinning}
