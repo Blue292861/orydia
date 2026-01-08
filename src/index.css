@@ -962,3 +962,54 @@ body.high-contrast * {
 .animate-shimmer {
   animation: shimmer-slide 2s ease-in-out infinite;
 }
+
+/* EPUB Reader Mobile Optimizations */
+.epub-container-mobile {
+  min-height: 50dvh;
+  touch-action: pan-x pan-y;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  contain: layout paint;
+}
+
+/* EPUB reader loading skeleton */
+.epub-loading-skeleton {
+  background: linear-gradient(90deg, 
+    hsl(var(--muted)) 25%, 
+    hsl(var(--muted-foreground) / 0.1) 50%, 
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: epub-skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes epub-skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Ensure EPUB iframe fills container properly on mobile */
+@supports (height: 100dvh) {
+  .epub-reader-container {
+    min-height: calc(100dvh - 120px);
+  }
+}
+
+@supports not (height: 100dvh) {
+  .epub-reader-container {
+    min-height: calc(100vh - 120px - env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Mobile touch optimization for epub navigation buttons */
+@media (max-width: 768px) {
+  .epub-nav-button {
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+}
