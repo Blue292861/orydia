@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChapterEpub } from '@/types/ChapterEpub';
 import { Book } from '@/types/Book';
 import { chapterEpubService } from '@/services/chapterEpubService';
+import { epubPreloadService } from '@/services/epubPreloadService';
 import { fetchBooksFromDB } from '@/services/bookService';
 import { getUserEpubProgressForBook } from '@/services/chapterService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, BookOpen, CheckCircle2, BookMarked } from 'lucide-react';
+import { ArrowLeft, BookOpen, CheckCircle2, BookMarked, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const BookTableOfContents: React.FC = () => {
@@ -18,6 +19,33 @@ export const BookTableOfContents: React.FC = () => {
   const [chapters, setChapters] = useState<ChapterEpub[]>([]);
   const [loading, setLoading] = useState(true);
   const [progressMap, setProgressMap] = useState<Map<string, boolean>>(new Map());
+  const [preloadingChapterId, setPreloadingChapterId] = useState<string | null>(null);
+
+  // Preload a chapter on hover/focus
+  const handleChapterHover = useCallback((chapter: ChapterEpub) => {
+    if (epubPreloadService.isCached(chapter.id) || epubPreloadService.isPreloading(chapter.id)) return;
+    
+    const urlToPreload = chapter.merged_epub_url || chapter.epub_url;
+    void epubPreloadService.preloadChapter(chapter.id, urlToPreload);
+  }, []);
+
+  // Navigate to chapter with preload check
+  const handleChapterClick = useCallback(async (chapter: ChapterEpub) => {
+    // If not cached and not preloading, start preload and show brief loading state
+    if (!epubPreloadService.isCached(chapter.id) && !epubPreloadService.isPreloading(chapter.id)) {
+      setPreloadingChapterId(chapter.id);
+      const urlToPreload = chapter.merged_epub_url || chapter.epub_url;
+      
+      // Start preload but don't wait too long
+      const preloadPromise = epubPreloadService.preloadChapter(chapter.id, urlToPreload);
+      const timeoutPromise = new Promise(resolve => setTimeout(resolve, 500));
+      
+      await Promise.race([preloadPromise, timeoutPromise]);
+      setPreloadingChapterId(null);
+    }
+    
+    navigate(`/book/${bookId}/chapter/${chapter.id}`);
+  }, [bookId, navigate]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -38,6 +66,13 @@ export const BookTableOfContents: React.FC = () => {
 
         const progress = await getUserEpubProgressForBook(bookId);
         setProgressMap(progress);
+
+        // Preload first unread chapter
+        const firstUnread = chaptersData.find(ch => !progress.get(ch.id));
+        if (firstUnread) {
+          const urlToPreload = firstUnread.merged_epub_url || firstUnread.epub_url;
+          void epubPreloadService.preloadChapter(firstUnread.id, urlToPreload);
+        }
       } catch (error) {
         console.error('Error loading data:', error);
         toast.error('Erreur lors du chargement');
@@ -114,12 +149,16 @@ export const BookTableOfContents: React.FC = () => {
             {chapters.map((chapter) => {
               const isCompleted = progressMap.get(chapter.id) === true;
               const isInProgress = progressMap.has(chapter.id) && !isCompleted;
+              const isPreloading = preloadingChapterId === chapter.id;
               
               return (
                 <Card
                   key={chapter.id}
                   className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative"
-                  onClick={() => navigate(`/book/${bookId}/chapter/${chapter.id}`)}
+                  onClick={() => handleChapterClick(chapter)}
+                  onMouseEnter={() => handleChapterHover(chapter)}
+                  onFocus={() => handleChapterHover(chapter)}
+                  tabIndex={0}
                 >
                   {isCompleted && (
                     <div className="absolute top-2 right-2 z-10">
@@ -155,9 +194,18 @@ export const BookTableOfContents: React.FC = () => {
                     )}
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full">
-                      <BookOpen className="mr-2 h-4 w-4" />
-                      {isCompleted ? 'Relire le chapitre' : isInProgress ? 'Continuer' : 'Lire le chapitre'}
+                    <Button className="w-full" disabled={isPreloading}>
+                      {isPreloading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Chargement...
+                        </>
+                      ) : (
+                        <>
+                          <BookOpen className="mr-2 h-4 w-4" />
+                          {isCompleted ? 'Relire le chapitre' : isInProgress ? 'Continuer' : 'Lire le chapitre'}
+                        </>
+                      )}
                     </Button>
                   </CardContent>
                 </Card>

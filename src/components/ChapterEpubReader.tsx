@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ePub from 'epubjs';
 import { ChapterEpub } from '@/types/ChapterEpub';
 import { Waypoint } from '@/types/Waypoint';
 import { chapterEpubService } from '@/services/chapterEpubService';
+import { epubPreloadService } from '@/services/epubPreloadService';
 import { getWaypointsByChapterId } from '@/services/waypointService';
 import { startReadingEpubChapter, markEpubChapterCompleted } from '@/services/chapterService';
 import { updateProgressOnBookCompletion, updateProgressOnChapterCompletion } from '@/services/challengeService';
@@ -18,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw, Type, ShieldAlert, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Book } from '@/types/Book';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type Theme = 'light' | 'dark' | 'sepia';
 type ColorblindMode = 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia';
@@ -27,6 +29,7 @@ export const ChapterEpubReader: React.FC = () => {
   const navigate = useNavigate();
   const { user, subscription } = useAuth();
   const { openChestForBook } = useUserStats();
+  const isMobile = useIsMobile();
   
   // Chapter data
   const [chapter, setChapter] = useState<ChapterEpub | null>(null);
@@ -80,7 +83,8 @@ export const ChapterEpubReader: React.FC = () => {
   const fatalLoadTimerRef = useRef<number | null>(null);
   const lastSizeRef = useRef({ width: 0, height: 0 });
   const viewportResizeHandlerRef = useRef<(() => void) | null>(null);
-  const preloadCacheRef = useRef<Map<string, Blob>>(new Map());
+  const navigationLockRef = useRef<boolean>(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Helper function to highlight waypoint words in EPUB content
   const highlightWaypointInDocument = (
@@ -335,11 +339,16 @@ export const ChapterEpubReader: React.FC = () => {
       }
       
       try {
-        // Wait for container to have valid dimensions (like WaypointManager)
+        // Initial CSS stabilization delay (especially important for mobile)
+        await new Promise(resolve => setTimeout(resolve, isMobile ? 150 : 50));
+        
+        if (cancelled) return;
+        
+        // Wait for container to have valid dimensions using getBoundingClientRect for accuracy
         const checkDimensions = (): Promise<boolean> => {
           return new Promise((resolve) => {
             let attempts = 0;
-            const maxAttempts = 50; // 50 * 50ms = 2.5s max wait
+            const maxAttempts = isMobile ? 80 : 50; // More attempts on mobile (4s vs 2.5s)
             
             const check = () => {
               if (cancelled) {
@@ -347,12 +356,16 @@ export const ChapterEpubReader: React.FC = () => {
                 return;
               }
               
-              const width = container.clientWidth;
-              const height = container.clientHeight;
+              // Use getBoundingClientRect for more accurate measurements on mobile
+              const rect = container.getBoundingClientRect();
+              const width = Math.floor(rect.width);
+              const height = Math.floor(rect.height);
               
               console.log(`📐 Container dimensions check #${attempts + 1}:`, width, 'x', height);
               
-              if (width > 50 && height > 50) {
+              // Minimum dimensions - lower threshold for mobile
+              const minDim = isMobile ? 100 : 50;
+              if (width > minDim && height > minDim) {
                 console.log('✅ Container has valid dimensions, proceeding with EPUB init');
                 resolve(true);
                 return;
@@ -410,9 +423,9 @@ export const ChapterEpubReader: React.FC = () => {
         if (chapter.merged_epub_url) {
           console.log('✅ Using pre-merged EPUB (instant load)');
           epubUrl = chapter.merged_epub_url;
-        } else if (preloadCacheRef.current.has(chapter.id)) {
-          console.log('Using preloaded EPUB from cache');
-          const cachedBlob = preloadCacheRef.current.get(chapter.id);
+        } else if (epubPreloadService.isCached(chapter.id)) {
+          console.log('✅ Using preloaded EPUB from global cache');
+          const cachedBlob = epubPreloadService.getCachedBlob(chapter.id);
           if (cachedBlob) {
             epubUrl = URL.createObjectURL(cachedBlob);
           }
@@ -719,7 +732,8 @@ export const ChapterEpubReader: React.FC = () => {
           }
         }, 2000);
 
-        // Fatal timeout: after 10s, show error with detailed diagnostics
+        // Fatal timeout: longer on mobile (15s vs 10s) due to slower connections
+        const fatalTimeoutMs = isMobile ? 15000 : 10000;
         if (fatalLoadTimerRef.current) window.clearTimeout(fatalLoadTimerRef.current);
         fatalLoadTimerRef.current = window.setTimeout(() => {
           if (!cancelled && !epubReady) {
@@ -728,17 +742,21 @@ export const ChapterEpubReader: React.FC = () => {
             const iframeDims = iframe ? `${iframe.clientWidth}x${iframe.clientHeight}` : 'N/A';
             const containerDims = `${container.clientWidth}x${container.clientHeight}`;
             
-            console.error('❌ Fatal timeout: EPUB failed to load after 10s', {
+            console.error(`❌ Fatal timeout: EPUB failed to load after ${fatalTimeoutMs / 1000}s`, {
               hasIframe,
               iframeDims,
               containerDims,
               chapterId: chapter?.id,
-              epubUrl
+              epubUrl,
+              isMobile
             });
             
-            setEpubError('Le chapitre met trop de temps à charger. Veuillez réessayer.');
+            setEpubError(isMobile 
+              ? 'Connexion lente détectée. Le chapitre n\'a pas pu charger. Vérifiez votre connexion et réessayez.'
+              : 'Le chapitre met trop de temps à charger. Veuillez réessayer.'
+            );
           }
-        }, 10000);
+        }, fatalTimeoutMs);
 
         // Setup window resize listeners to handle viewport changes
         const onViewportResize = () => {
@@ -886,17 +904,20 @@ export const ChapterEpubReader: React.FC = () => {
     toast.success('Position réinitialisée');
   };
 
-  const handleNextPage = async () => {
-    if (renditionRef.current) {
-      renditionRef.current.next();
-    }
-  };
+  // Debounced navigation handlers to prevent rapid clicks causing issues
+  const handleNextPage = useCallback(() => {
+    if (navigationLockRef.current || !renditionRef.current) return;
+    navigationLockRef.current = true;
+    renditionRef.current.next();
+    setTimeout(() => { navigationLockRef.current = false; }, 200);
+  }, []);
 
-  const handlePrevPage = async () => {
-    if (renditionRef.current) {
-      renditionRef.current.prev();
-    }
-  };
+  const handlePrevPage = useCallback(() => {
+    if (navigationLockRef.current || !renditionRef.current) return;
+    navigationLockRef.current = true;
+    renditionRef.current.prev();
+    setTimeout(() => { navigationLockRef.current = false; }, 200);
+  }, []);
 
   const getNextChapter = () => {
     if (!chapter) return null;
@@ -910,30 +931,22 @@ export const ChapterEpubReader: React.FC = () => {
     return currentIndex === allChapters.length - 1;
   };
 
-  // Preload next chapter for instant transitions
-  const preloadNextChapter = async () => {
+  // Preload next chapter for instant transitions using global service
+  const preloadNextChapter = useCallback(async () => {
     const nextChapter = getNextChapter();
-    if (!nextChapter || preloadCacheRef.current.has(nextChapter.id)) return;
-
-    try {
-      console.time(`preload-chapter-${nextChapter.id}`);
-      const response = await fetch(nextChapter.epub_url);
-      if (response.ok) {
-        const blob = await response.blob();
-        preloadCacheRef.current.set(nextChapter.id, blob);
-        console.timeEnd(`preload-chapter-${nextChapter.id}`);
-      }
-    } catch (error) {
-      console.warn('Failed to preload next chapter:', error);
-    }
-  };
+    if (!nextChapter) return;
+    
+    // Use merged URL if available, otherwise regular epub_url
+    const urlToPreload = nextChapter.merged_epub_url || nextChapter.epub_url;
+    await epubPreloadService.preloadChapter(nextChapter.id, urlToPreload);
+  }, [allChapters, chapter]);
 
   // Trigger preloading when epub is ready
   useEffect(() => {
     if (epubReady) {
       void preloadNextChapter();
     }
-  }, [epubReady]);
+  }, [epubReady, preloadNextChapter]);
 
   const awardPointsAndComplete = async () => {
     if (!user || !book || !bookId) return;
@@ -1200,14 +1213,14 @@ export const ChapterEpubReader: React.FC = () => {
               )}
 
               {/* EPUB Container */}
-        <div
-          ref={epubRootRef}
-          className="absolute inset-0 overflow-hidden"
-          style={{
-            background: themeColors[theme].background,
-            filter: colorblindMode !== 'none' ? `url(#${colorblindMode}-filter)` : undefined,
-          }}
-        />
+              <div
+                ref={epubRootRef}
+                className={`absolute inset-0 overflow-hidden ${isMobile ? 'epub-container-mobile' : ''}`}
+                style={{
+                  background: themeColors[theme].background,
+                  filter: colorblindMode !== 'none' ? `url(#${colorblindMode}-filter)` : undefined,
+                }}
+              />
 
               {/* Navigation Button - Next */}
               {epubReady && (
