@@ -20,6 +20,8 @@ import { fetchBooksFromDB } from '@/services/bookService';
 
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { hasUserDiscoveredRareBook, addRareBookToCollection } from '@/services/rareBookService';
+import { chapterEpubService } from '@/services/chapterEpubService';
+import { epubPreloadService } from '@/services/epubPreloadService';
 
 /**
  * Page component for displaying individual books or audiobooks
@@ -154,6 +156,18 @@ const WorkPage: React.FC = () => {
 
   const proceedToReading = () => {
     if (!foundWork) return;
+
+    // Précharger le premier chapitre EPUB si c'est un livre avec chapitres
+    if (workType === 'book' && 'hasChapters' in foundWork && foundWork.hasChapters) {
+      chapterEpubService.getChaptersByBookId(foundWork.id).then(chapters => {
+        if (chapters.length > 0) {
+          const firstChapter = chapters[0];
+          const urlToPreload = firstChapter.merged_epub_url || firstChapter.epub_url;
+          epubPreloadService.preloadChapter(firstChapter.id, urlToPreload);
+          console.log(`🚀 Preloading first chapter from WorkPage: ${firstChapter.id}`);
+        }
+      }).catch(console.warn);
+    }
 
     navigate('/', { 
       state: { 

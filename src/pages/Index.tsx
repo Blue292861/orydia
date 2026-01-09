@@ -40,6 +40,8 @@ import { useShopItems } from '@/hooks/useShopItems';
 import { useResponsive } from '@/hooks/useResponsive';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthRequiredDialog } from '@/components/AuthRequiredDialog';
+import { chapterEpubService } from '@/services/chapterEpubService';
+import { epubPreloadService } from '@/services/epubPreloadService';
 
 type AdminPage = 'admin' | 'shop-admin' | 'achievement-admin' | 'orders-admin' | 'reading-stats-admin' | 'reading-stats-export' | 'audiobook-admin' | 'points-admin' | 'api-keys-admin' | 'orydors-codes' | 'premium-admin' | 'premium-codes' | 'user-stats' | 'reward-types' | 'loot-tables';
 type Page = 'library' | 'reader' | 'shop' | 'search' | 'profile' | 'premium' | 'video-ad' | 'guild' | AdminPage;
@@ -127,6 +129,18 @@ const AppContent = () => {
 
     // Pour les utilisateurs premium ou les livres non-premium
     if (isPremium || !isBookPremium) {
+      // Précharger le premier chapitre EPUB dès le clic (fire and forget)
+      if (book.hasChapters) {
+        chapterEpubService.getChaptersByBookId(book.id).then(chapters => {
+          if (chapters.length > 0) {
+            const firstChapter = chapters[0];
+            const urlToPreload = firstChapter.merged_epub_url || firstChapter.epub_url;
+            epubPreloadService.preloadChapter(firstChapter.id, urlToPreload);
+            console.log(`🚀 Preloading first chapter from book select: ${firstChapter.id}`);
+          }
+        }).catch(console.warn);
+      }
+      
       setSelectedBook(book);
       setCurrentPage('reader');
       
