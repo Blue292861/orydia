@@ -4,6 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from '@/components/ui/badge';
 import { Crown } from 'lucide-react';
 import { ShareButton } from '@/components/ShareButton';
+import { chapterEpubService } from '@/services/chapterEpubService';
+import { epubPreloadService } from '@/services/epubPreloadService';
 
 interface BookPreviewDialogProps {
   book: Book | null;
@@ -21,6 +23,18 @@ export const BookPreviewDialog: React.FC<BookPreviewDialogProps> = ({
   if (!book) return null;
 
   const handleReadClick = () => {
+    // Précharger le premier chapitre EPUB dès le clic (fire and forget)
+    if (book.hasChapters) {
+      chapterEpubService.getChaptersByBookId(book.id).then(chapters => {
+        if (chapters.length > 0) {
+          const firstChapter = chapters[0];
+          const urlToPreload = firstChapter.merged_epub_url || firstChapter.epub_url;
+          epubPreloadService.preloadChapter(firstChapter.id, urlToPreload);
+          console.log(`🚀 Preloading first chapter from preview dialog: ${firstChapter.id}`);
+        }
+      }).catch(console.warn);
+    }
+    
     onReadBook(book);
     onOpenChange(false);
   };
