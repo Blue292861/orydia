@@ -29,21 +29,30 @@ export const BookTableOfContents: React.FC = () => {
     void epubPreloadService.preloadChapter(chapter.id, urlToPreload);
   }, []);
 
-  // Navigate to chapter with preload check
+  // Navigate to chapter with preload - wait for completion for instant display
   const handleChapterClick = useCallback(async (chapter: ChapterEpub) => {
-    // If not cached and not preloading, start preload and show brief loading state
-    if (!epubPreloadService.isCached(chapter.id) && !epubPreloadService.isPreloading(chapter.id)) {
-      setPreloadingChapterId(chapter.id);
-      const urlToPreload = chapter.merged_epub_url || chapter.epub_url;
-      
-      // Start preload but don't wait too long
-      const preloadPromise = epubPreloadService.preloadChapter(chapter.id, urlToPreload);
-      const timeoutPromise = new Promise(resolve => setTimeout(resolve, 500));
-      
-      await Promise.race([preloadPromise, timeoutPromise]);
-      setPreloadingChapterId(null);
+    const urlToPreload = chapter.merged_epub_url || chapter.epub_url;
+    
+    // If already cached, navigate immediately
+    if (epubPreloadService.isCached(chapter.id)) {
+      navigate(`/book/${bookId}/chapter/${chapter.id}`);
+      return;
     }
     
+    // Show loading state
+    setPreloadingChapterId(chapter.id);
+    
+    try {
+      // Wait for preload to complete (with 8s timeout for slow connections)
+      const preloadPromise = epubPreloadService.preloadChapter(chapter.id, urlToPreload);
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000));
+      
+      await Promise.race([preloadPromise, timeoutPromise]);
+    } catch (e) {
+      console.warn('Preload failed, navigating anyway:', e);
+    }
+    
+    setPreloadingChapterId(null);
     navigate(`/book/${bookId}/chapter/${chapter.id}`);
   }, [bookId, navigate]);
 
@@ -157,6 +166,7 @@ export const BookTableOfContents: React.FC = () => {
                   className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative"
                   onClick={() => handleChapterClick(chapter)}
                   onMouseEnter={() => handleChapterHover(chapter)}
+                  onTouchStart={() => handleChapterHover(chapter)}
                   onFocus={() => handleChapterHover(chapter)}
                   tabIndex={0}
                 >

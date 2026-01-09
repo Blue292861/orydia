@@ -418,18 +418,45 @@ export const ChapterEpubReader: React.FC = () => {
 
         // If custom OPF exists, try merging quickly but don't block initial render
         let epubUrl = chapter.epub_url;
+        let objectUrlToRevoke: string | null = null;
         
-        // Use pre-merged EPUB if available (instant load)
-        if (chapter.merged_epub_url) {
-          console.log('✅ Using pre-merged EPUB (instant load)');
-          epubUrl = chapter.merged_epub_url;
-        } else if (epubPreloadService.isCached(chapter.id)) {
-          console.log('✅ Using preloaded EPUB from global cache');
+        // PRIORITY 1: Check cache first (instant load from preloaded blob)
+        if (epubPreloadService.isCached(chapter.id)) {
+          console.log('✅ Using preloaded EPUB from global cache (instant)');
           const cachedBlob = epubPreloadService.getCachedBlob(chapter.id);
           if (cachedBlob) {
             epubUrl = URL.createObjectURL(cachedBlob);
+            objectUrlToRevoke = epubUrl;
           }
-        } else if (chapter.opf_url) {
+        } 
+        // PRIORITY 2: If preload is in progress, wait for it (up to 5s)
+        else if (epubPreloadService.isPreloading(chapter.id)) {
+          console.log('⏳ Waiting for preload in progress...');
+          const urlToPreload = chapter.merged_epub_url || chapter.epub_url;
+          try {
+            const preloadPromise = epubPreloadService.preloadChapter(chapter.id, urlToPreload);
+            const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000));
+            const blob = await Promise.race([preloadPromise, timeoutPromise]);
+            if (blob && !cancelled) {
+              console.log('✅ Preload completed, using cached blob');
+              epubUrl = URL.createObjectURL(blob);
+              objectUrlToRevoke = epubUrl;
+            } else {
+              console.log('⚠️ Preload timeout, falling back to URL');
+              epubUrl = chapter.merged_epub_url || chapter.epub_url;
+            }
+          } catch (e) {
+            console.warn('Preload wait failed, using URL fallback:', e);
+            epubUrl = chapter.merged_epub_url || chapter.epub_url;
+          }
+        }
+        // PRIORITY 3: Use pre-merged EPUB URL if available
+        else if (chapter.merged_epub_url) {
+          console.log('✅ Using pre-merged EPUB URL');
+          epubUrl = chapter.merged_epub_url;
+        } 
+        // PRIORITY 4: Merge on-demand if OPF exists
+        else if (chapter.opf_url) {
           console.log('⚠️ No pre-merged EPUB, merging on-demand...');
           console.log('📋 EPUB URL:', chapter.epub_url);
           console.log('📋 OPF URL:', chapter.opf_url);
