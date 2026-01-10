@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserStats } from '@/contexts/UserStatsContext';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Flame, Clock, RotateCcw, Sparkles, Gift, Crown, CreditCard, Mail } from 'lucide-react';
 import { 
@@ -65,6 +66,7 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
 }) => {
   const { user } = useAuth();
   const { triggerConfetti } = useConfetti();
+  const { loadUserStats } = useUserStats();
   const wheelRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
   
@@ -282,6 +284,9 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
         if (data.reward.type === 'item' || data.reward.type === 'gift_card' || (data.reward.type === 'orydors' && data.reward.value && data.reward.value >= 1000)) {
           triggerConfetti();
         }
+        
+        // Refresh user stats to show updated inventory/points/XP
+        loadUserStats?.();
         
         onSpinComplete?.();
       });
@@ -649,7 +654,11 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
                     {spinResult.reward.type === 'orydors' ? '💰' : '⚡'}
                   </div>
                   <p className="text-2xl font-bold text-gold-600">
-                    +{spinResult.reward.value} {spinResult.reward.type === 'orydors' ? 'Orydors' : 'XP'}
+                    {spinResult.reward.value !== undefined ? (
+                      <>+{spinResult.reward.value} {spinResult.reward.type === 'orydors' ? 'Orydors' : 'XP'}</>
+                    ) : (
+                      spinResult.reward.label
+                    )}
                   </p>
                 </div>
               )}
