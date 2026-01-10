@@ -299,12 +299,29 @@ serve(async (req) => {
       }
     }
 
-    // Get user stats
-    const { data: userStats } = await supabase
+    // Get user stats - ensure it exists
+    let { data: userStats } = await supabase
       .from('user_stats')
       .select('total_points, experience_points')
       .eq('user_id', userId)
       .maybeSingle();
+
+    // Create user_stats if it doesn't exist
+    if (!userStats) {
+      console.log(`[spin-wheel] Creating user_stats for user ${userId}`);
+      const { error: createError } = await supabase
+        .from('user_stats')
+        .insert({
+          user_id: userId,
+          total_points: 0,
+          experience_points: 0
+        });
+      
+      if (createError) {
+        console.error('[spin-wheel] Error creating user_stats:', createError);
+      }
+      userStats = { total_points: 0, experience_points: 0 };
+    }
 
     // Get user profile for name
     const { data: userProfile } = await supabase
@@ -397,24 +414,36 @@ serve(async (req) => {
           .maybeSingle();
 
         if (existingInventory) {
-          await supabase
+          const { error: updateInvError } = await supabase
             .from('user_inventory')
             .update({ quantity: existingInventory.quantity + quantity })
             .eq('id', existingInventory.id);
+          
+          if (updateInvError) {
+            console.error('[spin-wheel] Error updating inventory:', updateInvError);
+          } else {
+            console.log(`[spin-wheel] Updated inventory: ${quantity}x ${rewardType.name} for user ${userId}`);
+          }
         } else {
-          await supabase
+          const { error: insertInvError } = await supabase
             .from('user_inventory')
             .insert({
               user_id: userId,
               reward_type_id: winningSegment.rewardTypeId,
               quantity
             });
+          
+          if (insertInvError) {
+            console.error('[spin-wheel] Error inserting inventory:', insertInvError);
+          } else {
+            console.log(`[spin-wheel] Inserted inventory: ${quantity}x ${rewardType.name} for user ${userId}`);
+          }
         }
       }
     }
 
     // Update user stats
-    await supabase
+    const { error: statsError } = await supabase
       .from('user_stats')
       .upsert({
         user_id: userId,
@@ -422,6 +451,12 @@ serve(async (req) => {
         experience_points: newXp,
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' });
+
+    if (statsError) {
+      console.error('[spin-wheel] Error updating user_stats:', statsError);
+    } else {
+      console.log(`[spin-wheel] Updated user_stats: points ${currentPoints} -> ${newPoints}, XP ${currentXp} -> ${newXp}`);
+    }
 
     // Record the spin
     await supabase
