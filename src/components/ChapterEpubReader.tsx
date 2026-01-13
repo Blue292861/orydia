@@ -314,15 +314,12 @@ export const ChapterEpubReader: React.FC = () => {
 
   // Initialize EPUB reader with refs
   useEffect(() => {
-    console.log("📋 EPUB useEffect triggered:", { loading, chapterId: chapter?.id, hasRef: !!epubRootRef.current });
+    console.log("EPUB useEffect triggered", loading, "chapterId:", chapter?.id, "hasRef:", !!epubRootRef.current);
 
-    // Don't initialize while data is still loading (container not rendered yet)
-    if (loading) {
-      console.log("⏳ Skipping EPUB init - still loading data");
-      return;
+    // 👇 AJOUT IMPORTANT : on vide le conteneur avant de ré‑initialiser
+    if (epubRootRef.current) {
+      epubRootRef.current.innerHTML = "";
     }
-
-    if (!chapter || !epubRootRef.current) return;
 
     let cancelled = false;
     setEpubReady(false);
