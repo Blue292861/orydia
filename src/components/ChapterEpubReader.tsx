@@ -317,14 +317,9 @@ export const ChapterEpubReader: React.FC = () => {
     console.log("EPUB useEffect triggered", loading, "chapterId:", chapter?.id, "hasRef:", !!epubRootRef.current);
 
     // 👇
+    console.log("🧹 Container cleared before init");
     if (epubRootRef.current) {
       epubRootRef.current.innerHTML = "";
-    }
-    if (containerRef.current) {
-      containerRef.current.style.height = "0px"; // force recalc
-      requestAnimationFrame(() => {
-        containerRef.current!.style.height = "";
-      });
     }
 
     // Don't initialize while data is still loading (container not rendered yet)
