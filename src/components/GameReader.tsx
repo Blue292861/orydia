@@ -23,20 +23,16 @@ export function GameReader({ game, onBack }: GameReaderProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadFirstChapter();
-  }, [game]);
-
-  useEffect(() => {
-    if (currentChapter) {
+    if (currentChapter?.id) {
       loadChoices(currentChapter.id);
     }
-  }, [currentChapter]);
+  }, [currentChapter?.id]);
 
   const loadFirstChapter = async () => {
     try {
       const chapters = await gameService.getGameChapters(game.id);
       if (chapters.length > 0) {
-        const firstChapter = chapters.find(c => c.chapter_number === 1) || chapters[0];
+        const firstChapter = chapters.find((c) => c.chapter_number === 1) || chapters[0];
         setCurrentChapter(firstChapter);
       }
     } catch (error) {
@@ -59,14 +55,14 @@ export function GameReader({ game, onBack }: GameReaderProps) {
     try {
       // Award points for the choice
       if (choice.points_reward > 0) {
-        await awardPoints(choice.points_reward, 'game_choice');
-        setTotalPointsEarned(prev => prev + choice.points_reward);
+        await awardPoints(choice.points_reward, "game_choice");
+        setTotalPointsEarned((prev) => prev + choice.points_reward);
         toast.success(`+${choice.points_reward} Orydors!`);
       }
 
       // Mark current chapter as completed
       if (currentChapter && !completedChapters.includes(currentChapter.id)) {
-        setCompletedChapters(prev => [...prev, currentChapter.id]);
+        setCompletedChapters((prev) => [...prev, currentChapter.id]);
       }
 
       // Navigate to next chapter or end game
@@ -87,11 +83,11 @@ export function GameReader({ game, onBack }: GameReaderProps) {
   const handleGameEnd = async () => {
     try {
       if (currentChapter?.is_ending && currentChapter.ending_reward_points) {
-        await awardPoints(currentChapter.ending_reward_points, 'game_completion');
-        setTotalPointsEarned(prev => prev + currentChapter.ending_reward_points!);
+        await awardPoints(currentChapter.ending_reward_points, "game_completion");
+        setTotalPointsEarned((prev) => prev + currentChapter.ending_reward_points!);
         toast.success(`Jeu terminé! +${currentChapter.ending_reward_points} Orydors de bonus!`);
       }
-      
+
       // Could add game completion logic here
       toast.success("Félicitations ! Vous avez terminé le jeu !");
     } catch (error) {
@@ -101,15 +97,15 @@ export function GameReader({ game, onBack }: GameReaderProps) {
 
   const awardPoints = async (points: number, type: string) => {
     try {
-      await supabase.functions.invoke('award-points', {
+      await supabase.functions.invoke("award-points", {
         body: {
           points,
           transaction_type: type,
-          description: `Points gagnés dans le jeu: ${game.name}`
-        }
+          description: `Points gagnés dans le jeu: ${game.name}`,
+        },
       });
     } catch (error) {
-      console.error('Erreur lors de l\'attribution des points:', error);
+      console.error("Erreur lors de l'attribution des points:", error);
     }
   };
 
@@ -171,15 +167,13 @@ export function GameReader({ game, onBack }: GameReaderProps) {
                 <Trophy className="w-5 h-5" />
                 Chapitre {currentChapter.chapter_number}: {currentChapter.title}
               </CardTitle>
-              {currentChapter.is_ending && (
-                <Badge variant="destructive">Chapitre final</Badge>
-              )}
+              {currentChapter.is_ending && <Badge variant="destructive">Chapitre final</Badge>}
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Chapter Content */}
             <div className="prose max-w-none">
-              {currentChapter.content.includes('.pdf') ? (
+              {currentChapter.content.includes(".pdf") ? (
                 // Affichage PDF intégré
                 <div className="w-full">
                   <iframe
@@ -193,10 +187,10 @@ export function GameReader({ game, onBack }: GameReaderProps) {
                 </div>
               ) : (
                 // Affichage texte classique avec sanitisation XSS
-                <div 
+                <div
                   className="text-base leading-relaxed whitespace-pre-wrap"
-                  dangerouslySetInnerHTML={{ 
-                    __html: sanitizeHtml(currentChapter.content) 
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeHtml(currentChapter.content),
                   }}
                 />
               )}
@@ -233,9 +227,7 @@ export function GameReader({ game, onBack }: GameReaderProps) {
               <div className="text-center py-8">
                 <Trophy className="w-12 h-12 mx-auto mb-4 text-primary" />
                 <h3 className="text-xl font-bold mb-2">Fin du jeu</h3>
-                <p className="text-muted-foreground mb-4">
-                  Vous avez terminé "{game.name}" avec succès !
-                </p>
+                <p className="text-muted-foreground mb-4">Vous avez terminé "{game.name}" avec succès !</p>
                 <p className="text-lg font-semibold text-primary mb-4">
                   Total des points gagnés: {totalPointsEarned} Orydors
                 </p>
@@ -248,12 +240,8 @@ export function GameReader({ game, onBack }: GameReaderProps) {
             {/* No choices and not ending */}
             {choices.length === 0 && !currentChapter.is_ending && (
               <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">
-                  Ce chapitre n'a pas de choix configurés.
-                </p>
-                <Button onClick={onBack}>
-                  Retour à la bibliothèque
-                </Button>
+                <p className="text-muted-foreground mb-4">Ce chapitre n'a pas de choix configurés.</p>
+                <Button onClick={onBack}>Retour à la bibliothèque</Button>
               </div>
             )}
           </CardContent>
