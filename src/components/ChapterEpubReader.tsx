@@ -316,7 +316,7 @@ export const ChapterEpubReader: React.FC = () => {
   useEffect(() => {
     console.log("EPUB useEffect triggered", loading, "chapterId:", chapter?.id, "hasRef:", !!epubRootRef.current);
 
-    // 👇 AJOUT IMPORTANT : on vide le conteneur avant de ré‑initialiser
+    // 👇
     if (epubRootRef.current) {
       epubRootRef.current.innerHTML = "";
     }
