@@ -712,26 +712,18 @@ export const ChapterEpubReader: React.FC = () => {
           try {
             await rendition.display(target);
             console.log(`✅ Display attempt ${attemptNumber} succeeded`);
+
+            // 👇 FORCE iframe render
+            setTimeout(() => {
+              const iframe = container.querySelector("iframe");
+              if (iframe && renditionRef.current) {
+                renditionRef.current.resize(container.clientWidth, container.clientHeight);
+                console.log("🔄 Resize forced after display");
+              }
+            }, 50);
           } catch (err) {
-            console.warn(`Display failed (attempt ${attemptNumber}):`, err);
-
-            // Mark failure and clear saved location
-            if (cfiKey) {
-              localStorage.setItem(failureKey, "true");
-              localStorage.removeItem(cfiKey);
-            }
-
-            if (attemptNumber === 1) {
-              // Attempt 2: try with readingHref (no saved location)
-              return tryDisplay(readingHref, 2);
-            } else if (attemptNumber === 2) {
-              // Attempt 3: let epub.js decide
-              return tryDisplay(undefined, 3);
-            } else if (attemptNumber === 3 && spineItems[0]?.href) {
-              // Last resort: force first spine item
-              console.log("🔧 Last resort: forcing first spine item");
-              await rendition.display(spineItems[0].href);
-            }
+            console.warn(`❌ Display failed (attempt ${attemptNumber}):`, err);
+            // reste de ton code catch existant...
           }
         };
 
