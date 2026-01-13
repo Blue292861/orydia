@@ -322,28 +322,6 @@ export const ChapterEpubReader: React.FC = () => {
       return;
     }
 
-    useEffect(() => {
-      const handleUrlChange = () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const newChapterId = urlParams.get("chapterId") || urlParams.get("chapter") || urlParams.get("id");
-        console.log("URL change detected:", newChapterId);
-
-        if (newChapterId && newChapterId !== chapter?.id) {
-          // Force re-init du bon chapitre
-          navigate(`/book/${bookId}/chapters/${newChapterId}`);
-        }
-      };
-
-      window.addEventListener("popstate", handleUrlChange);
-      window.addEventListener("hashchange", handleUrlChange);
-      handleUrlChange();
-
-      return () => {
-        window.removeEventListener("popstate", handleUrlChange);
-        window.removeEventListener("hashchange", handleUrlChange);
-      };
-    }, []);
-
     if (!chapter || !epubRootRef.current) return;
 
     let cancelled = false;
