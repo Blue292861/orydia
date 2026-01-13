@@ -315,6 +315,8 @@ export const ChapterEpubReader: React.FC = () => {
   // Initialize EPUB reader with refs
   useEffect(() => {
     console.log("EPUB useEffect triggered", loading, "chapterId:", chapter?.id, "hasRef:", !!epubRootRef.current);
+
+    // 👇
     if (epubRootRef.current) {
       epubRootRef.current.innerHTML = "";
     }
@@ -324,7 +326,6 @@ export const ChapterEpubReader: React.FC = () => {
         containerRef.current!.style.height = "";
       });
     }
-    console.log("🧹 Container cleared before init");
 
     // Don't initialize while data is still loading (container not rendered yet)
     if (loading) {
