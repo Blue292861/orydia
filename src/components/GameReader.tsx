@@ -32,29 +32,6 @@ export function GameReader({ game, onBack }: GameReaderProps) {
     }
   }, [currentChapter]);
 
-  useEffect(() => {
-    const handleUrlChange = () => {
-      // Force rechargement du chapitre depuis l'URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const chapterId = urlParams.get("chapter") || urlParams.get("id");
-
-      if (chapterId && currentChapter?.id !== chapterId) {
-        loadChapterById(chapterId);
-      }
-    };
-
-    window.addEventListener("popstate", handleUrlChange);
-    window.addEventListener("hashchange", handleUrlChange);
-
-    // Test immédiat
-    handleUrlChange();
-
-    return () => {
-      window.removeEventListener("popstate", handleUrlChange);
-      window.removeEventListener("hashchange", handleUrlChange);
-    };
-  }, []);
-
   const loadFirstChapter = async () => {
     try {
       const chapters = await gameService.getGameChapters(game.id);
@@ -75,17 +52,6 @@ export function GameReader({ game, onBack }: GameReaderProps) {
       setChoices(chapterChoices);
     } catch (error) {
       toast.error("Erreur lors du chargement des choix");
-    }
-  };
-
-  const loadChapterById = async (chapterId: string) => {
-    try {
-      const chapter = await gameService.getChapterById(chapterId);
-      if (chapter) {
-        setCurrentChapter(chapter);
-      }
-    } catch (error) {
-      toast.error("Chapitre introuvable");
     }
   };
 
