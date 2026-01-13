@@ -321,6 +321,14 @@ export const ChapterEpubReader: React.FC = () => {
       epubRootRef.current.innerHTML = "";
     }
 
+    // Don't initialize while data is still loading (container not rendered yet)
+    if (loading) {
+      console.log("⏳ Skipping EPUB init - still loading data");
+      return;
+    }
+
+    if (!chapter || !epubRootRef.current) return;
+
     let cancelled = false;
     setEpubReady(false);
     setEpubError(null);
