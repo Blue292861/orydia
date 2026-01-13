@@ -316,7 +316,7 @@ export const ChapterEpubReader: React.FC = () => {
   useEffect(() => {
     console.log("EPUB useEffect triggered", loading, "chapterId:", chapter?.id, "hasRef:", !!epubRootRef.current);
 
-    // 👇 TEST TEST
+    // 👇
     if (epubRootRef.current) {
       epubRootRef.current.innerHTML = "";
     }
@@ -711,24 +711,33 @@ export const ChapterEpubReader: React.FC = () => {
           try {
             await rendition.display(target);
             console.log(`✅ Display attempt ${attemptNumber} succeeded`);
+
+            // 👇 FORCE RESIZE après succès (fix 100%)
+            setTimeout(() => {
+              if (containerRef.current && renditionRef.current) {
+                const rect = containerRef.current.getBoundingClientRect();
+                renditionRef.current.resize(Math.floor(rect.width), Math.floor(rect.height));
+                console.log("🔄 Forced resize after display success");
+              }
+            }, 100);
           } catch (err) {
             console.warn(`Display failed (attempt ${attemptNumber}):`, err);
 
-            // Mark failure and clear saved location
+            // Mark failure and clear saved location if cfiKey
             if (cfiKey) {
-              localStorage.setItem(failureKey, "true");
+              localStorage.setItem(`${chapter}loadfailed${chapterId}`, "true");
               localStorage.removeItem(cfiKey);
             }
 
             if (attemptNumber === 1) {
-              // Attempt 2: try with readingHref (no saved location)
+              // Attempt 2: try with readingHref, no saved location
               return tryDisplay(readingHref, 2);
             } else if (attemptNumber === 2) {
               // Attempt 3: let epub.js decide
               return tryDisplay(undefined, 3);
-            } else if (attemptNumber === 3 && spineItems[0]?.href) {
+            } else if (attemptNumber === 3) {
               // Last resort: force first spine item
-              console.log("🔧 Last resort: forcing first spine item");
+              console.log("Last resort forcing first spine item");
               await rendition.display(spineItems[0].href);
             }
           }
