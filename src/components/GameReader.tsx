@@ -26,7 +26,6 @@ export function GameReader({ game, onBack }: GameReaderProps) {
     loadFirstChapter();
   }, [game]);
 
-  // ← COLLE LE NOUVEAU useEffect ICI 👇
   useEffect(() => {
     if (currentChapter?.id) {
       loadChoices(currentChapter.id);
