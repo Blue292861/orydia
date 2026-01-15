@@ -609,9 +609,8 @@ export const ChapterEpubReader: React.FC = () => {
 
         // Listener for readiness backup
         const onRendered = () => {
-          if (!cancelled && !epubReady) {
-            setEpubReady(true);
-          }
+          if (cancelled) return;
+          setEpubReady(true);
         };
 
         // Listener for location tracking
@@ -668,25 +667,80 @@ export const ChapterEpubReader: React.FC = () => {
         });
 
         // Display with saved location or fallback, robustly skipping cover pages
-        const cfiKey = `cfi_${chapter.id}`;  // au lieu de chapter_location_${chapterId}
-        const savedCFI = cfiKey ? localStorage.getItem(cfiKey) : null;
-        const savedLocation = typeof savedCFI === 'string' ? savedCFI : undefined;
+        const spineItems: any[] = [];
+        book.spine.each((section: any) => spineItems.push(section));
 
-        const spineItems: any[] = ((book.spine as any).items || []) as any[];
+        const firstContentIndex = getFirstContentIndex(spineItems);
+
+        // Restart mode (force début)
+        const restartKey = `chapter_restart_${chapterId}`;
+        if (localStorage.getItem(restartKey)) {
+          localStorage.removeItem(`chapterlocation${chapterId}`);
+          localStorage.removeItem(restartKey);
+
+          const skipItem = spineItems[firstContentIndex] || spineItems[0];
+          await rendition.display(skipItem?.href);
+          return;
+        }
+
+        const cfiKey = `chapterlocation${chapterId}`;
+        const savedCFI = localStorage.getItem(cfiKey);
+        const hasSavedCFI = !!savedCFI && savedCFI.startsWith("epubcfi(");
+
+        if (hasSavedCFI) {
+          await book.locations.generate(500);
+
+          const locs = book.locations as any;
+          const totalLocs = Number(locs.total) || 0;
+          const locNum = Number(locs.locationFromCfi(savedCFI)) || 0;
+          const percent = totalLocs > 0 ? locNum / totalLocs : 0;
+
+          if (spineItems.length >= 1) {
+            const rawIndex = Math.floor(percent * (spineItems.length - 1));
+            const pageIndex = Math.max(firstContentIndex, rawIndex); // ✅ skip cover robuste
+            const targetSection = spineItems[pageIndex]?.href || spineItems[firstContentIndex]?.href;
+            await rendition.display(targetSection);
+          } else {
+            await rendition.display(savedCFI);
+          }
+        } else {
+          const skipItem = spineItems[firstContentIndex] || spineItems[0];
+          await rendition.display(skipItem.href);
+        }
+
+        // Force save
+        setTimeout(async () => {
+          if (renditionRef.current?.currentLocation) {  // 👈 Plus safe
+            await new Promise(r => setTimeout(r, 2000));
+            const current = renditionRef.current.currentLocation();
+            if (current?.start?.cfi && !current.start.cfi.includes('page_1')) {
+              localStorage.setItem(cfiKey, current.start.cfi);
+            }
+          }
+        }, 2500);
 
         // More precise cover detection - avoid false positives
-        const isCoverLike = (item: any) => {
-          const href = String(item?.href || '').toLowerCase();
-          const idref = String(item?.idref || '').toLowerCase();
-          const props = String(item?.properties || '').toLowerCase();
+        function isCoverLike(item: any) {
+          const href = String(item?.href || "").toLowerCase();
+          const idref = String(item?.idref || "").toLowerCase();
+          const props = String(item?.properties || "").toLowerCase();
+          const linear = String(item?.linear || "").toLowerCase();
 
-          // More specific patterns to avoid blocking real content
-          const coverPatterns = /^cover\.|_cover\.|cover-image|cover\.x?html|titlepage|frontmatter|copyright-page|nav\.x?html$|toc\.x?html$/;
-          const looksLike = coverPatterns.test(href) || coverPatterns.test(idref) ||
-            props.includes('cover-image') || props === 'nav';
-          const nonLinear = String(item?.linear || '').toLowerCase() === 'no';
+          const coverPatterns = /(cover|cover-image|titlepage|frontmatter|copyright-page|nav\.x?html|toc\.x?html)/i;
+          const looksLike =
+            coverPatterns.test(href) ||
+            coverPatterns.test(idref) ||
+            props.includes("cover-image") ||
+            props.includes("nav");
+
+          const nonLinear = linear === "no";
           return looksLike || nonLinear;
-        };
+        }
+
+        function getFirstContentIndex(items: any[]) {
+          const idx = items.findIndex((it) => !isCoverLike(it));
+          return idx >= 0 ? idx : 0;
+        }
 
         // Check if we had a loading failure before for this chapter
         const failureKey = `chapter_load_failed_${chapterId}`;
@@ -694,27 +748,21 @@ export const ChapterEpubReader: React.FC = () => {
 
         // If we had a failure before, clear saved location to start fresh
         if (hadPreviousFailure && cfiKey) {
-          console.log('🔄 Previous load failure detected, clearing saved location');
+          console.log("🔄 Previous load failure detected, clearing saved location");
           localStorage.removeItem(cfiKey);
           localStorage.removeItem(failureKey);
         }
 
         // Re-check saved location after potential clear
-        const effectiveSavedLocation = hadPreviousFailure ? undefined : (typeof savedCFI === 'string' ? savedCFI : undefined);
+        const effectiveSavedLocation =
+          hadPreviousFailure ? undefined : (typeof savedCFI === "string" ? savedCFI : undefined);
 
-        // ✅ Display simple: soit on reprend le CFI, soit epub.js choisit la première section
-        await rendition.display(effectiveSavedLocation || undefined);
-
-        // Skip page 1 + garde navigation
-        const targetItem = spineItems[1] || spineItems[spineItems.length - 1];
-        await rendition.display(targetItem.href);
-        console.log('📖 Skip to:', targetItem.href)
-
-        // Force epubReady après rendu garanti
-        rendition.on('rendered', () => {
-          console.log('🎯 epub.js rendered → epubReady=true');
-          setEpubReady(true);
-        });
+        if (effectiveSavedLocation && effectiveSavedLocation.startsWith("epubcfi(")) {
+          await rendition.display(effectiveSavedLocation);
+        } else {
+          const skipItem = spineItems[firstContentIndex] || spineItems[0];
+          await rendition.display(skipItem?.href);
+        }
 
         // Single fallback readiness check if 'rendered' event is slow (consolidated timer)
         if (readinessTimerRef.current) window.clearTimeout(readinessTimerRef.current);
@@ -870,15 +918,17 @@ export const ChapterEpubReader: React.FC = () => {
     setTheme(newTheme);
   };
 
-  const handleResetPosition = () => {
-    if (chapterId) {
-      localStorage.removeItem(`chapter_location_${chapterId}`);
-    }
-    if (renditionRef.current) {
-      renditionRef.current.display?.().catch(() => { });
-    }
-    toast.success('Position réinitialisée');
-  };
+  const spineItemsRef = useRef<any[]>([]);
+  const firstContentIndexRef = useRef(0);
+
+  const handleResetPosition = useCallback(() => {
+    if (!chapterId) return;
+
+    localStorage.setItem(`chapter_restart_${chapterId}`, "1");
+    localStorage.removeItem(`chapterlocation${chapterId}`);
+
+    toast.success("Début du chapitre");
+  }, [chapterId]);
 
   // Debounced navigation handlers to prevent rapid clicks causing issues
   const handleNextPage = useCallback(() => {

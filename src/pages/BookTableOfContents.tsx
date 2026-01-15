@@ -24,34 +24,38 @@ export const BookTableOfContents: React.FC = () => {
   // Preload a chapter on hover/focus
   const handleChapterHover = useCallback((chapter: ChapterEpub) => {
     if (epubPreloadService.isCached(chapter.id) || epubPreloadService.isPreloading(chapter.id)) return;
-    
+
     const urlToPreload = chapter.merged_epub_url || chapter.epub_url;
     void epubPreloadService.preloadChapter(chapter.id, urlToPreload);
   }, []);
 
   // Navigate to chapter with preload - wait for completion for instant display
-  const handleChapterClick = useCallback(async (chapter: ChapterEpub) => {
+  const handleChapterClick = useCallback(async (chapter: ChapterEpub, forceRestart = false) => {
+    if (!bookId || !chapter.id) return; // SAFETY FIRST
+
     const urlToPreload = chapter.merged_epub_url || chapter.epub_url;
-    
+
+    if (forceRestart) {
+      localStorage.setItem(`chapter_restart_${chapter.id}`, "1");
+      localStorage.removeItem(`chapterlocation${chapter.id}`);
+    }
+
     // If already cached, navigate immediately
     if (epubPreloadService.isCached(chapter.id)) {
       navigate(`/book/${bookId}/chapter/${chapter.id}`);
       return;
     }
-    
-    // Show loading state
+
     setPreloadingChapterId(chapter.id);
-    
+
     try {
-      // Wait for preload to complete (with 8s timeout for slow connections)
       const preloadPromise = epubPreloadService.preloadChapter(chapter.id, urlToPreload);
       const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000));
-      
       await Promise.race([preloadPromise, timeoutPromise]);
     } catch (e) {
       console.warn('Preload failed, navigating anyway:', e);
     }
-    
+
     setPreloadingChapterId(null);
     navigate(`/book/${bookId}/chapter/${chapter.id}`);
   }, [bookId, navigate]);
@@ -90,8 +94,9 @@ export const BookTableOfContents: React.FC = () => {
       }
     };
 
-    loadData();
+    void loadData();
   }, [bookId, navigate]);
+
 
   if (loading) {
     return (
@@ -119,7 +124,7 @@ export const BookTableOfContents: React.FC = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour
           </Button>
-          
+
           <div className="flex flex-col md:flex-row gap-6">
             <img
               src={book.coverUrl}
@@ -145,7 +150,7 @@ export const BookTableOfContents: React.FC = () => {
             {Array.from(progressMap.values()).filter(Boolean).length} / {chapters.length} lus
           </Badge>
         </div>
-        
+
         {chapters.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
@@ -159,7 +164,7 @@ export const BookTableOfContents: React.FC = () => {
               const isCompleted = progressMap.get(chapter.id) === true;
               const isInProgress = progressMap.has(chapter.id) && !isCompleted;
               const isPreloading = preloadingChapterId === chapter.id;
-              
+
               return (
                 <Card
                   key={chapter.id}
@@ -204,7 +209,14 @@ export const BookTableOfContents: React.FC = () => {
                     )}
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full" disabled={isPreloading}>
+                    <Button
+                      className="w-full"
+                      disabled={isPreloading}
+                      onClick={(e) => {
+                        e.stopPropagation(); // empêche le onClick du Card de se déclencher aussi
+                        void handleChapterClick(chapter, isCompleted); // restart uniquement si "Lu" => "Relire le chapitre"
+                      }}
+                    >
                       {isPreloading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
