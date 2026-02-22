@@ -17,7 +17,8 @@ import GiftAdmin from '@/components/GiftAdmin';
 import { NewsletterAdmin } from '@/components/NewsletterAdmin';
 import { SkillTreeAdmin } from '@/components/SkillTreeAdmin';
 import { FortuneWheelAdmin } from '@/components/FortuneWheelAdmin';
-import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap, Gift, Mail, TreeDeciduous, Sparkles, Search } from 'lucide-react';
+import { ReportsAdmin } from '@/components/ReportsAdmin';
+import { Plus, MoreVertical, BookOpen, Pencil, Trash2, Crown, Star, Zap, Gift, Mail, TreeDeciduous, Sparkles, Search, Flag } from 'lucide-react';
 import { useBooks } from '@/hooks/useBooks';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Input } from '@/components/ui/input';
@@ -103,6 +104,7 @@ export const AdminDashboard: React.FC = () => {
           <TabsTrigger value="gifts" className="flex items-center gap-1"><Gift className="w-4 h-4" />Cadeaux</TabsTrigger>
           <TabsTrigger value="levels" className="flex items-center gap-1"><Star className="w-4 h-4" />Niveaux</TabsTrigger>
           <TabsTrigger value="newsletter" className="flex items-center gap-1"><Mail className="w-4 h-4" />Newsletter</TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-1"><Flag className="w-4 h-4" />Signalements</TabsTrigger>
           <TabsTrigger value="test">🧪 Test</TabsTrigger>
         </TabsList>
 
@@ -257,6 +259,10 @@ export const AdminDashboard: React.FC = () => {
 
         <TabsContent value="newsletter">
           <NewsletterAdmin />
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <ReportsAdmin />
         </TabsContent>
 
         <TabsContent value="test">
