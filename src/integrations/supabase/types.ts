@@ -671,6 +671,45 @@ export type Database = {
         }
         Relationships: []
       }
+      chapter_reports: {
+        Row: {
+          book_id: string
+          chapter_id: string
+          chapter_title: string
+          created_at: string
+          description: string
+          id: string
+          report_type: string
+          screenshot_url: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          book_id: string
+          chapter_id: string
+          chapter_title: string
+          created_at?: string
+          description: string
+          id?: string
+          report_type: string
+          screenshot_url?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          book_id?: string
+          chapter_id?: string
+          chapter_title?: string
+          created_at?: string
+          description?: string
+          id?: string
+          report_type?: string
+          screenshot_url?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chapter_waypoints: {
         Row: {
           cfi_range: string
