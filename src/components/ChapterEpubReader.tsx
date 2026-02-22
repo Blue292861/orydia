@@ -13,10 +13,11 @@ import { ChapterReadingControls } from '@/components/ChapterReadingControls';
 import { ChestOpeningDialog } from '@/components/ChestOpeningDialog';
 import { ChapterCompletionAnimation } from '@/components/ChapterCompletionAnimation';
 import WaypointPopup from '@/components/WaypointPopup';
+import { ChapterReportDialog } from '@/components/ChapterReportDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserStats } from '@/contexts/UserStatsContext';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw, Type, ShieldAlert, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Gift, ChevronLeft, ChevronRight, RotateCcw, Type, ShieldAlert, CheckCircle, Flag } from 'lucide-react';
 import { toast } from 'sonner';
 import { Book } from '@/types/Book';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -73,6 +74,9 @@ export const ChapterEpubReader: React.FC = () => {
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
   const [activeWaypoint, setActiveWaypoint] = useState<Waypoint | null>(null);
   const [showWaypointPopup, setShowWaypointPopup] = useState(false);
+
+  // Report dialog state
+  const [reportOpen, setReportOpen] = useState(false);
 
   // EPUB refs (not states!)
   const bookRef = useRef<any>(null);
@@ -1344,6 +1348,17 @@ export const ChapterEpubReader: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Report button on the right */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setReportOpen(true)}
+            className="h-9 w-9 shrink-0 z-40"
+            title="Signaler un problème"
+          >
+            <Flag className="h-5 w-5" />
+          </Button>
         </div>
       </div>
 
@@ -1431,6 +1446,17 @@ export const ChapterEpubReader: React.FC = () => {
           if (nextId) navigate(`/book/${bookId}/chapter/${nextId}`);
         }}
       />
+
+      {/* Chapter Report Dialog */}
+      {bookId && chapterId && chapter && (
+        <ChapterReportDialog
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+          bookId={bookId}
+          chapterId={chapterId}
+          chapterTitle={chapter.title}
+        />
+      )}
     </div>
   );
 };
