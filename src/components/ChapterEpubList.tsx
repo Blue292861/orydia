@@ -36,6 +36,8 @@ export const ChapterEpubList: React.FC<ChapterEpubListProps> = ({ bookId, onEdit
   const [deleteChapter, setDeleteChapter] = useState<ChapterEpub | null>(null);
   const [migrating, setMigrating] = useState(false);
   const [waypointChapter, setWaypointChapter] = useState<ChapterEpub | null>(null);
+  const [deleteAllOpen, setDeleteAllOpen] = useState(false);
+  const [deletingAll, setDeletingAll] = useState(false);
 
   const loadChapters = async () => {
     try {
@@ -65,6 +67,21 @@ export const ChapterEpubList: React.FC<ChapterEpubListProps> = ({ bookId, onEdit
       toast.error('Erreur lors de la suppression');
     } finally {
       setDeleteChapter(null);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    setDeletingAll(true);
+    try {
+      await chapterEpubService.deleteAllChaptersByBookId(bookId);
+      toast.success('Tous les chapitres ont été supprimés');
+      loadChapters();
+    } catch (error) {
+      console.error('Error deleting all chapters:', error);
+      toast.error('Erreur lors de la suppression');
+    } finally {
+      setDeletingAll(false);
+      setDeleteAllOpen(false);
     }
   };
 
