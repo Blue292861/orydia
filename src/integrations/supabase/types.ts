@@ -3527,7 +3527,7 @@ export type Database = {
           potential_loss: number
           potential_win: number
           stake_amount: number
-          time_remaining: unknown
+          time_remaining: string
         }[]
       }
       get_user_active_skill_bonuses: {

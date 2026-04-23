@@ -260,7 +260,7 @@ export async function createWheelConfig(config: Omit<WheelConfig, 'id' | 'create
  * Update wheel config (admin)
  */
 export async function updateWheelConfig(id: string, updates: Partial<WheelConfig>): Promise<void> {
-  const updateData: Record<string, unknown> = {};
+  const updateData: any = {};
   if (updates.name !== undefined) updateData.name = updates.name;
   if (updates.startDate !== undefined) updateData.start_date = updates.startDate;
   if (updates.endDate !== undefined) updateData.end_date = updates.endDate;
