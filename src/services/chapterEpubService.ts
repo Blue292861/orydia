@@ -53,6 +53,15 @@ export const chapterEpubService = {
     if (error) throw error;
   },
 
+  async deleteAllChaptersByBookId(bookId: string): Promise<void> {
+    const { error } = await supabase
+      .from('book_chapter_epubs')
+      .delete()
+      .eq('book_id', bookId);
+
+    if (error) throw error;
+  },
+
   async reorderChapters(bookId: string, newOrder: { id: string; position: number }[]): Promise<void> {
     const updates = newOrder.map(({ id, position }) =>
       supabase
