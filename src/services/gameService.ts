@@ -49,12 +49,10 @@ export const gameService = {
   },
 
   async createGame(game: Omit<Game, 'id' | 'created_at' | 'updated_at'>): Promise<Game> {
+    const { genres, ...gameData } = game;
     const { data, error } = await supabase
       .from('games')
-      .insert({
-        ...game,
-        genres: game.genres || []
-      })
+      .insert(gameData)
       .select()
       .single();
     
@@ -63,9 +61,10 @@ export const gameService = {
   },
 
   async updateGame(id: string, updates: Partial<Game>): Promise<Game> {
+    const { genres, ...updateData } = updates;
     const { data, error } = await supabase
       .from('games')
-      .update(updates)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
