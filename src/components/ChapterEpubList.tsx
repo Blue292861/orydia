@@ -150,6 +150,17 @@ export const ChapterEpubList: React.FC<ChapterEpubListProps> = ({ bookId, onEdit
 
   return (
     <>
+      <div className="mb-4 flex justify-end">
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => setDeleteAllOpen(true)}
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Supprimer tous les chapitres
+        </Button>
+      </div>
+
       {needsMigration && (
         <div className="mb-4">
           <Button
@@ -231,6 +242,23 @@ export const ChapterEpubList: React.FC<ChapterEpubListProps> = ({ bookId, onEdit
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteAllOpen} onOpenChange={setDeleteAllOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer tous les chapitres ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Les {chapters.length} chapitre(s) de ce livre seront définitivement supprimés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingAll}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAll} disabled={deletingAll}>
+              {deletingAll ? 'Suppression...' : 'Tout supprimer'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
